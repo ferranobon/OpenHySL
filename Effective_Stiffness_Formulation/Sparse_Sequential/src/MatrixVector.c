@@ -16,11 +16,11 @@
 #include <string.h>
 
 #include "ErrorHandling.h"
-#include "MatrixVector.h"
+#include "Dense_MatrixVector.h"
 #include "Netlib.h"
 
 
-void Init_MatrixVector( MatrixVector *const Mat, const int Rows, const int Cols )
+void Init_Dense_MatrixVector( Dense_MatrixVector *const Mat, const int Rows, const int Cols )
 {
      if ( Rows >= 0 ){ 
 	  (*Mat).Rows = Rows;
@@ -37,7 +37,7 @@ void Init_MatrixVector( MatrixVector *const Mat, const int Rows, const int Cols 
 }
 
 
-void MatrixVector_From_File( MatrixVector *const Mat, const char *Filename )
+void Dense_MatrixVector_From_File( Dense_MatrixVector *const Mat, const char *Filename )
 {
 
 	FILE *InFile;
@@ -56,7 +56,7 @@ void MatrixVector_From_File( MatrixVector *const Mat, const char *Filename )
 
 }
 
-void Set2Value( MatrixVector *const Mat, const float Value )
+void Set2Value( Dense_MatrixVector *const Mat, const float Value )
 {
 
   static int incx = 0;
@@ -70,7 +70,7 @@ void Set2Value( MatrixVector *const Mat, const float Value )
   scopy_( &Length, &Val, &incx, (*Mat).Array, &incy );
 }
 
-void Modify_Element( MatrixVector *const Mat, const int RowIndex, const int ColIndex, const float Value, const char *Operation )
+void Modify_Element( Dense_MatrixVector *const Mat, const int RowIndex, const int ColIndex, const float Value, const char *Operation )
 {
 
   const char *OpSet = "Set";
@@ -96,7 +96,7 @@ void Modify_Element( MatrixVector *const Mat, const int RowIndex, const int ColI
   }
 }
 
-void Add3Mat( MatrixVector *const MatY, const MatrixVector *const MatA, const MatrixVector *const MatB, const MatrixVector *const MatC, const Scalars Const )
+void Dense_Add3Mat( Dense_MatrixVector *const MatY, const Dense_MatrixVector *const MatA, const Dense_MatrixVector *const MatB, const Dense_MatrixVector *const MatC, const Scalars Const )
 {
 
 	int i;           /* A counter */
@@ -142,7 +142,7 @@ void Add3Mat( MatrixVector *const MatY, const MatrixVector *const MatA, const Ma
 	}
 }
 
-void MatrixVector_To_File( const MatrixVector *const Mat, const char *Filename )
+void Dense_MatrixVector_To_File( const Dense_MatrixVector *const Mat, const char *Filename )
 {
 	FILE *OutFile;
 
@@ -161,7 +161,7 @@ void MatrixVector_To_File( const MatrixVector *const Mat, const char *Filename )
 	} else ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
 }
 
-void Destroy_MatrixVector( MatrixVector *const Mat)
+void Destroy_Dense_MatrixVector( Dense_MatrixVector *const Mat)
 {
 	/* Set the number of rows and columns to 0 */
 	(*Mat).Rows = 0;
