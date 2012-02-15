@@ -24,7 +24,7 @@ typedef struct MatVec {
 	int Rows; /*!< \brief Number of Rows of the matrix */
 	int Cols; /*!< \brief Number of Columns of the matrix */
 	float *Array; /*!< \brief Array of size \f$Size = Rows*Cols\f$ */
-} MatrixVector;
+} Dense_MatrixVector;
 
 /**
  * \brief A structure
@@ -37,9 +37,9 @@ typedef struct Scal {
 } Scalars;
 
 /**
- * \brief Creates and initialises to zero the elements in the structure MatrixVector
+ * \brief Creates and initialises to zero the elements in the structure Dense_MatrixVector
  *
- * Function used to create and initialise the structure MatrixVector. It makes use of the calloc() function to allocate
+ * Function used to create and initialise the structure Dense_MatrixVector. It makes use of the calloc() function to allocate
  * the memory dynamically and initialise all the elements to zero. The elements are located using a 1-dimensional array
  * for both matrices and vectors, being the size of it the product of \f$Rows*Columns\f$.
  *
@@ -47,9 +47,9 @@ typedef struct Scal {
  * \param[in] Rows The number of rows of the matrix/vector
  * \param[in] Cols The number of columns of the matrix/vector
  *
- * \sa MatrixVector.
+ * \sa Dense_MatrixVector.
  */
-void Init_MatrixVector( MatrixVector *Mat, const int Rows, const int Cols );
+void Init_Dense_MatrixVector( Dense_MatrixVector *Mat, const int Rows, const int Cols );
 
 /**
  * \brief Reads a Matrix or a vector from a file
@@ -58,14 +58,14 @@ void Init_MatrixVector( MatrixVector *Mat, const int Rows, const int Cols );
  *
  * \pre The file is supposed to be an ASCII file and the elements need to be in the proper order (row or major or the
  * appropiate packing storage) since the routine stores the elements in the memory sequentially.
- * Also, the data structure MatrixVector should be properly initialised through the Init_MatrixVector() routine
+ * Also, the data structure Dense_MatrixVector should be properly initialised through the Init_Dense_MatrixVector() routine
  *
  * \param[in,out] Mat The matrix or vector where the content of the file will be stored
  * \param[in] Filename The name of the file to be opened.
  *
- * \sa MatrixVector.
+ * \sa Dense_MatrixVector.
  */
-void MatrixVector_From_File( MatrixVector *const Mat, const char *Filename );
+void Dense_MatrixVector_From_File( Dense_MatrixVector *const Mat, const char *Filename );
 
 /**
  * \brief Sets all the elements to the desired value
@@ -73,14 +73,14 @@ void MatrixVector_From_File( MatrixVector *const Mat, const char *Filename );
  * All the elements are set to the desired value. This function makes use of the BLAS routine \c dcopy_( ) with
  * \f$\textrm{incx} = 0\f$ and \f$\textrm{incy} = 1\f$
  *
- * \pre The data structure MatrixVector should be properly initialised through the Init_MatrixVector() routine.
+ * \pre The data structure Dense_MatrixVector should be properly initialised through the Init_Dense_MatrixVector() routine.
  *
  * \param[in,out] Mat The matrix or vector to be modified
  * \param[in] Value Contains the value that will be assigned to all the elements of \c Mat.
  *
- * \sa MatrixVector.
+ * \sa Dense_MatrixVector.
  */
-void Set2Value( MatrixVector *const Mat, const float Value );
+void Set2Value( Dense_MatrixVector *const Mat, const float Value );
 
 /**
  * \brief Modify the element given by the coordinates of the matrix or vector by a given operation
@@ -88,7 +88,7 @@ void Set2Value( MatrixVector *const Mat, const float Value );
  * The element defined by its coordinates, \f$(RowIndex, ColIndex)\f$ is modified according to the basic operations: Set, Add, Multiply
  * and Divide. The operation is selected during function call through the argument operation. The Matrix must contain elements of type float.
  *
- * \pre The data structure MatrixVector should be properly initialised through the Init_MatrixVector() routine.
+ * \pre The data structure Dense_MatrixVector should be properly initialised through the Init_Dense_MatrixVector() routine.
  *
  * \param[in,out] Mat The matrix or vector whose element will be modified.
  * \param[in] RowIndex stores the row index of the element.
@@ -101,9 +101,9 @@ void Set2Value( MatrixVector *const Mat, const float Value );
  * \li If \c operation = 'Multiply', then  \f$M(i,j) = M(i,j)*Value\f$.
  * \li If \c operation = 'Divide', then \f$M(i,j) = M(i,j)/Value\f$.
  *
- * \sa MatrixVector.
+ * \sa Dense_MatrixVector.
  */
-void Modify_Element( MatrixVector *const Mat, const int RowIndex, const int ColIndex, const float Value, const char *Operation );
+void Modify_Element( Dense_MatrixVector *const Mat, const int RowIndex, const int ColIndex, const float Value, const char *Operation );
 
 /**
  * \brief Adds three symmetric matrices
@@ -111,7 +111,7 @@ void Modify_Element( MatrixVector *const Mat, const int RowIndex, const int ColI
  * This routine adds three symmetric matrices into a new matrix Y through the formula \f$ [Y] = \alpha [A] + \beta [B] + \gamma [C]\f$
  * Only the upper part is referenced (Lower part in FORTRAN routines). It makes use of the dlacpy_( ), dlascl_( ) and daxpy_( ) routines.
  *
- * \pre The data structures of type MatrixVector should be properly initialised through the Init_MatrixVector() routine.
+ * \pre The data structures of type Dense_MatrixVector should be properly initialised through the Init_Dense_MatrixVector() routine.
  * Furthermore, the matrices should be symmetric and the elements of the upper part (Lower part in FORTRAN routines) must be
  * stored in general storage. Furthermore, \f$S(Y) \geq max(S(A),S(B),S(C))\f$ where \f$S(X) = X.Rows*X.Cols\f$ is the size of
  * the matrix.
@@ -122,9 +122,9 @@ void Modify_Element( MatrixVector *const Mat, const int RowIndex, const int ColI
  * \param[in] MatC matrix that will be multiplied by the third constant.
  * \param[in] Const an argument of type Scalars. On entry, \c Const.Alpha \f$= \alpha\f$, \c Const.Beta \f$= \beta\f$ and \c Const.Gamma \f$= \gamma\f$.
  *
- * \sa MatrixVector, Scalars.
+ * \sa Dense_MatrixVector, Scalars.
  */
-void Add3Mat( MatrixVector *const MatY, const MatrixVector *const MatA, const MatrixVector *const MatB, const MatrixVector *const MatC, const Scalars Const );
+void Dense_Add3Mat( Dense_MatrixVector *const MatY, const Dense_MatrixVector *const MatA, const Dense_MatrixVector *const MatB, const Dense_MatrixVector *const MatC, const Scalars Const );
 
 /**
  * \brief Writes a matrix or a vector to a file
@@ -137,23 +137,23 @@ void Add3Mat( MatrixVector *const MatY, const MatrixVector *const MatA, const Ma
  * \param[in] Mat The matrix or vector whose array must be stored into a file
  * \param[in] Filename The name of the file where the contents of \c Mat will be stored.
  *
- * \sa MatrixVector.
+ * \sa Dense_MatrixVector.
  */
-void MatrixVector_To_File( const MatrixVector *const Mat, const char *Filename );
+void Dense_MatrixVector_To_File( const Dense_MatrixVector *const Mat, const char *Filename );
 
 /**
- * \brief Deallocates the memory of the desired MatrixVector.
+ * \brief Deallocates the memory of the desired Dense_MatrixVector.
  *
  * The memory is deallocated using free() and the number of rows and columns is set to 0. This routine should be used as soon as a
  * matrix or vector becomes useless to free the memory or before changing size of the matrix or vector.
  *
- * \pre The data structure MatrixVector should be properly initialised.
+ * \pre The data structure Dense_MatrixVector should be properly initialised.
  *
  * \param[out] Mat The matrix or vector to be destroyed.
  *
- * \sa MatrixVector.
+ * \sa Dense_MatrixVector.
  */
-void Destroy_MatrixVector( MatrixVector *const Mat);
+void Destroy_Dense_MatrixVector( Dense_MatrixVector *const Mat);
 
 /**
  * \brief Returns the maximum of two values
