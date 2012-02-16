@@ -21,10 +21,33 @@
  * stored in row major order.
  */
 typedef struct MatVec {
-	int Rows; /*!< \brief Number of Rows of the matrix */
-	int Cols; /*!< \brief Number of Columns of the matrix */
-	float *Array; /*!< \brief Array of size \f$Size = Rows*Cols\f$ */
+	int Rows; /*!< \brief Number of Rows of the matrix. */
+	int Cols; /*!< \brief Number of Columns of the matrix. */
+	float *Array; /*!< \brief Array of size \f$Size = Rows*Cols\f$. */
 } Dense_MatrixVector;
+
+/**
+ * \brief Sparse Matrix Storage. MKL CSR-three array variation.
+ *
+ * This structure is used in order to store sparse matrices. The Intel MKL CSR (Compressed Sparse Row) three array
+ * variation [REFERENCE MKL needed] is used: \a Values, \a Volumns and \a RowIndex.
+ * - \c columns 
+ * - \c rowIndex 
+ */
+typedef struct SpMatVec{
+     int Rows;      /*!< \brief Number of Rows of the matrix. */
+     int Cols;      /*!< \brief Number of Columns of the matrix. */
+     float *Values; /*!< \brief A real or complex array that contains the non-zero elements of a sparse matrix. The non-zero
+		     * elements are mapped into the values array using the row-major upper triangular storage mapping. The
+		     * lenght of the array is equal to the number of non-zero elements in the matrix. */
+     int *Columns;  /*!< \brief Element \a i of the integer array columns is the number of the column that contains the
+		     * i-th element in the values array. The lenght of the array is equal to the number of non-zero elements
+		     * in the matrix. */
+     int *RowIndex; /*!< \brief Element \a j of the integer array rowIndex gives the index of the element in the values
+		     * array that is first non-zero element in a row j. The length of the array is equal to the number of
+		     * rows plus one. */
+} Sp_MatrixVector;
+
 
 /**
  * \brief A structure
@@ -51,8 +74,38 @@ typedef struct Scal {
  */
 void Init_Dense_MatrixVector( Dense_MatrixVector *Mat, const int Rows, const int Cols );
 
+
 /**
- * \brief Reads a Matrix or a vector from a file
+ * \brief Converts a dense symmetric matrix into CSR-three array variation format.
+ *
+ * The dense matrix is converted into the CSR-three array variation format of the Intel MKL library. It first counts the
+ * number of non-zero elements and afterwards it allocates the necessary memory for the Values and Columns arrays
+ * (\sa Sp_MatVec). The CSR matrix will be zero-based indexing and will contain the upper triangular part of the dense matrix.
+ *
+ * \param[in] Mat Dense symmetric matrix.
+ * \param[out] Sp_Mat Sparse matrix stored in CSR-three variation array. It contains the upper triangular part of the dense
+ * matrix and follows a zero-based indexing.
+ *
+ */
+void Dense_to_CSR_SY( const Dense_MatrixVector *const Mat, Sp_MatrixVector *const Sp_Mat )
+
+/**
+ * \brief Counts the non-zero elements in a Symmetric Matrix.
+ *
+ * The non-zero elements of a Symmetric Matrix are counted. Only the upper triangular part is explicitly used (Lower diagonal
+ * part in Fortran).
+ *
+ * \param[in] Sym_Matrix The considered symmetrical matrix.
+ * \param[in] Rows The number of rows of \c Sym_Matrix.
+ * \param[in] Cols The number of columns of \c Sym_Matrix.
+ *
+ * \return Number of non-zero elements in the upper triangular part of the matrix.
+ *
+ */
+int Count_Nonzero_Elements_SY( const float *const Sym_Matrix, const int Rows, const int Cols );
+
+/**
+ * \brief Reads a Matrix or a vector from a file.
  *
  * The contents of the desired text file, will be read and stored into the Matrix or Vector.
  *

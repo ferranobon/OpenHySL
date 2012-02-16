@@ -19,6 +19,7 @@
 #include "Dense_MatrixVector.h"
 #include "Netlib.h"
 
+#include <mkl_spblas.h>
 
 void Init_Dense_MatrixVector( Dense_MatrixVector *const Mat, const int Rows, const int Cols )
 {
@@ -36,6 +37,52 @@ void Init_Dense_MatrixVector( Dense_MatrixVector *const Mat, const int Rows, con
 	(*Mat).Array = calloc( (*Mat).Rows*(*Mat).Cols, sizeof(float));
 }
 
+void Dense_to_CSR_SY( const Dense_MatrixVector *const Mat, Sp_MatrixVector *const Sp_Mat )
+{
+
+     int Num_NonZero;  /* Number of non-zero elements */
+     int job[6], lda;  /* Variables required by mkl_sdnscsr_( ) */
+
+     /* Copy the number of Rows and Columns */
+     Sp_Mat->Rows = Mat->Rows;
+     Sp_Mat->Cols = Mat->Cols;
+
+     /* Count the number of non-zero elements */
+     Num_Nonzero = Count_Nonzero_Elements_SY( Mat->Array, Mat->Rows, Mat->Cols );
+     
+     /* Allocate the necessary space for the Value and Columns arrays */
+     Sp_Mat->Values = (float *) calloc( Num_Nonzero, sizeof(float) );
+     Sp_Mat->Columns = (int *) calloc( Num_Nonzero, sizeof(int) );
+
+     /* Allocate memory for the RowIndex array */
+     Sp_Mat->RowIndex = (int *) calloc( Mat->Rows, sizeof( int ) );
+
+     /* MKL: Transform the dense matrix into a CSR-three array variation matrix */
+     job[0] = 0; /* The matrix is converted to CSR format. */
+     job[1] = 0; /* Zero-based indexing is used for the dense matrix. */
+     job[2] = 0; /* Zero-based indexing for the sparse matrix is used. */
+     job[3] = 1; /* Values will contain the upper triangular part of the dense matrix. */
+     job[4] = Num_Nonzero; /* Maximum number of non-zero elements allowed. */
+     job[5] = 1; /* Values, Columns and RowIndex arrays are generated. */
+     lda = Max( 1, Sp_Mat->Rows );
+     mkl_sdnscsr_( job, &Sp_Mat->Rows, &Sp_Mat->Cols, Mat->Array, &lda, Sp_Mat->Values, Sp_Mat->Columns, Sp_Mat->RowIndex );
+}
+
+int Count_Nonzero_Elements_SY( const float *const Sym_Matrix, const int Rows, const int Cols )
+{
+     int i, j;
+     int Count;
+
+     Count = 0;
+     for ( i = 0; i < Rows; i++ ){
+	  for ( j = i; j < Cols; j++ ){
+	       if ( Sym_Matrix[i*Cols + j] != 0.0 ){
+		    Count = Count + 1;
+	  }
+     }
+
+     return Count;
+}
 
 void Dense_MatrixVector_From_File( Dense_MatrixVector *const Mat, const char *Filename )
 {
