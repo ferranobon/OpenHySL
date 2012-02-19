@@ -27,6 +27,7 @@ option(USE_MKL      "Use Intel MKL libraries"                 OFF)
 option(USE_ATLAS    "Use ATLAS implementation"                OFF)
 option(USE_GOTOBLAS "Use GOTOBLAS implementation"             OFF)
 option(USE_MPI      "Build the parallel implementation"       OFF)
+option(USE_SPARSE   "Build with sparse matrix support"        OFF)
 option(BUILD_REALTIME "Build also realtime application"       OFF)
 
 # Add support for Debian OS
@@ -77,7 +78,14 @@ if(USE_MPI)
   add_subdirectory(Parallel)
 else(NOT USE_MPI)
   # Rules to build the programs related to the sequential version of the algorithm.
-  add_subdirectory(Sequential)
+  if(USE_SPARSE)
+    add_subdirectory(Sparse_Sequential)
+    if(NOT USE_MKL)
+      message(FATAL_ERROR "Sparse support is only available through the MKL libraries")
+    endif()
+  else(NOT USE_SPARSE)
+    add_subdirectory(Sequential)
+  endif()
 endif()
 
 # Rules to build the programs related to the substructure. Each program will
@@ -88,7 +96,7 @@ Find_Package(Doxygen)
 if (DOXYGEN_FOUND)
 
   set(SOURCE_DOXYGEN_PATH ${CMAKE_BINARY_DIR}/..)
-  set(SOURCE_DOXYGEN "${SOURCE_DOXYGEN_PATH}/Common_Files ${SOURCE_DOXYGEN_PATH}/Substructure ${SOURCE_DOXYGEN_PATH}/SAlgorithm")
+  set(SOURCE_DOXYGEN "${SOURCE_DOXYGEN_PATH}/Common_Files ${SOURCE_DOXYGEN_PATH}/Substructure ${SOURCE_DOXYGEN_PATH}/Sequential ${SOURCE_DOXYGEN_PATH}/Sparse_Sequential")
 
   configure_file( ${CMAKE_BINARY_DIR}/../Documentation/SAlgorithm.doxyfile ${CMAKE_BINARY_DIR}/Doxyfile @ONLY)
 

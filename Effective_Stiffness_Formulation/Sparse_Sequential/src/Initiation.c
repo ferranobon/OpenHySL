@@ -96,7 +96,7 @@ int Get_Type_Protocol( )
      }
 }
 
-void CalculateMatrixC( const MatrixVector *const Mass, const MatrixVector *const Stif, MatrixVector *const Damp, const RayleighConst *const Rayleigh )
+void CalculateMatrixC( const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const Stif, Dense_MatrixVector *const Damp, const RayleighConst *const Rayleigh )
 {
 	char uplo;
 	int ione;
@@ -138,7 +138,7 @@ void CalculateMatrixC( const MatrixVector *const Mass, const MatrixVector *const
 
 }
 
-void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *const Stif, const Scalars Const )
+void CalculateMatrixKeinv( Dense_MatrixVector *const Keinv, const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const Damp, const Dense_MatrixVector *const Stif, const Scalars Const )
 {
 
 	char uplo;
@@ -148,7 +148,7 @@ void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const 
 	lda = Max( 1, (*Keinv).Rows );
 
 	/* Perform Meinv = [M + gamma*Delta_t*C + beta*Delta_t^2*K] */
-	Add3Mat( &(*Keinv), &(*Stif), &(*Mass), &(*Damp), Const );
+	Dense_Add3Mat( &(*Keinv), &(*Stif), &(*Mass), &(*Damp), Const );
 
 	/* LAPACK: Compute the Cholesky factorization of the symmetric positive definite matrix Meinv */
 	spotrf_( &uplo, &(*Keinv).Rows, (*Keinv).Array, &lda, &info );
@@ -177,7 +177,7 @@ void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const 
 
 }
 
-void BuildMatrixXc( const MatrixVector *const Mat, float *MatCouple, const int PosCpl, const int OrderC )
+void BuildMatrixXc( const Dense_MatrixVector *const Mat, float *MatCouple, const int PosCpl, const int OrderC )
 {
 
 	int i, j, m;
@@ -202,7 +202,7 @@ void BuildMatrixXc( const MatrixVector *const Mat, float *MatCouple, const int P
 	}
 }
 
-void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const VecXcm, const int PosCpl, const int OrderC )
+void BuildMatrixXcm( const Dense_MatrixVector *const Mat, Dense_MatrixVector *const VecXcm, const int PosCpl, const int OrderC )
 {
 
 	int i, j;  /* Counters */

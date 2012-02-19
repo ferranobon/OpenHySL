@@ -25,7 +25,7 @@
  * This routine makes use of the level 1 BLAS dcopy_().
  *
  * \pre
- * - The global vector (length \f$Order\f$) must be properly initialised through the Init_MatrixVector() routine.
+ * - The global vector (length \f$Order\f$) must be properly initialised through the Init_Dense_MatrixVector() routine.
  * - The vector of length \f$Order- OrderC\f$ must contain the non-coupling part that the global vector requires.
  * - The coupling nodes are assumed to be consecutive (the first node is assumed to be PosCouple).
  * - The number of rows of the vectors must be indicative of their length.
@@ -40,20 +40,20 @@
  * \post
  * - \c Vec contains the non-coupling part of the vector, leaving the coupling nodes untouched.
  *
- * \sa MatrixVector.
+ * \sa Dense_MatrixVector.
  */
-void JoinNonCouplingPart( MatrixVector *const VecXm, const MatrixVector *const Keinv_m, const MatrixVector *const fcprevsub, MatrixVector *const Vec, const int PosCouple, const int OrderC );
+void JoinNonCouplingPart( Dense_MatrixVector *const VecXm, const Dense_MatrixVector *const Keinv_m, const Dense_MatrixVector *const fcprevsub, Dense_MatrixVector *const Vec, const int PosCouple, const int OrderC );
 
-void Compute_Acceleration( const MatrixVector *const DispTdT, const MatrixVector *const DispT, const MatrixVector *const VelT,
-			   const MatrixVector *const AccT, const float a0, const float a2, const float a3,
-			   MatrixVector *const AccTdT );
+void Compute_Acceleration( const Dense_MatrixVector *const DispTdT, const Dense_MatrixVector *const DispT, const Dense_MatrixVector *const VelT,
+			   const Dense_MatrixVector *const AccT, const float a0, const float a2, const float a3,
+			   Dense_MatrixVector *const AccTdT );
 
-void Compute_Velocity( const MatrixVector *const VelT, const MatrixVector *const AccT, const MatrixVector *const AccTdT,
-		       const float a6, const float a7, MatrixVector *const VelTdT );
+void Compute_Velocity( const Dense_MatrixVector *const VelT, const Dense_MatrixVector *const AccT, const Dense_MatrixVector *const AccTdT,
+		       const float a6, const float a7, Dense_MatrixVector *const VelTdT );
 
-void Compute_Force_Error( const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *Stiff,
-			  const MatrixVector *const AccTdT, const MatrixVector *const VelTdT, const MatrixVector *const DispTdT,
-			  const MatrixVector *const fc, const MatrixVector *const LoadTdT, MatrixVector *const fu );
+void Compute_Force_Error( const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const Damp, const Dense_MatrixVector *Stiff,
+			  const Dense_MatrixVector *const AccTdT, const Dense_MatrixVector *const VelTdT, const Dense_MatrixVector *const DispTdT,
+			  const Dense_MatrixVector *const fc, const Dense_MatrixVector *const LoadTdT, Dense_MatrixVector *const fu );
 
 
 #endif /* ENDINGSTEP_H_ */

@@ -27,7 +27,7 @@
  * - \f$i\f$ denotes the step.
  *
  * \pre
- * - All elements of type MatrixVector must be properly initialised through the Init_MatrixVector() routine.
+ * - All elements of type Dense_MatrixVector must be properly initialised through the Init_Dense_MatrixVector() routine.
  * - The size of the vectors must be coeherent, since it will not be checked in the routine.
  * - The number of rows of the vector \f$f_i\f$ must be indicative of its length.
  *
@@ -39,19 +39,19 @@
  * \post
  * - \f$f_i\f$ is the result of the operation \f$f_i = l_i + f_c + \Delta_f\f$.
  *
- * \sa MatrixVector.
+ * \sa Dense_MatrixVector.
  */
-void Calculatefi( MatrixVector *const fi, const MatrixVector *const fc, const MatrixVector *const li, const MatrixVector *const Deltaf );
+void Calculatefi( Dense_MatrixVector *const fi, const Dense_MatrixVector *const fc, const Dense_MatrixVector *const li, const Dense_MatrixVector *const Deltaf );
 
-void EffK_Calc_Effective_Force( const MatrixVector *const Mass, const MatrixVector *const Damp,
-				const MatrixVector *const Disp, const MatrixVector *const Vel,
-				const MatrixVector *const Acc, MatrixVector *const Tempvec,
+void EffK_Calc_Effective_Force( const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const Damp,
+				const Dense_MatrixVector *const Disp, const Dense_MatrixVector *const Vel,
+				const Dense_MatrixVector *const Acc, Dense_MatrixVector *const Tempvec,
 				const float a0, const float a1, const float a2,
 				const float a3, const float a4, const float a5,
-			       MatrixVector *const Eff_Force );
-void EffK_ComputeU0( const MatrixVector *const Eff_Force, const MatrixVector *const In_Load,
-		     const MatrixVector *const Err_Force, const float PID_P, const MatrixVector *const Keinv,
-		     MatrixVector *const Tempvec, MatrixVector *const Disp0 );
+			       Dense_MatrixVector *const Eff_Force );
+void EffK_ComputeU0( const Dense_MatrixVector *const Eff_Force, const Dense_MatrixVector *const In_Load,
+		     const Dense_MatrixVector *const Err_Force, const float PID_P, const Dense_MatrixVector *const Keinv,
+		     Dense_MatrixVector *const Tempvec, Dense_MatrixVector *const Disp0 );
 
 /**
  * \brief Copies the non-coupling part a vector.
@@ -59,8 +59,8 @@ void EffK_ComputeU0( const MatrixVector *const Eff_Force, const MatrixVector *co
  * The non-coupling part a vector (\f$Order - OrderC\f$) is copied. This routine makes use of the level 1 BLAS dcopy_().
  *
  * \pre
- * - The global vector (length \f$Order\f$) must be properly initialised through the Init_MatrixVector() routine.
- * - The non-coupling vector must be of length \f$Order- OrderC\f$ and properly initialised through the Init_MatrixVector() routine.
+ * - The global vector (length \f$Order\f$) must be properly initialised through the Init_Dense_MatrixVector() routine.
+ * - The non-coupling vector must be of length \f$Order- OrderC\f$ and properly initialised through the Init_Dense_MatrixVector() routine.
  * - The number of rows of the vectors must be indicative of their length.
  * - The coupling nodes are assumed to be consecutive (the first node is assumed to be PosCouple).
  * - \e Order is the number of rows of the input vector.
@@ -75,9 +75,9 @@ void EffK_ComputeU0( const MatrixVector *const Eff_Force, const MatrixVector *co
  * \post
  * - \c VectorXm contains only the non-coupling nodes of \c Vec.
  *
- * \sa MatrixVector.
+ * \sa Dense_MatrixVector.
  */
-void CreateVectorXm( const MatrixVector *const VectorX, MatrixVector *const VectorXm, const int PosCouple, const int OrderC );
+void CreateVectorXm( const Dense_MatrixVector *const VectorX, Dense_MatrixVector *const VectorXm, const int PosCouple, const int OrderC );
 
 /**
  * \brief Copies the coupling part a vector.
@@ -85,7 +85,7 @@ void CreateVectorXm( const MatrixVector *const VectorX, MatrixVector *const Vect
  * The coupling part a vector (\f$OrderC\f$) is copied. This routine makes use of the level 1 BLAS dcopy_().
  *
  * \pre
- * - The global vector (length \f$Order\f$) must be properly initialised through the Init_MatrixVector() routine.
+ * - The global vector (length \f$Order\f$) must be properly initialised through the Init_Dense_MatrixVector() routine.
  * - The number of rows of the vectors must be indicative of their length.
  * - The coupling vector must be of length \f$OrderC\f$ and properly initialised.
  * - The coupling nodes are assumed to be consecutive (the first node is assumed to be PosCouple).
@@ -100,8 +100,8 @@ void CreateVectorXm( const MatrixVector *const VectorX, MatrixVector *const Vect
  * \post
  * - \c VectorXc contains only the coupling nodes of \c Vec.
  *
- * \sa MatrixVector.
+ * \sa Dense_MatrixVector.
  */
-void CreateVectorXc( const MatrixVector *const VecX, float *VecXc, const int PosCouple, int OrderC );
+void CreateVectorXc( const Dense_MatrixVector *const VecX, float *VecXc, const int PosCouple, int OrderC );
 
 #endif /* COMPUTEU0_H_ */

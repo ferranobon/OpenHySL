@@ -9,6 +9,7 @@
  *
  * This file contains the prototypes of those functions involved in creating/destroying matrices and vectors. Essential
  * matrix/vector manipulations are also contemplated.
+ * \TODO Check the output of Sp_MatrixVector_To_File_SY()
  */
 
 #ifndef MATRIXVECTOR_H_
@@ -30,13 +31,13 @@ typedef struct MatVec {
  * \brief Sparse Matrix Storage. MKL CSR-three array variation.
  *
  * This structure is used in order to store sparse matrices. The Intel MKL CSR (Compressed Sparse Row) three array
- * variation [REFERENCE MKL needed] is used: \a Values, \a Volumns and \a RowIndex.
- * - \c columns 
- * - \c rowIndex 
+ * variation [REFERENCE MKL needed] is used: \c Values, \c Columns and \c RowIndex.
+ *
  */
 typedef struct SpMatVec{
      int Rows;      /*!< \brief Number of Rows of the matrix. */
      int Cols;      /*!< \brief Number of Columns of the matrix. */
+     int Num_Nonzero; /*!< \brief Number of non-zero elements. */
      float *Values; /*!< \brief A real or complex array that contains the non-zero elements of a sparse matrix. The non-zero
 		     * elements are mapped into the values array using the row-major upper triangular storage mapping. The
 		     * lenght of the array is equal to the number of non-zero elements in the matrix. */
@@ -87,7 +88,7 @@ void Init_Dense_MatrixVector( Dense_MatrixVector *Mat, const int Rows, const int
  * matrix and follows a zero-based indexing.
  *
  */
-void Dense_to_CSR_SY( const Dense_MatrixVector *const Mat, Sp_MatrixVector *const Sp_Mat )
+void Dense_to_CSR_SY( const Dense_MatrixVector *const Mat, Sp_MatrixVector *const Sp_Mat );
 
 /**
  * \brief Counts the non-zero elements in a Symmetric Matrix.
@@ -156,7 +157,7 @@ void Set2Value( Dense_MatrixVector *const Mat, const float Value );
  *
  * \sa Dense_MatrixVector.
  */
-void Modify_Element( Dense_MatrixVector *const Mat, const int RowIndex, const int ColIndex, const float Value, const char *Operation );
+void Modify_Element_DM( Dense_MatrixVector *const Mat, const int RowIndex, const int ColIndex, const float Value, const char *Operation );
 
 /**
  * \brief Adds three symmetric matrices
@@ -180,7 +181,7 @@ void Modify_Element( Dense_MatrixVector *const Mat, const int RowIndex, const in
 void Dense_Add3Mat( Dense_MatrixVector *const MatY, const Dense_MatrixVector *const MatA, const Dense_MatrixVector *const MatB, const Dense_MatrixVector *const MatC, const Scalars Const );
 
 /**
- * \brief Writes a matrix or a vector to a file
+ * \brief Writes a matrix or a vector to a file.
  *
  * The contents of the matrix or vector are saved into a file in row-major order. If the file cannot be opened, the program
  * exits abnormally.
@@ -195,6 +196,23 @@ void Dense_Add3Mat( Dense_MatrixVector *const MatY, const Dense_MatrixVector *co
 void Dense_MatrixVector_To_File( const Dense_MatrixVector *const Mat, const char *Filename );
 
 /**
+ * \brief Writes a symmetric sparse matrix or a vector to a file.
+ *
+ * The contents of the symmetric sparse matrix or vector are saved into a file in
+ * row-major order and in dense representation. If the file cannot be opened, the
+ * program exits abnormally.
+ *
+ * \pre The data structure must be properly initialised and their elements must be in
+ * CSR-three array variation. Only the upper triangular part is considered.
+ *
+ * \param[in] Sp_Mat The sparse matrix or vector whose array must be stored into a file
+ * \param[in] Filename The name of the file where the contents of \c Sp_Mat will be stored.
+ *
+ * \sa Sp_MatrixVector.
+ */
+void Sp_MatrixVector_To_File_SY( const Sp_MatrixVector *const Sp_Mat, const char *Filename );
+
+/**
  * \brief Deallocates the memory of the desired Dense_MatrixVector.
  *
  * The memory is deallocated using free() and the number of rows and columns is set to 0. This routine should be used as soon as a
@@ -207,6 +225,22 @@ void Dense_MatrixVector_To_File( const Dense_MatrixVector *const Mat, const char
  * \sa Dense_MatrixVector.
  */
 void Destroy_Dense_MatrixVector( Dense_MatrixVector *const Mat);
+
+/**
+ * \brief Deallocates the memory of the desired Sp_MatrixVector in CSR-three array variation format.
+ *
+ * The memory is deallocated using free() and the number of rows, columns and non-zero elements is set to 0.
+ * This routine should be used as soon as a matrix or vector becomes useless to free the memory or before
+ * changing size of the matrix or vector.
+ *
+ * \pre - The data structure Sp_MatrixVector should be properly initialised.
+ *      - The format of the Sparse matrix should be compliant with the three array variation of Intel MKL libraries.
+ *
+ * \param[out] Sp_Mat The sparse matrix or vector to be destroyed.
+ *
+ * \sa Sp_MatrixVector.
+ */
+void Destroy_Sparse_MatrixVector( Sp_MatrixVector *const Sp_Mat );
 
 /**
  * \brief Returns the maximum of two values

@@ -16,7 +16,7 @@
 #include <string.h>
 
 #include "ErrorHandling.h"
-#include "Dense_MatrixVector.h"
+#include "MatrixVector.h"
 #include "Netlib.h"
 
 #include <mkl_spblas.h>
@@ -39,20 +39,19 @@ void Init_Dense_MatrixVector( Dense_MatrixVector *const Mat, const int Rows, con
 
 void Dense_to_CSR_SY( const Dense_MatrixVector *const Mat, Sp_MatrixVector *const Sp_Mat )
 {
-
-     int Num_NonZero;  /* Number of non-zero elements */
-     int job[6], lda;  /* Variables required by mkl_sdnscsr_( ) */
+     int job[6], lda;  /* Variables required by mkl_sdnscsr_( ). lda = leading dimension of
+			 * the matrix lda = max(1,Num_Rows). */
 
      /* Copy the number of Rows and Columns */
      Sp_Mat->Rows = Mat->Rows;
      Sp_Mat->Cols = Mat->Cols;
 
      /* Count the number of non-zero elements */
-     Num_Nonzero = Count_Nonzero_Elements_SY( Mat->Array, Mat->Rows, Mat->Cols );
+     Sp_Mat->Num_Nonzero = Count_Nonzero_Elements_SY( Mat->Array, Mat->Rows, Mat->Cols );
      
      /* Allocate the necessary space for the Value and Columns arrays */
-     Sp_Mat->Values = (float *) calloc( Num_Nonzero, sizeof(float) );
-     Sp_Mat->Columns = (int *) calloc( Num_Nonzero, sizeof(int) );
+     Sp_Mat->Values = (float *) calloc( Sp_Mat->Num_Nonzero, sizeof(float) );
+     Sp_Mat->Columns = (int *) calloc( Sp_Mat->Num_Nonzero, sizeof(int) );
 
      /* Allocate memory for the RowIndex array */
      Sp_Mat->RowIndex = (int *) calloc( Mat->Rows, sizeof( int ) );
@@ -62,7 +61,7 @@ void Dense_to_CSR_SY( const Dense_MatrixVector *const Mat, Sp_MatrixVector *cons
      job[1] = 0; /* Zero-based indexing is used for the dense matrix. */
      job[2] = 0; /* Zero-based indexing for the sparse matrix is used. */
      job[3] = 1; /* Values will contain the upper triangular part of the dense matrix. */
-     job[4] = Num_Nonzero; /* Maximum number of non-zero elements allowed. */
+     job[4] = Sp_Mat->Num_Nonzero; /* Maximum number of non-zero elements allowed. */
      job[5] = 1; /* Values, Columns and RowIndex arrays are generated. */
      lda = Max( 1, Sp_Mat->Rows );
      mkl_sdnscsr_( job, &Sp_Mat->Rows, &Sp_Mat->Cols, Mat->Array, &lda, Sp_Mat->Values, Sp_Mat->Columns, Sp_Mat->RowIndex );
@@ -78,6 +77,7 @@ int Count_Nonzero_Elements_SY( const float *const Sym_Matrix, const int Rows, co
 	  for ( j = i; j < Cols; j++ ){
 	       if ( Sym_Matrix[i*Cols + j] != 0.0 ){
 		    Count = Count + 1;
+	       }
 	  }
      }
 
@@ -99,8 +99,6 @@ void Dense_MatrixVector_From_File( Dense_MatrixVector *const Mat, const char *Fi
 		}
 		fclose( InFile );
 	} else ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
-
-
 }
 
 void Set2Value( Dense_MatrixVector *const Mat, const float Value )
@@ -117,7 +115,7 @@ void Set2Value( Dense_MatrixVector *const Mat, const float Value )
   scopy_( &Length, &Val, &incx, (*Mat).Array, &incy );
 }
 
-void Modify_Element( Dense_MatrixVector *const Mat, const int RowIndex, const int ColIndex, const float Value, const char *Operation )
+void Modify_Element_DM( Dense_MatrixVector *const Mat, const int RowIndex, const int ColIndex, const float Value, const char *Operation )
 {
 
   const char *OpSet = "Set";
@@ -201,11 +199,54 @@ void Dense_MatrixVector_To_File( const Dense_MatrixVector *const Mat, const char
 		int j;
 		for ( i = 0; i < (*Mat).Rows; i++){
 			for( j = 0; j < (*Mat).Cols; j++ ){
-				fprintf(OutFile,"%e", (*Mat).Array[i + j*(*Mat).Rows]);
+				fprintf(OutFile,"%e\t", (*Mat).Array[i + j*(*Mat).Rows]);
 			}
+			fprintf( OutFile, "\n" );
 		}
 		fclose( OutFile );
 	} else ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
+}
+
+void Sp_MatrixVector_To_File_SY( const Sp_MatrixVector *const Sp_Mat, const char *Filename )
+{
+     int i, j;          /* Counters */
+     int lda, job[6];   /* Variables required by mkl_sdnscsr_( ). lda = leading dimension of
+			 * the matrix lda = max(1,Num_Rows). */
+     float *Temp_Array; /* Temporal full array */
+     FILE *OutFile;
+
+     OutFile = fopen( Filename, "w" );
+
+     if ( OutFile != NULL ){
+
+	  /* Allocate memory for the temporal array */
+	  Temp_Array = (float *) calloc( Sp_Mat->Rows*Sp_Mat->Cols, sizeof( float ) );
+
+	  /* MKL: Transform the dense matrix into a CSR-three array variation matrix */
+	  job[0] = 1; /* The matrix is restored from CSR format. */
+	  job[1] = 0; /* Zero-based indexing is used for the dense matrix. */
+	  job[2] = 0; /* Zero-based indexing for the sparse matrix is used. */
+	  job[3] = 1; /* Values will contain the upper triangular part of the dense matrix. */
+	  job[4] = Sp_Mat->Num_Nonzero; /* Maximum number of non-zero elements allowed. */
+	  job[5] = 1; /* Values, Columns and RowIndex arrays are generated. */
+	  lda = Max( 1, Sp_Mat->Rows );
+	  mkl_sdnscsr_( job, &Sp_Mat->Rows, &Sp_Mat->Cols, Temp_Array, &lda, Sp_Mat->Values, Sp_Mat->Columns, Sp_Mat->RowIndex );
+
+	  for ( i = 0; i < Sp_Mat->Rows; i++ ){
+	       for ( j = 0; j < Sp_Mat->Cols; j++ ){
+		    fprintf( OutFile, "%e\t", Temp_Array[i*Sp_Mat->Rows + j] );
+	       }
+	       fprintf( OutFile, "\n" );
+	  }
+
+	  /* Deallocate memory */
+	  free( Temp_Array );
+
+	  /* Close file */
+	  fclose( OutFile );
+	       
+     } else ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
+
 }
 
 void Destroy_Dense_MatrixVector( Dense_MatrixVector *const Mat)
@@ -216,6 +257,19 @@ void Destroy_Dense_MatrixVector( Dense_MatrixVector *const Mat)
 	free( (*Mat).Array );
 }
 
+void Destroy_Sparse_MatrixVector( Sp_MatrixVector *const Sp_Mat )
+{
+
+     /* Set the number of rows, columns and non-zero elements to 0 */
+     Sp_Mat->Rows = 0;
+     Sp_Mat->Cols = 0;
+     Sp_Mat->Num_Nonzero = 0;
+
+     /* Free the memory */
+     free( Sp_Mat->Values );
+     free( Sp_Mat->Columns );
+     free( Sp_Mat->RowIndex );
+}
 
 int Max ( const int a, const int b )
 {
