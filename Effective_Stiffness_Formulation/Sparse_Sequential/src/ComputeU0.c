@@ -34,17 +34,17 @@ void Calculatefi( Dense_MatrixVector *const fi, const Dense_MatrixVector *const 
 	saxpy_( &(*fi).Rows, &Alpha, (*li).Array, &incx, (*fi).Array, &incy );
 }
 
-void EffK_Calc_Effective_Force( const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const Damp,
+void EffK_Calc_Effective_Force( const Sp_MatrixVector *const Mass, const Sp_MatrixVector *const Damp,
 				const Dense_MatrixVector *const Disp, const Dense_MatrixVector *const Vel,
 				const Dense_MatrixVector *const Acc, Dense_MatrixVector *const Tempvec,
 				const float a0, const float a1, const float a2,
 				const float a3, const float a4, const float a5,
-				Dense_MatrixVector *const Eff_Force )
+				Dense_MatrixVector *const Eff_Force, Dense_MatrixVector *const Tempvec1 )
 {
 
      static int incx = 1, incy = 1;
      static char uplo = 'L';
-     static float Alpha, Beta;
+     static float Alpha;
 
      /* BLAS: tempvec = Disp */
      scopy_( &Tempvec->Rows, Disp->Array, &incx, Tempvec->Array, &incy );
@@ -57,9 +57,9 @@ void EffK_Calc_Effective_Force( const Dense_MatrixVector *const Mass, const Dens
      /* BLAS: tempvec = a0*Disp + a2*Vel + a3*Acc = tempvec + a3*Acc */
      Alpha = a3;
      saxpy_( &Tempvec->Rows, &Alpha, Acc->Array, &incx, Tempvec->Array, &incy );
-     /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) = Mass*tempvec */
-     Alpha = 1.0; Beta = 0.0;
-     ssymv_( &uplo, &Tempvec->Rows, &Alpha, Mass->Array, &Tempvec->Rows, Tempvec->Array, &incx, &Beta, Eff_Force->Array, &incy );
+     /* Sparse BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) = Mass*tempvec */
+     Alpha = 1.0;
+     mkl_scsrsymv( &uplo, Tempvec->Rows, Mass->Array, Mass->RowIndex, Mass->Columns, Tempvec->Array, Eff_Force->Array );
 
      /* BLAS: tempvec = Disp */
      scopy_( &Tempvec->Rows, Disp->Array, &incx, Tempvec->Array, &incy );
@@ -73,12 +73,12 @@ void EffK_Calc_Effective_Force( const Dense_MatrixVector *const Mass, const Dens
      Alpha = a5;
      saxpy_( &Tempvec->Rows, &Alpha, Acc->Array, &incx, Tempvec->Array, &incy );
      /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) + Damp*(a1*Disp + a4*Vel + a5*Acc) = Eff_Force + Damp*tempvec */
-     Alpha = 1.0; Beta = 1.0;
-     ssymv_( &uplo, &Tempvec->Rows, &Alpha, Damp->Array, &Tempvec->Rows, Tempvec->Array, &incx, &Beta, Eff_Force->Array, &incy );
+     mkl_scsrsymv( &uplo, Tempvec->Rows, Damp->Array, Damp->RowIndex, Damp->Columns, Tempvec->Array, Tempvec1->Array );
+     saxpy_( &Tempvec1->Rows. &Alpha. Tempvec1->Array, &incx, Eff_Force->Array, &incy );
 }
 
 void EffK_ComputeU0( const Dense_MatrixVector *const Eff_Force, const Dense_MatrixVector *const In_Load,
-		     const Dense_MatrixVector *const Err_Force, const float PID_P, const Dense_MatrixVector *const Keinv,
+		     const Dense_MatrixVector *const Err_Force, const float PID_P, const Sp_MatrixVector *const Keinv,
 		     Dense_MatrixVector *const Tempvec, Dense_MatrixVector *const Disp0 )
 {
      static int incx = 1, incy = 1;
@@ -94,8 +94,7 @@ void EffK_ComputeU0( const Dense_MatrixVector *const Eff_Force, const Dense_Matr
      Alpha = PID_P;
      saxpy_( &Tempvec->Rows, &Alpha, Err_Force->Array, &incx, Tempvec->Array, &incy );
      /* BLAS: Disp0 = Keinv*(Eff_Force + LoadTdT + Err_Force) = Keinv*Tempvec */
-     Alpha = 1.0;
-     ssymv_( &uplo, &Tempvec->Rows, &Alpha, Keinv->Array, &Tempvec->Rows, Tempvec->Array, &incx, &Beta, Disp0->Array, &incy );
+     mkl_scsrsymv( &uplo, Tempvec->Rows, Keinv->Array, Keinv->RowIndex, Keinv->Columns, Tempvec->Array, Disp0->Array );
 
 }
 

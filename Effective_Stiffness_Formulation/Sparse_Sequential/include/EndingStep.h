@@ -51,9 +51,9 @@ void Compute_Acceleration( const Dense_MatrixVector *const DispTdT, const Dense_
 void Compute_Velocity( const Dense_MatrixVector *const VelT, const Dense_MatrixVector *const AccT, const Dense_MatrixVector *const AccTdT,
 		       const float a6, const float a7, Dense_MatrixVector *const VelTdT );
 
-void Compute_Force_Error( const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const Damp, const Dense_MatrixVector *Stiff,
+void Compute_Force_Error( const Sp_MatrixVector *const Mass, const Sp_MatrixVector *const Damp, const Sp_MatrixVector *Stiff,
 			  const Dense_MatrixVector *const AccTdT, const Dense_MatrixVector *const VelTdT, const Dense_MatrixVector *const DispTdT,
-			  const Dense_MatrixVector *const fc, const Dense_MatrixVector *const LoadTdT, Dense_MatrixVector *const fu );
+			  const Dense_MatrixVector *const fc, const Dense_MatrixVector *const LoadTdT, Dense_MatrixVector *const fu, Dense_MatrixVector *const Tempvec );
 
 
 #endif /* ENDINGSTEP_H_ */

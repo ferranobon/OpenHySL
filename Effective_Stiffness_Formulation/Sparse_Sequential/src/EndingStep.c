@@ -17,7 +17,7 @@
 #include "MatrixVector.h"
 #include "Netlib.h"
 
-void JoinNonCouplingPart( Dense_MatrixVector *const VecXm, const Dense_MatrixVector *const Keinv_m, const Dense_MatrixVector *const fcprevsub,
+void JoinNonCouplingPart( Dense_MatrixVector *const VecXm, const Sp_MatrixVector *const Keinv_m, const Dense_MatrixVector *const fcprevsub,
 			  Dense_MatrixVector *const Vec, const int PosCouple, const int OrderC )
 {
 
@@ -86,9 +86,9 @@ void Compute_Velocity( const Dense_MatrixVector *const VelT, const Dense_MatrixV
      saxpy_( &VelTdT->Rows, &Alpha, AccTdT->Array, &incx, VelTdT->Array, &incy );
 }
 
-void Compute_Force_Error( const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const Damp, const Dense_MatrixVector *Stiff,
+void Compute_Force_Error( const Sp_MatrixVector *const Mass, const Sp_MatrixVector *const Damp, const Sp_MatrixVector *Stiff,
 			  const Dense_MatrixVector *const AccTdT, const Dense_MatrixVector *const VelTdT, const Dense_MatrixVector *const DispTdT,
-			  const Dense_MatrixVector *const fc, const Dense_MatrixVector *const LoadTdT, Dense_MatrixVector *const fu )
+			  const Dense_MatrixVector *const fc, const Dense_MatrixVector *const LoadTdT, Dense_MatrixVector *const fu, Dense_MatrixVector *const Tempvec )
 {
 
      static int incx = 1, incy = 1;
@@ -96,13 +96,14 @@ void Compute_Force_Error( const Dense_MatrixVector *const Mass, const Dense_Matr
      static char uplo = 'L';
 
      /* BLAS: fu = Mass*AccTdT */
-     Alpha = 1.0; Beta = 0.0;
-     ssymv_( &uplo, &fu->Rows, &Alpha, Mass->Array, &fu->Rows, AccTdT->Array, &incx, &Beta, fu->Array, &incy );
+     mkl_scsrsymv( &uplo, &fu->Rows, Mass->Array, Mass->RowIndex, Mass->Columns, AccTdT->Array, fu->Array );
      /* BLAS: fu = Mass*AccTdT + Damp*VelTdT = fu + Damp*VelTdT */
-     Beta = 1.0;
-     ssymv_( &uplo, &fu->Rows, &Alpha, Damp->Array, &fu->Rows, VelTdT->Array, &incx, &Beta, fu->Array, &incy );
+     Alpha = 1.0;
+     mkl_scsrsymv( &uplo, &Tempvec->Rows, Damp->Array, Damp->RowIndex, Damp->Columns, VelTdT->Array, Tempvec->Array );
+     saxpy_( &Tempvec->Rows, &Alpha. Tempvec->Array, &incx, fu->Array, &incy );
      /* BLAS: fu = Mass*AccTdT + Damp*VelTdT + Stiff*DispTdT = fu + Stiff*DispTdT */
-     ssymv_( &uplo, &fu->Rows, &Alpha, Stiff->Array, &fu->Rows, DispTdT->Array, &incx, &Beta, fu->Array, &incy );
+     mkl_scsrsymv( &uplo, &Tempvec->Rows, Stiff->Array, Stiff->RowIndex, Stiff->Columns, DispTdT->Array, Tempvec->Array );
+     saxpy_( &Tempvec->Rows, &Alpha. Tempvec->Array, &incx, fu->Array, &incy );
      /* BLAS: fu = -(Mass*AccTdT + Damp*VelTdT + Stiff*DispTdT) = -fu */
      Alpha = -1.0;
      sscal_( &fu->Rows, &Alpha, fu->Array, &incx );
