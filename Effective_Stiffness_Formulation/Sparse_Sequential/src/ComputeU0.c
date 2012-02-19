@@ -16,7 +16,7 @@
 #include "MatrixVector.h"
 #include "Netlib.h"
 
-void Calculatefi( MatrixVector *const fi, const MatrixVector *const fc, const MatrixVector *const li, const MatrixVector *const Deltaf )
+void Calculatefi( Dense_MatrixVector *const fi, const Dense_MatrixVector *const fc, const Dense_MatrixVector *const li, const Dense_MatrixVector *const Deltaf )
 {
 
 	static int incx, incy;
@@ -34,12 +34,12 @@ void Calculatefi( MatrixVector *const fi, const MatrixVector *const fc, const Ma
 	saxpy_( &(*fi).Rows, &Alpha, (*li).Array, &incx, (*fi).Array, &incy );
 }
 
-void EffK_Calc_Effective_Force( const MatrixVector *const Mass, const MatrixVector *const Damp,
-				const MatrixVector *const Disp, const MatrixVector *const Vel,
-				const MatrixVector *const Acc, MatrixVector *const Tempvec,
+void EffK_Calc_Effective_Force( const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const Damp,
+				const Dense_MatrixVector *const Disp, const Dense_MatrixVector *const Vel,
+				const Dense_MatrixVector *const Acc, Dense_MatrixVector *const Tempvec,
 				const float a0, const float a1, const float a2,
 				const float a3, const float a4, const float a5,
-				MatrixVector *const Eff_Force )
+				Dense_MatrixVector *const Eff_Force )
 {
 
      static int incx = 1, incy = 1;
@@ -77,9 +77,9 @@ void EffK_Calc_Effective_Force( const MatrixVector *const Mass, const MatrixVect
      ssymv_( &uplo, &Tempvec->Rows, &Alpha, Damp->Array, &Tempvec->Rows, Tempvec->Array, &incx, &Beta, Eff_Force->Array, &incy );
 }
 
-void EffK_ComputeU0( const MatrixVector *const Eff_Force, const MatrixVector *const In_Load,
-		     const MatrixVector *const Err_Force, const float PID_P, const MatrixVector *const Keinv,
-		     MatrixVector *const Tempvec, MatrixVector *const Disp0 )
+void EffK_ComputeU0( const Dense_MatrixVector *const Eff_Force, const Dense_MatrixVector *const In_Load,
+		     const Dense_MatrixVector *const Err_Force, const float PID_P, const Dense_MatrixVector *const Keinv,
+		     Dense_MatrixVector *const Tempvec, Dense_MatrixVector *const Disp0 )
 {
      static int incx = 1, incy = 1;
      static float Alpha = 1.0, Beta = 0.0;
@@ -99,7 +99,7 @@ void EffK_ComputeU0( const MatrixVector *const Eff_Force, const MatrixVector *co
 
 }
 
-void CreateVectorXm( const MatrixVector *const VectorX, MatrixVector *const VectorXm, const int PosCouple, const int OrderC )
+void CreateVectorXm( const Dense_MatrixVector *const VectorX, Dense_MatrixVector *const VectorXm, const int PosCouple, const int OrderC )
 {
 
 	static int incx, incy;
@@ -121,7 +121,7 @@ void CreateVectorXm( const MatrixVector *const VectorX, MatrixVector *const Vect
 
 }
 
-void CreateVectorXc( const MatrixVector *const VecX, float *VecXc, const int PosCouple, int OrderC )
+void CreateVectorXc( const Dense_MatrixVector *const VecX, float *VecXc, const int PosCouple, int OrderC )
 {
 
 

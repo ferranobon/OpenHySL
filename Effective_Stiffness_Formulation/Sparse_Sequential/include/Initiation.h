@@ -116,7 +116,7 @@ typedef struct {
  * \param[out] AConst A structure that comprises of several constants.
  *
  * \post
- * - The size of the matrices will determine the memory that will be allocated when defining a MatrixVector type and also how
+ * - The size of the matrices will determine the memory that will be allocated when defining a Dense_MatrixVector type and also how
  * many elements will be read/written from/to the files.
  * - The number of steps must be equal to the number of rows of the file "DataFile".
  * - The values of the Newmark integration, PID and Rayleigh constants must be coherent/feasible. The algorithm will not perform checks
@@ -158,9 +158,9 @@ int Get_Type_Protocol( );
  * \post \c Damp is a symmetric matrix in general storage with only the upper part referenced (Lower part in FORTRAN routines).
  * It contains the result of \f$[C] = \alpha [M] \cdot \beta [K]\f$.
  *
- * \sa MatrixVector and RayleighConst.
+ * \sa Dense_MatrixVector and RayleighConst.
  */
-void CalculateMatrixC( const MatrixVector *const Mass, const MatrixVector *const Stif, MatrixVector *const Damp, const RayleighConst *const Rayleigh );
+void CalculateMatrixC( const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const Stif, Dense_MatrixVector *const Damp, const RayleighConst *const Rayleigh );
 
 /**
  * \brief Construction of the inverse of the Effective Mass Matrix.
@@ -183,9 +183,9 @@ void CalculateMatrixC( const MatrixVector *const Mass, const MatrixVector *const
  * \post \c Meinv is a symmetric matrix in general storage with only the upper part referenced (Lower part in FORTRAN routines). It contains the result of
  * \f$M_{e,inv} = [M + \gamma\Delta tC + \beta\Delta t^2 K]^{-1}\f$.
  *
- * \sa MatrixVector, Scalars and Add3Mat( ).
+ * \sa Dense_MatrixVector, Scalars and Add3Mat( ).
  */
-void CalculateMatrixKeinv( MatrixVector *const Meinv, const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *const Stif, const Scalars Const );
+void CalculateMatrixKeinv( Dense_MatrixVector *const Meinv, const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const Damp, const Dense_MatrixVector *const Stif, const Scalars Const );
 
 /**
  * \brief Construction of the Gain Matrix
@@ -200,9 +200,9 @@ void CalculateMatrixKeinv( MatrixVector *const Meinv, const MatrixVector *const 
  *
  * \post \c Gain is a symmetric matrix in general storage with only the upper part referenced (Lower part in FORTRAN routines). It contains the result of \f$G = \beta\Delta t^2 M_{e,inv}\f$.
  *
- * \sa MatrixVector.
+ * \sa Dense_MatrixVector.
  */
-void CalculateMatrixG( MatrixVector *const Gain, const MatrixVector *const Meinv, float Const );
+void CalculateMatrixG( Dense_MatrixVector *const Gain, const Dense_MatrixVector *const Meinv, float Const );
 
 /**
  * \brief Construction of the coupling nodes
@@ -224,10 +224,10 @@ void CalculateMatrixG( MatrixVector *const Gain, const MatrixVector *const Meinv
  *
  * \post \c MatCouple is a symmetrical matrix \f$OrderC\cdot OrderC\f$ in general storage that contains the coupling nodes.
  *
- * \sa MatrixVector.
+ * \sa Dense_MatrixVector.
  *
  */
-void BuildMatrixXc( const MatrixVector *const Mat, float *MatCouple, const int PosCpl, const int OrderC );
+void BuildMatrixXc( const Dense_MatrixVector *const Mat, float *MatCouple, const int PosCpl, const int OrderC );
 
 /**
  * \brief Construction of the non-coupling part of the row where the Coupling node is located.
@@ -248,9 +248,9 @@ void BuildMatrixXc( const MatrixVector *const Mat, float *MatCouple, const int P
  *
  * \post \c VecXcm is a general matrix of size \f$size = (Order - OrderC)\cdot OrderC\f$ with the non-coupling elements of the row with a coupling node.
  *
- * \sa MatrixVector.
+ * \sa Dense_MatrixVector.
  */
-void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const VecXcm, const int PosCpl, const int OrderC );
+void BuildMatrixXcm( const Dense_MatrixVector *const Mat, Dense_MatrixVector *const VecXcm, const int PosCpl, const int OrderC );
 
 
 #endif /* INITIATION_H_ */

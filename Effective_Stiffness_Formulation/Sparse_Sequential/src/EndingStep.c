@@ -17,8 +17,8 @@
 #include "MatrixVector.h"
 #include "Netlib.h"
 
-void JoinNonCouplingPart( MatrixVector *const VecXm, const MatrixVector *const Keinv_m, const MatrixVector *const fcprevsub,
-			  MatrixVector *const Vec, const int PosCouple, const int OrderC )
+void JoinNonCouplingPart( Dense_MatrixVector *const VecXm, const Dense_MatrixVector *const Keinv_m, const Dense_MatrixVector *const fcprevsub,
+			  Dense_MatrixVector *const Vec, const int PosCouple, const int OrderC )
 {
 
 	static int incx, incy;
@@ -47,9 +47,9 @@ void JoinNonCouplingPart( MatrixVector *const VecXm, const MatrixVector *const K
 
 }
 
-void Compute_Acceleration( const MatrixVector *const DispTdT, const MatrixVector *const DispT, const MatrixVector *const VelT,
-			   const MatrixVector *const AccT, const float a0, const float a2, const float a3,
-			   MatrixVector *const AccTdT )
+void Compute_Acceleration( const Dense_MatrixVector *const DispTdT, const Dense_MatrixVector *const DispT, const Dense_MatrixVector *const VelT,
+			   const Dense_MatrixVector *const AccT, const float a0, const float a2, const float a3,
+			   Dense_MatrixVector *const AccTdT )
 {
      static int incx = 1, incy = 1;
      static float Alpha;
@@ -70,8 +70,8 @@ void Compute_Acceleration( const MatrixVector *const DispTdT, const MatrixVector
      saxpy_( &AccTdT->Rows, &Alpha, AccT->Array, &incx, AccTdT->Array, &incy );
 }
 
-void Compute_Velocity( const MatrixVector *const VelT, const MatrixVector *const AccT, const MatrixVector *const AccTdT,
-		       const float a6, const float a7, MatrixVector *const VelTdT )
+void Compute_Velocity( const Dense_MatrixVector *const VelT, const Dense_MatrixVector *const AccT, const Dense_MatrixVector *const AccTdT,
+		       const float a6, const float a7, Dense_MatrixVector *const VelTdT )
 {
      static int incx = 1, incy= 1;
      static float Alpha;
@@ -86,9 +86,9 @@ void Compute_Velocity( const MatrixVector *const VelT, const MatrixVector *const
      saxpy_( &VelTdT->Rows, &Alpha, AccTdT->Array, &incx, VelTdT->Array, &incy );
 }
 
-void Compute_Force_Error( const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *Stiff,
-			  const MatrixVector *const AccTdT, const MatrixVector *const VelTdT, const MatrixVector *const DispTdT,
-			  const MatrixVector *const fc, const MatrixVector *const LoadTdT, MatrixVector *const fu )
+void Compute_Force_Error( const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const Damp, const Dense_MatrixVector *Stiff,
+			  const Dense_MatrixVector *const AccTdT, const Dense_MatrixVector *const VelTdT, const Dense_MatrixVector *const DispTdT,
+			  const Dense_MatrixVector *const fc, const Dense_MatrixVector *const LoadTdT, Dense_MatrixVector *const fu )
 {
 
      static int incx = 1, incy = 1;

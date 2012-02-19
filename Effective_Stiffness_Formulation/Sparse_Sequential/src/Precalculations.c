@@ -51,7 +51,7 @@ void ReadDataEarthquake( float *Acceleration, float *Velocity, float *Displaceme
 }
 
 /* Stores in the variable Vec, the diagonal values of the Matrix Mat. */
-void CopyDiagonalValues( const MatrixVector *const Mat, MatrixVector *const Vec )
+void CopyDiagonalValues( const Dense_MatrixVector *const Mat, Dense_MatrixVector *const Vec )
 {
 
   int incx, incy;  /* Stride in the vectors for the BLAS library */
@@ -64,7 +64,7 @@ void CopyDiagonalValues( const MatrixVector *const Mat, MatrixVector *const Vec 
 
 }
 
-void Calc_Input_Load( MatrixVector *const InLoad, const MatrixVector *const Stif, const MatrixVector *const Damp, const MatrixVector *const Mass, const MatrixVector *const DiagM, const MatrixVector *const D, const MatrixVector *const V, const MatrixVector *const A )
+void Calc_Input_Load( Dense_MatrixVector *const InLoad, const Dense_MatrixVector *const Stif, const Dense_MatrixVector *const Damp, const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const DiagM, const Dense_MatrixVector *const D, const Dense_MatrixVector *const V, const Dense_MatrixVector *const A )
 {
 
   static int incx, incy;       /* Stride in the vectors for BLAS library */

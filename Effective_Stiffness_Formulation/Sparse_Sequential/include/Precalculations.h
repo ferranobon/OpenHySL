@@ -11,6 +11,8 @@
  * and calculate the input load.
  */
 
+#include "MatrixVector.h"
+
 #ifndef PRECALCULATIONS_H_
 #define PRECALCULATIONS_H_
 
@@ -60,9 +62,9 @@ void ReadDataEarthquake( float *Acceleration, float *Velocity, float *Displaceme
  *
  * \post The vector \c Vec contains the diagonal elements of the matrix \c Mat.
  *
- * \sa MatrixVector.
+ * \sa Dense_MatrixVector.
  */
-void CopyDiagonalValues( const MatrixVector *const Mat, MatrixVector *const Vec );
+void CopyDiagonalValues( const Dense_MatrixVector *const Mat, Dense_MatrixVector *const Vec );
 
 /**
  * \brief Calculates the input load.
@@ -76,7 +78,7 @@ void CopyDiagonalValues( const MatrixVector *const Mat, MatrixVector *const Vec 
  * It makes use of the level 2 BLAS routine dsymv_().
  *
  * \pre
- * - All elements of type MatrixVector must be properly initialised through the Init_MatrixVector() routine.
+ * - All elements of type Dense_MatrixVector must be properly initialised through the Init_Dense_MatrixVector() routine.
  * - In the case of matrices, they are supposed to be symmetrical and they must contain at least the upper elements in
  * general storage format.
  * - The number of rows of the vectors must be indicative of their length.
@@ -95,8 +97,8 @@ void CopyDiagonalValues( const MatrixVector *const Mat, MatrixVector *const Vec 
  *
  * \post \c InLoad has the value of \f$ \{l_{i+1}\} = \{ld_g\} + \{ld_v\} + \{ld_a\} -[M]\cdot [I]\cdot\{Acceleration_i\}\f$.
  *
- * \sa MatrixVector.
+ * \sa Dense_MatrixVector.
  */
-void Calc_Input_Load( MatrixVector *const InLoad, const MatrixVector *const Stif, const MatrixVector *const Damp, const MatrixVector *const Mass, const MatrixVector *const DiagM, const MatrixVector *const D, const MatrixVector *const V, const MatrixVector *const A );
+void Calc_Input_Load( Dense_MatrixVector *const InLoad, const Dense_MatrixVector *const Stif, const Dense_MatrixVector *const Damp, const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const DiagM, const Dense_MatrixVector *const D, const Dense_MatrixVector *const V, const Dense_MatrixVector *const A );
 
 #endif /* PRECALCULATIONS_H_ */

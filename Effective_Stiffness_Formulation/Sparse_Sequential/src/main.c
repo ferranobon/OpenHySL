@@ -36,28 +36,28 @@ int main( int argc, char **argv )
      /* Variables to store the result we desire, so that no disk i/o is done during the test */
      float *TimeHistoryli, *TimeHistoryai1, *TimeHistoryvi1, *TimeHistoryui1, *TimeHistoryai, *TimeHistoryvi, *TimeHistoryui, *TimeHistoryfc, *TimeHistoryfu;  
 
-     MatrixVector M, C, K;               /* Mass, Damping and Stiffness matrices */
-     MatrixVector Keinv;
-     MatrixVector Keinv_c, Keinv_m;
+     Dense_MatrixVector M, C, K;               /* Mass, Damping and Stiffness matrices */
+     Dense_MatrixVector Keinv;
+     Dense_MatrixVector Keinv_c, Keinv_m;
 
-     MatrixVector DiagM;
-     MatrixVector EffT;
+     Dense_MatrixVector DiagM;
+     Dense_MatrixVector EffT;
 
-     MatrixVector DispT, DispTdT0, DispTdT;
-     MatrixVector DispTdT0_c, DispTdT0_m;
-     MatrixVector tempvec;
+     Dense_MatrixVector DispT, DispTdT0, DispTdT;
+     Dense_MatrixVector DispTdT0_c, DispTdT0_m;
+     Dense_MatrixVector tempvec;
 
-     MatrixVector VelT, VelTdT;
-     MatrixVector AccT, AccTdT;
+     Dense_MatrixVector VelT, VelTdT;
+     Dense_MatrixVector AccT, AccTdT;
 
-     MatrixVector LoadTdT, LoadTdT1;
+     Dense_MatrixVector LoadTdT, LoadTdT1;
 
-     MatrixVector fc, fcprevsub;
-     MatrixVector fu;
+     Dense_MatrixVector fc, fcprevsub;
+     Dense_MatrixVector fu;
 
-     MatrixVector ErrCompT, ErrCompTdT;
+     Dense_MatrixVector ErrCompT, ErrCompTdT;
 
-     MatrixVector Disp, Vel, Acc;
+     Dense_MatrixVector Disp, Vel, Acc;
 
      /* TCP socket connection Variables */
      int Socket;
@@ -140,49 +140,49 @@ int main( int argc, char **argv )
      TimeHistoryfu = calloc( InitCnt.Nstep, sizeof(float) );
 
      /* Initialise the matrices and vectors that will be used in the Time Integration process */
-     Init_MatrixVector( &M, InitCnt.Order, InitCnt.Order );
-     Init_MatrixVector( &K, InitCnt.Order, InitCnt.Order );
-     Init_MatrixVector( &C, InitCnt.Order, InitCnt.Order );
-     Init_MatrixVector( &Keinv, InitCnt.Order, InitCnt.Order );
+     Init_Dense_MatrixVector( &M, InitCnt.Order, InitCnt.Order );
+     Init_Dense_MatrixVector( &K, InitCnt.Order, InitCnt.Order );
+     Init_Dense_MatrixVector( &C, InitCnt.Order, InitCnt.Order );
+     Init_Dense_MatrixVector( &Keinv, InitCnt.Order, InitCnt.Order );
  
-     Init_MatrixVector( &Keinv_c, InitCnt.OrderC, InitCnt.OrderC );
-     Init_MatrixVector( &Keinv_m, InitCnt.Order - InitCnt.OrderC, InitCnt.OrderC );
+     Init_Dense_MatrixVector( &Keinv_c, InitCnt.OrderC, InitCnt.OrderC );
+     Init_Dense_MatrixVector( &Keinv_m, InitCnt.Order - InitCnt.OrderC, InitCnt.OrderC );
 
-     Init_MatrixVector( &DiagM, InitCnt.Order, 1 );
-     Init_MatrixVector( &tempvec, InitCnt.Order, 1 );
+     Init_Dense_MatrixVector( &DiagM, InitCnt.Order, 1 );
+     Init_Dense_MatrixVector( &tempvec, InitCnt.Order, 1 );
 
-     Init_MatrixVector( &DispT, InitCnt.Order, 1 );
-     Init_MatrixVector( &DispTdT0, InitCnt.Order, 1 );
-     Init_MatrixVector( &DispTdT, InitCnt.Order, 1 );
+     Init_Dense_MatrixVector( &DispT, InitCnt.Order, 1 );
+     Init_Dense_MatrixVector( &DispTdT0, InitCnt.Order, 1 );
+     Init_Dense_MatrixVector( &DispTdT, InitCnt.Order, 1 );
 
-     Init_MatrixVector( &DispTdT0_c, InitCnt.OrderC, 1 );
-     Init_MatrixVector( &DispTdT0_m, InitCnt.Order-InitCnt.OrderC, 1 );
+     Init_Dense_MatrixVector( &DispTdT0_c, InitCnt.OrderC, 1 );
+     Init_Dense_MatrixVector( &DispTdT0_m, InitCnt.Order-InitCnt.OrderC, 1 );
 
-     Init_MatrixVector( &VelT, InitCnt.Order, 1 );
-     Init_MatrixVector( &VelTdT, InitCnt.Order, 1 );
+     Init_Dense_MatrixVector( &VelT, InitCnt.Order, 1 );
+     Init_Dense_MatrixVector( &VelTdT, InitCnt.Order, 1 );
 
-     Init_MatrixVector( &AccT, InitCnt.Order, 1 );
-     Init_MatrixVector( &AccTdT, InitCnt.Order, 1 );
+     Init_Dense_MatrixVector( &AccT, InitCnt.Order, 1 );
+     Init_Dense_MatrixVector( &AccTdT, InitCnt.Order, 1 );
 
-     Init_MatrixVector( &EffT, InitCnt.Order, 1 );
+     Init_Dense_MatrixVector( &EffT, InitCnt.Order, 1 );
 
-     Init_MatrixVector( &LoadTdT, InitCnt.Order, 1 );
-     Init_MatrixVector( &LoadTdT1, InitCnt.Order, 1 );
+     Init_Dense_MatrixVector( &LoadTdT, InitCnt.Order, 1 );
+     Init_Dense_MatrixVector( &LoadTdT1, InitCnt.Order, 1 );
 
-     Init_MatrixVector( &fc, InitCnt.Order, 1 );
-     Init_MatrixVector( &fcprevsub, InitCnt.Order, 1 );
-     Init_MatrixVector( &fu, InitCnt.Order, 1 );
+     Init_Dense_MatrixVector( &fc, InitCnt.Order, 1 );
+     Init_Dense_MatrixVector( &fcprevsub, InitCnt.Order, 1 );
+     Init_Dense_MatrixVector( &fu, InitCnt.Order, 1 );
 
-     Init_MatrixVector( &ErrCompT, InitCnt.Order, 1 );
-     Init_MatrixVector( &ErrCompTdT, InitCnt.Order, 1 );
+     Init_Dense_MatrixVector( &ErrCompT, InitCnt.Order, 1 );
+     Init_Dense_MatrixVector( &ErrCompTdT, InitCnt.Order, 1 );
 
-     Init_MatrixVector( &Disp, InitCnt.Order, 1 );
-     Init_MatrixVector( &Vel, InitCnt.Order, 1 );
-     Init_MatrixVector( &Acc, InitCnt.Order, 1 );
+     Init_Dense_MatrixVector( &Disp, InitCnt.Order, 1 );
+     Init_Dense_MatrixVector( &Vel, InitCnt.Order, 1 );
+     Init_Dense_MatrixVector( &Acc, InitCnt.Order, 1 );
 
      /* Read the matrices from a file */
-     MatrixVector_From_File( &M, InitCnt.FileM );
-     MatrixVector_From_File( &K, InitCnt.FileK );
+     Dense_MatrixVector_From_File( &M, InitCnt.FileM );
+     Dense_MatrixVector_From_File( &K, InitCnt.FileK );
 
      //CalculateMatrixC( &M, &K, &C, &InitCnt.Rayleigh );
      C.Array[0] = 0.104*2*sqrtf(K.Array[0]*M.Array[0] ); /* EFAST */
@@ -312,44 +312,44 @@ int main( int argc, char **argv )
      free( DispAll );
 
      /* Destroy the data structures */
-     Destroy_MatrixVector( &M );
-     Destroy_MatrixVector( &C );
-     Destroy_MatrixVector( &K );
+     Destroy_Dense_MatrixVector( &M );
+     Destroy_Dense_MatrixVector( &C );
+     Destroy_Dense_MatrixVector( &K );
 
-     Destroy_MatrixVector( &Keinv );
-     Destroy_MatrixVector( &Keinv_c );
-     Destroy_MatrixVector( &Keinv_m );
+     Destroy_Dense_MatrixVector( &Keinv );
+     Destroy_Dense_MatrixVector( &Keinv_c );
+     Destroy_Dense_MatrixVector( &Keinv_m );
 
-     Destroy_MatrixVector( &DiagM );
-     Destroy_MatrixVector( &tempvec );
+     Destroy_Dense_MatrixVector( &DiagM );
+     Destroy_Dense_MatrixVector( &tempvec );
 
-     Destroy_MatrixVector( &DispT );
-     Destroy_MatrixVector( &DispTdT0 );
-     Destroy_MatrixVector( &DispTdT0_c );
-     Destroy_MatrixVector( &DispTdT0_m );
-     Destroy_MatrixVector( &DispTdT );
+     Destroy_Dense_MatrixVector( &DispT );
+     Destroy_Dense_MatrixVector( &DispTdT0 );
+     Destroy_Dense_MatrixVector( &DispTdT0_c );
+     Destroy_Dense_MatrixVector( &DispTdT0_m );
+     Destroy_Dense_MatrixVector( &DispTdT );
 
-     Destroy_MatrixVector( &VelT );
-     Destroy_MatrixVector( &VelTdT );
+     Destroy_Dense_MatrixVector( &VelT );
+     Destroy_Dense_MatrixVector( &VelTdT );
 
-     Destroy_MatrixVector( &AccT );
-     Destroy_MatrixVector( &AccTdT );
+     Destroy_Dense_MatrixVector( &AccT );
+     Destroy_Dense_MatrixVector( &AccTdT );
 
-     Destroy_MatrixVector( &LoadTdT );
-     Destroy_MatrixVector( &LoadTdT1 );
+     Destroy_Dense_MatrixVector( &LoadTdT );
+     Destroy_Dense_MatrixVector( &LoadTdT1 );
 
-     Destroy_MatrixVector( &EffT );
+     Destroy_Dense_MatrixVector( &EffT );
 
-     Destroy_MatrixVector( &fc );
-     Destroy_MatrixVector( &fcprevsub );
-     Destroy_MatrixVector( &fu );
+     Destroy_Dense_MatrixVector( &fc );
+     Destroy_Dense_MatrixVector( &fcprevsub );
+     Destroy_Dense_MatrixVector( &fu );
 
-     Destroy_MatrixVector( &ErrCompT );
-     Destroy_MatrixVector( &ErrCompTdT );
+     Destroy_Dense_MatrixVector( &ErrCompT );
+     Destroy_Dense_MatrixVector( &ErrCompTdT );
 
-     Destroy_MatrixVector( &Disp );
-     Destroy_MatrixVector( &Vel );
-     Destroy_MatrixVector( &Acc );
+     Destroy_Dense_MatrixVector( &Disp );
+     Destroy_Dense_MatrixVector( &Vel );
+     Destroy_Dense_MatrixVector( &Acc );
 
      return 0;
 }
