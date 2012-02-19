@@ -83,12 +83,16 @@ void Init_Dense_MatrixVector( Dense_MatrixVector *Mat, const int Rows, const int
  * number of non-zero elements and afterwards it allocates the necessary memory for the Values and Columns arrays
  * (\sa Sp_MatVec). The CSR matrix will be one-based indexing and will contain the upper triangular part of the dense matrix.
  *
- * \param[in] Mat Dense symmetric matrix.
+ * \param[in] Mat Dense matrix.
  * \param[out] Sp_Mat Sparse matrix stored in CSR-three variation array. It contains the upper triangular part of the dense
  * matrix and follows a one-based indexing.
+ * \param[in] Operation If
+ * - \f$Operation = 0\f$ the matrix is considered to be symmetric and only the upper triangular
+ * part is considered.
+ * - \f$Operation = 1\f$ the matrix is considered to be general.
  *
  */
-void Dense_to_CSR_SY( const Dense_MatrixVector *const Mat, Sp_MatrixVector *const Sp_Mat );
+void Dense_to_CSR_SY( const Dense_MatrixVector *const Mat, Sp_MatrixVector *const Sp_Mat, const int Operation );
 
 /**
  * \brief Counts the non-zero elements in a Symmetric Matrix.
@@ -98,12 +102,11 @@ void Dense_to_CSR_SY( const Dense_MatrixVector *const Mat, Sp_MatrixVector *cons
  *
  * \param[in] Sym_Matrix The considered symmetrical matrix.
  * \param[in] Rows The number of rows of \c Sym_Matrix.
- * \param[in] Cols The number of columns of \c Sym_Matrix.
  *
  * \return Number of non-zero elements in the upper triangular part of the matrix.
  *
  */
-int Count_Nonzero_Elements_SY( const float *const Sym_Matrix, const int Rows, const int Cols );
+int Count_Nonzero_Elements_SY( const float *const Sym_Matrix, const int Rows );
 
 /**
  * \brief Reads a Matrix or a vector from a file.

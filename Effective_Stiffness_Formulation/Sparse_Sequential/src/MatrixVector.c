@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "ErrorHandling.h"
 #include "MatrixVector.h"
@@ -37,7 +38,7 @@ void Init_Dense_MatrixVector( Dense_MatrixVector *const Mat, const int Rows, con
 	(*Mat).Array = calloc( (*Mat).Rows*(*Mat).Cols, sizeof(float));
 }
 
-void Dense_to_CSR_SY( const Dense_MatrixVector *const Mat, Sp_MatrixVector *const Sp_Mat )
+void Dense_to_CSR_SY( const Dense_MatrixVector *const Mat, Sp_MatrixVector *const Sp_Mat, const int Operation )
 {
      int job[6], lda;  /* Variables required by mkl_sdnscsr_( ). lda = leading dimension of
 			 * the matrix lda = max(1,Num_Rows). */
@@ -47,8 +48,12 @@ void Dense_to_CSR_SY( const Dense_MatrixVector *const Mat, Sp_MatrixVector *cons
      Sp_Mat->Cols = Mat->Cols;
 
      /* Count the number of non-zero elements */
-     Sp_Mat->Num_Nonzero = Count_Nonzero_Elements_SY( Mat->Array, Mat->Rows, Mat->Cols );
-     
+     if ( Operation == 0 ){      /* Count the non-zero elements of a symmetric matrix */
+	  Sp_Mat->Num_Nonzero = Count_Nonzero_Elements_SY( Mat->Array, Mat->Rows );
+     } else if ( Operation == 1 ){ /* Count the non-zero elements of a general matrix */       
+	  Sp_Mat->Num_Nonzero = Count_Nonzero_Elements_GE( Mat->Array, Mat->Rows, Mat->Cols );
+     } else assert( Operation < 0 || Operation > 1 );
+
      /* Allocate the necessary space for the Value and Columns arrays */
      Sp_Mat->Values = (float *) calloc( Sp_Mat->Num_Nonzero, sizeof(float) );
      Sp_Mat->Columns = (int *) calloc( Sp_Mat->Num_Nonzero, sizeof(int) );
@@ -60,22 +65,28 @@ void Dense_to_CSR_SY( const Dense_MatrixVector *const Mat, Sp_MatrixVector *cons
      job[0] = 0; /* The matrix is converted to CSR format. */
      job[1] = 1; /* One-based indexing is used for the dense matrix. */
      job[2] = 1; /* One-based indexing for the sparse matrix is used. */
-     job[3] = 1; /* Values will contain the upper triangular part of the dense matrix. */
+
+     if ( Operation == 0 ){ /* Symmetric matrix */
+	  job[3] = 1; /* Values will contain the upper triangular part of the dense matrix. */
+     } else if ( Operation == 1 ){ /* General matrix */
+	  job[3] = 2; /* All the elements of the dense matrix will be considered */
+     }
+
      job[4] = Sp_Mat->Num_Nonzero; /* Maximum number of non-zero elements allowed. */
      job[5] = 1; /* Values, Columns and RowIndex arrays are generated. */
      lda = Max( 1, Sp_Mat->Rows );
      mkl_sdnscsr_( job, &Sp_Mat->Rows, &Sp_Mat->Cols, Mat->Array, &lda, Sp_Mat->Values, Sp_Mat->Columns, Sp_Mat->RowIndex );
 }
 
-int Count_Nonzero_Elements_SY( const float *const Sym_Matrix, const int Rows, const int Cols )
+int Count_Nonzero_Elements_SY( const float *const Sym_Matrix, const int Rows )
 {
      int i, j;
      int Count;
 
      Count = 0;
      for ( i = 0; i < Rows; i++ ){
-	  for ( j = i; j < Cols; j++ ){
-	       if ( Sym_Matrix[i*Cols + j] != 0.0 ){
+	  for ( j = i; j < Rows; j++ ){
+	       if ( Sym_Matrix[i*Rows + j] != 0.0 ){
 		    Count = Count + 1;
 	       }
 	  }

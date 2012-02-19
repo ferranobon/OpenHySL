@@ -46,7 +46,7 @@ void ReadDataEarthquake( float *Acceleration, float *Velocity, float *Displaceme
       /* Close File */
       fclose( InFile );
   } else {
-	  ErrorFileAndExit( "The earthquake data cannot be read because it was not possible to open ", Filename );
+       ErrorFileAndExit( "The earthquake data cannot be read because it was not possible to open ", Filename );
   }
 }
 
@@ -64,7 +64,7 @@ void CopyDiagonalValues( const Dense_MatrixVector *const Mat, Dense_MatrixVector
 
 }
 
-void Calc_Input_Load( Dense_MatrixVector *const InLoad, const Dense_MatrixVector *const Stif, const Dense_MatrixVector *const Damp, const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const DiagM, const Dense_MatrixVector *const D, const Dense_MatrixVector *const V, const Dense_MatrixVector *const A )
+void Calc_Input_Load( Dense_MatrixVector *const InLoad, const Sp_MatrixVector *const Stif, const Sp_MatrixVector *const Damp, const Sp_MatrixVector *const Mass, const Dense_MatrixVector *const DiagM, const Dense_MatrixVector *const D, const Dense_MatrixVector *const V, const Dense_MatrixVector *const A, Dense_MatrixVector *const Temp_Array )
 {
 
   static int incx, incy;       /* Stride in the vectors for BLAS library */
@@ -75,10 +75,13 @@ void Calc_Input_Load( Dense_MatrixVector *const InLoad, const Dense_MatrixVector
   Alpha = 1.0; Beta = 0.0;
   uplo = 'L';     /* Character defining that the lower part of the symmetric matrix is referenced (see man dsymv) */
 
-  ssymv_( &uplo, &(*InLoad).Rows, &Alpha, (*Stif).Array, &(*InLoad).Rows, (*D).Array, &incx, &Beta, (*InLoad).Array, &incy );
-  Beta = 1.0;
-  ssymv_( &uplo, &(*InLoad).Rows, &Alpha, (*Damp).Array, &(*InLoad).Rows, (*V).Array, &incx, &Beta, (*InLoad).Array, &incy );
-  ssymv_( &uplo, &(*InLoad).Rows, &Alpha, (*Mass).Array, &(*InLoad).Rows, (*A).Array, &incx, &Beta, (*InLoad).Array, &incy );
+  mkl_scsrsymv( &uplo, &InLoad->Rows, Stif->Array, Stif->RowIndex, Stif->Columns, D->Array, InLoad->Array );
+
+  mkl_scsrsymv( &uplo, &Temp_Array->Rows, Damp->Array, Damp->RowIndex, Damp->Columns, V->Array, Temp_Array );
+  saxpy_( &InLoad->Rows, &Alpha, Temp_Array, &incx, InLoad->Array, &incy );
+
+  mkl_scsrsymv( &uplo, &Temp_Array->Rows, Mass->Array, Mass->RowIndex, Mass->Columns, A->Array, Temp_Array );
+  saxpy_( &InLoad->Rows, &Alpha, Temp_Array, &incx, InLoad->Array, &incy );
 
   Alpha = -(*A).Array[0];
   saxpy_( &(*InLoad).Rows, &Alpha, (*DiagM).Array, &incx, (*InLoad).Array, &incy );

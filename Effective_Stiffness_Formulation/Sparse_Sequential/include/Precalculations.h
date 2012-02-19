@@ -75,12 +75,12 @@ void CopyDiagonalValues( const Dense_MatrixVector *const Mat, Dense_MatrixVector
  * - \f$\{ld_v\} = [C]\cdot{Velocity_i}\f$ is the load caused by ground velocity,
  * - \f$\{ld_a\} = [C]\cdot{Acceleration_i}\f$ is the load caused by ground acceleration and
  * - \e i denotes the step.
- * It makes use of the level 2 BLAS routine dsymv_().
+ * It makes use of the MKL level 2 Sparse BLAS routine mkl_scsrsymv().
  *
  * \pre
  * - All elements of type Dense_MatrixVector must be properly initialised through the Init_Dense_MatrixVector() routine.
- * - In the case of matrices, they are supposed to be symmetrical and they must contain at least the upper elements in
- * general storage format.
+ * - The sparse matrices must be in Intel MKL three-array variation format and in one-based index.  
+ * - In the case of matrices, they are supposed to be symmetrical and they must contain at least the upper triangular part.
  * - The number of rows of the vectors must be indicative of their length.
  * - The size of the elements must be coeherent, since it will not be checked in the routine: the number of rows of the
  * vectors (\c InLoad, \c DiagM, \c D, \c V and \c A) must be \f$NumRows_{Vec} = NumRows_{Mat}\f$.
@@ -94,11 +94,12 @@ void CopyDiagonalValues( const Dense_MatrixVector *const Mat, Dense_MatrixVector
  * \param[in] D Vector containing the ground motion of the earthquake at a certain step.
  * \param[in] V Vector containing the ground velocity of the earthquake at a certain step.
  * \param[in] A Vector containing the ground acceleration of the earthquake at a certain step.
+ * \param[in,out] Temp_Array A temporal vector to handle operations. Included to avoid allocating memory during each step.
  *
  * \post \c InLoad has the value of \f$ \{l_{i+1}\} = \{ld_g\} + \{ld_v\} + \{ld_a\} -[M]\cdot [I]\cdot\{Acceleration_i\}\f$.
  *
- * \sa Dense_MatrixVector.
+ * \sa Dense_MatrixVector, Sp_MatrixVector.
  */
-void Calc_Input_Load( Dense_MatrixVector *const InLoad, const Dense_MatrixVector *const Stif, const Dense_MatrixVector *const Damp, const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const DiagM, const Dense_MatrixVector *const D, const Dense_MatrixVector *const V, const Dense_MatrixVector *const A );
+void Calc_Input_Load( Dense_MatrixVector *const InLoad, const Dense_MatrixVector *const Stif, const Dense_MatrixVector *const Damp, const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const DiagM, const Dense_MatrixVector *const D, const Dense_MatrixVector *const V, const Dense_MatrixVector *const A, Dense_MatrixVector *const Temp_Array );
 
 #endif /* PRECALCULATIONS_H_ */

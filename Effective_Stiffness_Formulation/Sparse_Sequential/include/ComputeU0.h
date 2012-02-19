@@ -43,14 +43,14 @@
  */
 void Calculatefi( Dense_MatrixVector *const fi, const Dense_MatrixVector *const fc, const Dense_MatrixVector *const li, const Dense_MatrixVector *const Deltaf );
 
-void EffK_Calc_Effective_Force( const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const Damp,
+void EffK_Calc_Effective_Force( const Sp_MatrixVector *const Mass, const Sp_MatrixVector *const Damp,
 				const Dense_MatrixVector *const Disp, const Dense_MatrixVector *const Vel,
 				const Dense_MatrixVector *const Acc, Dense_MatrixVector *const Tempvec,
 				const float a0, const float a1, const float a2,
 				const float a3, const float a4, const float a5,
-			       Dense_MatrixVector *const Eff_Force );
+				Dense_MatrixVector *const Eff_Force, Dense_MatrixVector *const Tempvec1 );
 void EffK_ComputeU0( const Dense_MatrixVector *const Eff_Force, const Dense_MatrixVector *const In_Load,
-		     const Dense_MatrixVector *const Err_Force, const float PID_P, const Dense_MatrixVector *const Keinv,
+		     const Dense_MatrixVector *const Err_Force, const float PID_P, const Sp_MatrixVector *const Keinv,
 		     Dense_MatrixVector *const Tempvec, Dense_MatrixVector *const Disp0 );
 
 /**
