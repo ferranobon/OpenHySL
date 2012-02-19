@@ -22,8 +22,8 @@
  * stored in row major order.
  */
 typedef struct MatVec {
-	int Rows; /*!< \brief Number of Rows of the matrix. */
-	int Cols; /*!< \brief Number of Columns of the matrix. */
+	int Rows;     /*!< \brief Number of Rows of the matrix. */
+	int Cols;     /*!< \brief Number of Columns of the matrix. */
 	float *Array; /*!< \brief Array of size \f$Size = Rows*Cols\f$. */
 } Dense_MatrixVector;
 
@@ -35,18 +35,18 @@ typedef struct MatVec {
  *
  */
 typedef struct SpMatVec{
-     int Rows;      /*!< \brief Number of Rows of the matrix. */
-     int Cols;      /*!< \brief Number of Columns of the matrix. */
+     int Rows;        /*!< \brief Number of Rows of the matrix. */
+     int Cols;        /*!< \brief Number of Columns of the matrix. */
      int Num_Nonzero; /*!< \brief Number of non-zero elements. */
-     float *Values; /*!< \brief A real or complex array that contains the non-zero elements of a sparse matrix. The non-zero
-		     * elements are mapped into the values array using the row-major upper triangular storage mapping. The
-		     * lenght of the array is equal to the number of non-zero elements in the matrix. */
-     int *Columns;  /*!< \brief Element \a i of the integer array columns is the number of the column that contains the
-		     * i-th element in the values array. The lenght of the array is equal to the number of non-zero elements
-		     * in the matrix. */
-     int *RowIndex; /*!< \brief Element \a j of the integer array rowIndex gives the index of the element in the values
-		     * array that is first non-zero element in a row j. The length of the array is equal to the number of
-		     * rows plus one. */
+     float *Values;   /*!< \brief A real or complex array that contains the non-zero elements of a sparse matrix. The non-zero
+		       * elements are mapped into the values array using the row-major upper triangular storage mapping. The
+		       * lenght of the array is equal to the number of non-zero elements in the matrix. */
+     int *Columns;    /*!< \brief Element \a i of the integer array columns is the number of the column that contains the
+		       * i-th element in the values array. The lenght of the array is equal to the number of non-zero elements
+		       * in the matrix. */
+     int *RowIndex;   /*!< \brief Element \a j of the integer array rowIndex gives the index of the element in the values
+		       * array that is first non-zero element in a row j. The length of the array is equal to the number of
+		       * rows plus one. */
 } Sp_MatrixVector;
 
 
@@ -81,11 +81,11 @@ void Init_Dense_MatrixVector( Dense_MatrixVector *Mat, const int Rows, const int
  *
  * The dense matrix is converted into the CSR-three array variation format of the Intel MKL library. It first counts the
  * number of non-zero elements and afterwards it allocates the necessary memory for the Values and Columns arrays
- * (\sa Sp_MatVec). The CSR matrix will be zero-based indexing and will contain the upper triangular part of the dense matrix.
+ * (\sa Sp_MatVec). The CSR matrix will be one-based indexing and will contain the upper triangular part of the dense matrix.
  *
  * \param[in] Mat Dense symmetric matrix.
  * \param[out] Sp_Mat Sparse matrix stored in CSR-three variation array. It contains the upper triangular part of the dense
- * matrix and follows a zero-based indexing.
+ * matrix and follows a one-based indexing.
  *
  */
 void Dense_to_CSR_SY( const Dense_MatrixVector *const Mat, Sp_MatrixVector *const Sp_Mat );
@@ -203,9 +203,9 @@ void Dense_MatrixVector_To_File( const Dense_MatrixVector *const Mat, const char
  * program exits abnormally.
  *
  * \pre The data structure must be properly initialised and their elements must be in
- * CSR-three array variation. Only the upper triangular part is considered.
+ * CSR-three array variation and one-based index. Only the upper triangular part is considered.
  *
- * \param[in] Sp_Mat The sparse matrix or vector whose array must be stored into a file
+ * \param[in] Sp_Mat The sparse matrix or vector whose array must be stored into a file.
  * \param[in] Filename The name of the file where the contents of \c Sp_Mat will be stored.
  *
  * \sa Sp_MatrixVector.
