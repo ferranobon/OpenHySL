@@ -100,6 +100,6 @@ void CopyDiagonalValues( const Dense_MatrixVector *const Mat, Dense_MatrixVector
  *
  * \sa Dense_MatrixVector, Sp_MatrixVector.
  */
-void Calc_Input_Load( Dense_MatrixVector *const InLoad, const Dense_MatrixVector *const Stif, const Dense_MatrixVector *const Damp, const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const DiagM, const Dense_MatrixVector *const D, const Dense_MatrixVector *const V, const Dense_MatrixVector *const A, Dense_MatrixVector *const Temp_Array );
+void Calc_Input_Load( Dense_MatrixVector *const InLoad, const Sp_MatrixVector *const Stif, const Sp_MatrixVector *const Damp, const Sp_MatrixVector *const Mass, const Dense_MatrixVector *const DiagM, const Dense_MatrixVector *const D, const Dense_MatrixVector *const V, const Dense_MatrixVector *const A, Dense_MatrixVector *const Temp_Array );
 
 #endif /* PRECALCULATIONS_H_ */

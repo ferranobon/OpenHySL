@@ -157,7 +157,7 @@ int main( int argc, char **argv )
      Init_Dense_MatrixVector( &Keinv_m, InitCnt.Order - InitCnt.OrderC, InitCnt.OrderC );
 
      Init_Dense_MatrixVector( &DiagM, InitCnt.Order, 1 );
-     Init_Dense_MatrixVector( &tempvec, InitCnt.Order, 1 )
+     Init_Dense_MatrixVector( &tempvec, InitCnt.Order, 1 );
      Init_Dense_MatrixVector( &tempvec1, InitCnt.Order, 1 );
 
      Init_Dense_MatrixVector( &DispT, InitCnt.Order, 1 );
@@ -210,17 +210,20 @@ int main( int argc, char **argv )
      CopyDiagonalValues( &M, &DiagM );
 
      /* Transform the matrices into CSR format */
-     Dense_to_CSR_SY( &M, &Sp_M );            /* Transform into CSR format */
+     Dense_to_CSR( &M, &Sp_M, 0 );            /* Transform into CSR format */
      Destroy_Dense_MatrixVector( &M );        /* Destroy the dense matrix */
 
-     Dense_to_CSR_SY( &K, &Sp_K );            /* Transform into CSR format */
+     Dense_to_CSR( &K, &Sp_K, 0 );            /* Transform into CSR format */
      Destroy_Dense_MatrixVector( &K );        /* Destroy the dense matrix */
 
-     Dense_to_CSR_SY( &C, &Sp_C );            /* Transform into CSR format */
+     Dense_to_CSR( &C, &Sp_C, 0 );            /* Transform into CSR format */
      Destroy_Dense_MatrixVector( &C );        /* Destroy the dense matrix */
 
-     Dense_to_CSR_SY( &Keinv, &Sp_Keinv );    /* Transform into CSR format */
+     Dense_to_CSR( &Keinv, &Sp_Keinv, 0 );    /* Transform into CSR format */
      Destroy_Dense_MatrixVector( &Keinv );    /* Destroy the dense matrix */
+
+     Dense_to_CSR( &Keinv, &Sp_Keinv_m, 0 );    /* Transform into CSR format */
+     Destroy_Dense_MatrixVector( &Keinv_m );    /* Destroy the dense matrix */
 
 
      /* Send the coupling part of the effective matrix */
@@ -253,12 +256,12 @@ int main( int argc, char **argv )
 
 	  /* Calculate the effective force vector
 	     Fe = M*(a0*u + a2*v + a3*a) + C*(a1*u + a4*v + a5*a) */
-	  EffK_Calc_Effective_Force( &M, &C, &DispT, &VelT, &AccT, &tempvec,
+	  EffK_Calc_Effective_Force( &Sp_M, &Sp_C, &DispT, &VelT, &AccT, &tempvec,
 				     InitCnt.a0, InitCnt.a1, InitCnt.a2, InitCnt.a3, InitCnt.a4, InitCnt.a5,
 				     &EffT, &tempvec1 );
 
 	  /* Compute the new Displacement u0 */
-	  EffK_ComputeU0( &EffT, &LoadTdT, &fu, InitCnt.PID.P, &Keinv, &tempvec, &DispTdT0 );
+	  EffK_ComputeU0( &EffT, &LoadTdT, &fu, InitCnt.PID.P, &Sp_Keinv, &tempvec, &DispTdT0 );
 
 	  /* Split DispTdT into coupling and non-coupling part */
 	  CreateVectorXm( &DispTdT0, &DispTdT0_m, InitCnt.PosCouple, InitCnt.OrderC );
@@ -274,12 +277,12 @@ int main( int argc, char **argv )
 	       Set2Value( &Disp, DispAll[istep] );
 	       Set2Value( &Vel, VelAll[istep] );
 	       Set2Value( &Acc, AccAll[istep] );	  
-	       Calc_Input_Load( &LoadTdT1, &K, &C, &M, &DiagM, &Disp, &Vel, &Acc, &tempvec1 );
+	       Calc_Input_Load( &LoadTdT1, &Sp_K, &Sp_C, &Sp_M, &DiagM, &Disp, &Vel, &Acc, &tempvec1 );
 	  }
 
 	  /* Join the non-coupling part. DispTdT_m = Keinv_m*fc + DispTdT0_m. Although DispTdT0_m is what has been received from the other computer,
 	     it has the name of DispTdT_m to avoid further operations if using the NETLIB libraries. */
-	  JoinNonCouplingPart( &DispTdT0_m, &Keinv_m, &fcprevsub, &DispTdT, InitCnt.PosCouple, InitCnt.OrderC );
+	  JoinNonCouplingPart( &DispTdT0_m, &Sp_Keinv_m, &fcprevsub, &DispTdT, InitCnt.PosCouple, InitCnt.OrderC );
 
 	  /* Compute acceleration ai1 = a0*(ui1 -ui) - a2*vi -a3*ai */
 	  Compute_Acceleration( &DispTdT, &DispT, &VelT, &AccT, InitCnt.a0, InitCnt.a2, InitCnt.a3, &AccTdT );
@@ -288,7 +291,7 @@ int main( int argc, char **argv )
 	  Compute_Velocity( &VelT, &AccT, &AccTdT, InitCnt.a6, InitCnt.a7, &VelTdT );
 
 	  /* Error Compensation. fu = LoatTdT + fc -(Mass*AccTdT + Damp*VelTdT + Stiff*DispTdT) */
-	  Compute_Force_Error( &M, &C, &K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &fu, &tempvec1 );
+	  Compute_Force_Error( &Sp_M, &Sp_C, &Sp_K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &fu, &tempvec1 );
 
 	  /* Output variables */
 	  TimeHistoryli[istep - 1] = LoadTdT.Array[InitCnt.PosCouple - 1];
@@ -337,9 +340,7 @@ int main( int argc, char **argv )
      free( DispAll );
 
      /* Destroy the data structures */
-     Destroy_Dense_MatrixVector( &Keinv );
      Destroy_Dense_MatrixVector( &Keinv_c );
-     Destroy_Dense_MatrixVector( &Keinv_m );
 
      Destroy_Dense_MatrixVector( &DiagM );
      Destroy_Dense_MatrixVector( &tempvec );

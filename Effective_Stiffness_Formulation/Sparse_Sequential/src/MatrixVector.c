@@ -38,10 +38,11 @@ void Init_Dense_MatrixVector( Dense_MatrixVector *const Mat, const int Rows, con
 	(*Mat).Array = calloc( (*Mat).Rows*(*Mat).Cols, sizeof(float));
 }
 
-void Dense_to_CSR_SY( const Dense_MatrixVector *const Mat, Sp_MatrixVector *const Sp_Mat, const int Operation )
+void Dense_to_CSR( const Dense_MatrixVector *const Mat, Sp_MatrixVector *const Sp_Mat, const int Operation )
 {
      int job[6], lda;  /* Variables required by mkl_sdnscsr_( ). lda = leading dimension of
 			 * the matrix lda = max(1,Num_Rows). */
+     int info;
 
      /* Copy the number of Rows and Columns */
      Sp_Mat->Rows = Mat->Rows;
@@ -75,7 +76,7 @@ void Dense_to_CSR_SY( const Dense_MatrixVector *const Mat, Sp_MatrixVector *cons
      job[4] = Sp_Mat->Num_Nonzero; /* Maximum number of non-zero elements allowed. */
      job[5] = 1; /* Values, Columns and RowIndex arrays are generated. */
      lda = Max( 1, Sp_Mat->Rows );
-     mkl_sdnscsr_( job, &Sp_Mat->Rows, &Sp_Mat->Cols, Mat->Array, &lda, Sp_Mat->Values, Sp_Mat->Columns, Sp_Mat->RowIndex );
+     mkl_sdnscsr( job, &Sp_Mat->Rows, &Sp_Mat->Cols, Mat->Array, &lda, Sp_Mat->Values, Sp_Mat->Columns, Sp_Mat->RowIndex, &info );
 }
 
 int Count_Nonzero_Elements_SY( const float *const Sym_Matrix, const int Rows )
@@ -87,6 +88,23 @@ int Count_Nonzero_Elements_SY( const float *const Sym_Matrix, const int Rows )
      for ( i = 0; i < Rows; i++ ){
 	  for ( j = i; j < Rows; j++ ){
 	       if ( Sym_Matrix[i*Rows + j] != 0.0 ){
+		    Count = Count + 1;
+	       }
+	  }
+     }
+
+     return Count;
+}
+
+int Count_Nonzero_Elements_GE( const float *const Matrix, const int Rows, const int Cols )
+{
+     int i, j;
+     int Count;
+
+     Count = 0;
+     for ( i = 0; i < Rows; i++ ){
+	  for ( j = 0; j < Cols; j++ ){
+	       if ( Matrix[i*Cols + j] != 0.0 ){
 		    Count = Count + 1;
 	       }
 	  }
