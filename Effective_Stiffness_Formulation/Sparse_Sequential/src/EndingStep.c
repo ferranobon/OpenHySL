@@ -24,20 +24,15 @@ void JoinNonCouplingPart( Dense_MatrixVector *const VecXm, const Sp_MatrixVector
 {
 
 	static int incx, incy;
-	static float Alpha, Beta;
 	static char trans;
-	static int Rows, Cols, TempSize;
-	static int lda;
+	static int Rows, TempSize;
 
 	incx = 1; incy = 1;
-	trans = 'N';
-	Alpha = 1.0; Beta = 0.0;
+	trans = 'N';             /* The transpose is not calculated */
 	Rows = Keinv_m->Rows;
-	Cols = Keinv_m->Cols;
-	lda = Max( 1, Keinv_m->Rows - OrderC );
 
-	sgemv_( &trans, &Rows, &Cols, &Alpha, Keinv_m->Values, &lda,
-		  &fcprevsub->Array[PosCouple - 1], &incx, &Beta, VecXm->Array, &incy );
+	mkl_scsrgemv( &trans, &Rows, Keinv_m->Values, Keinv_m->RowIndex, Keinv_m->Columns,
+		      &fcprevsub->Array[PosCouple -1], VecXm->Array );
 
 	/* Copy the first elements */
 	TempSize = PosCouple - 1;
