@@ -42,7 +42,7 @@
  *
  * \sa Dense_MatrixVector.
  */
-void JoinNonCouplingPart( Dense_MatrixVector *const VecXm, const Dense_MatrixVector *const Keinv_m, const Dense_MatrixVector *const fcprevsub, Dense_MatrixVector *const Vec, const int PosCouple, const int OrderC );
+void JoinNonCouplingPart( Dense_MatrixVector *const VecXm, const Sp_MatrixVector *const Keinv_m, const Dense_MatrixVector *const fcprevsub, Dense_MatrixVector *const Vec, const int PosCouple, const int OrderC );
 
 void Compute_Acceleration( const Dense_MatrixVector *const DispTdT, const Dense_MatrixVector *const DispT, const Dense_MatrixVector *const VelT,
 			   const Dense_MatrixVector *const AccT, const float a0, const float a2, const float a3,

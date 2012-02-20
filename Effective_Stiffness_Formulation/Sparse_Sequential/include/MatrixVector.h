@@ -77,7 +77,7 @@ void Init_Dense_MatrixVector( Dense_MatrixVector *Mat, const int Rows, const int
 
 
 /**
- * \brief Converts a dense symmetric matrix into CSR-three array variation format.
+ * \brief Converts a dense matrix into CSR-three array variation format.
  *
  * The dense matrix is converted into the CSR-three array variation format of the Intel MKL library. It first counts the
  * number of non-zero elements and afterwards it allocates the necessary memory for the Values and Columns arrays
@@ -92,7 +92,7 @@ void Init_Dense_MatrixVector( Dense_MatrixVector *Mat, const int Rows, const int
  * - \f$Operation = 1\f$ the matrix is considered to be general.
  *
  */
-void Dense_to_CSR_SY( const Dense_MatrixVector *const Mat, Sp_MatrixVector *const Sp_Mat, const int Operation );
+void Dense_to_CSR( const Dense_MatrixVector *const Mat, Sp_MatrixVector *const Sp_Mat, const int Operation );
 
 /**
  * \brief Counts the non-zero elements in a Symmetric Matrix.
@@ -107,6 +107,20 @@ void Dense_to_CSR_SY( const Dense_MatrixVector *const Mat, Sp_MatrixVector *cons
  *
  */
 int Count_Nonzero_Elements_SY( const float *const Sym_Matrix, const int Rows );
+
+/**
+ * \brief Counts the non-zero elements in a General Matrix.
+ *
+ * The non-zero elements of a general Matrix are counted.
+ *
+ * \param[in] Matrix The considered general matrix.
+ * \param[in] Rows The number of rows of \c Matrix.
+ * \param[in] Columns The number of columns of \c Matrix.
+ *
+ * \return Number of non-zero elements in the general matrix.
+ *
+ */
+int Count_Nonzero_Elements_GE( const float *const Sym_Matrix, const int Rows, const int Cols );
 
 /**
  * \brief Reads a Matrix or a vector from a file.

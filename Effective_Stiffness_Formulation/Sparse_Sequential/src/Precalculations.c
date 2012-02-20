@@ -14,6 +14,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <mkl_spblas.h>
+
 #include "ErrorHandling.h"
 #include "MatrixVector.h"
 #include "Netlib.h"  /* BLAS and LAPACK prototypes. */
@@ -64,24 +66,24 @@ void CopyDiagonalValues( const Dense_MatrixVector *const Mat, Dense_MatrixVector
 
 }
 
-void Calc_Input_Load( Dense_MatrixVector *const InLoad, const Sp_MatrixVector *const Stif, const Sp_MatrixVector *const Damp, const Sp_MatrixVector *const Mass, const Dense_MatrixVector *const DiagM, const Dense_MatrixVector *const D, const Dense_MatrixVector *const V, const Dense_MatrixVector *const A, Dense_MatrixVector *const Temp_Array )
+void Calc_Input_Load( Dense_MatrixVector *const InLoad, const Sp_MatrixVector *const Stif, const Sp_MatrixVector *const Damp, const Sp_MatrixVector *const Mass, const Dense_MatrixVector *const DiagM, const Dense_MatrixVector *const D, const Dense_MatrixVector *const V, const Dense_MatrixVector *const A, Dense_MatrixVector *const Tempvec )
 {
 
   static int incx, incy;       /* Stride in the vectors for BLAS library */
-  static float Alpha, Beta;    /* Constants to use in the BLAS library */
+  static float Alpha;          /* Constants to use in the BLAS library */
   static char uplo;            /* Character to use in the BLAS library */
 
   incx = 1; incy = 1;
-  Alpha = 1.0; Beta = 0.0;
+  Alpha = 1.0;
   uplo = 'L';     /* Character defining that the lower part of the symmetric matrix is referenced (see man dsymv) */
 
-  mkl_scsrsymv( &uplo, &InLoad->Rows, Stif->Array, Stif->RowIndex, Stif->Columns, D->Array, InLoad->Array );
+  mkl_scsrsymv( &uplo, &InLoad->Rows, Stif->Values, Stif->RowIndex, Stif->Columns, D->Array, Tempvec->Array );
 
-  mkl_scsrsymv( &uplo, &Temp_Array->Rows, Damp->Array, Damp->RowIndex, Damp->Columns, V->Array, Temp_Array );
-  saxpy_( &InLoad->Rows, &Alpha, Temp_Array, &incx, InLoad->Array, &incy );
+  mkl_scsrsymv( &uplo, &Tempvec->Rows, Damp->Values, Damp->RowIndex, Damp->Columns, V->Array, Tempvec->Array );
+  saxpy_( &InLoad->Rows, &Alpha, Tempvec->Array, &incx, InLoad->Array, &incy );
 
-  mkl_scsrsymv( &uplo, &Temp_Array->Rows, Mass->Array, Mass->RowIndex, Mass->Columns, A->Array, Temp_Array );
-  saxpy_( &InLoad->Rows, &Alpha, Temp_Array, &incx, InLoad->Array, &incy );
+  mkl_scsrsymv( &uplo, &Tempvec->Rows, Mass->Values, Mass->RowIndex, Mass->Columns, A->Array, Tempvec->Array );
+  saxpy_( &InLoad->Rows, &Alpha, Tempvec->Array, &incx, InLoad->Array, &incy );
 
   Alpha = -(*A).Array[0];
   saxpy_( &(*InLoad).Rows, &Alpha, (*DiagM).Array, &incx, (*InLoad).Array, &incy );
