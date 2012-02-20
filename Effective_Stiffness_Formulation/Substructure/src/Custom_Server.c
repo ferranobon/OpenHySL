@@ -67,12 +67,13 @@ int main( int argc, char **argv )
      Length = Cnst.Order_Couple*Cnst.Order_Couple;
      Receive_Data( Gc, Length, Client_Socket );
 
-//     BootADWIN( 111, "path");
+     //     BootADWIN( 111, "path");
      //   ADWIN_ManageProcess( "/home/ferran/workspace/proves/build/TableControlVer2.TB1", 1, 1);
      // ADWIN_ManageProcess( "/home/ferran/workspace/proves/build", 1, 2);
      // ADWIN_ManageProcess( "/home/ferran/workspace/proves/build/Sub_PC_ADwin_SDOF_EFAST.TB2", 2, 1);
      // ADWIN_ManageProcess( "/home/ferran/workspace/proves/build", 2, 2);
      /* Set Gc to ADwin */
+
      ADWIN_SetGc( Gc, Cnst.Order_Couple*Cnst.Order_Couple );
 
      Is_Not_Finished = 1;
@@ -86,8 +87,12 @@ int main( int argc, char **argv )
 	       Is_Not_Finished = 0;
 	  } else {
 	       /* Perform the substepping process */
+
+#if SIMULATE_SUB_  /* Run this without ADwin */
+	       Simulate_Substructure( u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+#else              /* Run using ADwin */
 	       ADWIN_Substep( u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
-	  
+#endif	  
 	       /* Compose the data to send */
 	       for (i = 0; i < Cnst.Order_Couple; i++) {
 		    Send[i] = uc[i];
