@@ -340,6 +340,13 @@ int main( int argc, char **argv )
      free( DispAll );
 
      /* Destroy the data structures */
+     Destroy_Sparse_MatrixVector( &Sp_M );
+     Destroy_Sparse_MatrixVector( &Sp_C );
+     Destroy_Sparse_MatrixVector( &Sp_K );
+
+     Destroy_Sparse_MatrixVector( &Sp_Keinv );
+     Destroy_Sparse_MatrixVector( &Sp_Keinv_m );
+
      Destroy_Dense_MatrixVector( &Keinv_c );
 
      Destroy_Dense_MatrixVector( &DiagM );
