@@ -94,11 +94,6 @@ void EffK_ComputeU0( const MatrixVector *const Eff_Force, const MatrixVector *co
      /* BLAS: tempvec = Eff_Force + LoadTdT + Err_Force = tempvec + Err_Force. The sign of Err_Force was already applied when calculating it. */
      Alpha = PID_P;
      saxpy_( &Tempvec->Rows, &Alpha, Err_Force->Array, &incx, Tempvec->Array, &incy );
-int i;
-     for ( i = 0; i < 504; i++ ){
-	  printf("%e\t", Tempvec->Array[i]);
-     }
-     printf("\n");
      /* BLAS: Disp0 = Keinv*(Eff_Force + LoadTdT + Err_Force) = Keinv*Tempvec */
      Alpha = 1.0;
      ssymv_( &uplo, &Tempvec->Rows, &Alpha, Keinv->Array, &Tempvec->Rows, Tempvec->Array, &incx, &Beta, Disp0->Array, &incy );

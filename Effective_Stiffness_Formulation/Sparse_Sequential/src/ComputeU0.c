@@ -88,6 +88,7 @@ void EffK_ComputeU0( const Dense_MatrixVector *const Eff_Force, const Dense_Matr
      static float Alpha = 1.0;
      static char uplo = 'L';
 
+     Alpha = 1.0;
      /* BLAS: tempvec = Eff_Force */
      scopy_( &Tempvec->Rows, Eff_Force->Array, &incx, Tempvec->Array, &incy );
      /* BLAS: tempvec = Eff_Force + LoadTdT = tempvec + LoadTdT */
@@ -97,11 +98,6 @@ void EffK_ComputeU0( const Dense_MatrixVector *const Eff_Force, const Dense_Matr
      Alpha = PID_P;
      saxpy_( &Tempvec->Rows, &Alpha, Err_Force->Array, &incx, Tempvec->Array, &incy );
      /* BLAS: Disp0 = Keinv*(Eff_Force + LoadTdT + Err_Force) = Keinv*Tempvec */
-     int i;
-     for ( i = 0; i < 504; i++ ){
-	  printf("%e\t", Tempvec->Array[i]);
-     }
-     printf("\n");
 
      mkl_scsrsymv( &uplo, &Tempvec->Rows, Keinv->Values, Keinv->RowIndex, Keinv->Columns, Tempvec->Array, Disp0->Array );
 }
