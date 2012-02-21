@@ -75,6 +75,7 @@ void EffK_Calc_Effective_Force( const MatrixVector *const Mass, const MatrixVect
      /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) + Damp*(a1*Disp + a4*Vel + a5*Acc) = Eff_Force + Damp*tempvec */
      Alpha = 1.0; Beta = 1.0;
      ssymv_( &uplo, &Tempvec->Rows, &Alpha, Damp->Array, &Tempvec->Rows, Tempvec->Array, &incx, &Beta, Eff_Force->Array, &incy );
+     
 }
 
 void EffK_ComputeU0( const MatrixVector *const Eff_Force, const MatrixVector *const In_Load,
@@ -93,10 +94,14 @@ void EffK_ComputeU0( const MatrixVector *const Eff_Force, const MatrixVector *co
      /* BLAS: tempvec = Eff_Force + LoadTdT + Err_Force = tempvec + Err_Force. The sign of Err_Force was already applied when calculating it. */
      Alpha = PID_P;
      saxpy_( &Tempvec->Rows, &Alpha, Err_Force->Array, &incx, Tempvec->Array, &incy );
+int i;
+     for ( i = 0; i < 504; i++ ){
+	  printf("%e\t", Tempvec->Array[i]);
+     }
+     printf("\n");
      /* BLAS: Disp0 = Keinv*(Eff_Force + LoadTdT + Err_Force) = Keinv*Tempvec */
      Alpha = 1.0;
      ssymv_( &uplo, &Tempvec->Rows, &Alpha, Keinv->Array, &Tempvec->Rows, Tempvec->Array, &incx, &Beta, Disp0->Array, &incy );
-
 }
 
 void CreateVectorXm( const MatrixVector *const VectorX, MatrixVector *const VectorXm, const int PosCouple, const int OrderC )

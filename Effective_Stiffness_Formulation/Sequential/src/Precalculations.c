@@ -33,20 +33,20 @@ void ReadDataEarthquake( float *Acceleration, float *Velocity, float *Displaceme
   if ( InFile != NULL ){
       for ( i = 0; i < NumSteps; i++ ){
     	  /* EFAST The first column contains the number of steps (not required) */
-	   fscanf( InFile, "%f%f%f%f", &unnecessary, &temp1, &temp2, &temp3 );
-	   fscanf( InFile, "%f%f%f%f", &unnecessary, &temp1, &temp2, &temp3 );
-	   fscanf( InFile, "%f%f%f%f", &unnecessary, &temp1, &temp2, &temp3 );
+	   //fscanf( InFile, "%f%f%f%f", &unnecessary, &temp1, &temp2, &temp3 );
+	   //fscanf( InFile, "%f%f%f%f", &unnecessary, &temp1, &temp2, &temp3 );
+	   //fscanf( InFile, "%f%f%f%f", &unnecessary, &temp1, &temp2, &temp3 );
 
 	   fscanf( InFile, "%e %e %e %e", &unnecessary, &temp1, &temp2, &temp3 );
-	   Acceleration[i] = temp1;
-	   Velocity[i] = temp2;
+	   Acceleration[i] = temp1/1000.0;
+	   Velocity[i] = temp2/1000.0;
 	   Displacement[i] = temp3/1000.0;
       }
 
       /* Close File */
       fclose( InFile );
   } else {
-	  ErrorFileAndExit( "The earthquake data cannot be read because it was not possible to open ", Filename );
+       ErrorFileAndExit( "The earthquake data cannot be read because it was not possible to open ", Filename );
   }
 }
 

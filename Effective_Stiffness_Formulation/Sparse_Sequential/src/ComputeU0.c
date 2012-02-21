@@ -11,6 +11,7 @@
  * and coupling part.
  *
  */
+#include <stdio.h>
 
 #include "ComputeU0.h"
 #include "MatrixVector.h"
@@ -96,8 +97,13 @@ void EffK_ComputeU0( const Dense_MatrixVector *const Eff_Force, const Dense_Matr
      Alpha = PID_P;
      saxpy_( &Tempvec->Rows, &Alpha, Err_Force->Array, &incx, Tempvec->Array, &incy );
      /* BLAS: Disp0 = Keinv*(Eff_Force + LoadTdT + Err_Force) = Keinv*Tempvec */
-     mkl_scsrsymv( &uplo, &Tempvec->Rows, Keinv->Values, Keinv->RowIndex, Keinv->Columns, Tempvec->Array, Disp0->Array );
+     int i;
+     for ( i = 0; i < 504; i++ ){
+	  printf("%e\t", Tempvec->Array[i]);
+     }
+     printf("\n");
 
+     mkl_scsrsymv( &uplo, &Tempvec->Rows, Keinv->Values, Keinv->RowIndex, Keinv->Columns, Tempvec->Array, Disp0->Array );
 }
 
 void CreateVectorXm( const Dense_MatrixVector *const VectorX, Dense_MatrixVector *const VectorXm, const int PosCouple, const int OrderC )

@@ -32,7 +32,7 @@ void JoinNonCouplingPart( MatrixVector *const VecXm, const MatrixVector *const K
 	Alpha = 1.0; Beta = 0.0;
 	Rows = Keinv_m->Rows;
 	Cols = Keinv_m->Cols;
-	lda = Max( 1, Keinv_m->Rows - OrderC );
+	lda = Max( 1, Keinv_m->Rows);
 
 	sgemv_( &trans, &Rows, &Cols, &Alpha, Keinv_m->Array, &lda,
 		  &fcprevsub->Array[PosCouple - 1], &incx, &Beta, VecXm->Array, &incy );
