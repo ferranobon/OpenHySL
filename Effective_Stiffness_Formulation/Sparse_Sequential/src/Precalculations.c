@@ -35,13 +35,13 @@ void ReadDataEarthquake( float *Acceleration, float *Velocity, float *Displaceme
   if ( InFile != NULL ){
       for ( i = 0; i < NumSteps; i++ ){
     	  /* EFAST The first column contains the number of steps (not required) */
-	   fscanf( InFile, "%f%f%f%f", &unnecessary, &temp1, &temp2, &temp3 );
-	   fscanf( InFile, "%f%f%f%f", &unnecessary, &temp1, &temp2, &temp3 );
-	   fscanf( InFile, "%f%f%f%f", &unnecessary, &temp1, &temp2, &temp3 );
+//	   fscanf( InFile, "%f%f%f%f", &unnecessary, &temp1, &temp2, &temp3 );
+//	   fscanf( InFile, "%f%f%f%f", &unnecessary, &temp1, &temp2, &temp3 );
+//	   fscanf( InFile, "%f%f%f%f", &unnecessary, &temp1, &temp2, &temp3 );
 
 	   fscanf( InFile, "%e %e %e %e", &unnecessary, &temp1, &temp2, &temp3 );
-	   Acceleration[i] = temp1;
-	   Velocity[i] = temp2;
+	   Acceleration[i] = temp1/1000.0;
+	   Velocity[i] = temp2/1000.0;
 	   Displacement[i] = temp3/1000.0;
       }
 
@@ -77,7 +77,7 @@ void Calc_Input_Load( Dense_MatrixVector *const InLoad, const Sp_MatrixVector *c
   Alpha = 1.0;
   uplo = 'L';     /* Character defining that the lower part of the symmetric matrix is referenced (see man dsymv) */
 
-  mkl_scsrsymv( &uplo, &InLoad->Rows, Stif->Values, Stif->RowIndex, Stif->Columns, D->Array, Tempvec->Array );
+  mkl_scsrsymv( &uplo, &InLoad->Rows, Stif->Values, Stif->RowIndex, Stif->Columns, D->Array, InLoad->Array );
 
   mkl_scsrsymv( &uplo, &Tempvec->Rows, Damp->Values, Damp->RowIndex, Damp->Columns, V->Array, Tempvec->Array );
   saxpy_( &InLoad->Rows, &Alpha, Tempvec->Array, &incx, InLoad->Array, &incy );

@@ -60,7 +60,7 @@ void Dense_to_CSR( const Dense_MatrixVector *const Mat, Sp_MatrixVector *const S
      Sp_Mat->Columns = (int *) calloc( Sp_Mat->Num_Nonzero, sizeof(int) );
 
      /* Allocate memory for the RowIndex array */
-     Sp_Mat->RowIndex = (int *) calloc( Mat->Rows, sizeof( int ) );
+     Sp_Mat->RowIndex = (int *) calloc( Mat->Rows + 1, sizeof( int ) );
 
      /* MKL: Transform the dense matrix into a CSR-three array variation matrix */
      job[0] = 0; /* The matrix is converted to CSR format. */
@@ -68,7 +68,7 @@ void Dense_to_CSR( const Dense_MatrixVector *const Mat, Sp_MatrixVector *const S
      job[2] = 1; /* One-based indexing for the sparse matrix is used. */
 
      if ( Operation == 0 ){ /* Symmetric matrix */
-	  job[3] = 1; /* Values will contain the upper triangular part of the dense matrix. */
+	  job[3] = 0; /* Values will contain the upper triangular part of the dense matrix. */
      } else if ( Operation == 1 ){ /* General matrix */
 	  job[3] = 2; /* All the elements of the dense matrix will be considered */
      }
@@ -77,6 +77,10 @@ void Dense_to_CSR( const Dense_MatrixVector *const Mat, Sp_MatrixVector *const S
      job[5] = 1; /* Values, Columns and RowIndex arrays are generated. */
      lda = Max( 1, Sp_Mat->Rows );
      mkl_sdnscsr( job, &Sp_Mat->Rows, &Sp_Mat->Cols, Mat->Array, &lda, Sp_Mat->Values, Sp_Mat->Columns, Sp_Mat->RowIndex, &info );
+
+     if (info != 0 ){
+	  printf("ERROROORRRR\n");
+     }
 }
 
 int Count_Nonzero_Elements_SY( const float *const Sym_Matrix, const int Rows )

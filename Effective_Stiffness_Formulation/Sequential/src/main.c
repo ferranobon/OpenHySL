@@ -184,8 +184,8 @@ int main( int argc, char **argv )
      MatrixVector_From_File( &M, InitCnt.FileM );
      MatrixVector_From_File( &K, InitCnt.FileK );
 
-     //CalculateMatrixC( &M, &K, &C, &InitCnt.Rayleigh );
-     C.Array[0] = 0.104*2*sqrtf(K.Array[0]*M.Array[0] ); /* EFAST */
+     CalculateMatrixC( &M, &K, &C, &InitCnt.Rayleigh );
+     //C.Array[0] = 0.104*2*sqrtf(K.Array[0]*M.Array[0] ); /* EFAST */
 
      /* Calculate Matrix Keinv = [K + a0*M + a1*C]^(-1) */
      Constants.Alpha = 1.0;
@@ -231,7 +231,7 @@ int main( int argc, char **argv )
 	  EffK_Calc_Effective_Force( &M, &C, &DispT, &VelT, &AccT, &tempvec,
 				     InitCnt.a0, InitCnt.a1, InitCnt.a2, InitCnt.a3, InitCnt.a4, InitCnt.a5,
 				     &EffT );
-
+	 
 	  /* Compute the new Displacement u0 */
 	  EffK_ComputeU0( &EffT, &LoadTdT, &fu, InitCnt.PID.P, &Keinv, &tempvec, &DispTdT0 );
 

@@ -25,11 +25,11 @@ void InitConstants( AlgConst *const InitConst )
 {
 
 	/* Order of the matrices */
-	(*InitConst).Order = 1;
+	(*InitConst).Order = 504;
 
 	/* Order of the coupling nodes and their starting position */
 	(*InitConst).OrderC = 1;
-	(*InitConst).PosCouple = 1;
+	(*InitConst).PosCouple = 88;
 
 	/* Number of steps and Time step */
 	(*InitConst).Nstep = 4096;
@@ -44,7 +44,7 @@ void InitConstants( AlgConst *const InitConst )
 	(*InitConst).Newmark.Beta = 0.25;
 
 	/* PID Constants */
-	(*InitConst).PID.P = 0.95;
+	(*InitConst).PID.P = 0.0;
 	(*InitConst).PID.I = 0.0;
 	(*InitConst).PID.D = 0.0;
 
@@ -65,8 +65,8 @@ void InitConstants( AlgConst *const InitConst )
 
 	/* File Names */
 /*EFAST*/
-	(*InitConst).FileM = "1M.txt";
-	(*InitConst).FileK = "1K.txt";
+	(*InitConst).FileM = "504M.txt";
+	(*InitConst).FileK = "504K.txt";
 	(*InitConst).FileC = "33C.txt";
 	(*InitConst).FileData = "GroundMovement.txt";
 

@@ -196,7 +196,6 @@ int main( int argc, char **argv )
      /* Calculate damping matrix using Rayleigh. C = alpha*M + beta*K */
      CalculateMatrixC( &M, &K, &C, &InitCnt.Rayleigh );
      
-
      /* Calculate Matrix Keinv = [K + a0*M + a1*C]^(-1) */
      Constants.Alpha = 1.0;
      Constants.Beta = InitCnt.a0;
@@ -210,21 +209,20 @@ int main( int argc, char **argv )
      CopyDiagonalValues( &M, &DiagM );
 
      /* Transform the matrices into CSR format */
-     Dense_to_CSR( &M, &Sp_M, 0 );            /* Transform into CSR format */
-     Destroy_Dense_MatrixVector( &M );        /* Destroy the dense matrix */
+     Dense_to_CSR( &M, &Sp_M, 1 );            /* Transform into CSR format */
+     //Destroy_Dense_MatrixVector( &M );        /* Destroy the dense matrix */
+     
+     Dense_to_CSR( &K, &Sp_K, 1 );            /* Transform into CSR format */
+     //Destroy_Dense_MatrixVector( &K );        /* Destroy the dense matrix */
 
-     Dense_to_CSR( &K, &Sp_K, 0 );            /* Transform into CSR format */
-     Destroy_Dense_MatrixVector( &K );        /* Destroy the dense matrix */
+     Dense_to_CSR( &C, &Sp_C, 1 );            /* Transform into CSR format */
+     //Destroy_Dense_MatrixVector( &C );        /* Destroy the dense matrix */
 
-     Dense_to_CSR( &C, &Sp_C, 0 );            /* Transform into CSR format */
-     Destroy_Dense_MatrixVector( &C );        /* Destroy the dense matrix */
+     Dense_to_CSR( &Keinv, &Sp_Keinv, 1 );    /* Transform into CSR format */
+     //Destroy_Dense_MatrixVector( &Keinv );    /* Destroy the dense matrix */
 
-     Dense_to_CSR( &Keinv, &Sp_Keinv, 0 );    /* Transform into CSR format */
-     Destroy_Dense_MatrixVector( &Keinv );    /* Destroy the dense matrix */
-
-     Dense_to_CSR( &Keinv, &Sp_Keinv_m, 0 );    /* Transform into CSR format */
-     Destroy_Dense_MatrixVector( &Keinv_m );    /* Destroy the dense matrix */
-
+     Dense_to_CSR( &Keinv_m, &Sp_Keinv_m, 1 );    /* Transform into CSR format */
+     //Destroy_Dense_MatrixVector( &Keinv_m );    /* Destroy the dense matrix */
 
      /* Send the coupling part of the effective matrix */
      Send_Effective_Matrix( Keinv_c.Array, InitCnt.Type_Protocol, InitCnt.OrderC, &Socket );
@@ -250,6 +248,7 @@ int main( int argc, char **argv )
      Set2Value( &Acc, AccAll[istep - 1] );	  
      Calc_Input_Load( &LoadTdT, &Sp_K, &Sp_C, &Sp_M, &DiagM, &Disp, &Vel, &Acc, &tempvec1 );
 
+
      incx = 1; incy = 1;
      printf( "Starting stepping process\n" );
      while ( istep <= InitCnt.Nstep ){
@@ -259,7 +258,7 @@ int main( int argc, char **argv )
 	  EffK_Calc_Effective_Force( &Sp_M, &Sp_C, &DispT, &VelT, &AccT, &tempvec,
 				     InitCnt.a0, InitCnt.a1, InitCnt.a2, InitCnt.a3, InitCnt.a4, InitCnt.a5,
 				     &EffT, &tempvec1 );
-
+	  
 	  /* Compute the new Displacement u0 */
 	  EffK_ComputeU0( &EffT, &LoadTdT, &fu, InitCnt.PID.P, &Sp_Keinv, &tempvec, &DispTdT0 );
 
@@ -338,17 +337,9 @@ int main( int argc, char **argv )
      free( AccAll );
      free( VelAll );
      free( DispAll );
-
-     /* Destroy the data structures */
-     Destroy_Sparse_MatrixVector( &Sp_M );
-     Destroy_Sparse_MatrixVector( &Sp_C );
-     Destroy_Sparse_MatrixVector( &Sp_K );
-
-     Destroy_Sparse_MatrixVector( &Sp_Keinv );
-     Destroy_Sparse_MatrixVector( &Sp_Keinv_m );
-
+     
      Destroy_Dense_MatrixVector( &Keinv_c );
-
+     
      Destroy_Dense_MatrixVector( &DiagM );
      Destroy_Dense_MatrixVector( &tempvec );
      Destroy_Dense_MatrixVector( &tempvec1 );
@@ -380,6 +371,14 @@ int main( int argc, char **argv )
      Destroy_Dense_MatrixVector( &Disp );
      Destroy_Dense_MatrixVector( &Vel );
      Destroy_Dense_MatrixVector( &Acc );
+     
+     /* Destroy the data structures */
+     Destroy_Sparse_MatrixVector( &Sp_M );
+     Destroy_Sparse_MatrixVector( &Sp_C );
+     Destroy_Sparse_MatrixVector( &Sp_K );
 
+     Destroy_Sparse_MatrixVector( &Sp_Keinv );
+     Destroy_Sparse_MatrixVector( &Sp_Keinv_m );
+     
      return 0;
 }
