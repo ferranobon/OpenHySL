@@ -37,7 +37,7 @@ void ReadDataEarthquake( float *Acceleration, float *Velocity, float *Displaceme
 	   //fscanf( InFile, "%f%f%f%f", &unnecessary, &temp1, &temp2, &temp3 );
 	   //fscanf( InFile, "%f%f%f%f", &unnecessary, &temp1, &temp2, &temp3 );
 
-	   fscanf( InFile, "%e %e %e %e", &unnecessary, &temp1, &temp2, &temp3 );
+	   fscanf( InFile, "%E %E %E %E", &unnecessary, &temp1, &temp2, &temp3 );
 	   Acceleration[i] = temp1/1000.0;
 	   Velocity[i] = temp2/1000.0;
 	   Displacement[i] = temp3/1000.0;
