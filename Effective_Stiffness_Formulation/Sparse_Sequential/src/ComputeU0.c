@@ -77,6 +77,7 @@ void EffK_Calc_Effective_Force( const Sp_MatrixVector *const Mass, const Sp_Matr
      saxpy_( &Tempvec->Rows, &Alpha, Acc->Array, &incx, Tempvec->Array, &incy );
      /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) + Damp*(a1*Disp + a4*Vel + a5*Acc) = Eff_Force + Damp*tempvec */
      mkl_scsrsymv( &uplo, &Tempvec->Rows, Damp->Values, Damp->RowIndex, Damp->Columns, Tempvec->Array, Tempvec1->Array );
+     Alpha = 1.0;
      saxpy_( &Tempvec1->Rows, &Alpha, Tempvec1->Array, &incx, Eff_Force->Array, &incy );
 }
 
