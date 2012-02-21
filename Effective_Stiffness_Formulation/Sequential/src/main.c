@@ -231,10 +231,11 @@ int main( int argc, char **argv )
 	  EffK_Calc_Effective_Force( &M, &C, &DispT, &VelT, &AccT, &tempvec,
 				     InitCnt.a0, InitCnt.a1, InitCnt.a2, InitCnt.a3, InitCnt.a4, InitCnt.a5,
 				     &EffT );
-	 
+
 	  /* Compute the new Displacement u0 */
 	  EffK_ComputeU0( &EffT, &LoadTdT, &fu, InitCnt.PID.P, &Keinv, &tempvec, &DispTdT0 );
 
+	  printf("\n");
 	  /* Split DispTdT into coupling and non-coupling part */
 	  CreateVectorXm( &DispTdT0, &DispTdT0_m, InitCnt.PosCouple, InitCnt.OrderC );
 	  CreateVectorXc( &DispTdT0, DispTdT0_c.Array, InitCnt.PosCouple, InitCnt.OrderC );
@@ -255,7 +256,10 @@ int main( int argc, char **argv )
 	  /* Join the non-coupling part. DispTdT_m = Keinv_m*fc + DispTdT0_m. Although DispTdT0_m is what has been received from the other computer,
 	     it has the name of DispTdT_m to avoid further operations if using the NETLIB libraries. */
 	  JoinNonCouplingPart( &DispTdT0_m, &Keinv_m, &fcprevsub, &DispTdT, InitCnt.PosCouple, InitCnt.OrderC );
-
+for ( i = 0; i < 504; i++ ){
+	       printf("%e\t", DispTdT.Array[i]);
+	  }
+	  printf("\n");
 	  /* Compute acceleration ai1 = a0*(ui1 -ui) - a2*vi -a3*ai */
 	  Compute_Acceleration( &DispTdT, &DispT, &VelT, &AccT, InitCnt.a0, InitCnt.a2, InitCnt.a3, &AccTdT );
 
