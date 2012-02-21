@@ -234,6 +234,8 @@ int main( int argc, char **argv )
 
 	  /* Compute the new Displacement u0 */
 	  EffK_ComputeU0( &EffT, &LoadTdT, &fu, InitCnt.PID.P, &Keinv, &tempvec, &DispTdT0 );
+
+
 	  /* Split DispTdT into coupling and non-coupling part */
 	  CreateVectorXm( &DispTdT0, &DispTdT0_m, InitCnt.PosCouple, InitCnt.OrderC );
 	  CreateVectorXc( &DispTdT0, DispTdT0_c.Array, InitCnt.PosCouple, InitCnt.OrderC );
@@ -257,7 +259,7 @@ int main( int argc, char **argv )
 
 	  /* Compute acceleration ai1 = a0*(ui1 -ui) - a2*vi -a3*ai */
 	  Compute_Acceleration( &DispTdT, &DispT, &VelT, &AccT, InitCnt.a0, InitCnt.a2, InitCnt.a3, &AccTdT );
-for ( i = 0; i < 1; i++ ){
+	  for ( i = 0; i < 1; i++ ){
 	       printf("%e\t", AccTdT.Array[87]);
 	  }
 	  printf("\n");
@@ -289,7 +291,7 @@ for ( i = 0; i < 1; i++ ){
 
      /* Save the results into a file */
      for ( i = 0; i < InitCnt.Nstep; i++ ){
-	  fprintf( OutputFile, "%e\t%e\t%e\t%e\t%e\t%e\t%e\t%e\t%e\n", TimeHistoryli[i], TimeHistoryai1[i], TimeHistoryai[i], TimeHistoryvi1[i], TimeHistoryvi[i], TimeHistoryui1[i], TimeHistoryui[i], TimeHistoryfc[i], TimeHistoryfu[i] );
+	  fprintf( OutputFile, "%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\n", TimeHistoryli[i], TimeHistoryai1[i], TimeHistoryai[i], TimeHistoryvi1[i], TimeHistoryvi[i], TimeHistoryui1[i], TimeHistoryui[i], TimeHistoryfc[i], TimeHistoryfu[i] );
      }
      /* Close the output file */
      fclose( OutputFile );

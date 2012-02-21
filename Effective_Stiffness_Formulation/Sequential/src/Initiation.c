@@ -44,7 +44,7 @@ void InitConstants( AlgConst *const InitConst )
 	(*InitConst).Newmark.Beta = 0.25;
 
 	/* PID Constants */
-	(*InitConst).PID.P = 0.0;
+	(*InitConst).PID.P = 0.95;
 	(*InitConst).PID.I = 0.0;
 	(*InitConst).PID.D = 0.0;
 

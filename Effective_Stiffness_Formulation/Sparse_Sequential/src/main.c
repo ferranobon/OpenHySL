@@ -209,20 +209,20 @@ int main( int argc, char **argv )
      CopyDiagonalValues( &M, &DiagM );
 
      /* Transform the matrices into CSR format */
-     Dense_to_CSR( &M, &Sp_M, 1 );            /* Transform into CSR format */
-     //Destroy_Dense_MatrixVector( &M );        /* Destroy the dense matrix */
+     Dense_to_CSR( &M, &Sp_M, 0 );            /* Transform into CSR format */
+     Destroy_Dense_MatrixVector( &M );        /* Destroy the dense matrix */
      
-     Dense_to_CSR( &K, &Sp_K, 1 );            /* Transform into CSR format */
-     //Destroy_Dense_MatrixVector( &K );        /* Destroy the dense matrix */
+     Dense_to_CSR( &K, &Sp_K, 0 );            /* Transform into CSR format */
+     Destroy_Dense_MatrixVector( &K );        /* Destroy the dense matrix */
 
-     Dense_to_CSR( &C, &Sp_C, 1 );            /* Transform into CSR format */
-     //Destroy_Dense_MatrixVector( &C );        /* Destroy the dense matrix */
+     Dense_to_CSR( &C, &Sp_C, 0 );            /* Transform into CSR format */
+     Destroy_Dense_MatrixVector( &C );        /* Destroy the dense matrix */
 
-     Dense_to_CSR( &Keinv, &Sp_Keinv, 1 );    /* Transform into CSR format */
-     //Destroy_Dense_MatrixVector( &Keinv );    /* Destroy the dense matrix */
+     Dense_to_CSR( &Keinv, &Sp_Keinv, 0 );    /* Transform into CSR format */
+     Destroy_Dense_MatrixVector( &Keinv );    /* Destroy the dense matrix */
 
      Dense_to_CSR( &Keinv_m, &Sp_Keinv_m, 1 );    /* Transform into CSR format */
-     //Destroy_Dense_MatrixVector( &Keinv_m );    /* Destroy the dense matrix */
+     Destroy_Dense_MatrixVector( &Keinv_m );    /* Destroy the dense matrix */
 
      /* Send the coupling part of the effective matrix */
      Send_Effective_Matrix( Keinv_c.Array, InitCnt.Type_Protocol, InitCnt.OrderC, &Socket );
@@ -246,7 +246,7 @@ int main( int argc, char **argv )
      Set2Value( &Disp, DispAll[istep - 1] );
      Set2Value( &Vel, VelAll[istep - 1] );
      Set2Value( &Acc, AccAll[istep - 1] );	  
-     Calc_Input_Load( &LoadTdT, &Sp_K, &Sp_C, &Sp_M, &DiagM, &Disp, &Vel, &Acc, &tempvec1 );
+     Calc_Input_Load( &LoadTdT, &Sp_K, &Sp_C, &Sp_M, &DiagM, &Disp, &Vel, &Acc );
 
 
      incx = 1; incy = 1;
@@ -257,7 +257,8 @@ int main( int argc, char **argv )
 	     Fe = M*(a0*u + a2*v + a3*a) + C*(a1*u + a4*v + a5*a) */
 	  EffK_Calc_Effective_Force( &Sp_M, &Sp_C, &DispT, &VelT, &AccT, &tempvec,
 				     InitCnt.a0, InitCnt.a1, InitCnt.a2, InitCnt.a3, InitCnt.a4, InitCnt.a5,
-				     &EffT, &tempvec1 );     
+				     &EffT );
+
 	  /* Compute the new Displacement u0 */
 	  EffK_ComputeU0( &EffT, &LoadTdT, &fu, InitCnt.PID.P, &Sp_Keinv, &tempvec, &DispTdT0 );
 
@@ -275,7 +276,7 @@ int main( int argc, char **argv )
 	       Set2Value( &Disp, DispAll[istep] );
 	       Set2Value( &Vel, VelAll[istep] );
 	       Set2Value( &Acc, AccAll[istep] );	  
-	       Calc_Input_Load( &LoadTdT1, &Sp_K, &Sp_C, &Sp_M, &DiagM, &Disp, &Vel, &Acc, &tempvec1 );
+	       Calc_Input_Load( &LoadTdT1, &Sp_K, &Sp_C, &Sp_M, &DiagM, &Disp, &Vel, &Acc );
 	  }
 
 	  /* Join the non-coupling part. DispTdT_m = Keinv_m*fc + DispTdT0_m. Although DispTdT0_m is what has been received from the other computer,
@@ -284,8 +285,6 @@ int main( int argc, char **argv )
 
 	  /* Compute acceleration ai1 = a0*(ui1 -ui) - a2*vi -a3*ai */
 	  Compute_Acceleration( &DispTdT, &DispT, &VelT, &AccT, InitCnt.a0, InitCnt.a2, InitCnt.a3, &AccTdT );
-
-
 	  for ( i = 0; i < 1; i++ ){
 	       printf("%e\t", AccTdT.Array[87]);
 	  }
@@ -318,7 +317,7 @@ int main( int argc, char **argv )
 
      /* Save the results into a file */
      for ( i = 0; i < InitCnt.Nstep; i++ ){
-	  fprintf( OutputFile, "%e\t%e\t%e\t%e\t%e\t%e\t%e\t%e\t%e\n", TimeHistoryli[i], TimeHistoryai1[i], TimeHistoryai[i], TimeHistoryvi1[i], TimeHistoryvi[i], TimeHistoryui1[i], TimeHistoryui[i], TimeHistoryfc[i], TimeHistoryfu[i] );
+	  fprintf( OutputFile, "%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\n", TimeHistoryli[i], TimeHistoryai1[i], TimeHistoryai[i], TimeHistoryvi1[i], TimeHistoryvi[i], TimeHistoryui1[i], TimeHistoryui[i], TimeHistoryfc[i], TimeHistoryfu[i] );
      }
      /* Close the output file */
      fclose( OutputFile );

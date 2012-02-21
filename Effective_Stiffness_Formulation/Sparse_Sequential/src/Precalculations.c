@@ -39,7 +39,7 @@ void ReadDataEarthquake( float *Acceleration, float *Velocity, float *Displaceme
 //	   fscanf( InFile, "%f%f%f%f", &unnecessary, &temp1, &temp2, &temp3 );
 //	   fscanf( InFile, "%f%f%f%f", &unnecessary, &temp1, &temp2, &temp3 );
 
-	   fscanf( InFile, "%e %e %e %e", &unnecessary, &temp1, &temp2, &temp3 );
+	   fscanf( InFile, "%E %E %E %E", &unnecessary, &temp1, &temp2, &temp3 );
 	   Acceleration[i] = temp1/1000.0;
 	   Velocity[i] = temp2/1000.0;
 	   Displacement[i] = temp3/1000.0;
@@ -66,24 +66,21 @@ void CopyDiagonalValues( const Dense_MatrixVector *const Mat, Dense_MatrixVector
 
 }
 
-void Calc_Input_Load( Dense_MatrixVector *const InLoad, const Sp_MatrixVector *const Stif, const Sp_MatrixVector *const Damp, const Sp_MatrixVector *const Mass, const Dense_MatrixVector *const DiagM, const Dense_MatrixVector *const D, const Dense_MatrixVector *const V, const Dense_MatrixVector *const A, Dense_MatrixVector *const Tempvec )
+void Calc_Input_Load( Dense_MatrixVector *const InLoad, const Sp_MatrixVector *const Stif, const Sp_MatrixVector *const Damp, const Sp_MatrixVector *const Mass, const Dense_MatrixVector *const DiagM, const Dense_MatrixVector *const D, const Dense_MatrixVector *const V, const Dense_MatrixVector *const A )
 {
 
   static int incx, incy;       /* Stride in the vectors for BLAS library */
-  static float Alpha;          /* Constants to use in the BLAS library */
-  static char uplo;            /* Character to use in the BLAS library */
+  static float Alpha, Beta;    /* Constants to use in the BLAS library */
+  static char trans = 'N';
+  static char matdescra[6] = {'S', 'L', 'N', 'F'};
 
   incx = 1; incy = 1;
-  Alpha = 1.0;
-  uplo = 'L';     /* Character defining that the lower part of the symmetric matrix is referenced (see man dsymv) */
+  Alpha = 1.0; Beta = 0.0;
 
-  mkl_scsrsymv( &uplo, &InLoad->Rows, Stif->Values, Stif->RowIndex, Stif->Columns, D->Array, InLoad->Array );
-
-  mkl_scsrsymv( &uplo, &Tempvec->Rows, Damp->Values, Damp->RowIndex, Damp->Columns, V->Array, Tempvec->Array );
-  saxpy_( &InLoad->Rows, &Alpha, Tempvec->Array, &incx, InLoad->Array, &incy );
-
-  mkl_scsrsymv( &uplo, &Tempvec->Rows, Mass->Values, Mass->RowIndex, Mass->Columns, A->Array, Tempvec->Array );
-  saxpy_( &InLoad->Rows, &Alpha, Tempvec->Array, &incx, InLoad->Array, &incy );
+  mkl_scsrmv( &trans, &InLoad->Rows, &InLoad->Rows, &Alpha, matdescra, Stif->Values, Stif->Columns, Stif->RowIndex, &Stif->RowIndex[1], D->Array, &Beta, InLoad->Array );
+  Beta = 1.0;
+  mkl_scsrmv( &trans, &InLoad->Rows, &InLoad->Rows, &Alpha, matdescra, Damp->Values, Damp->Columns, Damp->RowIndex, &Damp->RowIndex[1], V->Array, &Beta, InLoad->Array );
+  mkl_scsrmv( &trans, &InLoad->Rows, &InLoad->Rows, &Alpha, matdescra, Mass->Values, Mass->Columns, Mass->RowIndex, &Mass->RowIndex[1], A->Array, &Beta, InLoad->Array );
 
   Alpha = -(*A).Array[0];
   saxpy_( &(*InLoad).Rows, &Alpha, (*DiagM).Array, &incx, (*InLoad).Array, &incy );
