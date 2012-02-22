@@ -213,21 +213,21 @@ void Dense_Add3Mat( Dense_MatrixVector *const MatY, const Dense_MatrixVector *co
 void Dense_MatrixVector_To_File( const Dense_MatrixVector *const Mat, const char *Filename );
 
 /**
- * \brief Writes a symmetric sparse matrix or a vector to a file.
+ * \brief Writes a sparse matrix or a vector to a file.
  *
- * The contents of the symmetric sparse matrix or vector are saved into a file in
- * row-major order and in dense representation. If the file cannot be opened, the
+ * The contents of the sparse matrix or vector are saved into a file in
+ * row-major order and in CSR representation. If the file cannot be opened, the
  * program exits abnormally.
  *
  * \pre The data structure must be properly initialised and their elements must be in
- * CSR-three array variation and one-based index. Only the upper triangular part is considered.
+ * CSR-three array variation and zero-based index.
  *
  * \param[in] Sp_Mat The sparse matrix or vector whose array must be stored into a file.
  * \param[in] Filename The name of the file where the contents of \c Sp_Mat will be stored.
  *
  * \sa Sp_MatrixVector.
  */
-void Sp_MatrixVector_To_File_SY( const Sp_MatrixVector *const Sp_Mat, const char *Filename );
+void Sp_MatrixVector_To_File( const Sp_MatrixVector *const Sp_Mat, const char *Filename );
 
 /**
  * \brief Deallocates the memory of the desired Dense_MatrixVector.
