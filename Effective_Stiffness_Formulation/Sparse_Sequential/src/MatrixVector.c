@@ -240,40 +240,33 @@ void Dense_MatrixVector_To_File( const Dense_MatrixVector *const Mat, const char
 	} else ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
 }
 
-void Sp_MatrixVector_To_File_SY( const Sp_MatrixVector *const Sp_Mat, const char *Filename )
+void Sp_MatrixVector_To_File( const Sp_MatrixVector *const Sp_Mat, const char *Filename )
 {
-     int i, j;          /* Counters */
-     int lda, job[6];   /* Variables required by mkl_sdnscsr_( ). lda = leading dimension of
-			 * the matrix lda = max(1,Num_Rows). */
-     float *Temp_Array; /* Temporal full array */
+     int i;          /* Counter */
+
      FILE *OutFile;
 
      OutFile = fopen( Filename, "w" );
 
      if ( OutFile != NULL ){
-
-	  /* Allocate memory for the temporal array */
-	  Temp_Array = (float *) calloc( Sp_Mat->Rows*Sp_Mat->Cols, sizeof( float ) );
-
-	  /* MKL: Transform the dense matrix into a CSR-three array variation matrix */
-	  job[0] = 1; /* The matrix is restored from CSR format. */
-	  job[1] = 1; /* One-based indexing is used for the dense matrix. */
-	  job[2] = 1; /* One-based indexing for the sparse matrix is used. */
-	  job[3] = 1; /* Values will contain the upper triangular part of the dense matrix. */
-	  job[4] = Sp_Mat->Num_Nonzero; /* Maximum number of non-zero elements allowed. */
-	  job[5] = 1; /* Values, Columns and RowIndex arrays are generated. */
-	  lda = Max( 1, Sp_Mat->Rows );
-	  mkl_sdnscsr_( job, &Sp_Mat->Rows, &Sp_Mat->Cols, Temp_Array, &lda, Sp_Mat->Values, Sp_Mat->Columns, Sp_Mat->RowIndex );
-
-	  for ( i = 0; i < Sp_Mat->Rows; i++ ){
-	       for ( j = 0; j < Sp_Mat->Cols; j++ ){
-		    fprintf( OutFile, "%e\t", Temp_Array[i*Sp_Mat->Rows + j] );
-	       }
-	       fprintf( OutFile, "\n" );
+	  
+	  fprintf( OutFile, "Values: Nonzero elements.\n" );
+	  for ( i = 0; i < Sp_Mat->Num_Nonzero; i++ ){
+	       fprintf( OutFile, "%E\t", Sp_Mat->Values[i] );
 	  }
+	  fprintf( OutFile, "\n" );
 
-	  /* Deallocate memory */
-	  free( Temp_Array );
+	  fprintf( OutFile, "Columns array.\n" );
+	  for ( i = 0; i < Sp_Mat->Num_Nonzero; i++ ){
+	       fprintf( OutFile, "%i\t", Sp_Mat->Columns[i] );
+	  }
+	  fprintf( OutFile, "\n" );
+
+	  fprintf( OutFile, "RowIndex array.\n" );
+	  for ( i = 0; i < Sp_Mat->Rows + 1; i++ ){
+	       fprintf( OutFile, "%i\t", Sp_Mat->RowIndex[i] );
+	  }
+	  fprintf( OutFile, "\n" );	  
 
 	  /* Close file */
 	  fclose( OutFile );
