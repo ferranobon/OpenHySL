@@ -72,14 +72,16 @@ void Calc_Input_Load( Dense_MatrixVector *const InLoad, const Sp_MatrixVector *c
   static int incx, incy;       /* Stride in the vectors for BLAS library */
   static float Alpha, Beta;    /* Constants to use in the BLAS library */
   static char trans = 'N';
-  static char matdescra[6] = {'S', 'L', 'N', 'F'};
+  static char matdescra[6] = {'S', 'U', 'N', 'C'};
 
   incx = 1; incy = 1;
   Alpha = 1.0; Beta = 0.0;
 
+  matdescra[0] = 'S';
   mkl_scsrmv( &trans, &InLoad->Rows, &InLoad->Rows, &Alpha, matdescra, Stif->Values, Stif->Columns, Stif->RowIndex, &Stif->RowIndex[1], D->Array, &Beta, InLoad->Array );
   Beta = 1.0;
   mkl_scsrmv( &trans, &InLoad->Rows, &InLoad->Rows, &Alpha, matdescra, Damp->Values, Damp->Columns, Damp->RowIndex, &Damp->RowIndex[1], V->Array, &Beta, InLoad->Array );
+  matdescra[0] = 'D';
   mkl_scsrmv( &trans, &InLoad->Rows, &InLoad->Rows, &Alpha, matdescra, Mass->Values, Mass->Columns, Mass->RowIndex, &Mass->RowIndex[1], A->Array, &Beta, InLoad->Array );
 
   Alpha = -(*A).Array[0];
