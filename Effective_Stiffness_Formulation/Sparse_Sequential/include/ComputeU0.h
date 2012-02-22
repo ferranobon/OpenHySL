@@ -49,7 +49,9 @@ void EffK_Calc_Effective_Force( const Sp_MatrixVector *const Mass, const Sp_Matr
 				const float a0, const float a1, const float a2,
 				const float a3, const float a4, const float a5,
 				Dense_MatrixVector *const Eff_Force );
-void EffK_ComputeU0( const Dense_MatrixVector *const Eff_Force, const Dense_MatrixVector *const In_Load,
+void EffK_ComputeU0_Dense( const Dense_MatrixVector *const Eff_Force, const Dense_MatrixVector *const In_Load,
+			   const Dense_MatrixVector *const Err_Force, const float PID_P, const Dense_MatrixVector *const Keinv, Dense_MatrixVector *const Tempvec, Dense_MatrixVector *const Disp0 );
+void EffK_ComputeU0_Sparse( const Dense_MatrixVector *const Eff_Force, const Dense_MatrixVector *const In_Load,
 		     const Dense_MatrixVector *const Err_Force, const float PID_P, const Sp_MatrixVector *const Keinv,
 		     Dense_MatrixVector *const Tempvec, Dense_MatrixVector *const Disp0 );
 

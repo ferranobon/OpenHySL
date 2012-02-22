@@ -19,7 +19,37 @@
 
 #include <mkl_spblas.h>
 
-void JoinNonCouplingPart( Dense_MatrixVector *const VecXm, const Sp_MatrixVector *const Keinv_m, const Dense_MatrixVector *const fcprevsub,
+void JoinNonCouplingPart_Dense( Dense_MatrixVector *const VecXm, const Dense_MatrixVector *const Keinv_m, const Dense_MatrixVector *const fcprevsub,
+			  Dense_MatrixVector *const Vec, const int PosCouple, const int OrderC )
+{
+
+	static int incx, incy;
+	static float Alpha, Beta;
+	static char trans;
+	static int Rows, Cols, TempSize;
+	static int lda;
+
+	incx = 1; incy = 1;
+	trans = 'N';
+	Alpha = 1.0; Beta = 0.0;
+	Rows = Keinv_m->Rows;
+	Cols = Keinv_m->Cols;
+	lda = Max( 1, Keinv_m->Rows);
+
+	sgemv_( &trans, &Rows, &Cols, &Alpha, Keinv_m->Array, &lda,
+		&fcprevsub->Array[PosCouple - 1], &incx, &Beta, VecXm->Array, &incy );
+
+	/* Copy the first elements */
+	TempSize = PosCouple - 1;
+	scopy_( &TempSize, (*VecXm).Array, &incx, (*Vec).Array, &incy );
+
+	/* Join the part after the coupling position */
+	TempSize = (*Vec).Rows - ( PosCouple + OrderC - 1 );
+	scopy_( &TempSize, &(*VecXm).Array[PosCouple - 1], &incx, &(*Vec).Array[PosCouple + OrderC - 1], &incy );
+
+}
+
+void JoinNonCouplingPart_Sparse( Dense_MatrixVector *const VecXm, const Sp_MatrixVector *const Keinv_m, const Dense_MatrixVector *const fcprevsub,
 			  Dense_MatrixVector *const Vec, const int PosCouple, const int OrderC )
 {
 
