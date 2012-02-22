@@ -47,7 +47,7 @@ void EffK_Calc_Effective_Force( const Sp_MatrixVector *const Mass, const Sp_Matr
 
      static int incx = 1, incy = 1;
      static char trans = 'N';
-     static char matdescra[6] = {'S', 'L', 'N', 'F'};
+     static char matdescra[6] = {'S', 'U', 'N', 'C'};
      static float Alpha, Beta;
 
      /* BLAS: tempvec = Disp */
@@ -88,7 +88,7 @@ void EffK_ComputeU0( const Dense_MatrixVector *const Eff_Force, const Dense_Matr
      static int incx = 1, incy = 1;
      static float Alpha = 1.0, Beta = 0.0;
      static char trans = 'N';
-     static char matdescra[6] = {'S', 'L', 'N', 'F'};
+     static char matdescra[6] = {'S', 'U', 'N', 'C'};
 
      /* BLAS: tempvec = Eff_Force */
      scopy_( &Tempvec->Rows, Eff_Force->Array, &incx, Tempvec->Array, &incy );

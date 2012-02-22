@@ -81,7 +81,7 @@ void Init_Dense_MatrixVector( Dense_MatrixVector *Mat, const int Rows, const int
  *
  * The dense matrix is converted into the CSR-three array variation format of the Intel MKL library. It first counts the
  * number of non-zero elements and afterwards it allocates the necessary memory for the Values and Columns arrays
- * (\sa Sp_MatVec). The CSR matrix will be one-based indexing and will contain the upper triangular part of the dense matrix.
+ * (\sa Sp_MatVec). The CSR matrix will be zero-based indexing and will contain the upper triangular part of the dense matrix.
  *
  * \param[in] Mat Dense matrix.
  * \param[out] Sp_Mat Sparse matrix stored in CSR-three variation array. It contains the upper triangular part of the dense

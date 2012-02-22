@@ -27,7 +27,7 @@ void JoinNonCouplingPart( Dense_MatrixVector *const VecXm, const Sp_MatrixVector
 	static float Alpha, Beta;
 	static int Rows,Cols, TempSize;
 	static char trans = 'N';
-	static char matdescra[6] = {'G', 'L', 'N', 'F'};
+	static char matdescra[6] = {'G', 'U', 'N', 'C'};
 
 	Alpha = 1.0; Beta = 0.0;
 	incx = 1; incy = 1;
@@ -94,7 +94,7 @@ void Compute_Force_Error( const Sp_MatrixVector *const Mass, const Sp_MatrixVect
      static float Alpha, Beta;
      static char uplo = 'L';
      static char trans = 'N';
-     static char matdescra[6] = {'S', 'L', 'N', 'F'};
+     static char matdescra[6] = {'S', 'U', 'N', 'C'};
 
 
 
