@@ -259,10 +259,6 @@ int main( int argc, char **argv )
 
 	  /* Compute acceleration ai1 = a0*(ui1 -ui) - a2*vi -a3*ai */
 	  Compute_Acceleration( &DispTdT, &DispT, &VelT, &AccT, InitCnt.a0, InitCnt.a2, InitCnt.a3, &AccTdT );
-	  for ( i = 0; i < 1; i++ ){
-	       printf("%e\t", AccTdT.Array[87]);
-	  }
-	  printf("\n");
 
 	  /* Compute Velocity. vi = vi + a6*ai +a7*ai */
 	  Compute_Velocity( &VelT, &AccT, &AccTdT, InitCnt.a6, InitCnt.a7, &VelTdT );

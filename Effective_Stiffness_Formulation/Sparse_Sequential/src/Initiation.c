@@ -96,6 +96,23 @@ int Get_Type_Protocol( )
      }
 }
 
+void CalculateMatrixC_Trial( const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const Stif, Dense_MatrixVector *const Damp, const RayleighConst *const Rayleigh ){
+
+     int incx, incy;
+     int Length;
+     float alpha = Rayleigh->Alpha;
+     float beta = Rayleigh->Beta;
+
+     incx = 1; incy = 1;
+     Length = Damp->Rows * Damp->Cols;
+
+     scopy_( &Length, Mass->Array, &incx, Damp->Array, &incy ); 
+     sscal_( &Length, &alpha, Damp->Array, &incy );
+     saxpy_( &Length, &beta, Stif->Array, &incx, Damp->Array, &incy );
+     printf("1\n");
+}
+
+
 void CalculateMatrixC( const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const Stif, Dense_MatrixVector *const Damp, const RayleighConst *const Rayleigh )
 {
 	char uplo;

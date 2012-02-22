@@ -19,6 +19,8 @@
 #define SOMESIZE (150*1024*1024) // 150MB
 #endif
 
+void CalculateMatrixC_Trial( const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const Stif, Dense_MatrixVector *const Damp, const RayleighConst *const Rayleigh );
+
 int main( int argc, char **argv )
 {
      
@@ -215,14 +217,10 @@ int main( int argc, char **argv )
      Dense_to_CSR( &K, &Sp_K, 0 );            /* Transform into CSR format */
      Destroy_Dense_MatrixVector( &K );        /* Destroy the dense matrix */
 
-     Dense_to_CSR( &C, &Sp_C, 0 );            /* Transform into CSR format */
+     Dense_to_CSR( &C, &Sp_C, 1 );            /* Transform into CSR format */
+     Dense_MatrixVector_To_File( &C, "C.txt");
+     Sp_MatrixVector_To_File( &Sp_C, "Sp_C.txt" );
      Destroy_Dense_MatrixVector( &C );        /* Destroy the dense matrix */
-
-     Dense_to_CSR( &Keinv, &Sp_Keinv, 0 );    /* Transform into CSR format */
-     Destroy_Dense_MatrixVector( &Keinv );    /* Destroy the dense matrix */
-
-     Dense_to_CSR( &Keinv_m, &Sp_Keinv_m, 1 );    /* Transform into CSR format */
-     Destroy_Dense_MatrixVector( &Keinv_m );    /* Destroy the dense matrix */
 
      /* Send the coupling part of the effective matrix */
      Send_Effective_Matrix( Keinv_c.Array, InitCnt.Type_Protocol, InitCnt.OrderC, &Socket );
@@ -260,7 +258,7 @@ int main( int argc, char **argv )
 				     &EffT );
 
 	  /* Compute the new Displacement u0 */
-	  EffK_ComputeU0( &EffT, &LoadTdT, &fu, InitCnt.PID.P, &Sp_Keinv, &tempvec, &DispTdT0 );
+	  EffK_ComputeU0_Dense( &EffT, &LoadTdT, &fu, InitCnt.PID.P, &Keinv, &tempvec, &DispTdT0 );
 
 	  /* Split DispTdT into coupling and non-coupling part */
 	  CreateVectorXm( &DispTdT0, &DispTdT0_m, InitCnt.PosCouple, InitCnt.OrderC );
@@ -281,14 +279,10 @@ int main( int argc, char **argv )
 
 	  /* Join the non-coupling part. DispTdT_m = Keinv_m*fc + DispTdT0_m. Although DispTdT0_m is what has been received from the other computer,
 	     it has the name of DispTdT_m to avoid further operations if using the NETLIB libraries. */
-	  JoinNonCouplingPart( &DispTdT0_m, &Sp_Keinv_m, &fcprevsub, &DispTdT, InitCnt.PosCouple, InitCnt.OrderC );
+	  JoinNonCouplingPart_Dense( &DispTdT0_m, &Keinv_m, &fcprevsub, &DispTdT, InitCnt.PosCouple, InitCnt.OrderC );
 
 	  /* Compute acceleration ai1 = a0*(ui1 -ui) - a2*vi -a3*ai */
 	  Compute_Acceleration( &DispTdT, &DispT, &VelT, &AccT, InitCnt.a0, InitCnt.a2, InitCnt.a3, &AccTdT );
-	  for ( i = 0; i < 1; i++ ){
-	       printf("%e\t", AccTdT.Array[87]);
-	  }
-	  printf("\n");
 
 	  /* Compute Velocity. vi = vi + a6*ai +a7*ai */
 	  Compute_Velocity( &VelT, &AccT, &AccTdT, InitCnt.a6, InitCnt.a7, &VelTdT );
@@ -341,7 +335,9 @@ int main( int argc, char **argv )
      free( AccAll );
      free( VelAll );
      free( DispAll );
-     
+
+     Destroy_Dense_MatrixVector( &Keinv );
+     Destroy_Dense_MatrixVector( &Keinv_m );
      Destroy_Dense_MatrixVector( &Keinv_c );
      
      Destroy_Dense_MatrixVector( &DiagM );
@@ -380,9 +376,6 @@ int main( int argc, char **argv )
      Destroy_Sparse_MatrixVector( &Sp_M );
      Destroy_Sparse_MatrixVector( &Sp_C );
      Destroy_Sparse_MatrixVector( &Sp_K );
-
-     Destroy_Sparse_MatrixVector( &Sp_Keinv );
-     Destroy_Sparse_MatrixVector( &Sp_Keinv_m );
      
      return 0;
 }

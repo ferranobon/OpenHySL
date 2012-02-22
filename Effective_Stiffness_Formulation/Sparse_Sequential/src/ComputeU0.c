@@ -82,7 +82,27 @@ void EffK_Calc_Effective_Force( const Sp_MatrixVector *const Mass, const Sp_Matr
      
 }
 
-void EffK_ComputeU0( const Dense_MatrixVector *const Eff_Force, const Dense_MatrixVector *const In_Load,
+void EffK_ComputeU0_Dense( const Dense_MatrixVector *const Eff_Force, const Dense_MatrixVector *const In_Load,
+		     const Dense_MatrixVector *const Err_Force, const float PID_P, const Dense_MatrixVector *const Keinv, Dense_MatrixVector *const Tempvec, Dense_MatrixVector *const Disp0 )
+{
+     static int incx = 1, incy = 1;
+     static float Alpha = 1.0, Beta = 0.0;
+     static char uplo = 'L';
+
+     /* BLAS: tempvec = Eff_Force */
+     scopy_( &Tempvec->Rows, Eff_Force->Array, &incx, Tempvec->Array, &incy );
+     /* BLAS: tempvec = Eff_Force + LoadTdT = tempvec + LoadTdT */
+     saxpy_( &Tempvec->Rows, &Alpha, In_Load->Array, &incx, Tempvec->Array, &incy );
+     
+     /* BLAS: tempvec = Eff_Force + LoadTdT + Err_Force = tempvec + Err_Force. The sign of Err_Force was already applied when calculating it. */
+     Alpha = PID_P;
+     saxpy_( &Tempvec->Rows, &Alpha, Err_Force->Array, &incx, Tempvec->Array, &incy );
+     /* BLAS: Disp0 = Keinv*(Eff_Force + LoadTdT + Err_Force) = Keinv*Tempvec */
+     Alpha = 1.0;
+     ssymv_( &uplo, &Tempvec->Rows, &Alpha, Keinv->Array, &Tempvec->Rows, Tempvec->Array, &incx, &Beta, Disp0->Array, &incy );
+}
+
+void EffK_ComputeU0_Sparse( const Dense_MatrixVector *const Eff_Force, const Dense_MatrixVector *const In_Load,
 		     const Dense_MatrixVector *const Err_Force, const float PID_P, const Sp_MatrixVector *const Keinv, Dense_MatrixVector *const Tempvec, Dense_MatrixVector *const Disp0 )
 {
      static int incx = 1, incy = 1;
