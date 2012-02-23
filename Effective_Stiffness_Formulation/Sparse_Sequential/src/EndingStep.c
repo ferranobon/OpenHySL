@@ -122,7 +122,6 @@ void Compute_Force_Error( const Sp_MatrixVector *const Mass, const Sp_MatrixVect
 
      static int incx = 1, incy = 1;
      static float Alpha, Beta;
-     static char uplo = 'L';
      static char trans = 'N';
      static char matdescra[6] = {'S', 'U', 'N', 'C'};
 
