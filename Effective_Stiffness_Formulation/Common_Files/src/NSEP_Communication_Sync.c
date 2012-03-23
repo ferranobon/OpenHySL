@@ -21,9 +21,9 @@
 #include <unistd.h>      /* For close() */
 
 #include "NSEP_Communication_Sync.h"    /* Prototypes of several functions involved in the CGM */
-#include "NSEP_Definitions.h"  /* Definition of various NSEP constants */
-#include "Send_Receive_Data.h" /* Send and receive data routines */
-#include "ErrorHandling.h"     /* Error handling routines */
+#include "NSEP_Definitions.h"           /* Definition of various NSEP constants */
+#include "Send_Receive_Data.h"          /* Send and receive data routines */
+#include "ErrorHandling.h"              /* Error handling routines */
 
 void Communicate_With_PNSE( const int WhatToDo, float Time,
 			    const float *const Data_To_Send, float *Data_To_Receive, const int Order )
