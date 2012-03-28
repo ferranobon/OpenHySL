@@ -42,7 +42,9 @@
  * - \c Acceleration, \c Velocity and \c Displacement will store the acceleration, velocity and displacement of the recorded earthquake.
  * \sa InitConstants()
  */
-void ReadDataEarthquake( float *Acceleration, float *Velocity, float *Displacement, const int NumSteps, const char *Filename );
+void ReadDataEarthquake_AbsValues( float *Acceleration, float *Velocity, float *Displacement, const int NumSteps, const char *Filename );
+
+void ReadDataEarthquake_RelValues( float *Acceleration, const int NumSteps, const char *Filename );
 
 /**
  * \brief Copies the diagonal values of a matrix into a vector.
@@ -97,6 +99,8 @@ void CopyDiagonalValues( const MatrixVector *const Mat, MatrixVector *const Vec 
  *
  * \sa MatrixVector.
  */
-void Calc_Input_Load( MatrixVector *const InLoad, const MatrixVector *const Stif, const MatrixVector *const Damp, const MatrixVector *const Mass, const MatrixVector *const DiagM, const MatrixVector *const D, const MatrixVector *const V, const MatrixVector *const A );
+void Calc_Input_Load_AbsValues( MatrixVector *const InLoad, const MatrixVector *const Stif, const MatrixVector *const Damp, const MatrixVector *const Mass, const MatrixVector *const DiagM, const MatrixVector *const D, const MatrixVector *const V, const MatrixVector *const A );
+
+void Calc_Input_Load_RelValues( MatrixVector *const InLoad, const MatrixVector *const Mass, const MatrixVector *const A );
 
 #endif /* PRECALCULATIONS_H_ */

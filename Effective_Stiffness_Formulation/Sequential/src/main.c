@@ -125,8 +125,10 @@ int main( int argc, char **argv )
      /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will
       * be used during the test */
      AccAll = calloc( InitCnt.Nstep, sizeof(float) );
-     VelAll = calloc( InitCnt.Nstep, sizeof(float) );
-     DispAll = calloc( InitCnt.Nstep, sizeof(float) );
+     if( InitCnt.Use_Absolute_Values ){
+	  VelAll = calloc( InitCnt.Nstep, sizeof(float) );
+	  DispAll = calloc( InitCnt.Nstep, sizeof(float) );
+     }
 
      /* Allocate the memory for the variables to store. The results will be saved each step */
      TimeHistoryli = calloc( InitCnt.Nstep, sizeof(float) );
@@ -200,7 +202,11 @@ int main( int argc, char **argv )
      Send_Effective_Matrix( Keinv_c.Array, InitCnt.Type_Protocol, InitCnt.OrderC, &Socket );
 
      /* Read the earthquake data from a file */
-     ReadDataEarthquake( AccAll, VelAll, DispAll, InitCnt.Nstep, InitCnt.FileData );
+     if( InitCnt.Use_Absolute_Values ){
+	  ReadDataEarthquake_AbsValues( AccAll, VelAll, DispAll, InitCnt.Nstep, InitCnt.FileData );
+     } else {
+	  ReadDataEarthquake_RelValues( AccAll, InitCnt.Nstep, InitCnt.FileData );
+     }
 
      /* Open Output file. If the file cannot be opened, the program will exit, since the results cannot be stored. */
      OutputFile = fopen( "Out.txt", "w" );
@@ -217,10 +223,15 @@ int main( int argc, char **argv )
      CopyDiagonalValues( &M, &DiagM );
 
      /* Calculate the input load */
-     Set2Value( &Disp, DispAll[istep - 1] );
-     Set2Value( &Vel, VelAll[istep - 1] );
-     Set2Value( &Acc, AccAll[istep - 1] );	  
-     Calc_Input_Load( &LoadTdT, &K, &C, &M, &DiagM, &Disp, &Vel, &Acc );
+     if( InitCnt.Use_Absolute_Values ){
+	  Set2Value( &Disp, DispAll[istep - 1] );
+	  Set2Value( &Vel, VelAll[istep - 1] );
+	  Set2Value( &Acc, AccAll[istep - 1] );	  
+	  Calc_Input_Load_AbsValues( &LoadTdT, &K, &C, &M, &DiagM, &Disp, &Vel, &Acc );
+     } else {
+	  Set2Value( &Acc, AccAll[istep - 1] );
+	  Calc_Input_Load_RelValues( &LoadTdT, &M, &Acc );
+     }
 
      incx = 1; incy = 1;
      printf( "Starting stepping process\n" );
@@ -247,10 +258,15 @@ int main( int argc, char **argv )
 	  if ( istep < InitCnt.Nstep ){
 	       /* Calculate the input load for the next step during the
 		  sub-stepping process. */
-	       Set2Value( &Disp, DispAll[istep] );
-	       Set2Value( &Vel, VelAll[istep] );
-	       Set2Value( &Acc, AccAll[istep] );	  
-	       Calc_Input_Load( &LoadTdT1, &K, &C, &M, &DiagM, &Disp, &Vel, &Acc );
+	       if( InitCnt.Use_Absolute_Values ){
+		    Set2Value( &Disp, DispAll[istep - 1] );
+		    Set2Value( &Vel, VelAll[istep - 1] );
+		    Set2Value( &Acc, AccAll[istep - 1] );	  
+		    Calc_Input_Load_AbsValues( &LoadTdT, &K, &C, &M, &DiagM, &Disp, &Vel, &Acc );
+	       } else {
+		    Set2Value( &Acc, AccAll[istep - 1] );
+		    Calc_Input_Load_RelValues( &LoadTdT, &M, &Acc );
+	       }
 	  }
 
 	  /* Join the non-coupling part. DispTdT_m = Keinv_m*fc + DispTdT0_m. Although DispTdT0_m is what has been received from the other computer,
@@ -309,8 +325,10 @@ int main( int argc, char **argv )
 
      /* Free the memory */
      free( AccAll );
-     free( VelAll );
-     free( DispAll );
+     if( InitCnt.Use_Absolute_Values ){
+	  free( VelAll );
+	  free( DispAll );
+     }
 
      /* Destroy the data structures */
      Destroy_MatrixVector( &M );
