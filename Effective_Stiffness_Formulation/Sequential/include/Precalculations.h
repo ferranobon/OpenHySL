@@ -101,6 +101,8 @@ void CopyDiagonalValues( const MatrixVector *const Mat, MatrixVector *const Vec 
  */
 void Calc_Input_Load_AbsValues( MatrixVector *const InLoad, const MatrixVector *const Stif, const MatrixVector *const Damp, const MatrixVector *const Mass, const MatrixVector *const DiagM, const MatrixVector *const D, const MatrixVector *const V, const MatrixVector *const A );
 
+void Apply_LoadVectorForm ( MatrixVector *const Vector, const MatrixVector *const LoadForm, const float Value );
+
 void Calc_Input_Load_RelValues( MatrixVector *const InLoad, const MatrixVector *const Mass, const MatrixVector *const A );
 
 #endif /* PRECALCULATIONS_H_ */

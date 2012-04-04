@@ -104,6 +104,15 @@ void Calc_Input_Load_AbsValues( MatrixVector *const InLoad, const MatrixVector *
 
 }
 
+void Apply_LoadVectorForm ( MatrixVector *const Vector, const MatrixVector *const LoadForm, const float Value )
+{
+     static int incx = 1;
+     static int incy = 1;
+
+     scopy_( &Vector->Rows, LoadForm->Array, &incx, Vector->Array, &incy );
+     sscal_( &Vector->Rows, &Value, Vector->Array, &incx );
+}
+
 void Calc_Input_Load_RelValues( MatrixVector *const InLoad, const MatrixVector *const Mass, const MatrixVector *const A )
 {
 
