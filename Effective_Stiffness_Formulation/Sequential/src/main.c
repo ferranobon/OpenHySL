@@ -50,7 +50,7 @@ int main( int argc, char **argv )
      MatrixVector VelT, VelTdT;
      MatrixVector AccT, AccTdT;
 
-     MatrixVector LoadTdT, LoadTdT1;
+     MatrixVector LoadVectorForm, LoadTdT, LoadTdT1;
 
      MatrixVector fc, fcprevsub;
      MatrixVector fu;
@@ -168,6 +168,7 @@ int main( int argc, char **argv )
 
      Init_MatrixVector( &EffT, InitCnt.Order, 1 );
 
+     Init_MatrixVector( &LoadVectorForm, InitCnt.Order, 1 );
      Init_MatrixVector( &LoadTdT, InitCnt.Order, 1 );
      Init_MatrixVector( &LoadTdT1, InitCnt.Order, 1 );
 
@@ -185,6 +186,7 @@ int main( int argc, char **argv )
      /* Read the matrices from a file */
      MatrixVector_From_File( &M, InitCnt.FileM );
      MatrixVector_From_File( &K, InitCnt.FileK );
+     MatrixVector_From_File( &LoadVectorForm, InitCnt.FileLVector );
 
      CalculateMatrixC( &M, &K, &C, &InitCnt.Rayleigh );
      //C.Array[0] = 0.104*2*sqrtf(K.Array[0]*M.Array[0] ); /* EFAST */
@@ -224,12 +226,13 @@ int main( int argc, char **argv )
 
      /* Calculate the input load */
      if( InitCnt.Use_Absolute_Values ){
-	  Set2Value( &Disp, DispAll[istep - 1] );
-	  Set2Value( &Vel, VelAll[istep - 1] );
-	  Set2Value( &Acc, AccAll[istep - 1] );	  
+	  Apply_LoadVectorForm( &Disp, &LoadVectorForm, DispAll[istep - 1] );
+	  Apply_LoadVectorForm( &Vel, &LoadVectorForm, VelAll[istep - 1] );
+	  Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep - 1] );
 	  Calc_Input_Load_AbsValues( &LoadTdT, &K, &C, &M, &DiagM, &Disp, &Vel, &Acc );
      } else {
-	  Set2Value( &Acc, AccAll[istep - 1] );
+	  Apply_LoadVectorForm( &Vel, &LoadVectorForm, VelAll[istep - 1] );
+	  Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep - 1] );
 	  Calc_Input_Load_RelValues( &LoadTdT, &M, &Acc );
      }
 
@@ -354,6 +357,7 @@ int main( int argc, char **argv )
      Destroy_MatrixVector( &AccT );
      Destroy_MatrixVector( &AccTdT );
 
+     Destroy_MatrixVector( &LoadVectorForm );
      Destroy_MatrixVector( &LoadTdT );
      Destroy_MatrixVector( &LoadTdT1 );
 

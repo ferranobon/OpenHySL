@@ -70,6 +70,7 @@ void InitConstants( AlgConst *const InitConst )
      (*InitConst).FileM = "504M.txt";
      (*InitConst).FileK = "504K.txt";
      (*InitConst).FileC = "33C.txt";
+     (*InitConst).FileLVector = "33LV.txt";
      (*InitConst).FileData = "GroundMovement.txt";
 
      /* Get the communication protocol to be used */
