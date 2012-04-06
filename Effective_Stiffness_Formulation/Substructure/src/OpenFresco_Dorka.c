@@ -73,8 +73,12 @@ int main ( int argc, char **argv )
      fcprev = calloc( Cnst.Order_Couple, sizeof( float ) );
      fc = calloc( Cnst.Order_Couple, sizeof( float ) );
 
+#if SIMULATE_SUB_
+     /* Do nothing */
+#else
      /* Array where the data from ADwin will be stored */
      ADWIN_DATA = calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
+#endif
 
      /* The size of the data to be exchanged is given by the last element of iData */
      Length = iData[10];
@@ -95,8 +99,12 @@ int main ( int argc, char **argv )
 		    u0c[i] = Recv[1+i];
 	       }
 
+#if SIMULATE_SUB_  /* Run this without ADwin */
+	       Simulate_Substructure( u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+#else              /* Run using ADwin */
 	       /* Perform the substepping process in ADwin */
 	       ADWIN_Substep( u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+#endif
 	  }
 
 	  /* Check if the Daq values are being asked */
@@ -125,12 +133,18 @@ int main ( int argc, char **argv )
      /* End the connection */
      closeconnection( &Server_Socket, &ierr );
 
+#if SIMULATE_SUB_  /* Run this without ADwin */
+     printf("The simulatiovn has finished\n");
+#else
      /* Get the Data from ADwin */
+     printf("Getting the data from ADwin...");
      GetDataADwin( Cnst.Num_Steps, Cnst.Num_Sub, ADWIN_DATA );
+     printf(" DONE!\n");
+
+     free( ADWIN_DATA );
+#endif
 
      /* Free the dinamically allocated memory */
-     free( ADWIN_DATA );
-
      free( Gc );
 
      free( u0c );
