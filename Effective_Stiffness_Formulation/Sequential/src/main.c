@@ -231,7 +231,6 @@ int main( int argc, char **argv )
 	  Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep - 1] );
 	  Calc_Input_Load_AbsValues( &LoadTdT, &K, &C, &M, &DiagM, &Disp, &Vel, &Acc );
      } else {
-	  Apply_LoadVectorForm( &Vel, &LoadVectorForm, VelAll[istep - 1] );
 	  Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep - 1] );
 	  Calc_Input_Load_RelValues( &LoadTdT, &M, &Acc );
      }
@@ -262,13 +261,13 @@ int main( int argc, char **argv )
 	       /* Calculate the input load for the next step during the
 		  sub-stepping process. */
 	       if( InitCnt.Use_Absolute_Values ){
-		    Set2Value( &Disp, DispAll[istep - 1] );
-		    Set2Value( &Vel, VelAll[istep - 1] );
-		    Set2Value( &Acc, AccAll[istep - 1] );	  
-		    Calc_Input_Load_AbsValues( &LoadTdT, &K, &C, &M, &DiagM, &Disp, &Vel, &Acc );
+		    Set2Value( &Disp, DispAll[istep] );
+		    Set2Value( &Vel, VelAll[istep] );
+		    Set2Value( &Acc, AccAll[istep] );	  
+		    Calc_Input_Load_AbsValues( &LoadTdT1, &K, &C, &M, &DiagM, &Disp, &Vel, &Acc );
 	       } else {
-		    Set2Value( &Acc, AccAll[istep - 1] );
-		    Calc_Input_Load_RelValues( &LoadTdT, &M, &Acc );
+		    Set2Value( &Acc, AccAll[istep] );
+		    Calc_Input_Load_RelValues( &LoadTdT1, &M, &Acc );
 	       }
 	  }
 

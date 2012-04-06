@@ -19,8 +19,6 @@
 #define SOMESIZE (150*1024*1024) // 150MB
 #endif
 
-void CalculateMatrixC_Trial( const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const Stif, Dense_MatrixVector *const Damp, const RayleighConst *const Rayleigh );
-
 int main( int argc, char **argv )
 {
      
@@ -54,7 +52,7 @@ int main( int argc, char **argv )
      Dense_MatrixVector VelT, VelTdT;
      Dense_MatrixVector AccT, AccTdT;
 
-     Dense_MatrixVector LoadTdT, LoadTdT1;
+     Dense_MatrixVector LoadVectorForm, LoadTdT, LoadTdT1;
 
      Dense_MatrixVector fc, fcprevsub;
      Dense_MatrixVector fu;
@@ -135,8 +133,10 @@ int main( int argc, char **argv )
      /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will
       * be used during the test */
      AccAll = calloc( InitCnt.Nstep, sizeof(float) );
-     VelAll = calloc( InitCnt.Nstep, sizeof(float) );
-     DispAll = calloc( InitCnt.Nstep, sizeof(float) );
+     if( InitCnt.Use_Absolute_Values ){
+	  VelAll = calloc( InitCnt.Nstep, sizeof(float) );
+	  DispAll = calloc( InitCnt.Nstep, sizeof(float) );
+     }
 
      /* Allocate the memory for the variables to store. The results will be saved each step */
      TimeHistoryli = calloc( InitCnt.Nstep, sizeof(float) );
@@ -177,6 +177,7 @@ int main( int argc, char **argv )
 
      Init_Dense_MatrixVector( &EffT, InitCnt.Order, 1 );
 
+     Init_Dense_MatrixVector( &LoadVectorForm, InitCnt.Order, 1 );
      Init_Dense_MatrixVector( &LoadTdT, InitCnt.Order, 1 );
      Init_Dense_MatrixVector( &LoadTdT1, InitCnt.Order, 1 );
 
@@ -194,6 +195,7 @@ int main( int argc, char **argv )
      /* Read the matrices from a file and transform them into CSR*/
      Dense_MatrixVector_From_File( &M, InitCnt.FileM );  /* Read the dense matrix from a file */
      Dense_MatrixVector_From_File( &K, InitCnt.FileK );  /* Read the dense matrix from a file */
+     Dense_MatrixVector_From_File( &LoadVectorForm, InitCnt.FileLVector ); /* Read the load form vector from a file */
 
      /* Calculate damping matrix using Rayleigh. C = alpha*M + beta*K */
      CalculateMatrixC( &M, &K, &C, &InitCnt.Rayleigh );
@@ -241,11 +243,16 @@ int main( int argc, char **argv )
      istep = 1;
 
      /* Calculate the input load */
-     Set2Value( &Disp, DispAll[istep - 1] );
-     Set2Value( &Vel, VelAll[istep - 1] );
-     Set2Value( &Acc, AccAll[istep - 1] );	  
-     Calc_Input_Load( &LoadTdT, &Sp_K, &Sp_C, &Sp_M, &DiagM, &Disp, &Vel, &Acc );
-
+     if( InitCnt.Use_Absolute_Values ){
+	  Apply_LoadVectorForm( &Disp, &LoadVectorForm, DispAll[istep - 1] );
+	  Apply_LoadVectorForm( &Vel, &LoadVectorForm, VelAll[istep - 1] );
+	  Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep - 1] );
+	  Calc_Input_Load_AbsValues( &LoadTdT, &Sp_K, &Sp_C, &Sp_M, &DiagM, &Disp, &Vel, &Acc );
+     } else {
+	  Apply_LoadVectorForm( &Vel, &LoadVectorForm, VelAll[istep - 1] );
+	  Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep - 1] );
+	  Calc_Input_Load_RelValues( &LoadTdT, &Sp_M, &Acc );
+     }
 
      incx = 1; incy = 1;
      printf( "Starting stepping process\n" );
@@ -259,7 +266,7 @@ int main( int argc, char **argv )
 
 	  /* Compute the new Displacement u0 */
 	  EffK_ComputeU0_Dense( &EffT, &LoadTdT, &fu, InitCnt.PID.P, &Keinv, &tempvec, &DispTdT0 );
-
+	  
 	  /* Split DispTdT into coupling and non-coupling part */
 	  CreateVectorXm( &DispTdT0, &DispTdT0_m, InitCnt.PosCouple, InitCnt.OrderC );
 	  CreateVectorXc( &DispTdT0, DispTdT0_c.Array, InitCnt.PosCouple, InitCnt.OrderC );
@@ -271,12 +278,17 @@ int main( int argc, char **argv )
 	  if ( istep < InitCnt.Nstep ){
 	       /* Calculate the input load for the next step during the
 		  sub-stepping process. */
-	       Set2Value( &Disp, DispAll[istep] );
-	       Set2Value( &Vel, VelAll[istep] );
-	       Set2Value( &Acc, AccAll[istep] );	  
-	       Calc_Input_Load( &LoadTdT1, &Sp_K, &Sp_C, &Sp_M, &DiagM, &Disp, &Vel, &Acc );
+	       if( InitCnt.Use_Absolute_Values ){
+		    Apply_LoadVectorForm( &Disp, &LoadVectorForm, DispAll[istep] );
+		    Apply_LoadVectorForm( &Vel, &LoadVectorForm, VelAll[istep] );
+		    Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep] );
+		    Calc_Input_Load_AbsValues( &LoadTdT1, &Sp_K, &Sp_C, &Sp_M, &DiagM, &Disp, &Vel, &Acc );
+	       } else {
+		    Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep] );
+		    Calc_Input_Load_RelValues( &LoadTdT1, &Sp_M, &Acc );
+	       }
 	  }
-
+	       
 	  /* Join the non-coupling part. DispTdT_m = Keinv_m*fc + DispTdT0_m. Although DispTdT0_m is what has been received from the other computer,
 	     it has the name of DispTdT_m to avoid further operations if using the NETLIB libraries. */
 	  JoinNonCouplingPart_Dense( &DispTdT0_m, &Keinv_m, &fcprevsub, &DispTdT, InitCnt.PosCouple, InitCnt.OrderC );
@@ -333,8 +345,10 @@ int main( int argc, char **argv )
 
      /* Free the memory */
      free( AccAll );
-     free( VelAll );
-     free( DispAll );
+     if( InitCnt.Use_Absolute_Values ){
+	  free( VelAll );
+	  free( DispAll );
+     }
 
      Destroy_Dense_MatrixVector( &Keinv );
      Destroy_Dense_MatrixVector( &Keinv_m );

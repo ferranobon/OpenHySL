@@ -73,6 +73,7 @@ typedef struct {
      int PosCouple;           /*!< \brief Position of the coupling DOF */
 
      int Nstep;               /*!< \brief Number of steps */
+     int Use_Absolute_Values; /*!< \brief Variable to control whether to use absolute values in the equation of motion or relative values. Affects how the input load is calculated */
      float Delta_t;          /*!< \brief Time increment \f$\Delta t\f$ */
 
      RayleighConst Rayleigh;  /*!< \brief Stores Rayleigh Constants alpha (\c Rayleigh.Alpha or \f$\alpha_R\f$) and beta (\c Rayleigh.Beta or \f$\beta_R\f$) */
@@ -98,6 +99,7 @@ typedef struct {
      const char* FileM;       /*!< \brief Stores the name of the file that contains the Mass Matrix */
      const char* FileK;       /*!< \brief Stores the name of the file that contains the Stiffness Matrix */
      const char* FileC;       /*!< \brief Stores the name of the file that contains the Damping Matrix */
+     const char* FileLVector; /*!< \brief Stores the name of the file that contains the vector used for the load. This vector usually contains 1 and 0 */
      const char* FileData;    /*!< \brief Stores the name of the file that contains displacement, velocity and acceleration */
 
      /* Information regarding the type of communication */
