@@ -59,7 +59,11 @@ int main( int argc, char **argv )
      fcprev = calloc( Cnst.Order_Couple, sizeof( float ) );
      fc = calloc( Cnst.Order_Couple, sizeof( float ) );
 
+#if SIMULATE_SUB_
+     /* Do nothing */
+#else
      ADWIN_DATA = calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
+#endif
 
      Send = calloc( 3*Cnst.Order_Couple, sizeof( float ) );
 
@@ -114,10 +118,11 @@ int main( int argc, char **argv )
      printf("Getting the data from ADwin...");
      GetDataADwin( Cnst.Num_Steps, Cnst.Num_Sub, ADWIN_DATA );
      printf(" DONE!\n");
-#endif
-     /* Free the dinamically allocated memory */
-     free( ADWIN_DATA );
      
+     free( ADWIN_DATA );
+#endif
+     
+     /* Free the dinamically allocated memory */
      free( Gc );
 
      free( u0c );
