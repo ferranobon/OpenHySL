@@ -103,4 +103,8 @@ void CopyDiagonalValues( const Dense_MatrixVector *const Mat, Dense_MatrixVector
 
 void Calc_Input_Load( Dense_MatrixVector *const InLoad, const Sp_MatrixVector *const Stif, const Sp_MatrixVector *const Damp, const Sp_MatrixVector *const Mass, const Dense_MatrixVector *const DiagM, const Dense_MatrixVector *const D, const Dense_MatrixVector *const V, const Dense_MatrixVector *const A );
 
+void Apply_LoadVectorForm ( Dense_MatrixVector *const Vector, const Dense_MatrixVector *const LoadForm, const float Value );
+
+void Calc_Input_Load_RelValues( Dense_MatrixVector *const InLoad, const Sp_MatrixVector *const Mass, const Dense_MatrixVector *const A );
+
 #endif /* PRECALCULATIONS_H_ */
