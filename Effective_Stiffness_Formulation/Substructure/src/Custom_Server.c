@@ -67,14 +67,12 @@ int main( int argc, char **argv )
      Length = Cnst.Order_Couple*Cnst.Order_Couple;
      Receive_Data( Gc, Length, Client_Socket );
 
-     //     BootADWIN( 111, "path");
-     //   ADWIN_ManageProcess( "/home/ferran/workspace/proves/build/TableControlVer2.TB1", 1, 1);
-     // ADWIN_ManageProcess( "/home/ferran/workspace/proves/build", 1, 2);
-     // ADWIN_ManageProcess( "/home/ferran/workspace/proves/build/Sub_PC_ADwin_SDOF_EFAST.TB2", 2, 1);
-     // ADWIN_ManageProcess( "/home/ferran/workspace/proves/build", 2, 2);
-     /* Set Gc to ADwin */
-
+#if SIMULATE_SUB_  /* Run this without ADwin */
+     /* Do nothing */
+     printf("Simulating the substructure\n");
+#else
      ADWIN_SetGc( Gc, Cnst.Order_Couple*Cnst.Order_Couple );
+#endif
 
      Is_Not_Finished = 1;
      while( Is_Not_Finished ){
@@ -109,12 +107,14 @@ int main( int argc, char **argv )
      /* Close the connection with the Client */
      close( Client_Socket );
 
+#if SIMULATE_SUB_  /* Run this without ADwin */
+     printf("The simulatiovn has finished\n");
+#else
      /* Get the Data from ADwin */
+     printf("Getting the data from ADwin...");
      GetDataADwin( Cnst.Num_Steps, Cnst.Num_Sub, ADWIN_DATA );
-
-     // ADWIN_ManageProcess( "/home/ferran/workspace/proves/build", 1, 3);
-     //   ADWIN_ManageProcess( "/home/ferran/workspace/proves/build", 2, 3);
-
+     printf(" DONE!\n");
+#endif
      /* Free the dinamically allocated memory */
      free( ADWIN_DATA );
      
