@@ -23,6 +23,7 @@ int main ( int argc, char **argv )
      int Length;             /* Length of the data to be transfered */
      int ierr;               /* Error. OpenFresco routines */
      int Is_Not_Finished;    /* To check if the process is finished or not */
+     char TextMessage[25];
 
      /* Variables required by OpenFresco */
      int iData[11];
@@ -32,7 +33,7 @@ int main ( int argc, char **argv )
      float *Gc;
      float *u0c, *uc;
      float *fcprev, *fc;
-     float *Send, *Recv;
+     double *Send, *Recv;
 
      /* Array where the data from ADwin will be stored */
      float *ADWIN_DATA;
@@ -59,8 +60,12 @@ int main ( int argc, char **argv )
      DataTypeSize = sizeof( int );
      Length = 11;
      recvdata( &Server_Socket, &DataTypeSize, Data, &Length, &ierr );
+     printf("Received ID vector: \n" );
 
-     /* TODO: Implement receive data as a file */
+     for ( i = 0; i < 11; i++ ){
+	  printf("%d\t",iData[i] );
+     }
+     printf("\n");
 
      /* Initialise the constants of the substructure */
      Init_Constants_Substructure( &Cnst );
@@ -73,6 +78,13 @@ int main ( int argc, char **argv )
      fcprev = calloc( Cnst.Order_Couple, sizeof( float ) );
      fc = calloc( Cnst.Order_Couple, sizeof( float ) );
 
+     /* The size of the data to be exchanged is given by the last element of iData */
+     Length = iData[10];
+     printf("%d\n", Length);
+     Send = (double*) calloc( Length, sizeof(double) );
+     Recv = (double*) calloc( Length, sizeof(double) );   
+     
+
 #if SIMULATE_SUB_
      /* Do nothing */
 #else
@@ -80,58 +92,48 @@ int main ( int argc, char **argv )
      ADWIN_DATA = calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
 #endif
 
-     /* The size of the data to be exchanged is given by the last element of iData */
-     Length = iData[10];
-     Send = calloc( Length, sizeof(float) );
-     Recv = calloc( Length, sizeof(float) );
-
      /* The process is not finished. */
      Is_Not_Finished = 1;  
+     DataTypeSize = sizeof( double );
      while( Is_Not_Finished ){
-
-	  /* Receive the control values. */
+     
 	  Data = (char *) Recv;
 	  recvdata( &Server_Socket, &DataTypeSize, Data, &Length, &ierr );
-	  
-	  /* Check if what has been received are the control values */
-	  if ( Recv[0] == 3.0 ){
+
+	  if ( Recv[0] == 2.0 ){
+	       /* TODO */
+	  } else if ( Recv[0] == 3.0 ){
+	       /* Check if what has been received are the control values */
 	       for ( i = 0; i < Cnst.Order_Couple; i++ ){
-		    u0c[i] = Recv[1+i];
+		    printf("Received control values values\n");
+		    u0c[i] = (float) Recv[1+i];
 	       }
 
-#if SIMULATE_SUB_  /* Run this without ADwin */
+#if SIMULATE_SUB_
+	       /* Run this without ADwin */
 	       Simulate_Substructure( u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
-#else              /* Run using ADwin */
+#else
+		 
 	       /* Perform the substepping process in ADwin */
 	       ADWIN_Substep( u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
 #endif
-	  }
-
-	  /* Check if the Daq values are being asked */
-	  if ( Recv[0] == 6.0 ){
-	       Send[0] = 10.0;  /* What is the first value ????? */
-
+	  } else if ( Recv[0] == 6.0 ){
+	       printf("Received query to send DAQ values\n");
+	       printf("The first value of Recv is: %f\n", Recv[0]);
 	       /* Compose the data */
 	       for ( i = 0; i < Cnst.Order_Couple; i++ ){
-		    Send[i + 1] = uc[i];
-		    Send[i + Cnst.Order_Couple + 1] = fcprev[i];
-		    Send[i + 2*Cnst.Order_Couple + 1] = fc[i];
+		    Send[i] = (double) uc[i];
+		    Send[i + Cnst.Order_Couple] = (double) fcprev[i];
+		    Send[i + 2*Cnst.Order_Couple] = (double) fc[i];
 	       }
-
-	       /* Send the requested data */
 	       Data = (char *) Send;
 	       senddata( &Server_Socket, &DataTypeSize, Data, &Length, &ierr );
-	  }
-
-	  /* Check if the process is finished */
-	  if ( Recv[0] == 99.0 ){
+	  } else if ( Recv[0] = 99.0 ){
 	       Is_Not_Finished = 0;
+	       /* End the connection with OpenFresco */
+	       closeconnection( &Server_Socket, &ierr );
 	  }
-
      }
-
-     /* End the connection */
-     closeconnection( &Server_Socket, &ierr );
 
 #if SIMULATE_SUB_  /* Run this without ADwin */
      printf("The simulatiovn has finished\n");
@@ -152,6 +154,9 @@ int main ( int argc, char **argv )
 
      free( fcprev );
      free( fc );
+
+     free( Send );
+     free( Recv );
 
      return 0;
 }
