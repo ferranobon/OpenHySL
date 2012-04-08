@@ -65,7 +65,7 @@ int Communicate_With_OpenFresco( const float *const Data_To_Send, float *const D
 	  nleft = 11;
 	  senddata( &SocketID, &DataTypeSize, gMsg, &nleft, &ierr );
 
-     } else if ( WhatToDo == 2 ) {
+     } else if ( WhatToDo == 3 ) {
 	  /* Send Trial response to the experimental site */
 	  sData[0] = 3;
 	  for ( i = 0; i < Size; i++ ){
