@@ -15,7 +15,7 @@ int Communicate_With_OpenFresco( const float *const Data_To_Send, float *const D
      /* Local Variables */
      static int i, iData[11];
 
-     static float *sData, *rData;
+     static double *sData, *rData;
 
      int ierr, nleft, DataTypeSize;
      char *gMsg;
@@ -29,8 +29,8 @@ int Communicate_With_OpenFresco( const float *const Data_To_Send, float *const D
 	  DataSize = ( 2*Size > DataSize ) ? 2*Size : DataSize;
 	  DataSize = ( Size*Size > DataSize ) ? Size*Size : DataSize;
      
-	  sData = (float *) calloc( DataSize, sizeof (float) );
-	  rData = (float *) calloc( DataSize, sizeof (float) );
+	  sData = (double *) calloc( DataSize, sizeof (double) );
+	  rData = (double *) calloc( DataSize, sizeof (double) );
 
 	  /* Setup the connection */
 	  GetServerInformation( &RMachine );
@@ -69,31 +69,15 @@ int Communicate_With_OpenFresco( const float *const Data_To_Send, float *const D
 	  /* Send Trial response to the experimental site */
 	  sData[0] = 3;
 	  for ( i = 0; i < Size; i++ ){
-	       sData[i + 1] = Data_To_Send[i];
+	       sData[i + 1] = (double) Data_To_Send[i];
 	  }
 	  gMsg = (char *) sData;
-	  DataTypeSize = sizeof(float);
+	  DataTypeSize = sizeof(double);
 	  nleft = DataSize;
 	  senddata( &SocketID, &DataTypeSize, gMsg, &nleft, &ierr );
 
-	  /* Ask for displacement. */
-	  sData[0] = 7.0;
-
-	  gMsg = (char *) sData;
-	  nleft = DataSize;
-	  senddata( &SocketID, &DataTypeSize, gMsg, &nleft, &ierr );
-
-	  /* Receive the displacement from the experimental site */
-	  gMsg = (char *) rData;
-	  nleft = DataSize;
-	  recvdata( &SocketID, &DataTypeSize, gMsg, &nleft, &ierr );
-
-	  for ( i = 0; i < Size; i++ ){
-	       Data_To_Receive[i]= rData[i];
-	  }
-
-	  /* Ask for force. */
-	  sData[0] = 10.0;
+	  /* Ask for DAQ values. */
+	  sData[0] = 6.0;
 
 	  gMsg = (char *) sData;
 	  nleft = DataSize;
@@ -106,15 +90,17 @@ int Communicate_With_OpenFresco( const float *const Data_To_Send, float *const D
 	  nleft = DataSize;
 	  recvdata( &SocketID, &DataTypeSize, gMsg, &nleft, &ierr );
 
-	  for ( i = 0; i < 2*Size; i++ ){
-	       Data_To_Receive[Size + i]= rData[i];
+	  for ( i = 0; i < 3*Size; i++ ){
+	       Data_To_Receive[i]= (float) rData[i];
+	       Data_To_Receive[i + Size]= (float) rData[i + Size];
+	       Data_To_Receive[i + 2*Size]= (float) rData[i + 2*Size];
 	  }
 	  
      } else if ( WhatToDo == 10 ){ /* Disconnect from the experimental site */
 
 	  sData[0] = 99.0;
 	  gMsg = (char *) sData;
-	  DataTypeSize = sizeof(float);
+	  DataTypeSize = sizeof(double);
 	  nleft = DataSize;
 	  senddata( &SocketID, &DataTypeSize, gMsg, &nleft, &ierr );
 
