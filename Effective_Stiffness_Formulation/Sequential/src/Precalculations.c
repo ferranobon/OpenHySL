@@ -58,7 +58,7 @@ void ReadDataEarthquake_RelValues( float *Acceleration, const int NumSteps, cons
 
   if ( InFile != NULL ){
       for ( i = 0; i < NumSteps; i++ ){
-	   fscanf( InFile, "%E %E", &unnecessary, &temp1 );
+	   fscanf( InFile, "%E %E %E %E", &unnecessary, &temp1, &temp2, &temp3 );
 	   Acceleration[i] = temp1/1000.0;
       }
 
