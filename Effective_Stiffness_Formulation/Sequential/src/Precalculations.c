@@ -22,85 +22,85 @@
 void ReadDataEarthquake_AbsValues( float *Acceleration, float *Velocity, float *Displacement, const int NumSteps, const char *Filename )
 {
 
-  int i;					/* A counter */
-  float unnecessary;		/* Variable to store unnecessary data */
-  float temp1, temp2, temp3;
-  FILE *InFile;
+     int i;					/* A counter */
+     float unnecessary;		/* Variable to store unnecessary data */
+     float temp1, temp2, temp3;
+     FILE *InFile;
 
-  InFile = fopen( Filename, "r" );
+     InFile = fopen( Filename, "r" );
 
 
-  if ( InFile != NULL ){
-      for ( i = 0; i < NumSteps; i++ ){
-	   fscanf( InFile, "%E %E %E %E", &unnecessary, &temp1, &temp2, &temp3 );
-	   Acceleration[i] = temp1/1000.0;
-	   Velocity[i] = temp2/1000.0;
-	   Displacement[i] = temp3/1000.0;
-      }
+     if ( InFile != NULL ){
+	  for ( i = 0; i < NumSteps; i++ ){
+	       fscanf( InFile, "%E %E %E %E", &unnecessary, &temp1, &temp2, &temp3 );
+	       Acceleration[i] = temp1/1000.0;
+	       Velocity[i] = temp2/1000.0;
+	       Displacement[i] = temp3/1000.0;
+	  }
 
-      /* Close File */
-      fclose( InFile );
-  } else {
-       ErrorFileAndExit( "The earthquake data cannot be read because it was not possible to open ", Filename );
-  }
+	  /* Close File */
+	  fclose( InFile );
+     } else {
+	  ErrorFileAndExit( "The earthquake data cannot be read because it was not possible to open ", Filename );
+     }
 }
 
 void ReadDataEarthquake_RelValues( float *Acceleration, const int NumSteps, const char *Filename )
 {
 
-  int i;					/* A counter */
-  float unnecessary;		/* Variable to store unnecessary data */
-  float temp1;
-  FILE *InFile;
+     int i;					/* A counter */
+     float unnecessary;		/* Variable to store unnecessary data */
+     float temp1;
+     FILE *InFile;
 
-  InFile = fopen( Filename, "r" );
+     InFile = fopen( Filename, "r" );
 
 
-  if ( InFile != NULL ){
-      for ( i = 0; i < NumSteps; i++ ){
-	   fscanf( InFile, "%E %E %E %E", &unnecessary, &temp1, &temp2, &temp3 );
-	   Acceleration[i] = temp1/1000.0;
-      }
+     if ( InFile != NULL ){
+	  for ( i = 0; i < NumSteps; i++ ){
+	       fscanf( InFile, "%E %E %E %E", &unnecessary, &temp1, &temp2, &temp3 );
+	       Acceleration[i] = temp1/1000.0;
+	  }
 
-      /* Close File */
-      fclose( InFile );
-  } else {
-       ErrorFileAndExit( "The earthquake data cannot be read because it was not possible to open ", Filename );
-  }
+	  /* Close File */
+	  fclose( InFile );
+     } else {
+	  ErrorFileAndExit( "The earthquake data cannot be read because it was not possible to open ", Filename );
+     }
 }
 
 /* Stores in the variable Vec, the diagonal values of the Matrix Mat. */
 void CopyDiagonalValues( const MatrixVector *const Mat, MatrixVector *const Vec )
 {
 
-  int incx, incy;  /* Stride in the vectors for the BLAS library */
+     int incx, incy;  /* Stride in the vectors for the BLAS library */
 
-  incx = (*Mat).Rows + 1;
-  incy = 1;
+     incx = (*Mat).Rows + 1;
+     incy = 1;
 
-  /* BLAS routine */
-  scopy_( &(*Vec).Rows, (*Mat).Array, &incx, (*Vec).Array, &incy );
+     /* BLAS routine */
+     scopy_( &(*Vec).Rows, (*Mat).Array, &incx, (*Vec).Array, &incy );
 
 }
 
 void Calc_Input_Load_AbsValues( MatrixVector *const InLoad, const MatrixVector *const Stif, const MatrixVector *const Damp, const MatrixVector *const Mass, const MatrixVector *const DiagM, const MatrixVector *const D, const MatrixVector *const V, const MatrixVector *const A )
 {
 
-  static int incx, incy;       /* Stride in the vectors for BLAS library */
-  static float Alpha, Beta;    /* Constants to use in the BLAS library */
-  static char uplo;            /* Character to use in the BLAS library */
+     static int incx, incy;       /* Stride in the vectors for BLAS library */
+     static float Alpha, Beta;    /* Constants to use in the BLAS library */
+     static char uplo;            /* Character to use in the BLAS library */
 
-  incx = 1; incy = 1;
-  Alpha = 1.0; Beta = 0.0;
-  uplo = 'L';     /* Character defining that the lower part of the symmetric matrix is referenced (see man dsymv) */
+     incx = 1; incy = 1;
+     Alpha = 1.0; Beta = 0.0;
+     uplo = 'L';     /* Character defining that the lower part of the symmetric matrix is referenced (see man dsymv) */
 
-  ssymv_( &uplo, &(*InLoad).Rows, &Alpha, (*Stif).Array, &(*InLoad).Rows, (*D).Array, &incx, &Beta, (*InLoad).Array, &incy );
-  Beta = 1.0;
-  ssymv_( &uplo, &(*InLoad).Rows, &Alpha, (*Damp).Array, &(*InLoad).Rows, (*V).Array, &incx, &Beta, (*InLoad).Array, &incy );
-  ssymv_( &uplo, &(*InLoad).Rows, &Alpha, (*Mass).Array, &(*InLoad).Rows, (*A).Array, &incx, &Beta, (*InLoad).Array, &incy );
+     ssymv_( &uplo, &(*InLoad).Rows, &Alpha, (*Stif).Array, &(*InLoad).Rows, (*D).Array, &incx, &Beta, (*InLoad).Array, &incy );
+     Beta = 1.0;
+     ssymv_( &uplo, &(*InLoad).Rows, &Alpha, (*Damp).Array, &(*InLoad).Rows, (*V).Array, &incx, &Beta, (*InLoad).Array, &incy );
+     ssymv_( &uplo, &(*InLoad).Rows, &Alpha, (*Mass).Array, &(*InLoad).Rows, (*A).Array, &incx, &Beta, (*InLoad).Array, &incy );
 
-  Alpha = -(*A).Array[0];
-  saxpy_( &(*InLoad).Rows, &Alpha, (*DiagM).Array, &incx, (*InLoad).Array, &incy );
+     Alpha = -(*A).Array[0];
+     saxpy_( &(*InLoad).Rows, &Alpha, (*DiagM).Array, &incx, (*InLoad).Array, &incy );
 
 }
 
@@ -116,13 +116,9 @@ void Apply_LoadVectorForm ( MatrixVector *const Vector, const MatrixVector *cons
 void Calc_Input_Load_RelValues( MatrixVector *const InLoad, const MatrixVector *const Mass, const MatrixVector *const A )
 {
 
-  static int incx, incy;       /* Stride in the vectors for BLAS library */
-  static float Alpha, Beta;    /* Constants to use in the BLAS library */
-  static char uplo;            /* Character to use in the BLAS library */
+     static int incx = 1, incy = 1;         /* Stride in the vectors for BLAS library */
+     static float Alpha = 1.0, Beta = 0.0;  /* Constants to use in the BLAS library */
+     static char uplo = 'L';                /* Character defining that the lower part of the symmetric matrix is referenced (see man ssymv) */
 
-  incx = 1; incy = 1;
-  Alpha = 1.0; Beta = 0.0;
-  uplo = 'L';     /* Character defining that the lower part of the symmetric matrix is referenced (see man dsymv) */
-
-  ssymv_( &uplo, &(*InLoad).Rows, &Alpha, (*Mass).Array, &(*InLoad).Rows, (*A).Array, &incx, &Beta, (*InLoad).Array, &incy );
+     ssymv_( &uplo, &(*InLoad).Rows, &Alpha, (*Mass).Array, &(*InLoad).Rows, (*A).Array, &incx, &Beta, (*InLoad).Array, &incy );
 }
