@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 
 #include "MatrixVector.h"
 #include "Initiation.h"
@@ -58,6 +59,8 @@ int main( int argc, char **argv )
      MatrixVector ErrCompT, ErrCompTdT;
 
      MatrixVector Disp, Vel, Acc;
+
+     time_t clock;
 
      /* TCP socket connection Variables */
      int Socket;
@@ -189,7 +192,6 @@ int main( int argc, char **argv )
      MatrixVector_From_File( &LoadVectorForm, InitCnt.FileLVector );
 
      CalculateMatrixC( &M, &K, &C, &InitCnt.Rayleigh );
-     //C.Array[0] = 0.104*2*sqrtf(K.Array[0]*M.Array[0] ); /* EFAST */
 
      /* Calculate Matrix Keinv = [K + a0*M + a1*C]^(-1) */
      Constants.Alpha = 1.0;
@@ -215,8 +217,8 @@ int main( int argc, char **argv )
      if ( OutputFile == NULL ){
 	  PrintErrorAndExit( "Cannot proceed because the file Out.txt could not be opened" );
      } else {
-	  fprintf( OutputFile, "Test with %d DOF\n", InitCnt.Order );
-	  fprintf( OutputFile, "u0\t ai1(m/s^2)\t ai(m/s^2)\t vi1 (m/s)\t vi (m/s)\t ui1 (m)\t ui (m)\t fc (N)\t fu(N)\n" );
+	  clock = time (NULL);
+	  fprintf( OutputFile, "Test started at %s", ctime( &clock ) );
      }
 
      istep = 1;
@@ -261,12 +263,12 @@ int main( int argc, char **argv )
 	       /* Calculate the input load for the next step during the
 		  sub-stepping process. */
 	       if( InitCnt.Use_Absolute_Values ){
-		    Apply_LoadVectorForm( &Disp, &LoadVectorForm, DispAll[istep - 1] );
-		    Apply_LoadVectorForm( &Vel, &LoadVectorForm, VelAll[istep - 1] );
-		    Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep - 1] );
+		    Apply_LoadVectorForm( &Disp, &LoadVectorForm, DispAll[istep] );
+		    Apply_LoadVectorForm( &Vel, &LoadVectorForm, VelAll[istep] );
+		    Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep] );
 		    Calc_Input_Load_AbsValues( &LoadTdT1, &K, &C, &M, &DiagM, &Disp, &Vel, &Acc );
 	       } else {
-		    Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep - 1] );
+		    Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep] );
 		    Calc_Input_Load_RelValues( &LoadTdT1, &M, &Acc );
 	       }
 	  }
@@ -302,6 +304,13 @@ int main( int argc, char **argv )
 	  scopy_( &AccTdT.Rows, AccTdT.Array, &incx, AccT.Array, &incy ); /* ai = ai1 */
 	  istep = istep + 1;
      }
+
+     /* Write the header file */
+     clock = time( NULL );
+     fprintf( OutputFile, "Test ended at %s", ctime( &clock ) );
+     fprintf( OutputFile, "Number of DOF: %d, ", InitCnt.Order );
+     fprintf( OutputFile, "Number of Steps: %d, Time step: %f, Number of substeps: %d, P (PID): %f\n", InitCnt.Nstep, InitCnt.Delta_t, 4, InitCnt.PID.P );
+     fprintf( OutputFile, "u0\t ai1(m/s^2)\t ai(m/s^2)\t vi1 (m/s)\t vi (m/s)\t ui1 (m)\t ui (m)\t fc (N)\t fu(N)\n" );
 
      /* Save the results into a file */
      for ( i = 0; i < InitCnt.Nstep; i++ ){

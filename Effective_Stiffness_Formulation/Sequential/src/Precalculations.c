@@ -50,7 +50,7 @@ void ReadDataEarthquake_RelValues( float *Acceleration, const int NumSteps, cons
 
      int i;					/* A counter */
      float unnecessary;		/* Variable to store unnecessary data */
-     float temp1;
+     float temp1, temp2, temp3;
      FILE *InFile;
 
      InFile = fopen( Filename, "r" );
