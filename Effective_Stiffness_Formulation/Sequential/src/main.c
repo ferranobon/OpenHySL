@@ -129,6 +129,7 @@ int main( int argc, char **argv )
       * be used during the test */
      AccAll = calloc( InitCnt.Nstep, sizeof(float) );
      if( InitCnt.Use_Absolute_Values ){
+	  Init_MatrixVector( &DiagM, InitCnt.Order, 1 );
 	  VelAll = calloc( InitCnt.Nstep, sizeof(float) );
 	  DispAll = calloc( InitCnt.Nstep, sizeof(float) );
      }
@@ -153,7 +154,6 @@ int main( int argc, char **argv )
      Init_MatrixVector( &Keinv_c, InitCnt.OrderC, InitCnt.OrderC );
      Init_MatrixVector( &Keinv_m, InitCnt.Order - InitCnt.OrderC, InitCnt.OrderC );
 
-     Init_MatrixVector( &DiagM, InitCnt.Order, 1 );
      Init_MatrixVector( &tempvec, InitCnt.Order, 1 );
 
      Init_MatrixVector( &DispT, InitCnt.Order, 1 );
@@ -223,11 +223,10 @@ int main( int argc, char **argv )
 
      istep = 1;
 
-     /* Copy the diagonal elements of M */
-     CopyDiagonalValues( &M, &DiagM );
-
      /* Calculate the input load */
      if( InitCnt.Use_Absolute_Values ){
+	  /* Copy the diagonal elements of M */
+	  CopyDiagonalValues( &M, &DiagM );
 	  Apply_LoadVectorForm( &Disp, &LoadVectorForm, DispAll[istep - 1] );
 	  Apply_LoadVectorForm( &Vel, &LoadVectorForm, VelAll[istep - 1] );
 	  Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep - 1] );
@@ -339,6 +338,7 @@ int main( int argc, char **argv )
      if( InitCnt.Use_Absolute_Values ){
 	  free( VelAll );
 	  free( DispAll );
+	  Destroy_MatrixVector( &DiagM );
      }
 
      /* Destroy the data structures */
@@ -350,7 +350,7 @@ int main( int argc, char **argv )
      Destroy_MatrixVector( &Keinv_c );
      Destroy_MatrixVector( &Keinv_m );
 
-     Destroy_MatrixVector( &DiagM );
+
      Destroy_MatrixVector( &tempvec );
 
      Destroy_MatrixVector( &DispT );
