@@ -55,12 +55,12 @@ void ADWIN_SetGc( const float *const Gc, const int length );
  * variables in:
  *
  * \param[in] u0c
- * \paran[out] uc
+ * \param[out] uc
  * \param[out] fcprev
  * \param[out] fc
  * \param[in] OrderC
  * \param[in] NSub Number of sub-steps in the sub-stepping process.
- * \param[in] Delta_Sub 
+ * \param[in] Deltat_Sub 
  *
  * \post ADwin will perform the substepping process in displacement control.
  */

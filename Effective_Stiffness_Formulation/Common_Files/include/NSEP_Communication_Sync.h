@@ -95,7 +95,7 @@ void Login_Server( const int Socket, const Remote_Machine_Info Login, char *cons
  * 
  * \param[in] Socket An open TCP/IP socket with the PNSE server.
  * \param[in] Login It contains, the server IP, the port used during communication and an account name and its password.
- * \param[in] Send_Buffer The message to be sent to the server. In this case a \c__AP_LOGIN_REQUEST. Not referenced on entry,
+ * \param[in] Send_Buffer The message to be sent to the server. In this case a \c __AP_LOGIN_REQUEST. Not referenced on entry,
  * although it must contain an initialised memory space.
  * \param[out] Error_TCP It can have two possible values:
  * - 0 if there was no problem sending the message.
@@ -108,9 +108,9 @@ void Login_Server( const int Socket, const Remote_Machine_Info Login, char *cons
 void Send_Login_Information( const int Socket, const Remote_Machine_Info Login, char *const Send_Buffer, int *Error_TCP );
 
 /**
- * \brief Receives a \__AP_LOGIN_REPLY packet from the PNSE server.
+ * \brief Receives a \c __AP_LOGIN_REPLY packet from the PNSE server.
  *
- * After sending a \c__AP_LOGIN_REQUEST to the server, the server ansers with a \c __AP_LOGIN_REPLY through TCP/IP to inform the client
+ * After sending a \c __AP_LOGIN_REQUEST to the server, the server ansers with a \c __AP_LOGIN_REPLY through TCP/IP to inform the client
  * about the request; whether it was successful or if there was a problem like invalid account or password.
  *
  * \pre
