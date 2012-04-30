@@ -24,6 +24,10 @@
 #include "OPSocket.h"          /* OpenFresco routines setupconnectionclient()
 				* senddata(), recvdata() and closeconnection() */
 
+/* Global variables */
+int DataSize;
+int SocketID;
+
 int Communicate_With_OpenFresco( const float *const Data_To_Send, float *const Data_To_Receive, int Size, int WhatToDo )
 {
 
