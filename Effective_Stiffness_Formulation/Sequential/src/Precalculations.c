@@ -117,7 +117,7 @@ void Calc_Input_Load_RelValues( MatrixVector *const InLoad, const MatrixVector *
 {
 
      static int incx = 1, incy = 1;         /* Stride in the vectors for BLAS library */
-     static float Alpha = 1.0, Beta = 0.0;  /* Constants to use in the BLAS library */
+     static float Alpha = -1.0, Beta = 0.0;  /* Constants to use in the BLAS library */
      static char uplo = 'L';                /* Character defining that the lower part of the symmetric matrix is referenced (see man ssymv) */
 
      ssymv_( &uplo, &(*InLoad).Rows, &Alpha, (*Mass).Array, &(*InLoad).Rows, (*A).Array, &incx, &Beta, (*InLoad).Array, &incy );
