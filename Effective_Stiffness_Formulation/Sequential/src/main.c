@@ -309,7 +309,7 @@ int main( int argc, char **argv )
      fprintf( OutputFile, "Test ended at %s", ctime( &clock ) );
      fprintf( OutputFile, "Number of DOF: %d, ", InitCnt.Order );
      fprintf( OutputFile, "Number of Steps: %d, Time step: %f, Number of substeps: %d, P (PID): %f\n", InitCnt.Nstep, InitCnt.Delta_t, 4, InitCnt.PID.P );
-     fprintf( OutputFile, "u0\t ai1(m/s^2)\t ai(m/s^2)\t vi1 (m/s)\t vi (m/s)\t ui1 (m)\t ui (m)\t fc (N)\t fu(N)\n" );
+     fprintf( OutputFile, "li\t ai1(m/s^2)\t ai(m/s^2)\t vi1 (m/s)\t vi (m/s)\t ui1 (m)\t ui (m)\t fc (N)\t fu(N)\n" );
 
      /* Save the results into a file */
      for ( i = 0; i < InitCnt.Nstep; i++ ){
