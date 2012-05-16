@@ -89,17 +89,14 @@ void CopyDiagonalValues( const MatrixVector *const Mat, MatrixVector *const Vec 
  * is referenced, not its elements.
  * \param[in] Stif The Stiffness matrix.
  * \param[in] Damp The Viscous Damping matrix.
- * \param[in] Mass The Mass matrix.
- * \param[in] DiagM Vector that has the diagonal elements of the Mass matrix.
  * \param[in] D Vector containing the ground motion of the earthquake at a certain step.
  * \param[in] V Vector containing the ground velocity of the earthquake at a certain step.
- * \param[in] A Vector containing the ground acceleration of the earthquake at a certain step.
  *
  * \post \c InLoad has the value of \f$ \{l_{i+1}\} = \{ld_g\} + \{ld_v\} + \{ld_a\} -[M]\cdot [I]\cdot\{Acceleration_i\}\f$.
  *
  * \sa MatrixVector.
  */
-void Calc_Input_Load_AbsValues( MatrixVector *const InLoad, const MatrixVector *const Stif, const MatrixVector *const Damp, const MatrixVector *const Mass, const MatrixVector *const DiagM, const MatrixVector *const D, const MatrixVector *const V, const MatrixVector *const A );
+void Calc_Input_Load_AbsValues( MatrixVector *const InLoad, const MatrixVector *const Stif, const MatrixVector *const Damp, const MatrixVector *const D, const MatrixVector *const V );
 
 void Apply_LoadVectorForm ( MatrixVector *const Vector, const MatrixVector *const LoadForm, const float Value );
 

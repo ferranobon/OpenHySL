@@ -83,7 +83,7 @@ void CopyDiagonalValues( const MatrixVector *const Mat, MatrixVector *const Vec 
 
 }
 
-void Calc_Input_Load_AbsValues( MatrixVector *const InLoad, const MatrixVector *const Stif, const MatrixVector *const Damp, const MatrixVector *const Mass, const MatrixVector *const DiagM, const MatrixVector *const D, const MatrixVector *const V, const MatrixVector *const A )
+void Calc_Input_Load_AbsValues( MatrixVector *const InLoad, const MatrixVector *const Stif, const MatrixVector *const Damp, const MatrixVector *const D, const MatrixVector *const V )
 {
 
      static int incx, incy;       /* Stride in the vectors for BLAS library */
@@ -94,14 +94,12 @@ void Calc_Input_Load_AbsValues( MatrixVector *const InLoad, const MatrixVector *
      Alpha = 1.0; Beta = 0.0;
      uplo = 'L';     /* Character defining that the lower part of the symmetric matrix is referenced (see man dsymv) */
 
+     /* {r} is the load form vector */
+     /* li = K*{r}*ug */
      ssymv_( &uplo, &(*InLoad).Rows, &Alpha, (*Stif).Array, &(*InLoad).Rows, (*D).Array, &incx, &Beta, (*InLoad).Array, &incy );
+     /* li = K*{r}*ug + C*{r}*vg = li + C*{r}*vg */
      Beta = 1.0;
      ssymv_( &uplo, &(*InLoad).Rows, &Alpha, (*Damp).Array, &(*InLoad).Rows, (*V).Array, &incx, &Beta, (*InLoad).Array, &incy );
-     ssymv_( &uplo, &(*InLoad).Rows, &Alpha, (*Mass).Array, &(*InLoad).Rows, (*A).Array, &incx, &Beta, (*InLoad).Array, &incy );
-
-     Alpha = -(*A).Array[0];
-     saxpy_( &(*InLoad).Rows, &Alpha, (*DiagM).Array, &incx, (*InLoad).Array, &incy );
-
 }
 
 void Apply_LoadVectorForm ( MatrixVector *const Vector, const MatrixVector *const LoadForm, const float Value )
