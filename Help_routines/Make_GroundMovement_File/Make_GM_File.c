@@ -44,12 +44,27 @@ int main( int argc, char **argv )
 	  switch( rc ){
 	  case 'a':
 	       Acc_File = fopen( optarg, "r" );
+	       if( Acc_File == NULL ){
+		    fprintf( stderr, "Could not open file %s.\n", optarg );
+		    fprintf( stderr, "Exiting.\n" );
+		    exit( EXIT_FAILURE );
+	       }
 	       break;
 	  case 'v':
 	       Vel_File = fopen( optarg, "r" );
+	       if( Vel_File == NULL ){
+		    fprintf( stderr, "Could not open file: %s.\n", optarg );
+		    fprintf( stderr, "Exiting.\n" );
+		    exit( EXIT_FAILURE );
+	       }
 	       break;
 	  case 'd':
 	       Disp_File = fopen( optarg, "r" );
+	       if( Disp_File == NULL ){
+		    fprintf( stderr, "Could not open file: %s.\n", optarg );
+		    fprintf( stderr, "Exiting.\n" );
+		    exit( EXIT_FAILURE );
+	       }
 	       break;
 	  case 'l':
 	       Num_Elements= atoi( optarg );
@@ -102,15 +117,13 @@ void print_help( char **argv, const struct option *long_opts )
 
      Current_option= (struct option *) &long_opts[0];
 
-     printf("Usage: %s -a <AccelerationData> -v <VelocityData> -d <DisplacementData -l <TotalLength>\n", argv[0] );
-     printf("   or: %s -h\n", argv[0] );
+     printf("Usage: %s [-h] -a <AccelerationData> -v <VelocityData> -d <DisplacementData -l <TotalLength>\n", argv[0] );
      printf("\n");
-    
 
      printf("Summary of arguments\n");
      i = 0;
      while( (Current_option != NULL) && (Current_option->name != NULL ) ){
-	  printf("  -%c  --%s    \t %s.\n", (char) Current_option->val, Current_option->name, Explanation[i] );
+	  printf("  -%c  --%s      \t %s.\n", (char) Current_option->val, Current_option->name, Explanation[i] );
 	  Current_option = Current_option + 1;
 	  i = i + 1;
      }
