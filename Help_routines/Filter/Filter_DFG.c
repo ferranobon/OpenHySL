@@ -39,9 +39,20 @@ int main( int argc, char **argv )
 	  switch( rc ){
 	  case 'i':
 	       InFile = fopen( optarg, "r" );
+	       if( InFile == NULL ){
+		    fprintf( stderr, "Could not open file %s.\n", optarg );
+		    fprintf( stderr, "Exiting.\n" );
+		    exit( EXIT_FAILURE );
+	       }
+	 
 	       break;
 	  case 'o':
 	       OutFile = fopen( optarg, "w" );
+	       if( OutFile == NULL ){
+		    fprintf( stderr, "Could not open file %s.\n", optarg );
+		    fprintf( stderr, "Exiting.\n" );
+		    exit( EXIT_FAILURE );
+	       }
 	       break;
 	  case 'l':
 	       Max_Elements= atoi( optarg );
@@ -99,8 +110,7 @@ void print_help( char **argv, const struct option *long_opts )
 
      Current_option= (struct option *) &long_opts[0];
 
-     printf("Usage: %s -i <InputFile> -o <OutputFile> -l <TotalLength> -r <Range>\n", argv[0] );
-     printf("   or: %s -h\n", argv[0] );
+     printf("Usage: %s [-h] -i <InputFile> -o <OutputFile> -l <TotalLength> -r <Range>\n", argv[0] );
      printf("\n");
     
 
