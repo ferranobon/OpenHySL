@@ -23,7 +23,6 @@ int main ( int argc, char **argv )
      int Length;             /* Length of the data to be transfered */
      int ierr;               /* Error. OpenFresco routines */
      int Is_Not_Finished;    /* To check if the process is finished or not */
-     char TextMessage[25];
 
      /* Variables required by OpenFresco */
      int iData[11];
@@ -128,7 +127,7 @@ int main ( int argc, char **argv )
 	       }
 	       Data = (char *) Send;
 	       senddata( &Server_Socket, &DataTypeSize, Data, &Length, &ierr );
-	  } else if ( Recv[0] = 99.0 ){
+	  } else if ( Recv[0] == 99.0 ){
 	       Is_Not_Finished = 0;
 	       /* End the connection with OpenFresco */
 	       closeconnection( &Server_Socket, &ierr );
