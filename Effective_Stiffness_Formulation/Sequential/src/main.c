@@ -41,7 +41,6 @@ int main( int argc, char **argv )
      MatrixVector Keinv;
      MatrixVector Keinv_c, Keinv_m;
 
-     MatrixVector DiagM;
      MatrixVector EffT;
 
      MatrixVector DispT, DispTdT0, DispTdT;
@@ -129,7 +128,6 @@ int main( int argc, char **argv )
       * be used during the test */
      AccAll = calloc( InitCnt.Nstep, sizeof(float) );
      if( InitCnt.Use_Absolute_Values ){
-	  Init_MatrixVector( &DiagM, InitCnt.Order, 1 );
 	  VelAll = calloc( InitCnt.Nstep, sizeof(float) );
 	  DispAll = calloc( InitCnt.Nstep, sizeof(float) );
      }
@@ -226,11 +224,10 @@ int main( int argc, char **argv )
      /* Calculate the input load */
      if( InitCnt.Use_Absolute_Values ){
 	  /* Copy the diagonal elements of M */
-	  CopyDiagonalValues( &M, &DiagM );
 	  Apply_LoadVectorForm( &Disp, &LoadVectorForm, DispAll[istep - 1] );
 	  Apply_LoadVectorForm( &Vel, &LoadVectorForm, VelAll[istep - 1] );
 	  Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep - 1] );
-	  Calc_Input_Load_AbsValues( &LoadTdT, &K, &C, &M, &DiagM, &Disp, &Vel, &Acc );
+	  Calc_Input_Load_AbsValues( &LoadTdT, &K, &C, &Disp, &Vel );
      } else {
 	  Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep - 1] );
 	  Calc_Input_Load_RelValues( &LoadTdT, &M, &Acc );
@@ -265,7 +262,7 @@ int main( int argc, char **argv )
 		    Apply_LoadVectorForm( &Disp, &LoadVectorForm, DispAll[istep] );
 		    Apply_LoadVectorForm( &Vel, &LoadVectorForm, VelAll[istep] );
 		    Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep] );
-		    Calc_Input_Load_AbsValues( &LoadTdT1, &K, &C, &M, &DiagM, &Disp, &Vel, &Acc );
+		    Calc_Input_Load_AbsValues( &LoadTdT1, &K, &C, &Disp, &Vel );
 	       } else {
 		    Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep] );
 		    Calc_Input_Load_RelValues( &LoadTdT1, &M, &Acc );
@@ -338,7 +335,6 @@ int main( int argc, char **argv )
      if( InitCnt.Use_Absolute_Values ){
 	  free( VelAll );
 	  free( DispAll );
-	  Destroy_MatrixVector( &DiagM );
      }
 
      /* Destroy the data structures */
