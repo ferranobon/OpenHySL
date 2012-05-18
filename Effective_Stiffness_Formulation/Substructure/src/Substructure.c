@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <assert.h>
 
 #include "Substructure.h"
 
@@ -13,13 +14,31 @@ void Init_Constants_Substructure( ConstSub *const Constants )
      (*Constants).DeltaT_Sub = (*Constants).DeltaT/(float)(*Constants).Num_Sub;
 }
 
-void Simulate_Substructure( const float *const u0c, float *const uc, float *const fcprev, float *const fc, const int OrderC, const int NSub, const float Deltat_Sub )
+void Simulate_Substructure( TMD_Sim *const Num, const float *const Keinv, const float *const u0c, float *const uc, float *const fcprev, float *const fc, const int OrderC, const int NSub, const float DeltaT_Sub )
 {
 
-     fc[0] = 0.0;
-     fcprev[0] = 0.0;
+     int i, Substep;
+     float ramp0, ramp;
+     static float u0c0 = 0.0;
+     
+     for ( Substep = 1; Substep <= NSub; Substep++ ){
 
-     uc[0] = u0c[0];
+	  for ( i = 0; i < OrderC; i++ ){
+	       /* Backup data so that fcprev contains always the last coupling force */
+	       fcprev[i] = fc[i];
+	  }
+
+	  ramp = (float) Substep / (float) NSub;
+	  ramp0 = 1.0 - ramp;   
+
+	  uc[0] = ramp0*u0c0 + ramp*u0c[0] + Keinv[0]*fc[0];
+
+	  /* Compute the new fc */
+	  ExactSolution_SDOF( u0c[0], DeltaT_Sub, Num, &fc[0] );
+     }
+
+     /* Backup u0c */
+     u0c0 = u0c[0];
 }
 
 
@@ -30,6 +49,10 @@ void ExactSolution_Init( const float Mass, const float Damp, const float Stiff, 
      float expdt, sinDdt, cosDdt, omegadt, omegaDdt;
 
      /* Init the variables */
+     Num->Mass = Mass;
+     Num->Damp = Damp;
+     Num->Stiff = Stiff;
+
      Num->Disp0 = 0.0;
      Num->Vel0 = 0.0;
 
@@ -85,7 +108,7 @@ void ExactSolution_Init( const float Mass, const float Damp, const float Stiff, 
 
 
 
-void ExactSolution_SDOF( const float Mass, const float Damp, const float Stiff, const float u0c, const float DeltaT, TMD_Sim *const Num, float *const fc )
+void ExactSolution_SDOF( const float u0c, const float DeltaT, TMD_Sim *const Num, float *const fc )
 {
 
      /* Compute initial velocity */
@@ -93,7 +116,7 @@ void ExactSolution_SDOF( const float Mass, const float Damp, const float Stiff, 
 
      /* Backup and computer new forcce */
      Num->Force_0 = Num->Force_1;
-     Num->Force_1 = Stiff*u0c + Damp*Num->v0c;
+     Num->Force_1 = Num->Stiff*u0c + Num->Damp*Num->v0c;
 
      /* Backup the displacements */
      Num->Disp0 = Num->Disp;
@@ -104,13 +127,56 @@ void ExactSolution_SDOF( const float Mass, const float Damp, const float Stiff, 
      Num->Vel = Num->E*Num->Disp0 + Num->F*Num->Vel0 + Num->G*Num->Force_0 + Num->H*Num->Force_1;
 
      /* Compute the coupling force */
-     *fc = Stiff*(Num->Disp - u0c) + Damp*(Num->Vel - Num->v0c);
+     *fc = Num->Stiff*(Num->Disp - u0c) + Num->Damp*(Num->Vel - Num->v0c);
 
      /* Backup u0c vector */
      Num->u0c_old = u0c;
 	 
 }
 
-void Simulate_UHYDE( const float u0c, const float Deltat_Sub, float *const Friction_Force ){
+void Simulate_UHYDE_1D_Init( const float qyield, const float yield_factor, const float Friction, UHYDE_Sim *const Num )
+{
+
+     Num->u0c_old = 0.0;
+     Num->q = 0.0;
+
+     Num->qyield = qyield;
+     Num->qplastic = qyield/yield_factor;
+     Num->k = Friction/Num->qplastic;
+
+}
+
+void Simulate_UHYDE_1D( const float u0c, const float DeltaT, float *const Friction_Force, UHYDE_Sim *const Num )
+{
+
+     float v;
+     float hq;
   
+     /* The notation here follows the one presented in Cascade Report No. 1 Seismic qualification
+      * of passive mitigation devices page 40.
+      */
+
+     v = (u0c - Num->u0c_old)/DeltaT;
+
+     if ( ( fabsf(Num->q) <= Num->qyield) || Num->q*v <= 0.0 ){
+	  hq = 1.0;
+     } else if ( Num->qyield < fabsf(Num->q) || Num->q*v > 0.0 ){
+	  hq = (Num->qplastic - Num->q)/(Num->qplastic - Num->qyield);
+     } else {
+	  assert( 0 );
+     }
+
+     Num->q = Num->q + hq*(u0c - Num->u0c_old);
+
+     if( Num->q > Num->qplastic ){
+	  Num->q = Num->qplastic;
+     } else if ( Num->q < -Num->qplastic ){
+	  Num->q = -Num->qplastic;
+     }
+
+     *Friction_Force = -Num->k*Num->q;
+     
+     /* Backup the displacement */
+     Num->u0c_old = u0c;
+
 }

@@ -24,7 +24,7 @@
 void InitConstants( AlgConst *const InitConst )
 {
      /* Use Relative or absolute values */
-     (*InitConst).Use_Absolute_Values = 0;     
+     (*InitConst).Use_Absolute_Values = 1;     
 
      /* Order of the matrices */
      (*InitConst).Order = 33;
