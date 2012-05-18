@@ -32,6 +32,10 @@ int main( int argc, char **argv )
      float *fcprev, *fc;
      float *Send;
 
+#if SIMULATE_SUB_
+     TMD_Sim Num_TMD;
+#endif
+
      /* Array where the data from ADwin will be stored */
      float *ADWIN_DATA;
 
@@ -61,6 +65,7 @@ int main( int argc, char **argv )
 
 #if SIMULATE_SUB_
      /* Do nothing */
+     ExactSolution_Init( 285, 352.18177, 68000, Cnst.DeltaT_Sub, &Num_TMD );
 #else
      ADWIN_DATA = calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
 #endif
@@ -91,7 +96,7 @@ int main( int argc, char **argv )
 	       /* Perform the substepping process */
 
 #if SIMULATE_SUB_  /* Run this without ADwin */
-	       Simulate_Substructure( u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+	       Simulate_Substructure( &Num_TMD, Gc, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
 #else              /* Run using ADwin */
 	       ADWIN_Substep( u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
 #endif	  
