@@ -29,7 +29,7 @@ void JoinNonCouplingPart( MatrixVector *const VecXm, const MatrixVector *const K
 
 	incx = 1; incy = 1;
 	trans = 'N';
-	Alpha = 1.0; Beta = 0.0;
+	Alpha = 1.0; Beta = 1.0;
 	Rows = Keinv_m->Rows;
 	Cols = Keinv_m->Cols;
 	lda = Max( 1, Keinv_m->Rows);
