@@ -48,7 +48,7 @@ void Simulate_Substructure_Measured_Values( const char *FileName, const float *c
 	  uc[0] = ramp0*u0c0 + ramp*u0c[0] + Keinv[0]*fc[0];
 
 	  /* Read the new value of fc */
-	  fscanf( "%f", &fc[0] );
+	  fscanf( Fc_File, "%f", &fc[0] );
      }
 }
 
