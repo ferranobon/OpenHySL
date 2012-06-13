@@ -2,6 +2,9 @@
 #define SUBSTRUCTURE_H
 
 #define NUM_CHANNELS 22  /* Number of channels to save from ADwin */
+#define USE_ADWIN    0    /* Run using ADwin */
+#define USE_EXACT    1    /* Simulate the substructure using the exact solution */
+#define USE_MEASURED 2    /* Simulate the substructure using measured values */
 
 typedef struct{
      int Order_Couple;   /* Order of the coupling nodes. */
@@ -31,6 +34,8 @@ typedef struct{
 } UHYDE_Sim;
 
 void Init_Constants_Substructure( ConstSub *const Constants );
+
+void Simulate_Substructure_Measured_Values( const char *FileName, const float *const Keinv, const float *const u0c, float *const uc, float *const fcprev, float *const fc, const int OrderC, const int NSub, const float DeltaT_Sub );
 
 void Simulate_Substructure( TMD_Sim *const Num, const float *const Keinv, const float *const u0c, float *const uc, float *const fcprev, float *const fc, const int OrderC, const int NSub, const float Deltat_Sub );
 
