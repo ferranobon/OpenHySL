@@ -13,7 +13,7 @@
 #include "RoutinesADwin.h"
 #include "Custom_Server.h"
 
-#define MAXPENDING 5    /* Maximum outstanding connection requests */
+#define MAXPENDING   5    /* Maximum outstanding connection requests */
 
 int main( int argc, char **argv )
 {
@@ -23,6 +23,7 @@ int main( int argc, char **argv )
      int Client_Socket;                /* Socket for the client */
 
      int Is_Not_Finished;
+     int Behaviour;
      int Length;
 
      ConstSub Cnst;
@@ -32,15 +33,13 @@ int main( int argc, char **argv )
      float *fcprev, *fc;
      float *Send;
 
-#if SIMULATE_SUB_
      TMD_Sim Num_TMD;
-#endif
 
      /* Array where the data from ADwin will be stored */
      float *ADWIN_DATA;
 
      /* Test the correct number of arguments */
-     if (argc != 2){
+     if (argc != 3){
 	  fprintf( stderr, "Usage: %s <Server Port>\n", argv[0] );
 	  exit( EXIT_FAILURE );
      }
@@ -63,12 +62,20 @@ int main( int argc, char **argv )
      fcprev = calloc( Cnst.Order_Couple, sizeof( float ) );
      fc = calloc( Cnst.Order_Couple, sizeof( float ) );
 
-#if SIMULATE_SUB_
-     /* Do nothing */
-     ExactSolution_Init( 285, 352.18177, 68000, Cnst.DeltaT_Sub, &Num_TMD );
-#else
-     ADWIN_DATA = calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
-#endif
+
+     Behaviour = atoi( argv[2] );
+
+     if ( Behaviour == USE_ADWIN ){
+	  /* Run with ADwin */
+	  ADWIN_DATA = calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
+     } else if ( Behaviour == USE_EXACT ){
+	  /* Simulate the substructure numerically */
+	  ExactSolution_Init( 285, 352.18177, 68000, Cnst.DeltaT_Sub, &Num_TMD );
+     } else if ( Behaviour == USE_MEASURED ){
+	  /* Do nothing for the moment */
+     } else {
+	  PrintErrorAndExit( "Bad value of behaviour" );
+     }
 
      Send = calloc( 3*Cnst.Order_Couple, sizeof( float ) );
 
@@ -76,12 +83,11 @@ int main( int argc, char **argv )
      Length = Cnst.Order_Couple*Cnst.Order_Couple;
      Receive_Data( Gc, Length, Client_Socket );
 
-#if SIMULATE_SUB_  /* Run this without ADwin */
-     /* Do nothing */
-     printf("Simulating the substructure\n");
-#else
-     ADWIN_SetGc( Gc, Cnst.Order_Couple*Cnst.Order_Couple );
-#endif
+     if ( Behaviour == 0 ){
+	  ADWIN_SetGc( Gc, Cnst.Order_Couple*Cnst.Order_Couple );
+     } else {
+	  printf("Simulating the substructure\n");
+     }
 
      Is_Not_Finished = 1;
      while( Is_Not_Finished ){
@@ -95,11 +101,21 @@ int main( int argc, char **argv )
 	  } else {
 	       /* Perform the substepping process */
 
-#if SIMULATE_SUB_  /* Run this without ADwin */
-	       Simulate_Substructure( &Num_TMD, Gc, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
-#else              /* Run using ADwin */
-	       ADWIN_Substep( u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
-#endif	  
+	       if ( Behaviour == USE_ADWIN ){
+		    /* Run using ADwin */
+		    ADWIN_Substep( u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+	       } else if ( Behaviour == USE_EXACT ){
+		    /* Run without ADwin and simulating the substructure using an exact
+		     * solution.
+		     */
+		    Simulate_Substructure( &Num_TMD, Gc, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+	       } else {
+		    /* Run without ADwin and simulating the substructure using measured
+		     * values of the coupling force.
+		     */
+		    Simulate_Substructure_Measured_Values( "fc.txt", Gc, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+	       }
+
 	       /* Compose the data to send */
 	       for (i = 0; i < Cnst.Order_Couple; i++) {
 		    Send[i] = uc[i];
@@ -116,16 +132,16 @@ int main( int argc, char **argv )
      /* Close the connection with the Client */
      close( Client_Socket );
 
-#if SIMULATE_SUB_  /* Run this without ADwin */
-     printf("The simulatiovn has finished\n");
-#else
-     /* Get the Data from ADwin */
-     printf("Getting the data from ADwin...");
-     GetDataADwin( Cnst.Num_Steps, Cnst.Num_Sub, ADWIN_DATA );
-     printf(" DONE!\n");
+     if ( Behaviour == USE_ADWIN ){
+	  /* Get the Data from ADwin */
+	  printf("Getting the data from ADwin...");
+	  GetDataADwin( Cnst.Num_Steps, Cnst.Num_Sub, ADWIN_DATA );
+	  printf(" DONE!\n");
      
-     free( ADWIN_DATA );
-#endif
+	  free( ADWIN_DATA );
+     } else {
+	  printf("The simulatiovn has finished\n");
+     }
      
      /* Free the dinamically allocated memory */
      free( Gc );

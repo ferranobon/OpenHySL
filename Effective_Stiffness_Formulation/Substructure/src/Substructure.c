@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "Substructure.h"
+#include "ErrorHandling.h"
 
 void Init_Constants_Substructure( ConstSub *const Constants )
 {
@@ -12,6 +13,43 @@ void Init_Constants_Substructure( ConstSub *const Constants )
      (*Constants).Num_Sub = 4;
      (*Constants).DeltaT = 0.01;
      (*Constants).DeltaT_Sub = (*Constants).DeltaT/(float)(*Constants).Num_Sub;
+}
+
+void Simulate_Substructure_Measured_Values( const char *FileName, const float *const Keinv, const float *const u0c, float *const uc, float *const fcprev, float *const fc, const int OrderC, const int NSub, const float DeltaT_Sub )
+{
+     int i, Substep;
+     float ramp0, ramp;
+
+     static float u0c0 = 0.0;
+     static int Is_First_Time = 1;
+     static FILE *Fc_File;
+
+     if( Is_First_Time ){
+	  Fc_File = fopen( FileName, "r" );
+   
+	  if ( Fc_File == NULL ){
+	       ErrorFileAndExit( "Cannot open the file: ", FileName );
+	  } else {
+	       Is_First_Time = 0;
+	  }
+
+     }
+
+     for ( Substep = 1; Substep <= NSub; Substep++ ){
+
+	  for ( i = 0; i < OrderC; i++ ){
+	       /* Backup data so that fcprev contains always the last coupling force */
+	       fcprev[i] = fc[i];
+	  }
+
+	  ramp = (float) Substep / (float) NSub;
+	  ramp0 = 1.0 - ramp;   
+
+	  uc[0] = ramp0*u0c0 + ramp*u0c[0] + Keinv[0]*fc[0];
+
+	  /* Read the new value of fc */
+	  fscanf( "%f", &fc[0] );
+     }
 }
 
 void Simulate_Substructure( TMD_Sim *const Num, const float *const Keinv, const float *const u0c, float *const uc, float *const fcprev, float *const fc, const int OrderC, const int NSub, const float DeltaT_Sub )
