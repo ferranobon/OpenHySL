@@ -38,8 +38,8 @@ void InitConstants( AlgConst *const InitConst )
      (*InitConst).Delta_t = 0.01;
 
      /* Rayleigh values */
-     (*InitConst).Rayleigh.Alpha = 0.1;
-     (*InitConst).Rayleigh.Beta = 0.004;
+     (*InitConst).Rayleigh.Alpha = 1.4;
+     (*InitConst).Rayleigh.Beta = 0.0004;
 
      /* Newmark integration constants */
      (*InitConst).Newmark.Gamma = 0.5;
