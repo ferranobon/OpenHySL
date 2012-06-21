@@ -117,7 +117,7 @@ void print_help( char **argv, const struct option *long_opts )
 
      Current_option= (struct option *) &long_opts[0];
 
-     printf("Usage: %s [-h] -a <AccelerationData> -v <VelocityData> -d <DisplacementData -l <TotalLength>\n", argv[0] );
+     printf("Usage: %s [-h] -a <AccelerationData> -v <VelocityData> -d <DisplacementData> -l <TotalLength>\n", argv[0] );
      printf("\n");
 
      printf("Summary of arguments\n");

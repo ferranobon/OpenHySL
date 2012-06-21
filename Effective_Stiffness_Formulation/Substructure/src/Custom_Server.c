@@ -6,6 +6,7 @@
 #include <arpa/inet.h>   /* For sockaddr_in and inet_ntoa( ) */
 #include <unistd.h>      /* For close( ) */
 
+#include <getopt.h>      /* For getopt_long() */
 
 #include "ErrorHandling.h"
 #include "Substructure.h"
@@ -18,12 +19,14 @@
 int main( int argc, char **argv )
 {
      int i;
+
      /* Variables concerning data communication */
      int Server_Socket;                /* Socket for the server */
      int Client_Socket;                /* Socket for the client */
+     int Port;
 
+     /* Variables for the sub-structure testing/simulation */
      int Is_Not_Finished;
-     int Behaviour;
      int Length;
 
      ConstSub Cnst;
@@ -38,14 +41,74 @@ int main( int argc, char **argv )
      /* Array where the data from ADwin will be stored */
      float *ADWIN_DATA;
 
-     /* Test the correct number of arguments */
-     if (argc != 3){
-	  fprintf( stderr, "Usage: %s <Server Port>\n", argv[0] );
-	  exit( EXIT_FAILURE );
+     /* Variables to deal with arguments */
+     int Mode, Selected_Option;
+
+     struct option long_options[] = {
+	  {"help", no_argument, 0, 'h'},
+	  {"mode", required_argument, 0, 'm'},
+	  {"server-port", required_argument, 0, 'p'},
+	  {0, 0, 0, 0}
+     };
+
+     /* Set the default value for Port and Mode before the user input. */
+     Port = 3333;  /* Default port */
+     Mode = 1;     /* Simulate the sub-structure using an exact solution. */
+
+    /* This is only used if there are no arguments */
+     if ( argc == 1 ){	  
+	  printf("Defaulting on mode 1: ");
      }
 
+     /* Assign each argument to the correct variable */
+     while( (Selected_Option = getopt_long( argc, argv, "m:p:h", long_options, NULL )) != -1 ){
+	  switch( Selected_Option ){
+	  case 'm':
+	       Mode = atoi( optarg );
+
+	       if ( Mode < 0 || Mode > 2 ){
+		    fprintf( stderr, "Mode %d is not a valid mode value.\n", Mode );
+		    Print_Help( argv[0] );
+		    return EXIT_FAILURE;
+	       } else {
+		    printf( "Using mode %d: ", Mode );
+		    break;
+	       }
+	  case 'p':
+	       Port = atoi( optarg );
+	       break;
+	  case 'h':
+	       Print_Help( argv[0] );
+	       return EXIT_FAILURE;
+	       break;
+	  case '?':
+	       /* Long options already prints an error message telling that there is an unrecognised option */
+	       Print_Help( argv[0] );
+	       return EXIT_FAILURE;
+	  case ':':
+	       /* Long options already prints an error message telling that the option requieres an argument */
+	       Print_Help( argv[0] );
+	       return EXIT_FAILURE;
+	  }
+     }
+
+     if ( Mode == USE_ADWIN ){
+	  /* Run with ADwin */
+	  printf( "using ADwin to perform the sub-stepping process.\n" );
+	  ADWIN_DATA = calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
+     } else if ( Mode == USE_EXACT ){
+	  /* Simulate the substructure numerically */
+	  printf( "simulating the sub-structure using an exact integration method.\n");
+	  ExactSolution_Init( 285, 352.18177, 68000, Cnst.DeltaT_Sub, &Num_TMD );
+     } else {
+	  printf( "simulating the sub-structure using measured values as an input.\n");
+	  /* Do nothing for the moment */
+     }
+
+
      /* Create a TCP/IP socket for the server */
-     Server_Socket = Init_TCP_Server_Socket( atoi( argv[1] ) );
+     Server_Socket = Init_TCP_Server_Socket( Port );
+     printf( "TCP Server created. Listening on port %d for incoming client connections...\n", Port );
 
      /* Accept the connection from the client */
      Client_Socket = Accept_TCP_Client_Connection( Server_Socket );
@@ -62,28 +125,13 @@ int main( int argc, char **argv )
      fcprev = calloc( Cnst.Order_Couple, sizeof( float ) );
      fc = calloc( Cnst.Order_Couple, sizeof( float ) );
 
-
-     Behaviour = atoi( argv[2] );
-
-     if ( Behaviour == USE_ADWIN ){
-	  /* Run with ADwin */
-	  ADWIN_DATA = calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
-     } else if ( Behaviour == USE_EXACT ){
-	  /* Simulate the substructure numerically */
-	  ExactSolution_Init( 285, 352.18177, 68000, Cnst.DeltaT_Sub, &Num_TMD );
-     } else if ( Behaviour == USE_MEASURED ){
-	  /* Do nothing for the moment */
-     } else {
-	  PrintErrorAndExit( "Bad value of behaviour" );
-     }
-
      Send = calloc( 3*Cnst.Order_Couple, sizeof( float ) );
 
      /* Receive matrix Gc */
      Length = Cnst.Order_Couple*Cnst.Order_Couple;
      Receive_Data( Gc, Length, Client_Socket );
 
-     if ( Behaviour == 0 ){
+     if ( Mode == 0 ){
 	  ADWIN_SetGc( Gc, Cnst.Order_Couple*Cnst.Order_Couple );
      } else {
 	  printf("Simulating the substructure\n");
@@ -101,10 +149,10 @@ int main( int argc, char **argv )
 	  } else {
 	       /* Perform the substepping process */
 
-	       if ( Behaviour == USE_ADWIN ){
+	       if ( Mode == USE_ADWIN ){
 		    /* Run using ADwin */
 		    ADWIN_Substep( u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
-	       } else if ( Behaviour == USE_EXACT ){
+	       } else if ( Mode == USE_EXACT ){
 		    /* Run without ADwin and simulating the substructure using an exact
 		     * solution.
 		     */
@@ -132,7 +180,7 @@ int main( int argc, char **argv )
      /* Close the connection with the Client */
      close( Client_Socket );
 
-     if ( Behaviour == USE_ADWIN ){
+     if ( Mode == USE_ADWIN ){
 	  /* Get the Data from ADwin */
 	  printf("Getting the data from ADwin...");
 	  GetDataADwin( Cnst.Num_Steps, Cnst.Num_Sub, ADWIN_DATA );
@@ -208,4 +256,17 @@ int Accept_TCP_Client_Connection( int Server_Socket )
      printf("Handling client %s\n", inet_ntoa( Client_Addr.sin_addr ) );
 
      return Client_Socket;
+}
+
+void Print_Help( const char *Program_Name )
+{
+
+     fprintf( stderr, "Usage: %s [-h] -m <Mode> -p <Port>, argv[0]" );
+     fprintf( stderr,
+	      "  -h  --help    This help text.\n"
+	      "  -m  --mode    The mode used by the program.\n"
+	      "                  0 - ADwin will be used to perform the sub-stepping process.\n"
+	      "                  1 - The Substructure will be simulated using an exact solution.\n"
+	      "                  2 - The Substructure will be simulated using measured values.\n"
+	      "  -p  --port    Port used for communication with the client program.\n" );
 }
