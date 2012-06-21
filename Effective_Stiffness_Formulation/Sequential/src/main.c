@@ -316,7 +316,7 @@ int main( int argc, char **argv )
      fclose( OutputFile );
 
      /* Close the Connection */
-     Close_Connection( &Socket, InitCnt.Type_Protocol, InitCnt.Nstep, 4 );
+     Close_Connection( &Socket, InitCnt.Type_Protocol, InitCnt.OrderC, InitCnt.Nstep, 4 );
    
      /* Free the memory stored in TimeHistory variables */
      free( TimeHistoryli );
