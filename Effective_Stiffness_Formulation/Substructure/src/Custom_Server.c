@@ -57,7 +57,7 @@ int main( int argc, char **argv )
 
     /* This is only used if there are no arguments */
      if ( argc == 1 ){	  
-	  printf("Defaulting on mode 1: ");
+	  printf("Defaulting on mode 1.\n");
      }
 
      /* Assign each argument to the correct variable */
@@ -70,10 +70,8 @@ int main( int argc, char **argv )
 		    fprintf( stderr, "Mode %d is not a valid mode value.\n", Mode );
 		    Print_Help( argv[0] );
 		    return EXIT_FAILURE;
-	       } else {
-		    printf( "Using mode %d: ", Mode );
-		    break;
 	       }
+	       break;
 	  case 'p':
 	       Port = atoi( optarg );
 	       break;
@@ -92,23 +90,9 @@ int main( int argc, char **argv )
 	  }
      }
 
-     if ( Mode == USE_ADWIN ){
-	  /* Run with ADwin */
-	  printf( "using ADwin to perform the sub-stepping process.\n" );
-	  ADWIN_DATA = calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
-     } else if ( Mode == USE_EXACT ){
-	  /* Simulate the substructure numerically */
-	  printf( "simulating the sub-structure using an exact integration method.\n");
-	  ExactSolution_Init( 285, 352.18177, 68000, Cnst.DeltaT_Sub, &Num_TMD );
-     } else {
-	  printf( "simulating the sub-structure using measured values as an input.\n");
-	  /* Do nothing for the moment */
-     }
-
-
      /* Create a TCP/IP socket for the server */
      Server_Socket = Init_TCP_Server_Socket( Port );
-     printf( "TCP Server created. Listening on port %d for incoming client connections...\n", Port );
+     printf( "TCP Server created.\nListening on port %d for incoming client connections...\n", Port );
 
      /* Accept the connection from the client */
      Client_Socket = Accept_TCP_Client_Connection( Server_Socket );
@@ -131,10 +115,18 @@ int main( int argc, char **argv )
      Length = Cnst.Order_Couple*Cnst.Order_Couple;
      Receive_Data( Gc, Length, Client_Socket );
 
-     if ( Mode == 0 ){
+     if ( Mode == USE_ADWIN ){
+	  /* Run with ADwin */
 	  ADWIN_SetGc( Gc, Cnst.Order_Couple*Cnst.Order_Couple );
+	  printf( "Using ADwin to perform the sub-stepping process.\n" );
+	  ADWIN_DATA = calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
+     } else if ( Mode == USE_EXACT ){
+	  /* Simulate the substructure numerically */
+	  printf( "Simulating the sub-structure using an exact integration method.\n");
+	  ExactSolution_Init( 285, 352.18177, 68000, Cnst.DeltaT_Sub, &Num_TMD );
      } else {
-	  printf("Simulating the substructure\n");
+	  printf( "Simulating the sub-structure using measured values as an input.\n");
+	  /* Do nothing for the moment */
      }
 
      Is_Not_Finished = 1;
