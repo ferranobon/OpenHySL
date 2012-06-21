@@ -244,12 +244,14 @@ void Receive_Data( const int Socket, const int Data_Type_Size, char *const To_Re
 }
 */
 
-void Close_Connection( int *Socket, const int Protocol_Type, const int Num_Steps, const int Num_Sub )
+void Close_Connection( int *Socket, const int Protocol_Type, const int OrderC, const int Num_Steps, const int Num_Sub )
 {
 
-     float Send[1];
+     float *Send;
 
      float *ADWIN_DATA;
+
+     Send = calloc( OrderC, sizeof(float) );
 
      switch ( Protocol_Type ){
      case PROTOCOL_ADWIN:
@@ -261,7 +263,7 @@ void Close_Connection( int *Socket, const int Protocol_Type, const int Num_Steps
      case PROTOCOL_CUSTOM:
 	  /* Using custom communication protocol */
 	  Send[0] = -9999.0;
-	  Send_Data( Send, 1, *Socket );
+	  Send_Data( Send, OrderC, *Socket );
 	  /* Close the socket */
 	  close( *Socket );
 	  break;
@@ -275,4 +277,6 @@ void Close_Connection( int *Socket, const int Protocol_Type, const int Num_Steps
 	  Communicate_With_OpenFresco( Send, Send, 1, 10 );
 	  break;
      }
+
+     free( Send );
 }
