@@ -264,9 +264,9 @@ void Print_Help( const char *Program_Name )
      fprintf( stderr, "Usage: %s [-h] -m <Mode> -p <Port>, argv[0]" );
      fprintf( stderr,
 	      "  -h  --help    This help text.\n"
-	      "  -m  --mode    The mode used by the program.\n"
+	      "  -m  --mode    The mode used by the program. Default value 1.\n"
 	      "                  0 - ADwin will be used to perform the sub-stepping process.\n"
 	      "                  1 - The Substructure will be simulated using an exact solution.\n"
 	      "                  2 - The Substructure will be simulated using measured values.\n"
-	      "  -p  --port    Port used for communication with the client program.\n" );
+	      "  -p  --port    Port used for communication with the client program. Default value 3333.\n" );
 }
