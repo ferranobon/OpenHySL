@@ -140,7 +140,6 @@ int main( int argc, char **argv )
 	       Is_Not_Finished = 0;
 	  } else {
 	       /* Perform the substepping process */
-
 	       if ( Mode == USE_ADWIN ){
 		    /* Run using ADwin */
 		    ADWIN_Substep( u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
@@ -253,7 +252,7 @@ int Accept_TCP_Client_Connection( int Server_Socket )
 void Print_Help( const char *Program_Name )
 {
 
-     fprintf( stderr, "Usage: %s [-h] -m <Mode> -p <Port>, argv[0]" );
+     fprintf( stderr, "Usage: %s [-h] -m <Mode> -p <Port>", Program_Name );
      fprintf( stderr,
 	      "  -h  --help    This help text.\n"
 	      "  -m  --mode    The mode used by the program. Default value 1.\n"
