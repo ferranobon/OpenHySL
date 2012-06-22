@@ -6,16 +6,19 @@
 #include <arpa/inet.h>    /* For sockaddr_in and inet_ntoa( ) */
 #include <unistd.h>       /* For close( ) */
 
+#include <getopt.h>      /* For getopt_long() */
+
 #include "RoutinesADwin.h"
 #include "Substructure.h" /* For NUM_CHANNELS, ConstSub and Init_Constants_Substructure( ) */
 #include "OPSocket.h"
+
+void Print_Help( const char *Program_Name );
 
 int main ( int argc, char **argv )
 {
      int i;
      /* Variables concerning data communication */
      int Server_Socket;      /* Socket for the server */
-     int Client_Socket;      /* Socket for the client */
      unsigned int Port;      /* Port */
 
      int DataTypeSize;       /* Size of the data type to be transfered */
@@ -34,21 +37,60 @@ int main ( int argc, char **argv )
      float *fcprev, *fc;
      double *Send, *Recv;
 
+     TMD_Sim Num_TMD;
+
      /* Array where the data from ADwin will be stored */
      float *ADWIN_DATA;
 
-#if SIMULATE_SUB_
-     TMD_Sim Num_TMD;
-#endif
+     /* Variables to deal with arguments */
+     int Mode, Selected_Option;
 
-     /* Test the correct number of arguments */
-     if (argc != 2){
-	  fprintf( stderr, "Usage: %s <Server Port>\n", argv[0] );
-	  exit( EXIT_FAILURE );
+     struct option long_options[] = {
+	  {"help", no_argument, 0, 'h'},
+	  {"mode", required_argument, 0, 'm'},
+	  {"server-port", required_argument, 0, 'p'},
+	  {0, 0, 0, 0}
+     };
+
+     /* Set the default value for Port and Mode before the user input. */
+     Port = 3333;  /* Default port */
+     Mode = 1;     /* Simulate the sub-structure using an exact solution. */
+
+    /* This is only used if there are no arguments */
+     if ( argc == 1 ){	  
+	  printf("Defaulting on mode 1.\n");
      }
 
-     /* Store the port to be used */
-     Port = (unsigned int) atoi( argv[1] );
+     /* Assign each argument to the correct variable */
+     while( (Selected_Option = getopt_long( argc, argv, "m:p:h", long_options, NULL )) != -1 ){
+	  switch( Selected_Option ){
+	  case 'm':
+	       Mode = atoi( optarg );
+
+	       if ( Mode < 0 || Mode > 2 ){
+		    fprintf( stderr, "Mode %d is not a valid mode value.\n", Mode );
+		    Print_Help( argv[0] );
+		    return EXIT_FAILURE;
+	       }
+	       break;
+	  case 'p':
+	       Port = (unsigned int) atoi( optarg );
+	       break;
+	  case 'h':
+	       Print_Help( argv[0] );
+	       return EXIT_FAILURE;
+	       break;
+	  case '?':
+	       /* Long options already prints an error message telling that there is an unrecognised option */
+	       Print_Help( argv[0] );
+	       return EXIT_FAILURE;
+	  case ':':
+	       /* Long options already prints an error message telling that the option requieres an argument */
+	       Print_Help( argv[0] );
+	       return EXIT_FAILURE;
+	  }
+     }
+
 
      /* Create a TCP/IP socket for the server using OpenFresco routine */
      setupconnectionserver( &Port, &Server_Socket );
@@ -88,12 +130,19 @@ int main ( int argc, char **argv )
      Recv = (double*) calloc( Length, sizeof(double) );   
      
 
-#if SIMULATE_SUB_
-     ExactSolution_Init( 100, 200, 400, Cnst.DeltaT_Sub, &Num_TMD );
-#else
-     /* Array where the data from ADwin will be stored */
-     ADWIN_DATA = calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
-#endif
+     if ( Mode == USE_ADWIN ){
+	  /* Run with ADwin */
+	  ADWIN_SetGc( Gc, Cnst.Order_Couple*Cnst.Order_Couple );
+	  printf( "Using ADwin to perform the sub-stepping process.\n" );
+	  ADWIN_DATA = calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
+     } else if ( Mode == USE_EXACT ){
+	  /* Simulate the substructure numerically */
+	  printf( "Simulating the sub-structure using an exact integration method.\n");
+	  ExactSolution_Init( 285, 352.18177, 68000, Cnst.DeltaT_Sub, &Num_TMD );
+     } else {
+	  printf( "Simulating the sub-structure using measured values as an input.\n");
+	  /* Do nothing for the moment */
+     }
 
      /* The process is not finished. */
      Is_Not_Finished = 1;  
@@ -138,16 +187,17 @@ int main ( int argc, char **argv )
 	  }
      }
 
-#if SIMULATE_SUB_  /* Run this without ADwin */
-     printf("The simulatiovn has finished\n");
-#else
-     /* Get the Data from ADwin */
-     printf("Getting the data from ADwin...");
-     GetDataADwin( Cnst.Num_Steps, Cnst.Num_Sub, ADWIN_DATA );
-     printf(" DONE!\n");
 
-     free( ADWIN_DATA );
-#endif
+     if ( Mode == USE_ADWIN ){
+	  /* Get the Data from ADwin */
+	  printf("Getting the data from ADwin...");
+	  GetDataADwin( Cnst.Num_Steps, Cnst.Num_Sub, ADWIN_DATA );
+	  printf(" DONE!\n");
+     
+	  free( ADWIN_DATA );
+     } else {
+	  printf("The simulatiovn has finished\n");
+     }
 
      /* Free the dinamically allocated memory */
      free( Gc );
@@ -162,4 +212,18 @@ int main ( int argc, char **argv )
      free( Recv );
 
      return 0;
+}
+
+
+void Print_Help( const char *Program_Name )
+{
+
+     fprintf( stderr, "Usage: %s [-h] -m <Mode> -p <Port>", Program_Name );
+     fprintf( stderr,
+	      "  -h  --help    This help text.\n"
+	      "  -m  --mode    The mode used by the program. Default value 1.\n"
+	      "                  0 - ADwin will be used to perform the sub-stepping process.\n"
+	      "                  1 - The Substructure will be simulated using an exact solution.\n"
+	      "                  2 - The Substructure will be simulated using measured values.\n"
+	      "  -p  --port    Port used for communication with the client program. Default value 3333.\n" );
 }

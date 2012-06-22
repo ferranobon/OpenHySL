@@ -5,6 +5,7 @@
 #include <string.h>      /* For memset() */
 #include <unistd.h>      /* For close() */
 #include <sys/time.h>    /* For gettimeoffday()  */
+#include <getopt.h>      /* For getopt_long() */
 
 #include "NSEP_Communication_Sync.h"    /* Prototypes of several functions involved in the CGM */
 #include "NSEP_Definitions.h"  /* Definition of various NSEP constants */
@@ -13,11 +14,14 @@
 #include "RoutinesADwin.h"     /* Routines to communicate with ADwin */
 #include "Substructure.h"
 
+void Print_Help( const char *Program_Name );
 
 int main ( int argc, char **argv )
 {
 
-     int i, j;                                /* Counters */
+     int i, j;            /* Counters */
+
+     /* Variables for the sub-structure testing/simulation */
      int Is_Not_Finished;
 
      ConstSub Cnst;
@@ -28,11 +32,54 @@ int main ( int argc, char **argv )
      float *fcprev, *fc;
      float *Send, *Recv;
 
+     /* Array where the data from ADwin will be stored */
      float *ADWIN_DATA;
 
-#if SIMULATE_SUB_
      TMD_Sim Num_TMD;
-#endif
+
+     /* Variables to deal with arguments */
+     int Mode, Selected_Option;
+
+     struct option long_options[] = {
+	  {"help", no_argument, 0, 'h'},
+	  {"mode", required_argument, 0, 'm'},
+	  {0, 0, 0, 0}
+     };
+
+     /* Set the default value for Port and Mode before the user input. */
+     Mode = 1;     /* Simulate the sub-structure using an exact solution. */
+
+    /* This is only used if there are no arguments */
+     if ( argc == 1 ){	  
+	  printf("Defaulting on mode 1.\n");
+     }
+
+     /* Assign each argument to the correct variable */
+     while( (Selected_Option = getopt_long( argc, argv, "m:h", long_options, NULL )) != -1 ){
+	  switch( Selected_Option ){
+	  case 'm':
+	       Mode = atoi( optarg );
+
+	       if ( Mode < 0 || Mode > 2 ){
+		    fprintf( stderr, "Mode %d is not a valid mode value.\n", Mode );
+		    Print_Help( argv[0] );
+		    return EXIT_FAILURE;
+	       }
+	       break;
+	  case 'h':
+	       Print_Help( argv[0] );
+	       return EXIT_FAILURE;
+	       break;
+	  case '?':
+	       /* Long options already prints an error message telling that there is an unrecognised option */
+	       Print_Help( argv[0] );
+	       return EXIT_FAILURE;
+	  case ':':
+	       /* Long options already prints an error message telling that the option requieres an argument */
+	       Print_Help( argv[0] );
+	       return EXIT_FAILURE;
+	  }
+     }
 
      /* Dynamically allocate memory */
      Gc = calloc( Cnst.Order_Couple*Cnst.Order_Couple, sizeof( float ) );
@@ -45,12 +92,6 @@ int main ( int argc, char **argv )
 
      Send = calloc( 3*Cnst.Order_Couple, sizeof( float ) );
      Recv = calloc( Cnst.Order_Couple, sizeof( float ) );
-
-#if SIMULATE_SUB_
-     ExactSolution_Init( 100, 200, 400, Cnst.DeltaT_Sub, &Num_TMD );
-#else
-     ADWIN_DATA = calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
-#endif
 
      /* Using NSEP */
      /* Open the Socket */
@@ -66,18 +107,20 @@ int main ( int argc, char **argv )
 	  /* This is in done so that the PNSE don't overtake the first step */
 	  Communicate_With_PNSE( 4, 0.0, Send, Recv, 3*Cnst.Order_Couple );
      }
-#if SIMULATE_SUB_  /* Run this without ADwin */
-     /* Do nothing */
-     printf("Simulating the substructure\n");
-#else
-     /* Set Gc to ADwin */
-     ADWIN_SetGc( Gc, Cnst.Order_Couple*Cnst.Order_Couple );
-#endif
 
-     for( i = 0; i< Cnst.Order_Couple*Cnst.Order_Couple; i++ ){
-	  printf("Gc = %e\t", Gc[i]);
+     if ( Mode == USE_ADWIN ){
+	  /* Run with ADwin */
+	  ADWIN_SetGc( Gc, Cnst.Order_Couple*Cnst.Order_Couple );
+	  printf( "Using ADwin to perform the sub-stepping process.\n" );
+	  ADWIN_DATA = calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
+     } else if ( Mode == USE_EXACT ){
+	  /* Simulate the substructure numerically */
+	  printf( "Simulating the sub-structure using an exact integration method.\n");
+	  ExactSolution_Init( 285, 352.18177, 68000, Cnst.DeltaT_Sub, &Num_TMD );
+     } else {
+	  printf( "Simulating the sub-structure using measured values as an input.\n");
+	  /* Do nothing for the moment */
      }
-     printf("\n");
 
      Is_Not_Finished = 1;
      while ( Is_Not_Finished ){
@@ -88,12 +131,21 @@ int main ( int argc, char **argv )
 	       u0c[j] =  Recv[j];
 	  }
 
-#if SIMULATE_SUB_  /* Run this without ADwin */
-	  Simulate_Substructure( &Num_TMD, Gc, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
-#else              /* Run using ADwin */
 	  /* Perform the substepping process */
-	  ADWIN_Substep( u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
-#endif	  
+	  if ( Mode == USE_ADWIN ){
+	       /* Run using ADwin */
+	       ADWIN_Substep( u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+	  } else if ( Mode == USE_EXACT ){
+	       /* Run without ADwin and simulating the substructure using an exact
+		* solution.
+		*/
+	       Simulate_Substructure( &Num_TMD, Gc, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+	  } else {
+	       /* Run without ADwin and simulating the substructure using measured
+		* values of the coupling force.
+		*/
+	       Simulate_Substructure_Measured_Values( "fc.txt", Gc, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+	  }
 
 	  /* Compose the data to send */
 	  for (i = 0; i < Cnst.Order_Couple; i++) {
@@ -113,16 +165,17 @@ int main ( int argc, char **argv )
      /* Say to PNSE server that the process has finished. WhatToDo = 6 */
      Communicate_With_PNSE( 6, 0.0, Send, Recv, 0 );
 
-#if SIMULATE_SUB_  /* Run this without ADwin */
-     printf("The simulatiovn has finished\n");
-#else
-     /* Get the Data from ADwin */
-     printf("Getting the data from ADwin...");
-     GetDataADwin( Cnst.Num_Steps, Cnst.Num_Sub, ADWIN_DATA );
-     printf(" DONE!\n");
 
-     free( ADWIN_DATA );
-#endif
+     if ( Mode == USE_ADWIN ){
+	  /* Get the Data from ADwin */
+	  printf("Getting the data from ADwin...");
+	  GetDataADwin( Cnst.Num_Steps, Cnst.Num_Sub, ADWIN_DATA );
+	  printf(" DONE!\n");
+     
+	  free( ADWIN_DATA );
+     } else {
+	  printf("The simulatiovn has finished\n");
+     }
 
      /* Free the dinamically allocated memory */     
 
@@ -138,4 +191,17 @@ int main ( int argc, char **argv )
      free( Recv );
 
      return 0;
+}
+
+
+void Print_Help( const char *Program_Name )
+{
+
+     fprintf( stderr, "Usage: %s [-h] -m <Mode>", Program_Name );
+     fprintf( stderr,
+	      "  -h  --help    This help text.\n"
+	      "  -m  --mode    The mode used by the program. Default value 1.\n"
+	      "                  0 - ADwin will be used to perform the sub-stepping process.\n"
+	      "                  1 - The Substructure will be simulated using an exact solution.\n"
+	      "                  2 - The Substructure will be simulated using measured values.\n" );
 }
