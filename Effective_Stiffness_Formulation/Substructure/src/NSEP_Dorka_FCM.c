@@ -11,8 +11,12 @@
 #include "NSEP_Definitions.h"  /* Definition of various NSEP constants */
 #include "Send_Receive_Data.h" /* Send and receive data routines */
 #include "ErrorHandling.h"     /* Error handling routines */
-#include "RoutinesADwin.h"     /* Routines to communicate with ADwin */
+
 #include "Substructure.h"
+
+#if ADWIN_
+#include "RoutinesADwin.h"
+#endif
 
 void Print_Help( const char *Program_Name );
 
@@ -32,8 +36,10 @@ int main ( int argc, char **argv )
      float *fcprev, *fc;
      float *Send, *Recv;
 
+#if ADWIN_
      /* Array where the data from ADwin will be stored */
      float *ADWIN_DATA;
+#endif
 
      TMD_Sim Num_TMD;
 
@@ -109,10 +115,15 @@ int main ( int argc, char **argv )
      }
 
      if ( Mode == USE_ADWIN ){
+#if ADWIN_
 	  /* Run with ADwin */
 	  ADWIN_SetGc( Gc, Cnst.Order_Couple*Cnst.Order_Couple );
 	  printf( "Using ADwin to perform the sub-stepping process.\n" );
 	  ADWIN_DATA = calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
+#else
+	  fprintf(stderr, "The program was not compiled with ADwin support.\n");
+	  exit( EXIT_FAILURE );
+#endif
      } else if ( Mode == USE_EXACT ){
 	  /* Simulate the substructure numerically */
 	  printf( "Simulating the sub-structure using an exact integration method.\n");
@@ -133,8 +144,10 @@ int main ( int argc, char **argv )
 
 	  /* Perform the substepping process */
 	  if ( Mode == USE_ADWIN ){
+#if ADWIN_
 	       /* Run using ADwin */
 	       ADWIN_Substep( u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+#endif
 	  } else if ( Mode == USE_EXACT ){
 	       /* Run without ADwin and simulating the substructure using an exact
 		* solution.
@@ -167,12 +180,14 @@ int main ( int argc, char **argv )
 
 
      if ( Mode == USE_ADWIN ){
+#if ADWIN_
 	  /* Get the Data from ADwin */
 	  printf("Getting the data from ADwin...");
 	  GetDataADwin( Cnst.Num_Steps, Cnst.Num_Sub, ADWIN_DATA );
 	  printf(" DONE!\n");
      
 	  free( ADWIN_DATA );
+#endif
      } else {
 	  printf("The simulatiovn has finished\n");
      }

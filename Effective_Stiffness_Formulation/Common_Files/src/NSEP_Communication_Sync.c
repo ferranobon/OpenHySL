@@ -15,10 +15,13 @@
 
 #include <stdio.h>       /* For printf() and fprintf() */
 #include <stdlib.h>      /* For atoi() and exit( ) */
-#include <sys/socket.h>  /* For socket(), bind() and connect() */
-#include <arpa/inet.h>   /* For sockaddr_in and inet_ntoa() */
 #include <string.h>      /* For memset() */
+
+#if _WIN32_
+#include <winsock2.h>
+#else
 #include <unistd.h>      /* For close() */
+#endif
 
 #include "NSEP_Communication_Sync.h"    /* Prototypes of several functions involved in the CGM */
 #include "NSEP_Definitions.h"           /* Definition of various NSEP constants */
@@ -215,10 +218,17 @@ void Communicate_With_PNSE( const int WhatToDo, float Time,
 	       close( Socket );
 	       PrintErrorAndExit( "CGM: send() sent a different number of bytes than expected. Exiting." );
 	  }
+#if _WIN32_
+	  closesocket( Socket );
+#else
 	  close( Socket );
-
+#endif
      } else {
+#if _WIN32_
+	  closesocket( Socket );
+#else
 	  close( Socket );
+#endif
 	  fprintf( stderr, "CGM: Invalid WhatToDo value %i. WhatToDo should be between 0 and 3.\n", WhatToDo );
      }
 } 
