@@ -15,16 +15,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#if _WIN32_
+#include <winsock2.h>
+#else
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#endif
 
 #include "Send_Receive_Data.h"         /* Definition of struct Remote_Machine_Info. */
 #include "ErrorHandling.h"             /* Headers for Error Handling functions. */
-#include "RoutinesADwin.h"             /* Communicate with ADwin */
 #include "OpenFresco_Communication.h"  /* OpenFresco header files */
 #include "NSEP_Definitions.h"          /* NSEP Definitions and constants */
 #include "NSEP_Communication_Sync.h"   /* NSEP header files */
+
+#if ADWIN_
+#include "RoutinesADwin.h"             /* Communicate with ADwin */
+#endif
+
 
 void GetServerInformation( Remote_Machine_Info *const Server )
 {
@@ -71,8 +80,14 @@ void OpenSocket( const Remote_Machine_Info Server, int *Socket )
      memset( &Server_Addr, 0, sizeof( Server_Addr ) );
      /* Specify the address family as internet */
      Server_Addr.sin_family = AF_INET;
+
      /* Set the server address */
+#if _WIN32_
+     Server_Addr.sin_addr.S_un.S_addr = inet_addr( Server.IP );
+#else     
      Server_Addr.sin_addr.s_addr = inet_addr( Server.IP );
+#endif
+
      /* Set the server port */     
      Server_Addr.sin_port = htons( Server.Port );
 
@@ -119,13 +134,14 @@ void Send_Effective_Matrix( const float *const Eff_Mat, const int Protocol_Type,
 
      switch( Protocol_Type ){
 
+#if ADWIN_
      case PROTOCOL_ADWIN:
 	  printf( "Running without TCP communication.\n" );
 
 	  /* Send matrix Gc to ADwin */
 	  ADWIN_SetGc( Eff_Mat, OrderC*OrderC );
 	  break;
-
+#endif
      case PROTOCOL_CUSTOM:  
 	  /* Using custom communication protocol */
 	  GetServerInformation( &Server );
@@ -180,11 +196,13 @@ void Do_Substepping( const float *const DispTdT0_c, float *const DispTdT, float 
 
 
      switch ( Protocol_Type ){
+#if ADWIN_
      case PROTOCOL_ADWIN:
 	  /* Tell ADwin to perform the substepping process */
 	  ADWIN_Substep( DispTdT0_c, &Recv[0], &Recv[1], &Recv[2], OrderC, Num_Sub, DeltaT/(float)Num_Sub );
 	  //Recv[0] = uc[0]; Recv[1] = 0.0; Recv[2] = 0.0;
 	  break;
+#endif
      case PROTOCOL_CUSTOM:
 	  /* Using custom communication protocol */
 	  Send_Data( DispTdT0_c, OrderC, Socket );
@@ -249,23 +267,31 @@ void Close_Connection( int *Socket, const int Protocol_Type, const int OrderC, c
 
      float *Send;
 
+#if ADWIN_
      float *ADWIN_DATA;
+#endif
 
      Send = calloc( OrderC, sizeof(float) );
 
      switch ( Protocol_Type ){
+#if ADWIN_
      case PROTOCOL_ADWIN:
 	  /* Connect directly to ADwin */
 	  ADWIN_DATA = calloc( Num_Sub*Num_Steps*22, sizeof( float ) );
 	  GetDataADwin( Num_Steps, Num_Sub, ADWIN_DATA );
 	  free( ADWIN_DATA );
 	  break;
+#endif
      case PROTOCOL_CUSTOM:
 	  /* Using custom communication protocol */
 	  Send[0] = -9999.0;
 	  Send_Data( Send, OrderC, *Socket );
 	  /* Close the socket */
+#if _WIN32_
+	  closesocket( *Socket );
+#else
 	  close( *Socket );
+#endif
 	  break;
      case PROTOCOL_NSEP:
 	  /* Using NSEP Protocol */

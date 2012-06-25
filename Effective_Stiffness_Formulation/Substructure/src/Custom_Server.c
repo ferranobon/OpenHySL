@@ -11,8 +11,12 @@
 #include "ErrorHandling.h"
 #include "Substructure.h"
 #include "Send_Receive_Data.h"
-#include "RoutinesADwin.h"
 #include "Custom_Server.h"
+
+#if ADWIN_
+#include "RoutinesADwin.h"
+#endif
+
 
 #define MAXPENDING   5    /* Maximum outstanding connection requests */
 
@@ -38,8 +42,10 @@ int main( int argc, char **argv )
 
      TMD_Sim Num_TMD;
 
+#if ADWIN_
      /* Array where the data from ADwin will be stored */
      float *ADWIN_DATA;
+#endif
 
      /* Variables to deal with arguments */
      int Mode, Selected_Option;
@@ -116,10 +122,15 @@ int main( int argc, char **argv )
      Receive_Data( Gc, Length, Client_Socket );
 
      if ( Mode == USE_ADWIN ){
+#if ADWIN_
 	  /* Run with ADwin */
 	  ADWIN_SetGc( Gc, Cnst.Order_Couple*Cnst.Order_Couple );
 	  printf( "Using ADwin to perform the sub-stepping process.\n" );
 	  ADWIN_DATA = calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
+#else
+	  fprintf(stderr, "The program was not compiled with ADwin support.\n");
+	  exit( EXIT_FAILURE );
+#endif
      } else if ( Mode == USE_EXACT ){
 	  /* Simulate the substructure numerically */
 	  printf( "Simulating the sub-structure using an exact integration method.\n");
@@ -141,8 +152,10 @@ int main( int argc, char **argv )
 	  } else {
 	       /* Perform the substepping process */
 	       if ( Mode == USE_ADWIN ){
+#if ADWIN_
 		    /* Run using ADwin */
 		    ADWIN_Substep( u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+#endif
 	       } else if ( Mode == USE_EXACT ){
 		    /* Run without ADwin and simulating the substructure using an exact
 		     * solution.
@@ -172,12 +185,14 @@ int main( int argc, char **argv )
      close( Client_Socket );
 
      if ( Mode == USE_ADWIN ){
+#if ADWIN_
 	  /* Get the Data from ADwin */
 	  printf("Getting the data from ADwin...");
 	  GetDataADwin( Cnst.Num_Steps, Cnst.Num_Sub, ADWIN_DATA );
 	  printf(" DONE!\n");
      
 	  free( ADWIN_DATA );
+#endif
      } else {
 	  printf("The simulatiovn has finished\n");
      }

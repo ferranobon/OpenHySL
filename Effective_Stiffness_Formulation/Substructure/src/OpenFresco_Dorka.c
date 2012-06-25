@@ -7,10 +7,13 @@
 #include <unistd.h>       /* For close( ) */
 
 #include <getopt.h>      /* For getopt_long() */
-
-#include "RoutinesADwin.h"
 #include "Substructure.h" /* For NUM_CHANNELS, ConstSub and Init_Constants_Substructure( ) */
 #include "OPSocket.h"
+
+#if ADWIN_
+#include "RoutinesADwin.h"
+#endif
+
 
 void Print_Help( const char *Program_Name );
 
@@ -39,8 +42,10 @@ int main ( int argc, char **argv )
 
      TMD_Sim Num_TMD;
 
+#if ADWIN_
      /* Array where the data from ADwin will be stored */
      float *ADWIN_DATA;
+#endif
 
      /* Variables to deal with arguments */
      int Mode, Selected_Option;
@@ -131,10 +136,15 @@ int main ( int argc, char **argv )
      
 
      if ( Mode == USE_ADWIN ){
+#if ADWIN_
 	  /* Run with ADwin */
 	  ADWIN_SetGc( Gc, Cnst.Order_Couple*Cnst.Order_Couple );
 	  printf( "Using ADwin to perform the sub-stepping process.\n" );
 	  ADWIN_DATA = calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
+#else 
+	  fprintf(stderr, "The program was not compiled with ADwin support.\n");
+	  exit( EXIT_FAILURE );
+#endif
      } else if ( Mode == USE_EXACT ){
 	  /* Simulate the substructure numerically */
 	  printf( "Simulating the sub-structure using an exact integration method.\n");
@@ -161,14 +171,24 @@ int main ( int argc, char **argv )
 		    u0c[i] = (float) Recv[1+i];
 	       }
 
-#if SIMULATE_SUB_
-	       /* Run this without ADwin */
-	       Simulate_Substructure( &Num_TMD, Gc, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
-#else
-		 
-	       /* Perform the substepping process in ADwin */
-	       ADWIN_Substep( u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+	       /* Perform the substepping process */
+	       if ( Mode == USE_ADWIN ){
+#if ADWIN_
+		    /* Run using ADwin */
+		    ADWIN_Substep( u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
 #endif
+	       } else if ( Mode == USE_EXACT ){
+		    /* Run without ADwin and simulating the substructure using an exact
+		     * solution.
+		     */
+		    Simulate_Substructure( &Num_TMD, Gc, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+	       } else {
+		    /* Run without ADwin and simulating the substructure using measured
+		     * values of the coupling force.
+		     */
+		    Simulate_Substructure_Measured_Values( "fc.txt", Gc, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+	       }
+
 	  } else if ( Recv[0] == 6.0 ){
 	       printf("Received query to send DAQ values\n");
 	       printf("The first value of Recv is: %f\n", Recv[0]);
@@ -189,12 +209,14 @@ int main ( int argc, char **argv )
 
 
      if ( Mode == USE_ADWIN ){
+#if ADWIN_
 	  /* Get the Data from ADwin */
 	  printf("Getting the data from ADwin...");
 	  GetDataADwin( Cnst.Num_Steps, Cnst.Num_Sub, ADWIN_DATA );
 	  printf(" DONE!\n");
      
 	  free( ADWIN_DATA );
+#endif
      } else {
 	  printf("The simulatiovn has finished\n");
      }

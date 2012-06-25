@@ -21,18 +21,23 @@ set(CMAKE_BUILD_TYPE "${CMAKE_BUILD_TYPE}" CACHE STRING
 # Make will display verbose output
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
-option(PROFILING    "Enable profiling using gprof"            OFF)
-option(USE_THREADS  "Use thread implementation when possible" OFF)
-option(USE_MKL      "Use Intel MKL libraries"                 OFF)
-option(USE_ATLAS    "Use ATLAS implementation"                OFF)
-option(USE_GOTOBLAS "Use GOTOBLAS implementation"             OFF)
-option(USE_MPI      "Build the parallel implementation"       OFF)
-option(USE_SPARSE   "Build with sparse matrix support"        OFF)
-option(BUILD_REALTIME "Build also realtime application"       OFF)
+option(PROFILING      "Enable profiling using gprof"            OFF)
+option(USE_THREADS    "Use thread implementation when possible" OFF)
+option(USE_MKL        "Use Intel MKL libraries"                 OFF)
+option(USE_ATLAS      "Use ATLAS implementation"                OFF)
+option(USE_GOTOBLAS   "Use GOTOBLAS implementation"             OFF)
+option(USE_MPI        "Build the parallel implementation"       OFF)
+option(USE_SPARSE     "Build with sparse matrix support"        OFF)
+option(BUILD_REALTIME "Build also realtime application"         OFF)
+option(WITH_ADWIN     "Build with ADwin support"                OFF)
 
 # Add support for Debian OS
 if(NOT "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
   include_directories(/usr/include/x86_64-linux-gnu/)
+endif()
+
+if(WIN32)
+  add_definitions(-D_WIN32_)
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -65,13 +70,20 @@ endif()
 include("CMakeCustomFiles/CMakeMathLibs.cmake")
 set(CMAKE_REQUIRED_LIBRARIES ${MATH_LIBS})
 
-# Find the ADwin libraries and tag it as required
-include("CMakeCustomFiles/CMakeADwin.cmake")
-set(CMAKE_REQUIRED_LIBRARIES ${ADWIN_LIBS})
-
 # Common source and header files for all the programs
 file(GLOB COMMON_SRCS Common_Files/src/*.c)
 include_directories(Common_Files/include)
+
+# Find the ADwin libraries and tag it as required
+if(WITH_ADWIN)
+  add_definitions(-DADWIN_)
+  include("CMakeCustomFiles/CMakeADwin.cmake")
+  set(CMAKE_REQUIRED_LIBRARIES ${ADWIN_LIBS})
+else(NOT WITH_ADWIN)
+  list(REMOVE_ITEM COMMON_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/Common_Files/src/RoutinesADwin.c)
+  MESSAGE( STATUS "Cmake binary dir ${CMAKE_CURRENT_SOURCE_DIR}")
+  MESSAGE( STATUS "Compile Flags = ${COMMON_SRCS}" )
+endif()
 
 if(USE_MPI)
   # Rules to build the programs related to the parallel version of the algorithm
@@ -132,6 +144,7 @@ if(REFERENCE_FOUND)
 endif()
 MESSAGE( STATUS "Use Parallel implementation: ${USE_MPI}")
 MESSAGE( STATUS "Building also realtime applicaton: ${BUILD_REALTIME}" )
+MESSAGE( STATUS "Building with ADwin support: ${WITH_ADWIN}" )
 MESSAGE( STATUS "System Name: ${CMAKE_SYSTEM}")
 MESSAGE( STATUS "----------------------------------------------------------------------------")
 MESSAGE( STATUS )
