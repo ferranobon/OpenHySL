@@ -33,7 +33,7 @@
 #include <math.h>
 #include <string.h>
 
-#ifdef _WIN32
+#ifdef _WIN32_
 #include <winsock2.h>
 #else
 #include <sys/socket.h>
@@ -53,7 +53,7 @@
 
 void CALL_CONV startupsockets(int *ierr)
 {
-#ifdef _WIN32
+#ifdef _WIN32_
     WSADATA wsaData;
     if (numSockets == 0)
         *ierr = WSAStartup(0x0002, &wsaData);
@@ -68,7 +68,7 @@ void CALL_CONV startupsockets(int *ierr)
 
 void CALL_CONV cleanupsockets()
 {
-#ifdef _WIN32
+#ifdef _WIN32_
     numSockets--;
     if (numSockets == 0)
         WSACleanup();
@@ -119,7 +119,7 @@ void CALL_CONV setupconnectionserver(unsigned int *port, int *socketID)
     my_Addr.addr_in.sin_family = AF_INET;
     my_Addr.addr_in.sin_port = htons(*port);
 
-#ifdef _WIN32
+#ifdef _WIN32_
     my_Addr.addr_in.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
 #else
     my_Addr.addr_in.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -152,7 +152,7 @@ void CALL_CONV setupconnectionserver(unsigned int *port, int *socketID)
 
     // close old socket & reset sockfd
     // we can close as we are not going to wait for others to connect
-#ifdef _WIN32
+#ifdef _WIN32_
     closesocket(sockfd);
 #else
     close(sockfd);
@@ -239,7 +239,7 @@ void CALL_CONV setupconnectionclient(unsigned int *other_Port,
     other_Addr.addr_in.sin_family = AF_INET;
     other_Addr.addr_in.sin_port = htons(*other_Port);
 
-#ifdef _WIN32
+#ifdef _WIN32_
     other_Addr.addr_in.sin_addr.S_un.S_addr = inet_addr(other_InetAddr);
 #else
     other_Addr.addr_in.sin_addr.s_addr = inet_addr(other_InetAddr);
@@ -250,7 +250,7 @@ void CALL_CONV setupconnectionclient(unsigned int *other_Port,
     my_Addr.addr_in.sin_family = AF_INET;
     my_Addr.addr_in.sin_port = htons(0);
 
-#ifdef _WIN32
+#ifdef _WIN32_
     my_Addr.addr_in.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
 #else
     my_Addr.addr_in.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -314,7 +314,7 @@ void CALL_CONV closeconnection(int *socketID, int *ierr)
         return;
     }
 
-#ifdef _WIN32
+#ifdef _WIN32_
     closesocket(theSocket->sockfd);
 #else
     close(theSocket->sockfd);
@@ -354,7 +354,7 @@ void CALL_CONV senddata(int *socketID, int *dataTypeSize, char data[], int *lenD
     }
 
     // turn on blocking mode
-#ifdef _WIN32
+#ifdef _WIN32_
     if (ioctlsocket(theSocket->sockfd,FIONBIO,&nbMode) != 0) {
         fprintf(stderr,"socket::senddata() - could not turn on blocking mode\n");
         *ierr = -2;
@@ -410,7 +410,7 @@ void CALL_CONV sendnbdata(int *socketID, int *dataTypeSize, char data[], int *le
     }
 
     // turn on nonblocking mode
-#ifdef _WIN32
+#ifdef _WIN32_
     if (ioctlsocket(theSocket->sockfd,FIONBIO,&nbMode) != 0) {
         fprintf(stderr,"socket::sendnbdata() - could not turn on nonblocking mode\n");
         *ierr = -2;
@@ -470,7 +470,7 @@ void CALL_CONV recvdata(int *socketID, int *dataTypeSize, char data[], int *lenD
     }
 
     // turn on blocking mode
-#ifdef _WIN32
+#ifdef _WIN32_
     if (ioctlsocket(theSocket->sockfd,FIONBIO,&nbMode) != 0) {
         fprintf(stderr,"socket::recvdata() - could not turn on blocking mode\n");
         *ierr = -2;
@@ -526,7 +526,7 @@ void CALL_CONV recvnbdata(int *socketID, int *dataTypeSize, char data[], int *le
     }
 
     // turn on nonblocking mode
-#ifdef _WIN32
+#ifdef _WIN32_
     if (ioctlsocket(theSocket->sockfd,FIONBIO,&nbMode) != 0) {
         fprintf(stderr,"socket::recvnbdata() - could not turn on nonblocking mode\n");
         *ierr = -2;
