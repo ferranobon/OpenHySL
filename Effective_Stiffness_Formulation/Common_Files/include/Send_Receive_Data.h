@@ -15,6 +15,9 @@
 #ifndef SEND_RECEIVE_DATA_H_
 #define SEND_RECEIVE_DATA_H_
 
+
+#define MAXPENDING   5    /* Maximum outstanding connection requests */
+
 /**
  * \brief Structure to handle the Server IP and the communication port
  *
@@ -57,6 +60,9 @@ typedef struct {
  * \sa Remote_Machine_Info.
  */
 void GetServerInformation( Remote_Machine_Info *const Server );
+
+int Init_TCP_Server_Socket( const unsigned short int Server_Port );
+int Accept_TCP_Client_Connection( int Server_Socket );
 
 /**
  * \brief Opens a TCP/IP socket.
