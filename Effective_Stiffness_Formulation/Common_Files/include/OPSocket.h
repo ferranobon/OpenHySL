@@ -8,13 +8,17 @@
 #ifndef OPSOCKET_H_
 #define OPSOCKET_H_
 
+#if _WIN32_
+#include <winsock2.h>
+#else
 #include <sys/socket.h>
 #include <sys/types.h>
+#endif
 
 #define MAX_UDP_DATAGRAM 9126
 #define MAX_INET_ADDR 28
 
-#ifdef _WIN32
+#ifdef _WIN32_
 typedef SOCKET socket_type;
 typedef int socklen_type;
 static int numSockets = 0;

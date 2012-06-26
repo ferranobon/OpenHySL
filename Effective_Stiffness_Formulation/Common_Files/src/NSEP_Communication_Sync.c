@@ -17,6 +17,13 @@
 #include <stdlib.h>      /* For atoi() and exit( ) */
 #include <string.h>      /* For memset() */
 
+#if _WIN32_
+#include <winsock2.h>
+#else
+#include <sys/types.h>
+#include <sys/socket.h>
+#endif
+
 #include "NSEP_Communication_Sync.h"    /* Prototypes of several functions involved in the CGM */
 #include "NSEP_Definitions.h"           /* Definition of various NSEP constants */
 #include "Send_Receive_Data.h"          /* Send and receive data routines */
