@@ -69,6 +69,59 @@ void GetServerInformation( Remote_Machine_Info *const Server )
 
 }
 
+int Init_TCP_Server_Socket( const unsigned short int Server_Port )
+{
+     
+     int Socket;
+     struct sockaddr_in Server_Addr;
+
+     /* Create socket for incoming connections */
+     if ( (Socket = socket( PF_INET, SOCK_STREAM, IPPROTO_TCP ) ) < 0){
+	  PrintErrorAndExit( "socket() failed." );
+	  exit( EXIT_FAILURE );
+     }
+      
+     /* Construct local address structure */
+     memset( &Server_Addr, 0, sizeof(Server_Addr) );    /* Zero out structure */
+     Server_Addr.sin_family = AF_INET;                  /* Internet address family */
+     Server_Addr.sin_addr.s_addr = htonl( INADDR_ANY ); /* Any incoming interface */
+     Server_Addr.sin_port = htons( Server_Port);        /* Local port */
+
+     /* Bind to the local address */
+     if ( bind( Socket, (struct sockaddr *) &Server_Addr, sizeof(Server_Addr)) < 0){
+	  PrintErrorAndExit( "bind() failed." );
+     }
+
+     /* Mark the socket so it will listen for incoming connections */
+     if ( listen( Socket, MAXPENDING) < 0){
+	  PrintErrorAndExit( "listen() failed." );
+     }
+
+     return Socket;
+
+}
+
+int Accept_TCP_Client_Connection( int Server_Socket )
+{
+     
+     int Client_Socket;                 /* Socket descriptor for client */
+     struct sockaddr_in Client_Addr;    /* Client address */
+     unsigned int Client_Length;        /* Length of client address data structure */
+
+     /* Set the size of the in-out parameter */
+     Client_Length = sizeof( Client_Addr );
+    
+     /* Wait for a client to connect */
+     if ( (Client_Socket = accept( Server_Socket, (struct sockaddr *) &Client_Addr, &Client_Length)) < 0 ){
+	  PrintErrorAndExit( "accept() failed.\n" );
+     }
+    
+     /* The Client is connected. Display a proper message */
+     printf("Handling client %s\n", inet_ntoa( Client_Addr.sin_addr ) );
+
+     return Client_Socket;
+}
+
 void OpenSocket( const Remote_Machine_Info Server, int *Socket )
 {
   

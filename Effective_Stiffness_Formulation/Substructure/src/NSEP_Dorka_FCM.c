@@ -1,9 +1,6 @@
 #include <stdio.h>       /* For printf() and fprintf() */
 #include <stdlib.h>      /* For atoi() and exit( ) */
-#include <sys/socket.h>  /* For socket(), bind() and connect() */
-#include <arpa/inet.h>   /* For sockaddr_in and inet_ntoa() */
 #include <string.h>      /* For memset() */
-#include <unistd.h>      /* For close() */
 #include <sys/time.h>    /* For gettimeoffday()  */
 #include <getopt.h>      /* For getopt_long() */
 

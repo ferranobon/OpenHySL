@@ -1,10 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>       /* For exit( ) and atoi( ) */
-
 #include <string.h>       /* For memset( ) */
-#include <sys/socket.h>   /* For socket( ), bind( ) and connect( ) */
-#include <arpa/inet.h>    /* For sockaddr_in and inet_ntoa( ) */
-#include <unistd.h>       /* For close( ) */
 
 #include <getopt.h>      /* For getopt_long() */
 #include "Substructure.h" /* For NUM_CHANNELS, ConstSub and Init_Constants_Substructure( ) */
