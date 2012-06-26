@@ -92,7 +92,7 @@ void OpenSocket( const Remote_Machine_Info Server, int *Socket )
      Server_Addr.sin_port = htons( Server.Port );
 
      if ( connect( *Socket, (struct sockaddr *) &Server_Addr, sizeof( Server_Addr ) ) < 0 ){
-	  close( *Socket );
+	  Close_Socket( Socket );
 	  PrintErrorAndExit( "connect() failed." );
      } else {
 	  printf("Successfully connected to the %s Server: %s on port %hi.\n", Server.Type, Server.IP, Server.Port );	  
@@ -287,11 +287,7 @@ void Close_Connection( int *Socket, const int Protocol_Type, const int OrderC, c
 	  Send[0] = -9999.0;
 	  Send_Data( Send, OrderC, *Socket );
 	  /* Close the socket */
-#if _WIN32_
-	  closesocket( *Socket );
-#else
-	  close( *Socket );
-#endif
+	  Close_Socket( Socket );
 	  break;
      case PROTOCOL_NSEP:
 	  /* Using NSEP Protocol */
@@ -305,4 +301,14 @@ void Close_Connection( int *Socket, const int Protocol_Type, const int OrderC, c
      }
 
      free( Send );
+}
+
+void Close_Socket( int *Socket )
+{
+
+#if _WIN32_
+     closesocket( *Socket );
+#else
+     close( *Socket );
+#endif
 }

@@ -17,12 +17,6 @@
 #include <stdlib.h>      /* For atoi() and exit( ) */
 #include <string.h>      /* For memset() */
 
-#if _WIN32_
-#include <winsock2.h>
-#else
-#include <unistd.h>      /* For close() */
-#endif
-
 #include "NSEP_Communication_Sync.h"    /* Prototypes of several functions involved in the CGM */
 #include "NSEP_Definitions.h"           /* Definition of various NSEP constants */
 #include "Send_Receive_Data.h"          /* Send and receive data routines */
@@ -54,13 +48,13 @@ void Communicate_With_PNSE( const int WhatToDo, float Time,
 	  /* Login to the server */
 	  Login_Server( Socket, Server, Send_Buffer, Receive_Buffer, &Error );
 	  if ( Error == 1 ){
-	       close( Socket );
+	       Close_Socket( &Socket );
 	       PrintErrorAndExit( "CGM: send() sent a different number of bytes than expected. Exiting." );
 	  } else if ( Error == 2 ){
-	       close( Socket );
+	       Close_Socket( &Socket );
 	       PrintErrorAndExit( "CGM: recv() failed or connection closed prematurely. Exiting.\n" );
 	  } else if ( Error == 3 ){
-	       close( Socket );
+	       Close_Socket( &Socket );
 	       PrintErrorAndExit( "CGM: Exiting." );
 	  }
 
@@ -69,7 +63,7 @@ void Communicate_With_PNSE( const int WhatToDo, float Time,
 	   */
 	  Send_Client_State( Socket, Send_Buffer, &Error, NSEP_CS_RUNNING );
 	  if ( Error == 1 ){
-	       close( Socket );
+	       Close_Socket( &Socket );
 	       PrintErrorAndExit( "CGM: send() sent a different number of bytes than expected. Exiting." );
 	  }
 	  
@@ -91,7 +85,7 @@ void Communicate_With_PNSE( const int WhatToDo, float Time,
 	  pos = pos + sizeof (float);
 	  memcpy( pos, Data_To_Send, sizeof(float)*Order );
 	  if ( send( Socket, Send_Buffer, Length, 0 ) != (int) sizeof (char)*Length ){
-	       close( Socket );
+	       Close_Socket( &Socket );
 	       PrintErrorAndExit( "CGM: send() sent a different number of bytes than expected. Exiting." );
 	  }
      } else if ( WhatToDo == 2 ) { /* Request a message from the server */
@@ -109,7 +103,7 @@ void Communicate_With_PNSE( const int WhatToDo, float Time,
 	  pos = pos + sizeof (int);
 	  memcpy( pos ,&What, sizeof (int) );
 	  if ( send( Socket, Send_Buffer, Length, 0 ) != (int) sizeof (char)*Length ){
-	       close( Socket );
+	       Close_Socket( &Socket );
 	       PrintErrorAndExit( "CGM: send() sent a different number of bytes than expected. Exiting." );
 	  }
 
@@ -117,7 +111,7 @@ void Communicate_With_PNSE( const int WhatToDo, float Time,
 	  printf("CGM: Waiting for NSEP_CSIG...\n" );
 	  
 	  if ( recv( Socket, Receive_Buffer, MAXBUFLEN, 0 ) <= 0 ){
-	       close( Socket );
+	       Close_Socket( &Socket );
 	       PrintErrorAndExit( "CGM: recv() failed or connection closed prematurely. Exiting.\n" );
 	  } else {
 	       /* Get the restoring force */
@@ -139,7 +133,7 @@ void Communicate_With_PNSE( const int WhatToDo, float Time,
 	  pos = pos + sizeof (int);
 	  memcpy( pos ,&What, sizeof (int) );
 	  if ( send( Socket, Send_Buffer, Length, 0 ) != (int) sizeof (char)*Length ){
-	       close( Socket );
+	       Close_Socket( &Socket );
 	       PrintErrorAndExit( "FCM: send() sent a different number of bytes than expected. Exiting." );
 	  }
 
@@ -147,7 +141,7 @@ void Communicate_With_PNSE( const int WhatToDo, float Time,
 	  printf("FCM: Waiting for NSEP_CMD...\n" );
 	  
 	  if ( recv( Socket, Receive_Buffer, MAXBUFLEN, 0 ) <= 0 ){
-	       close( Socket );
+	       Close_Socket( &Socket );
 	       PrintErrorAndExit( "FCM: recv() failed or connection closed prematurely. Exiting.\n" );
 	  } else {
 	       /* Get the displacement */
@@ -172,7 +166,7 @@ void Communicate_With_PNSE( const int WhatToDo, float Time,
 	  pos = pos + sizeof (float);
 	  memcpy( pos, Data_To_Send, sizeof(float)*Order );
 	  if ( send( Socket, Send_Buffer, Length, 0 ) != (int) sizeof (char)*Length ){
-	       close( Socket );
+	       Close_Socket( &Socket );
 	       PrintErrorAndExit( "FCM: send() sent a different number of bytes than expected. Exiting." );
 	  }
 	  printf("%i\t%e\n", Send_Buffer[0], Data_To_Send[0] );
@@ -192,12 +186,12 @@ void Communicate_With_PNSE( const int WhatToDo, float Time,
 	  pos = pos + sizeof (int);
 	  memcpy( pos ,&What, sizeof (int) );
 	  if ( send( Socket, Send_Buffer, Length, 0 ) != (int) sizeof (char)*Length ){
-	       close( Socket );
+	       Close_Socket( &Socket );
 	       PrintErrorAndExit( "FCM: send() sent a different number of bytes than expected. Exiting." );
 	  }
 
 	  if ( recv( Socket, Receive_Buffer, MAXBUFLEN, 0 ) <= 0 ){
-	       close( Socket );
+	       Close_Socket( &Socket );
 	       PrintErrorAndExit( "FCM: recv() failed or connection closed prematurely. Exiting.\n" );
 	  } else {
 	       /* Get the Experimental state */
@@ -215,20 +209,12 @@ void Communicate_With_PNSE( const int WhatToDo, float Time,
 	   */
 	  Send_Client_State( Socket, Send_Buffer, &Error, NSEP_CS_FINISHED );
 	  if ( Error == 1 ){
-	       close( Socket );
+	       Close_Socket( &Socket );
 	       PrintErrorAndExit( "CGM: send() sent a different number of bytes than expected. Exiting." );
 	  }
-#if _WIN32_
-	  closesocket( Socket );
-#else
-	  close( Socket );
-#endif
+	  Close_Socket( &Socket );
      } else {
-#if _WIN32_
-	  closesocket( Socket );
-#else
-	  close( Socket );
-#endif
+	  Close_Socket( &Socket );
 	  fprintf( stderr, "CGM: Invalid WhatToDo value %i. WhatToDo should be between 0 and 3.\n", WhatToDo );
      }
 } 
