@@ -38,6 +38,7 @@ endif()
 
 if(WIN32)
   add_definitions(-D_WIN32_)
+  set(WIN_LIBS "-lws2_32 -lwinmm -lgdi32 -mwindows")
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
