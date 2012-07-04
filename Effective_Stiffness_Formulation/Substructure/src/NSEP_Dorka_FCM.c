@@ -39,6 +39,7 @@ int main ( int argc, char **argv )
 #endif
 
      TMD_Sim Num_TMD;
+     UHYDE_Sim Num_UHYDE;
 
      /* Variables to deal with arguments */
      int Mode, Selected_Option;
@@ -125,6 +126,9 @@ int main ( int argc, char **argv )
 	  /* Simulate the substructure numerically */
 	  printf( "Simulating the sub-structure using an exact integration method.\n");
 	  ExactSolution_Init( 285, 352.18177, 68000, Cnst.DeltaT_Sub, &Num_TMD );
+     } else if ( Mode == USE_UHYDE ){
+	  printf( "Simulating the friction device UHYDE-fbr.\n" );
+	  Simulate_UHYDE_1D_Init( 500.0, 1.0, 9.0, &Num_UHYDE );
      } else {
 	  printf( "Simulating the sub-structure using measured values as an input.\n");
 	  /* Do nothing for the moment */
@@ -149,7 +153,12 @@ int main ( int argc, char **argv )
 	       /* Run without ADwin and simulating the substructure using an exact
 		* solution.
 		*/
-	       Simulate_Substructure( &Num_TMD, Gc, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+	       Simulate_Substructure( &Num_TMD, Mode, Gc, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+	  } else if ( Mode == USE_UHYDE ){
+		    /*
+		     * Simulate the UHYDE-fbr without ADwin
+		     */
+	       Simulate_Substructure( &Num_UHYDE, Mode, Gc, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
 	  } else {
 	       /* Run without ADwin and simulating the substructure using measured
 		* values of the coupling force.

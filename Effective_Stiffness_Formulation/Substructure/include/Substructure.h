@@ -4,7 +4,8 @@
 #define NUM_CHANNELS 22  /* Number of channels to save from ADwin */
 #define USE_ADWIN    0    /* Run using ADwin */
 #define USE_EXACT    1    /* Simulate the substructure using the exact solution */
-#define USE_MEASURED 2    /* Simulate the substructure using measured values */
+#define USE_UHYDE    2    /* Simulate the substructure using the exact solution */
+#define USE_MEASURED 3    /* Simulate the substructure using measured values */
 
 typedef struct{
      int Order_Couple;   /* Order of the coupling nodes. */
@@ -37,13 +38,13 @@ void Init_Constants_Substructure( ConstSub *const Constants );
 
 void Simulate_Substructure_Measured_Values( const char *FileName, const float *const Keinv, const float *const u0c, float *const uc, float *const fcprev, float *const fc, const int OrderC, const int NSub, const float DeltaT_Sub );
 
-void Simulate_Substructure( TMD_Sim *const Num, const float *const Keinv, const float *const u0c, float *const uc, float *const fcprev, float *const fc, const int OrderC, const int NSub, const float Deltat_Sub );
+void Simulate_Substructure( void *const Num, const int Mode, const float *const Keinv, const float *const u0c, float *const uc, float *const fcprev, float *const fc, const int OrderC, const int NSub, const float Deltat_Sub );
 
 void ExactSolution_Init( const float Mass, const float Damp, const float Stiff, const float DeltaT, TMD_Sim *const Num );
 void ExactSolution_SDOF( const float u0c, const float DeltaT, TMD_Sim *const Num, float *const fc );
 
 void Simulate_UHYDE_1D_Init( const float qyield, const float yield_factor, const float Friction, UHYDE_Sim *const Num );
 
-void Simulate_UHYDE_1D( const float u0c, const float DeltaT, float *const Friction_Force, UHYDE_Sim *const Num );
+void Simulate_UHYDE_1D( const float u0c, const float DeltaT, UHYDE_Sim *const Num, float *const Friction_Force );
 
 #endif /* SUBSTRUCTURE_H */
