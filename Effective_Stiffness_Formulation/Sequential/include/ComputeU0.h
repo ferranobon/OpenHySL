@@ -43,12 +43,18 @@
  */
 void Calculatefi( MatrixVector *const fi, const MatrixVector *const fc, const MatrixVector *const li, const MatrixVector *const Deltaf );
 
+/** 
+ * \brief Calculates the new effective force vector \f$F_{eff}\f$ according to the formulation using the effective stiffness matrix.
+ *
+ * Calculates the effective force vector following the formulation using the effective stiffness matrix in page 53 of iimplicit part of the new displacement vector is calculated \cite Dorka_2001
+ */
 void EffK_Calc_Effective_Force( const MatrixVector *const Mass, const MatrixVector *const Damp,
 				const MatrixVector *const Disp, const MatrixVector *const Vel,
 				const MatrixVector *const Acc, MatrixVector *const Tempvec,
 				const float a0, const float a1, const float a2,
 				const float a3, const float a4, const float a5,
 			       MatrixVector *const Eff_Force );
+
 void EffK_ComputeU0( const MatrixVector *const Eff_Force, const MatrixVector *const In_Load,
 		     const MatrixVector *const Err_Force, const float PID_P, const MatrixVector *const Keinv,
 		     MatrixVector *const Tempvec, MatrixVector *const Disp0 );
