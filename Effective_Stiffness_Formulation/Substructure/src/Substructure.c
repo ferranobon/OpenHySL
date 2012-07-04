@@ -52,7 +52,7 @@ void Simulate_Substructure_Measured_Values( const char *FileName, const float *c
      }
 }
 
-void Simulate_Substructure( TMD_Sim *const Num, const float *const Keinv, const float *const u0c, float *const uc, float *const fcprev, float *const fc, const int OrderC, const int NSub, const float DeltaT_Sub )
+void Simulate_Substructure( void *const Num, const int Mode, const float *const Keinv, const float *const u0c, float *const uc, float *const fcprev, float *const fc, const int OrderC, const int NSub, const float DeltaT_Sub )
 {
 
      int i, Substep;
@@ -72,7 +72,11 @@ void Simulate_Substructure( TMD_Sim *const Num, const float *const Keinv, const 
 	  uc[0] = ramp0*u0c0 + ramp*u0c[0] + Keinv[0]*fc[0];
 
 	  /* Compute the new fc */
-	  ExactSolution_SDOF( u0c[0], DeltaT_Sub, Num, &fc[0] );
+	  if( Mode == USE_EXACT ){
+	       ExactSolution_SDOF( u0c[0], DeltaT_Sub, (TMD_Sim *) Num, &fc[0] );
+	  } else if ( Mode == USE_UHYDE ){
+	       Simulate_UHYDE_1D( u0c[0], DeltaT_Sub, (UHYDE_Sim *) Num, &fc[0] );
+	  } else assert( Mode < USE_EXACT || Mode > USE_UHYDE );
      }
 
      /* Backup u0c */
@@ -184,7 +188,7 @@ void Simulate_UHYDE_1D_Init( const float qyield, const float yield_factor, const
 
 }
 
-void Simulate_UHYDE_1D( const float u0c, const float DeltaT, float *const Friction_Force, UHYDE_Sim *const Num )
+void Simulate_UHYDE_1D( const float u0c, const float DeltaT, UHYDE_Sim *const Num, float *const Friction_Force )
 {
 
      float v;
