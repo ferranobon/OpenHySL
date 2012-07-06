@@ -122,7 +122,7 @@ int Accept_TCP_Client_Connection( int Server_Socket )
      return Client_Socket;
 }
 
-void OpenSocket( const Remote_Machine_Info Server, int *Socket )
+void Open_Socket_TCP( const Remote_Machine_Info Server, int *Socket )
 {
   
      struct sockaddr_in Server_Addr;  /* Type for handling the connections (IP, port) */
@@ -131,6 +131,7 @@ void OpenSocket( const Remote_Machine_Info Server, int *Socket )
 	  PrintErrorAndExit( "socket() failed" );
      }
 
+     /* Initialise the structure to 0 */
      memset( &Server_Addr, 0, sizeof( Server_Addr ) );
      /* Specify the address family as internet */
      Server_Addr.sin_family = AF_INET;
@@ -153,7 +154,15 @@ void OpenSocket( const Remote_Machine_Info Server, int *Socket )
      }
 }
 
-void Send_Data( const float *Data, const int DATA_LENGTH, const int sock )
+void Open_Socket_UDP( int *Socket )
+{
+     if( (*Socket = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP )) < 0 ){
+	  PrintErrorAndExit( "socket() failed" );
+     }
+
+}
+
+void Send_Data_TCP( const float *Data, const int DATA_LENGTH, const int sock )
 {
 
   if ( send(sock, Data, sizeof Data  * DATA_LENGTH, 0) != (int)sizeof Data * DATA_LENGTH ){
@@ -162,19 +171,91 @@ void Send_Data( const float *Data, const int DATA_LENGTH, const int sock )
 
 }
 
-void Receive_Data( float *Data, const int DATA_LENGTH, const int sock )
+void Send_Data_UDP( const Remote_Machine_Info Server, const float *Data, const int DATA_LENGTH, const int sock )
 {
-  int bytesRcvd, totalBytesRcvd;
 
-  totalBytesRcvd = 0;
+     static int Is_First_Time = 1;
+     static struct sockaddr_in Server_Addr;
 
-  while (totalBytesRcvd < (int)sizeof Data * DATA_LENGTH)
-    {
+     if ( Is_First_Time ){
+	  /* Initialise the structure to 0 */
+	  memset( &Server_Addr, 0, sizeof( Server_Addr ) );
+	  /* Specify the address family as internet */
+	  Server_Addr.sin_family = AF_INET;
+
+	  /* Set the server address */
+	  Server_Addr.sin_family = AF_INET;
+
+#if _WIN32_
+	  Server_Addr.sin_addr.S_un.S_addr = inet_addr( Server.IP );
+#else     
+	  Server_Addr.sin_addr.s_addr = inet_addr( Server.IP );
+#endif
+	  /* Set the server port */     
+	  Server_Addr.sin_port = htons( Server.Port );
+
+	  Is_First_Time = 0;
+     }	  
+
+     if( sendto( sock, Data, sizeof( Data )*DATA_LENGTH, 0, (struct sockaddr *) &Server_Addr,
+		 sizeof( Server_Addr ) ) != sizeof (Data)*DATA_LENGTH ){
+	  PrintErrorAndExit( "sendto() sent a different number of bytes than expected" );
+     }	 
+}
+
+void Receive_Data_TCP( float *Data, const int DATA_LENGTH, const int sock )
+{
+     int bytesRcvd, totalBytesRcvd;
+
+     totalBytesRcvd = 0;
+
+     while (totalBytesRcvd < (int)sizeof Data * DATA_LENGTH)
+     {
 	  if ((bytesRcvd = recv(sock, Data, sizeof Data * DATA_LENGTH,0)) <= 0){
-		  PrintErrorAndExit( "recv() failed or connection closed prematurely" );
+	       PrintErrorAndExit( "recv() failed or connection closed prematurely" );
 	  }
-      totalBytesRcvd += bytesRcvd;
-    }
+	  totalBytesRcvd += bytesRcvd;
+     }
+}
+
+void Receive_Data_UDP( const Remote_Machine_Info Server, float *Data, const int DATA_LENGTH, const int sock )
+{
+
+     static int Is_First_Time;
+     static struct sockaddr_in Server_Addr;
+
+     struct sockaddr_in From_Addr;
+     unsigned int From_Addr_Length;
+
+     if ( Is_First_Time ){
+	  /* Initialise the structure to 0 */
+	  memset( &Server_Addr, 0, sizeof( Server_Addr ) );
+	  /* Specify the address family as internet */
+	  Server_Addr.sin_family = AF_INET;
+
+	  /* Set the server address */
+	  Server_Addr.sin_family = AF_INET;
+
+#if _WIN32_
+	  Server_Addr.sin_addr.S_un.S_addr = inet_addr( Server.IP );
+#else     
+	  Server_Addr.sin_addr.s_addr = inet_addr( Server.IP );
+#endif
+	  /* Set the server port */     
+	  Server_Addr.sin_port = htons( Server.Port );
+
+	  Is_First_Time = 0;
+     }	  
+
+     From_Addr_Length = sizeof( From_Addr );
+     if ( recvfrom( sock, Data, DATA_LENGTH, 0, (struct sockaddr *) &From_Addr, &From_Addr_Length ) != DATA_LENGTH ){
+	  PrintErrorAndExit( "recvfrom() failed" );
+     }
+
+     /* Verify if the response comes from the expected source */
+     if( Server_Addr.sin_addr.s_addr != From_Addr.sin_addr.s_addr ){
+	  PrintErrorAndExit( "Error: received a packet from an unknown source." );
+     }
 }
 
 void Send_Effective_Matrix( const float *const Eff_Mat, const int Protocol_Type, const int OrderC, int *const Socket )
@@ -196,14 +277,30 @@ void Send_Effective_Matrix( const float *const Eff_Mat, const int Protocol_Type,
 	  ADWIN_SetGc( Eff_Mat, OrderC*OrderC );
 	  break;
 #endif
-     case PROTOCOL_CUSTOM:  
-	  /* Using custom communication protocol */
+     case PROTOCOL_TCP:  
+	  /* Using TCP communication protocol */
 	  GetServerInformation( &Server );
-	  printf( "Establishing connection with the Server.\n" );
+	  printf( "Establishing connection with the TCP Server.\n" );
 	  
-	  OpenSocket( Server, &(*Socket) );
+	  Open_Socket_TCP( Server, &(*Socket) );
 	  
-	  Send_Data( Eff_Mat, OrderC*OrderC, (*Socket) );
+	  Send_Data_TCP( Eff_Mat, OrderC*OrderC, (*Socket) );
+	  break;
+     case PROTOCOL_UDP:
+	  /* Using the UDP protocol */
+	  GetServerInformation( &Server );
+	  printf( "Establishing connection with the UDP Server.\n" );
+
+	  Open_Socket_UDP( &(*Socket) );
+	  Send_Data_UDP( Server, Eff_Mat, OrderC*OrderC, (*Socket) );
+	  /* 
+	   * This is just to initialise the static variable Server_Addr in the routine to receive the data when
+	   * using the UDP protocol.
+	   */
+	  Receive_Data_UDP( Server, Recv, OrderC, (*Socket ) );
+	  if ( Recv[0] != 1.0 ){
+	       PrintErrorAndExit( "The UDP protocol did not work as expected" );
+	  }
 	  break;
      case PROTOCOL_NSEP:
 	  /* Using NSEP Protocol */
@@ -240,10 +337,12 @@ void Send_Effective_Matrix( const float *const Eff_Mat, const int Protocol_Type,
      free( Recv );
 }
 
-void Do_Substepping( const float *const DispTdT0_c, float *const DispTdT, float *const fcprevsub, float *const fc, const int Protocol_Type, const float Time, const float DeltaT, const int Num_Sub, const int Socket, const int OrderC, const int Pos_Couple )
+void Do_Substepping( const float *const DispTdT0_c, float *const DispTdT, float *const fcprevsub, float *const fc, const int Protocol_Type, const float Time, const float DeltaT, const int Num_Sub, const const int Socket, const int OrderC, const int Pos_Couple )
 {
 
-     static int i;
+     int i;
+     static int Is_First_Time = 1;
+     static Remote_Machine_Info Server;
      float *Recv;
 
      Recv = calloc( 3*OrderC, sizeof(float) );
@@ -257,12 +356,22 @@ void Do_Substepping( const float *const DispTdT0_c, float *const DispTdT, float 
 	  //Recv[0] = uc[0]; Recv[1] = 0.0; Recv[2] = 0.0;
 	  break;
 #endif
-     case PROTOCOL_CUSTOM:
-	  /* Using custom communication protocol */
-	  Send_Data( DispTdT0_c, OrderC, Socket );
+     case PROTOCOL_TCP:
+	  /* Using TCP communication protocol */
+	  Send_Data_TCP( DispTdT0_c, OrderC, Socket );
 
-	  Receive_Data( Recv, 3*OrderC, Socket );
+	  Receive_Data_TCP( Recv, 3*OrderC, Socket );
 	  break;
+     case PROTOCOL_UDP:
+	  if ( Is_First_Time ){
+	       GetServerInformation( &Server );
+	       Is_First_Time = 0;
+	  }
+
+	  /* Using UDP communication protocol */
+	  Send_Data_UDP( Server, DispTdT0_c, OrderC, Socket );
+
+	  Receive_Data_UDP( Server, Recv, 3*OrderC, Socket );
      case PROTOCOL_NSEP:
 	  /* Using NSEP Protocol */
 	  Communicate_With_PNSE( 1, Time, DispTdT0_c, Recv, OrderC );
@@ -285,7 +394,7 @@ void Do_Substepping( const float *const DispTdT0_c, float *const DispTdT, float 
 
 }
 /*
-void Send_Data( const int Socket, const int Data_Type_Size, char* const To_Send, const int Data_Length )
+void Send_Data_TCP( const int Socket, const int Data_Type_Size, char* const To_Send, const int Data_Length )
 {
      int Bytes_Left, Bytes_Sent;
 
@@ -301,7 +410,7 @@ void Send_Data( const int Socket, const int Data_Type_Size, char* const To_Send,
 
 }
 
-void Receive_Data( const int Socket, const int Data_Type_Size, char *const To_Receive, const int Data_Length )
+void Receive_Data_TCP( const int Socket, const int Data_Type_Size, char *const To_Receive, const int Data_Length )
 {
      char *Data = To_Receive;
      int Bytes_Left, Bytes_Read;
@@ -336,10 +445,10 @@ void Close_Connection( int *Socket, const int Protocol_Type, const int OrderC, c
 	  free( ADWIN_DATA );
 	  break;
 #endif
-     case PROTOCOL_CUSTOM:
+     case PROTOCOL_TCP:
 	  /* Using custom communication protocol */
 	  Send[0] = -9999.0;
-	  Send_Data( Send, OrderC, *Socket );
+	  Send_Data_TCP( Send, OrderC, *Socket );
 	  /* Close the socket */
 	  Close_Socket( Socket );
 	  break;

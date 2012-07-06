@@ -33,9 +33,11 @@ typedef struct {
 } Remote_Machine_Info;
 
 #define PROTOCOL_ADWIN  0
-#define PROTOCOL_CUSTOM 1
-#define PROTOCOL_NSEP   2
-#define PROTOCOL_OF     3
+#define PROTOCOL_TCP    1
+#define PROTOCOL_UDP    2
+#define PROTOCOL_NSEP   3
+#define PROTOCOL_OF     4
+
 
 /**
  * \brief Gets the information to establish the TCP/IP connection.
@@ -80,7 +82,7 @@ int Accept_TCP_Client_Connection( int Server_Socket );
  *
  * \sa Remote_Machine_Info.
  */
-void OpenSocket( const Remote_Machine_Info Server, int *sock );
+void Open_Socket_TCP( const Remote_Machine_Info Server, int *sock );
 
 /**
  * \brief Sends data to the server (blocking)
@@ -99,7 +101,9 @@ void OpenSocket( const Remote_Machine_Info Server, int *sock );
  * \post
  * - The data inside \c Data is sent successfully through TCP/IP.
  */
-void Send_Data( const float *Data, const int DATA_LENGTH, const int sock );
+void Send_Data_TCP( const float *Data, const int DATA_LENGTH, const int sock );
+
+void Send_Data_UDP( const Remote_Machine_Info Server, const float *Data, const int DATA_LENGTH, const int sock );
 
 /**
  * \brief Receives data from the server (blocking)
@@ -118,7 +122,9 @@ void Send_Data( const float *Data, const int DATA_LENGTH, const int sock );
  * \post
  * - The received data from the Server through TCP/IP is stored in the array \c Data.
  */
-void Receive_Data( float *Data, const int DATA_LENGTH, const int sock );
+void Receive_Data_TCP( float *Data, const int DATA_LENGTH, const int sock );
+
+void Receive_Data_UDP( const Remote_Machine_Info Server, float *Data, const int DATA_LENGTH, const int sock );
 
 void Send_Effective_Matrix( const float *const Eff_Mat, const int Protocol_Type, const int OrderC, int *const Socket );
 

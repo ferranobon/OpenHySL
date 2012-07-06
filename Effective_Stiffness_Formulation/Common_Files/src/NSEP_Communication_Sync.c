@@ -50,7 +50,7 @@ void Communicate_With_PNSE( const int WhatToDo, float Time,
 	  GetServerInformation( &Server );
      
 	  /* Connect to the PNSE server */
-	  OpenSocket( Server, &Socket );
+	  Open_Socket_TCP( Server, &Socket );
      
 	  /* Login to the server */
 	  Login_Server( Socket, Server, Send_Buffer, Receive_Buffer, &Error );

@@ -112,7 +112,7 @@ int main( int argc, char **argv )
 
      /* Receive matrix Gc */
      Length = Cnst.Order_Couple*Cnst.Order_Couple;
-     Receive_Data( Gc, Length, Client_Socket );
+     Receive_Data_TCP( Gc, Length, Client_Socket );
 
      if ( Mode == USE_ADWIN ){
 #if ADWIN_
@@ -141,7 +141,7 @@ int main( int argc, char **argv )
 
 	  /* Receive the displacement */
 	  Length = Cnst.Order_Couple;
-	  Receive_Data( u0c, Length, Client_Socket );
+	  Receive_Data_TCP( u0c, Length, Client_Socket );
 
 	  if ( u0c[0] == -9999.0 ){
 	       Is_Not_Finished = 0;
@@ -178,7 +178,7 @@ int main( int argc, char **argv )
 
 	       /* Send the response */
 	       Length = 3*Cnst.Order_Couple;
-	       Send_Data( Send, Length, Client_Socket );
+	       Send_Data_TCP( Send, Length, Client_Socket );
 	  }
      }
 
