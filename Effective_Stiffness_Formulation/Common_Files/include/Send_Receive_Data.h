@@ -38,7 +38,6 @@ typedef struct {
 #define PROTOCOL_NSEP   3
 #define PROTOCOL_OF     4
 
-
 /**
  * \brief Gets the information to establish the TCP/IP connection.
  *
@@ -64,6 +63,7 @@ typedef struct {
 void GetServerInformation( Remote_Machine_Info *const Server );
 
 int Init_TCP_Server_Socket( const unsigned short int Server_Port );
+int Init_UDP_Server_Socket( const unsigned short int Server_Port );
 int Accept_TCP_Client_Connection( int Server_Socket );
 
 /**
