@@ -88,12 +88,14 @@ int Get_Type_Protocol( )
 
      if ( !strcmp( Remote.Type, "None" ) ){
 	  return 0;
-     } else if ( !strcmp( Remote.Type, "Custom" ) ){
+     } else if ( !strcmp( Remote.Type, "TCPCustom" ) ){
 	  return 1;
+     } else if ( !strcmp( Remote.Type, "UDPCustom" ) ){
+	  return 2;
      } else if ( !strcmp( Remote.Type, "PNSE" ) ){
-	  return 2; 
-     } else if ( !strcmp( Remote.Type, "OpenFresco" ) ){
 	  return 3; 
+     } else if ( !strcmp( Remote.Type, "OpenFresco" ) ){
+	  return 4;
      } else {
 	  return -1;
      }
