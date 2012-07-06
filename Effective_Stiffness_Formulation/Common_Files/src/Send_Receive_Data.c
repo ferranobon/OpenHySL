@@ -76,7 +76,7 @@ int Init_TCP_Server_Socket( const unsigned short int Server_Port )
      struct sockaddr_in Server_Addr;
 
      /* Create socket for incoming connections */
-     if ( (Socket = socket( PF_INET, SOCK_STREAM, IPPROTO_TCP ) ) < 0){
+     if ( (Socket = socket( AF_INET, SOCK_STREAM, IPPROTO_TCP ) ) < 0){
 	  PrintErrorAndExit( "socket() failed." );
 	  exit( EXIT_FAILURE );
      }
@@ -95,6 +95,33 @@ int Init_TCP_Server_Socket( const unsigned short int Server_Port )
      /* Mark the socket so it will listen for incoming connections */
      if ( listen( Socket, MAXPENDING) < 0){
 	  PrintErrorAndExit( "listen() failed." );
+     }
+
+     return Socket;
+
+}
+
+int Init_UDP_Server_Socket( const unsigned short int Server_Port )
+{
+
+     int Socket;
+     struct sockaddr_in Server_Addr;
+
+     /* Create socket for incoming connections */
+     if ( (Socket = socket( AF_INET, SOCK_DGRAM, IPPROTO_UDP ) ) < 0){
+	  PrintErrorAndExit( "socket() failed." );
+	  exit( EXIT_FAILURE );
+     }
+      
+     /* Construct local address structure */
+     memset( &Server_Addr, 0, sizeof(Server_Addr) );    /* Zero out structure */
+     Server_Addr.sin_family = AF_INET;                  /* Internet address family */
+     Server_Addr.sin_addr.s_addr = htonl( INADDR_ANY ); /* Any incoming interface */
+     Server_Addr.sin_port = htons( Server_Port);        /* Local port */
+
+     /* Bind to the local address */
+     if ( bind( Socket, (struct sockaddr *) &Server_Addr, sizeof(Server_Addr)) < 0){
+	  PrintErrorAndExit( "bind() failed." );
      }
 
      return Socket;
@@ -221,7 +248,7 @@ void Receive_Data_TCP( float *Data, const int DATA_LENGTH, const int sock )
 void Receive_Data_UDP( const Remote_Machine_Info Server, float *Data, const int DATA_LENGTH, const int sock )
 {
 
-     static int Is_First_Time;
+     static int Is_First_Time = 1;
      static struct sockaddr_in Server_Addr;
 
      struct sockaddr_in From_Addr;
@@ -298,7 +325,8 @@ void Send_Effective_Matrix( const float *const Eff_Mat, const int Protocol_Type,
 	   * using the UDP protocol.
 	   */
 	  Receive_Data_UDP( Server, Recv, OrderC, (*Socket ) );
-	  if ( Recv[0] != 1.0 ){
+	  if ( Recv[0] != 0.0 ){
+	       printf("%f\n", Recv[0] );
 	       PrintErrorAndExit( "The UDP protocol did not work as expected" );
 	  }
 	  break;
@@ -372,6 +400,7 @@ void Do_Substepping( const float *const DispTdT0_c, float *const DispTdT, float 
 	  Send_Data_UDP( Server, DispTdT0_c, OrderC, Socket );
 
 	  Receive_Data_UDP( Server, Recv, 3*OrderC, Socket );
+	  break;
      case PROTOCOL_NSEP:
 	  /* Using NSEP Protocol */
 	  Communicate_With_PNSE( 1, Time, DispTdT0_c, Recv, OrderC );

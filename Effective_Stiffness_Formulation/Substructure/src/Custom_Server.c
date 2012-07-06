@@ -3,6 +3,9 @@
 #include <string.h>      /* For memset( ) */
 #include <getopt.h>      /* For getopt_long() */
 
+#include <sys/socket.h> /* for socket() and bind() */
+#include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
+
 #include "ErrorHandling.h"
 #include "Substructure.h"
 #include "Send_Receive_Data.h"
@@ -20,6 +23,9 @@ int main( int argc, char **argv )
      int Server_Socket;                /* Socket for the server */
      int Client_Socket;                /* Socket for the client */
      int Port;
+     struct sockaddr_in Client_Addr;
+     unsigned int Client_Addr_Length;
+     unsigned int Socket_Type;
 
      /* Variables for the sub-structure testing/simulation */
      int Is_Not_Finished;
@@ -47,20 +53,23 @@ int main( int argc, char **argv )
 	  {"help", no_argument, 0, 'h'},
 	  {"mode", required_argument, 0, 'm'},
 	  {"server-port", required_argument, 0, 'p'},
+	  {"socket-type", required_argument, 0, 's'},
 	  {0, 0, 0, 0}
      };
 
      /* Set the default value for Port and Mode before the user input. */
      Port = 3333;  /* Default port */
      Mode = 1;     /* Simulate the sub-structure using an exact solution. */
+     Socket_Type = PROTOCOL_TCP;
 
     /* This is only used if there are no arguments */
-     if ( argc == 1 ){	  
+     if ( argc == 1 ){
+	  printf("Defaulting to TCP communication protocol.\n");	  
 	  printf("Defaulting on mode 1.\n");
      }
 
      /* Assign each argument to the correct variable */
-     while( (Selected_Option = getopt_long( argc, argv, "m:p:h", long_options, NULL )) != -1 ){
+     while( (Selected_Option = getopt_long( argc, argv, "m:p:s:h", long_options, NULL )) != -1 ){
 	  switch( Selected_Option ){
 	  case 'm':
 	       Mode = atoi( optarg );
@@ -73,6 +82,15 @@ int main( int argc, char **argv )
 	       break;
 	  case 'p':
 	       Port = atoi( optarg );
+	       break;
+	  case 's':
+	       Socket_Type = (unsigned int) atoi( optarg );
+	       
+	       if ( Socket_Type != PROTOCOL_TCP && Socket_Type != PROTOCOL_UDP ){
+		    fprintf( stderr, "Invalid socket type %d.\n", Socket_Type );
+		    Print_Help( argv[0] );
+		    return EXIT_FAILURE;
+	       }
 	       break;
 	  case 'h':
 	       Print_Help( argv[0] );
@@ -90,11 +108,16 @@ int main( int argc, char **argv )
      }
 
      /* Create a TCP/IP socket for the server */
-     Server_Socket = Init_TCP_Server_Socket( Port );
-     printf( "TCP Server created.\nListening on port %d for incoming client connections...\n", Port );
+     if( Socket_Type == PROTOCOL_TCP ){
+	  Server_Socket = Init_TCP_Server_Socket( Port );
+	  printf( "TCP Server created.\nListening on port %d for incoming client connections...\n", Port );
 
-     /* Accept the connection from the client */
-     Client_Socket = Accept_TCP_Client_Connection( Server_Socket );
+	  /* Accept the connection from the client */
+	  Client_Socket = Accept_TCP_Client_Connection( Server_Socket );
+     } else {
+	  Server_Socket = Init_UDP_Server_Socket( Port );
+	  printf( "UDP Server created.\nUsing port %d for incoming client connections...\n", Port );
+     }
 
      /* Initialise the constants of the substructure */
      Init_Constants_Substructure( &Cnst );
@@ -112,7 +135,22 @@ int main( int argc, char **argv )
 
      /* Receive matrix Gc */
      Length = Cnst.Order_Couple*Cnst.Order_Couple;
-     Receive_Data_TCP( Gc, Length, Client_Socket );
+     if ( Socket_Type == PROTOCOL_TCP ){
+	  Receive_Data_TCP( Gc, Length, Client_Socket );
+     } else {
+	  Client_Addr_Length = sizeof( Client_Addr );
+	  if ( recvfrom( Server_Socket, Gc, Length, 0, (struct sockaddr *) &Client_Addr, &Client_Addr_Length ) != Length ){
+	       PrintErrorAndExit( "recvfrom() failed" );
+	  }
+	  printf("Gc: %f\n", Gc[0] );
+	  Length = Cnst.Order_Couple;
+	  for( i = 0; i < 3*Length; i++ ){
+	       Send[i] = 1.0;
+	  }
+	  if( sendto( Server_Socket, Send, sizeof(Send)*Length, 0, (struct sockaddr *) &Client_Addr, Client_Addr_Length ) != sizeof (Send)*Length ){
+	       PrintErrorAndExit( "sendto() sent a different number of bytes than expected" );
+	  }
+     }
 
      if ( Mode == USE_ADWIN ){
 #if ADWIN_
@@ -141,7 +179,14 @@ int main( int argc, char **argv )
 
 	  /* Receive the displacement */
 	  Length = Cnst.Order_Couple;
-	  Receive_Data_TCP( u0c, Length, Client_Socket );
+	  if ( Socket_Type == PROTOCOL_TCP ){
+	       Receive_Data_TCP( u0c, Length, Client_Socket );
+	  } else {
+	       Client_Addr_Length = sizeof( Client_Addr );
+	       if ( recvfrom( Server_Socket, uc, Length, 0, (struct sockaddr *) &Client_Addr, &Client_Addr_Length ) != Length ){
+		    PrintErrorAndExit( "recvfrom() failed" );
+	       }
+	  }
 
 	  if ( u0c[0] == -9999.0 ){
 	       Is_Not_Finished = 0;
@@ -178,12 +223,22 @@ int main( int argc, char **argv )
 
 	       /* Send the response */
 	       Length = 3*Cnst.Order_Couple;
-	       Send_Data_TCP( Send, Length, Client_Socket );
+	       if( Socket_Type == PROTOCOL_TCP ){
+		    Send_Data_TCP( Send, Length, Client_Socket );
+	       } else {
+		    if( sendto( Server_Socket, Send, sizeof( Send )*Length, 0, (struct sockaddr *) &Client_Addr, sizeof( Client_Addr ) ) != sizeof (Send)*Length ){
+			 PrintErrorAndExit( "sendto() sent a different number of bytes than expected" );
+		    }
+	       }
 	  }
      }
 
      /* Close the connection with the Client */
-     Close_Socket( &Client_Socket );
+     if ( Socket_Type == PROTOCOL_TCP ){
+	  Close_Socket( &Client_Socket );
+     } else {
+	  Close_Socket( &Server_Socket );
+     }
 
      if ( Mode == USE_ADWIN ){
 #if ADWIN_
