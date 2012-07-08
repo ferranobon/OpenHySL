@@ -27,6 +27,8 @@
  */
 void PrintErrorAndExit ( const char *ErrorMessage );
 
+void PrintErrorDetailAndExit( const char *ErrorMessage, const char *Detail );
+
 /**
  * \brief Prints the error message due to an I/O exception and exits the program.
  *
