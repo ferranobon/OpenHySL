@@ -35,8 +35,6 @@
 #include "RoutinesADwin.h"             /* Communicate with ADwin */
 #endif
 
-#define MAXBUFLEN 1000
-
 void GetServerInformation( Remote_Machine_Info *const Server )
 {
      FILE *InFile;
@@ -81,6 +79,7 @@ int Setup_Server_Socket( const char* Port, const int Socket_Type )
      socklen_t addrSize;
      int rtnVal;
      int Socket;
+
 
      memset( &addrCriteria, 0, sizeof(addrCriteria) ); /* Initialisee the structure */
      addrCriteria.ai_family = AF_UNSPEC;               /* Set the value to accept any type of addresses */
@@ -183,7 +182,6 @@ void PrintSocketAddress( const struct sockaddr *address )
      }
 
 }
-
 
 int Accept_TCP_Client_Connection( int Server_Socket )
 {
@@ -320,6 +318,7 @@ void Send_Effective_Matrix( const float *const Eff_Mat, const int Protocol_Type,
 	  GetServerInformation( &Server );
 	  printf( "Establishing connection with the UDP Server.\n" );
 
+
 	  *Socket = Setup_Client_Socket( Server, PROTOCOL_UDP );
 	  if ( *Socket < -1 ){
 	       PrintErrorAndExit( "Setup_Client_Socket() failed. Unable to connect" );
@@ -387,6 +386,7 @@ void Do_Substepping( const float *const DispTdT0_c, float *const DispTdT, float 
 	  break;
      case PROTOCOL_UDP:
 	  /* Using UDP communication protocol */
+
 	  Send_Data( DispTdT0_c, OrderC, Socket );
 	  if ( recv( Socket, Recv, sizeof(float)*3*OrderC,0) != sizeof(float)*3*OrderC ){
 	       PrintErrorAndExit( "recv() failed in connected UDP mode" );

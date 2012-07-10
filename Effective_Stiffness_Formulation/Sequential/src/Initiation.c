@@ -87,15 +87,15 @@ int Get_Type_Protocol( )
      GetServerInformation( &Remote );
 
      if ( !strcmp( Remote.Type, "None" ) ){
-	  return 0;
+	  return PROTOCOL_ADWIN;
      } else if ( !strcmp( Remote.Type, "TCPCustom" ) ){
-	  return 1;
+	  return PROTOCOL_TCP;
      } else if ( !strcmp( Remote.Type, "UDPCustom" ) ){
-	  return 2;
+	  return PROTOCOL_UDP;
      } else if ( !strcmp( Remote.Type, "PNSE" ) ){
-	  return 3; 
+	  return PROTOCOL_NSEP; 
      } else if ( !strcmp( Remote.Type, "OpenFresco" ) ){
-	  return 4;
+	  return PROTOCOL_OF;
      } else {
 	  return -1;
      }

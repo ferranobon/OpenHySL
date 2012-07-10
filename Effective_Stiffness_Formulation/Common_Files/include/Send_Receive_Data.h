@@ -38,7 +38,6 @@ typedef struct {
 #define PROTOCOL_NSEP   3
 #define PROTOCOL_OF     4
 
-
 /**
  * \brief Gets the information to establish the TCP/IP connection.
  *
@@ -62,6 +61,7 @@ typedef struct {
  * \sa Remote_Machine_Info.
  */
 void GetServerInformation( Remote_Machine_Info *const Server );
+
 
 int Setup_Server_Socket( const char* Port, const int Socket_Type );
 void PrintSocketAddress( const struct sockaddr *address );
