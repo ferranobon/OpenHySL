@@ -7,14 +7,14 @@
  *  \brief Prototypes of the communication subroutines.
  *
  *  This file contains the prototypes of the communication subroutines used in the substructure algorithm. This includes opening
- *  and closing sockets and sending and receiving data. For the moment, only the TCP/IP protocol has been considered.
+ *  and closing sockets and sending and receiving data. It supports both TCP and UDP protocols.
  *
- *  \todo Implement UDP protocol.
  */
 
 #ifndef SEND_RECEIVE_DATA_H_
 #define SEND_RECEIVE_DATA_H_
 
+#include <netdb.h>  /* For struct sockaddr */
 
 #define MAXPENDING   5    /* Maximum outstanding connection requests */
 
@@ -25,11 +25,11 @@
  * of the algorithm is performed. The port that will be used throughout the TCP/IP communication is also stored.
  */
 typedef struct {
-     char IP[20];  /*!< IP address (IPv4) of the server. */
-     unsigned short int Port; /*!< Port that will be used for TCP/IP communication. */
-     char Type[11];  /* Type of Server to connect: OpenFresco, PNSE or Custom */
-     char Account_Name[10]; /*!< Account information */
-     char Account_Password[10]; /*!< Account password */
+     char IP[20];               /*!< IP address (IPv4) of the server. */
+     char Port[10];             /*!< Port that will be used for TCP/IP communication. */
+     char Type[15];             /* Type of Server to connect: OpenFresco, PNSE or Custom */
+     char Account_Name[20];     /*!< Account information */
+     char Account_Password[20]; /*!< Account password */
 } Remote_Machine_Info;
 
 #define PROTOCOL_ADWIN  0
@@ -63,26 +63,11 @@ typedef struct {
  */
 void GetServerInformation( Remote_Machine_Info *const Server );
 
-int Init_TCP_Server_Socket( const unsigned short int Server_Port );
+int Setup_Server_Socket( const char* Port, const int Socket_Type );
+void PrintSocketAddress( const struct sockaddr *address );
 int Accept_TCP_Client_Connection( int Server_Socket );
 
-/**
- * \brief Opens a TCP/IP socket.
- *
- * This routine opens a TCP/IP socket that will be open throughout the algorithm.
- *
- * \pre
- * - \c Server must contain the IP address of the server and the port.
- *
- * \param[in] Server Struct that contains the IP address of the server and the port that will be used.
- * \param[out] sock The socket.
- *
- * \post
- * - The variable \c sock contains an open TCP/IP socket between the Server and the Client.
- *
- * \sa Remote_Machine_Info.
- */
-void Open_Socket_TCP( const Remote_Machine_Info Server, int *sock );
+int Setup_Client_Socket( const Remote_Machine_Info Server, const int Socket_Type );
 
 /**
  * \brief Sends data to the server (blocking)
@@ -101,9 +86,7 @@ void Open_Socket_TCP( const Remote_Machine_Info Server, int *sock );
  * \post
  * - The data inside \c Data is sent successfully through TCP/IP.
  */
-void Send_Data_TCP( const float *Data, const int DATA_LENGTH, const int sock );
-
-void Send_Data_UDP( const Remote_Machine_Info Server, const float *Data, const int DATA_LENGTH, const int sock );
+void Send_Data( const float *Data, const int DATA_LENGTH, const int sock );
 
 /**
  * \brief Receives data from the server (blocking)
@@ -122,9 +105,7 @@ void Send_Data_UDP( const Remote_Machine_Info Server, const float *Data, const i
  * \post
  * - The received data from the Server through TCP/IP is stored in the array \c Data.
  */
-void Receive_Data_TCP( float *Data, const int DATA_LENGTH, const int sock );
-
-void Receive_Data_UDP( const Remote_Machine_Info Server, float *Data, const int DATA_LENGTH, const int sock );
+void Receive_Data( float *Data, const int DATA_LENGTH, const int sock );
 
 void Send_Effective_Matrix( const float *const Eff_Mat, const int Protocol_Type, const int OrderC, int *const Socket );
 
