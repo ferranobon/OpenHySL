@@ -3,6 +3,9 @@
 #include <string.h>      /* For memset( ) */
 #include <getopt.h>      /* For getopt_long() */
 
+#include <sys/socket.h> /* for socket() and bind() */
+#include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
+
 #include "ErrorHandling.h"
 #include "Substructure.h"
 #include "Send_Receive_Data.h"
@@ -22,10 +25,12 @@ int main( int argc, char **argv )
      /* Variables concerning data communication */
      int Server_Socket;                /* Socket for the server */
      int Client_Socket;                /* Socket for the client */
+
      int Socket_Type;
      char *Port;
      struct sockaddr_storage Client_Addr;
      socklen_t Client_AddrLen;
+
      /* Variables for the sub-structure testing/simulation */
      int Is_Not_Finished;
      int Length;
@@ -62,7 +67,8 @@ int main( int argc, char **argv )
      Socket_Type = PROTOCOL_TCP;
 
     /* This is only used if there are no arguments */
-     if ( argc == 1 ){	  
+     if ( argc == 1 ){
+	  printf("Defaulting to TCP communication protocol.\n");	  
 	  printf("Defaulting on mode 1.\n");
      }
 
@@ -138,6 +144,7 @@ int main( int argc, char **argv )
 
      /* Receive matrix Gc */
      Length = Cnst.Order_Couple*Cnst.Order_Couple;
+
      if( Socket_Type == PROTOCOL_TCP ){
 	  Receive_Data( Gc, Length, Client_Socket );
      } else {
@@ -184,7 +191,6 @@ int main( int argc, char **argv )
 	       }
 	  }
   
-
 	  if ( u0c[0] == -9999.0 ){
 	       Is_Not_Finished = 0;
 	  } else {
@@ -231,7 +237,11 @@ int main( int argc, char **argv )
      }
 
      /* Close the connection with the Client */
-     Close_Socket( &Client_Socket );
+     if ( Socket_Type == PROTOCOL_TCP ){
+	  Close_Socket( &Client_Socket );
+     } else {
+	  Close_Socket( &Server_Socket );
+     }
 
      if ( Mode == USE_ADWIN ){
 #if ADWIN_
