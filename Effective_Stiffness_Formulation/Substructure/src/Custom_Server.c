@@ -7,6 +7,9 @@
 #include "Substructure.h"
 #include "Send_Receive_Data.h"
 #include "Custom_Server.h"
+#include <sys/socket.h>
+#include <netdb.h>
+#include <unistd.h>
 
 #if ADWIN_
 #include "RoutinesADwin.h"
@@ -19,8 +22,10 @@ int main( int argc, char **argv )
      /* Variables concerning data communication */
      int Server_Socket;                /* Socket for the server */
      int Client_Socket;                /* Socket for the client */
-     int Port;
-
+     int Socket_Type;
+     char *Port;
+     struct sockaddr_storage Client_Addr;
+     socklen_t Client_AddrLen;
      /* Variables for the sub-structure testing/simulation */
      int Is_Not_Finished;
      int Length;
@@ -47,12 +52,14 @@ int main( int argc, char **argv )
 	  {"help", no_argument, 0, 'h'},
 	  {"mode", required_argument, 0, 'm'},
 	  {"server-port", required_argument, 0, 'p'},
+	  {"socket-type", required_argument, 0, 's'},
 	  {0, 0, 0, 0}
      };
 
-     /* Set the default value for Port and Mode before the user input. */
-     Port = 3333;  /* Default port */
+     /* Set the default value for Port, socket type and Mode before the user input. */
+     Port = "3333";  /* Default port */
      Mode = 1;     /* Simulate the sub-structure using an exact solution. */
+     Socket_Type = PROTOCOL_TCP;
 
     /* This is only used if there are no arguments */
      if ( argc == 1 ){	  
@@ -60,7 +67,7 @@ int main( int argc, char **argv )
      }
 
      /* Assign each argument to the correct variable */
-     while( (Selected_Option = getopt_long( argc, argv, "m:p:h", long_options, NULL )) != -1 ){
+     while( (Selected_Option = getopt_long( argc, argv, "m:p:s:h", long_options, NULL )) != -1 ){
 	  switch( Selected_Option ){
 	  case 'm':
 	       Mode = atoi( optarg );
@@ -72,8 +79,17 @@ int main( int argc, char **argv )
 	       }
 	       break;
 	  case 'p':
-	       Port = atoi( optarg );
+	       Port = optarg;
 	       break;
+	  case 's':
+	       Socket_Type = atoi( optarg );
+	       
+	       if ( Socket_Type != PROTOCOL_TCP && Socket_Type != PROTOCOL_UDP ){
+		    fprintf( stderr, "Socket type %d is not a valid.\n", Socket_Type );
+		    Print_Help( argv[0] );
+		    return EXIT_FAILURE;
+	       }
+	       break;		    
 	  case 'h':
 	       Print_Help( argv[0] );
 	       return EXIT_FAILURE;
@@ -90,11 +106,21 @@ int main( int argc, char **argv )
      }
 
      /* Create a TCP/IP socket for the server */
-     Server_Socket = Init_TCP_Server_Socket( Port );
-     printf( "TCP Server created.\nListening on port %d for incoming client connections...\n", Port );
+     Server_Socket = Setup_Server_Socket( Port, Socket_Type );
+     if( Server_Socket < -1 ){
+	  PrintErrorAndExit( "Setup_Server_Socket() failed" );	  
+     } else {
+	  if( Socket_Type == PROTOCOL_TCP ){
+	       printf( "TCP Server created.\nListening on port %s for incoming client connections...\n", Port );
+	  } else {
+	       printf( "UDP Server created.\nListening on port %s for incoming client connections...\n", Port );
+	  }
+     }
 
-     /* Accept the connection from the client */
-     Client_Socket = Accept_TCP_Client_Connection( Server_Socket );
+     /* Accept the connection from the client in case of TCP sockets */
+     if ( Socket_Type == PROTOCOL_TCP ){
+	  Client_Socket = Accept_TCP_Client_Connection( Server_Socket );
+     }
 
      /* Initialise the constants of the substructure */
      Init_Constants_Substructure( &Cnst );
@@ -112,7 +138,15 @@ int main( int argc, char **argv )
 
      /* Receive matrix Gc */
      Length = Cnst.Order_Couple*Cnst.Order_Couple;
-     Receive_Data_TCP( Gc, Length, Client_Socket );
+     if( Socket_Type == PROTOCOL_TCP ){
+	  Receive_Data( Gc, Length, Client_Socket );
+     } else {
+	  Client_AddrLen = sizeof(Client_Addr);
+	  if ( recvfrom( Server_Socket, Gc, Length*sizeof(float), 0, (struct sockaddr *) &Client_Addr, &Client_AddrLen) < 0 ){
+	       PrintErrorAndExit("Recvfrom failed" );
+	  }
+	  printf("%e\n", Gc[0]);
+     }
 
      if ( Mode == USE_ADWIN ){
 #if ADWIN_
@@ -141,7 +175,15 @@ int main( int argc, char **argv )
 
 	  /* Receive the displacement */
 	  Length = Cnst.Order_Couple;
-	  Receive_Data_TCP( u0c, Length, Client_Socket );
+	  if ( Socket_Type == PROTOCOL_TCP ){
+	       Receive_Data( u0c, Length, Client_Socket );
+	  } else {
+	       Client_AddrLen = sizeof(Client_Addr);
+	       if ( recvfrom( Server_Socket, u0c, Length*sizeof(float), 0, (struct sockaddr *) &Client_Addr, &Client_AddrLen) < 0 ){
+		    PrintErrorAndExit("recvfrom() failed" );
+	       }
+	  }
+  
 
 	  if ( u0c[0] == -9999.0 ){
 	       Is_Not_Finished = 0;
@@ -178,7 +220,13 @@ int main( int argc, char **argv )
 
 	       /* Send the response */
 	       Length = 3*Cnst.Order_Couple;
-	       Send_Data_TCP( Send, Length, Client_Socket );
+	       if( Socket_Type == PROTOCOL_TCP ){
+		    Send_Data( Send, Length, Client_Socket );
+	       } else{
+		    if( sendto( Server_Socket, Send, Length*sizeof(float), 0, (struct sockaddr *) &Client_Addr, sizeof(Client_Addr) ) != sizeof(float)*Length ){
+			 PrintErrorAndExit("sendto() failed or send a different ammount of data");
+		    }
+	       }
 	  }
      }
 
@@ -219,10 +267,13 @@ void Print_Help( const char *Program_Name )
 
      fprintf( stderr, "Usage: %s [-h] -m <Mode> -p <Port>", Program_Name );
      fprintf( stderr,
-	      "  -h  --help    This help text.\n"
-	      "  -m  --mode    The mode used by the program. Default value 1.\n"
-	      "                  0 - ADwin will be used to perform the sub-stepping process.\n"
-	      "                  1 - The Substructure will be simulated using an exact solution.\n"
-	      "                  2 - The Substructure will be simulated using measured values.\n"
-	      "  -p  --port    Port used for communication with the client program. Default value 3333.\n" );
+	      "  -h  --help           This help text.\n"
+	      "  -m  --mode           The mode used by the program. Default value 1.\n"
+	      "                            0 - ADwin will be used to perform the sub-stepping process.\n"
+	      "                            1 - The Substructure will be simulated using an exact solution (default).\n"
+	      "                            2 - The Substructure will be simulated using measured values.\n"
+	      "  -p  --server-port    Port used for communication with the client program. Default value 3333.\n"
+	      "  -s  --socket-type    Type of socket to use. Default value 1.\n"
+	      "                            1 - Use TCP socket.\n"
+	      "                            2 - Use UDP socket.\n" );
 }
