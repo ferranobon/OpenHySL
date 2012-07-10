@@ -95,9 +95,10 @@ int main ( int argc, char **argv )
 
 
      /* Create a TCP/IP socket for the server using OpenFresco routine */
+     printf( "Waiting for the ECGeneric experimental facility to connect.\n" );
      setupconnectionserver( &Port, &Server_Socket );
      if ( Server_Socket >= 0 ){
-	  printf("Server connection successfully configured\n" );
+	  printf("Connection successfully established\n" );
      } else {
 	  exit( EXIT_FAILURE );
      }
@@ -196,7 +197,6 @@ int main ( int argc, char **argv )
 
 	  } else if ( Recv[0] == 6.0 ){
 	       printf("Received query to send DAQ values\n");
-	       printf("The first value of Recv is: %f\n", Recv[0]);
 	       /* Compose the data */
 	       for ( i = 0; i < Cnst.Order_Couple; i++ ){
 		    Send[i] = (double) uc[i];
