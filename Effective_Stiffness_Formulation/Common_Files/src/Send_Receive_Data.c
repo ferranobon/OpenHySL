@@ -350,9 +350,10 @@ void Send_Effective_Matrix( const float *const Eff_Mat, const int Protocol_Type,
 	  }
 	  break;
      case PROTOCOL_OF:
-	  /* Using OpenFresco */
-	  printf( "Establishing connection with OpenFresco.\n" );
-	  Communicate_With_OpenFresco( Eff_Mat, Recv, OrderC*OrderC, 1 );
+	  /* Using OpenFresco. Exit with failure if the connection could not be established */
+	  if ( Communicate_With_OpenFresco( Eff_Mat, Recv, OrderC*OrderC, 1 ) < 0 ){
+	       exit( EXIT_FAILURE );
+	  }
 	  /* TODO Implement Send the Matrix G in OpenFresco. Wait for the answer from Andreas */
 	  break;
      }
