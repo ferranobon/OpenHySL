@@ -56,8 +56,9 @@ int Communicate_With_OpenFresco( const float *const Data_To_Send, float *const D
 
 	  /* Setup the connection */
 	  GetServerInformation( &RMachine );
-	  Size_Machine_Inet = strlen( RMachine.IP );
-	  Port = (unsigned int) RMachine.Port;
+	  Size_Machine_Inet = strlen( RMachine.IP ) + 1;
+	  printf("Trying to connect to OpenFresco Server at %s through port %s\n", RMachine.IP, RMachine.Port );
+	  Port = (unsigned int) atoi(RMachine.Port);
 	  setupconnectionclient( &Port, RMachine.IP, &Size_Machine_Inet,
 				 &SocketID );
 
