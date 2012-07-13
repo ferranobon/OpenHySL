@@ -147,7 +147,7 @@ int main ( int argc, char **argv )
 	  if ( Mode == USE_ADWIN ){
 #if ADWIN_
 	       /* Run using ADwin */
-	       ADWIN_Substep( u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+	       ADWIN_Substep( u0c, uc, fcprev, fc, Cnst.Order_Couple );
 #endif
 	  } else if ( Mode == USE_EXACT ){
 	       /* Run without ADwin and simulating the substructure using an exact
@@ -163,7 +163,7 @@ int main ( int argc, char **argv )
 	       /* Run without ADwin and simulating the substructure using measured
 		* values of the coupling force.
 		*/
-	       Simulate_Substructure_Measured_Values( "fc.txt", Gc, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+	       Simulate_Substructure_Measured_Values( "fc.txt", Gc, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub );
 	  }
 
 	  /* Compose the data to send */

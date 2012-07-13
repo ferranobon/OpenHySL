@@ -109,7 +109,7 @@ void Receive_Data( float *Data, const int DATA_LENGTH, const int sock );
 
 void Send_Effective_Matrix( const float *const Eff_Mat, const int Protocol_Type, const int OrderC, int *const Socket );
 
-void Do_Substepping( const float *const DispTdT0_c, float *const DispTdT, float *const fcprevsub, float *const fc, const int Protocol_Type, const float Time, const float DeltT, const int Num_Sub, const int Socket, const int OrderC, const int Pos_Couple );
+void Do_Substepping( const float *const DispTdT0_c, float *const DispTdT, float *const fcprevsub, float *const fc, const int Protocol_Type, const float Time, const int Socket, const int OrderC, const int Pos_Couple );
 void Close_Connection( int *Socket, const int Protocol_Type, const int OrderC, const int Num_Steps, const int Num_Sub );
 
 void Close_Socket( int *Socket );

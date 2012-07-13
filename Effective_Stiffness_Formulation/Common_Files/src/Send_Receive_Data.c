@@ -362,7 +362,7 @@ void Send_Effective_Matrix( const float *const Eff_Mat, const int Protocol_Type,
      free( Recv );
 }
 
-void Do_Substepping( const float *const DispTdT0_c, float *const DispTdT, float *const fcprevsub, float *const fc, const int Protocol_Type, const float Time, const float DeltaT, const int Num_Sub, const const int Socket, const int OrderC, const int Pos_Couple )
+void Do_Substepping( const float *const DispTdT0_c, float *const DispTdT, float *const fcprevsub, float *const fc, const int Protocol_Type, const float Time, const const int Socket, const int OrderC, const int Pos_Couple )
 {
 
      int i;
@@ -375,7 +375,7 @@ void Do_Substepping( const float *const DispTdT0_c, float *const DispTdT, float 
 #if ADWIN_
      case PROTOCOL_ADWIN:
 	  /* Tell ADwin to perform the substepping process */
-	  ADWIN_Substep( DispTdT0_c, &Recv[0], &Recv[1], &Recv[2], OrderC, Num_Sub, DeltaT/(float)Num_Sub );
+	  ADWIN_Substep( DispTdT0_c, &Recv[0], &Recv[1], &Recv[2], OrderC );
 	  //Recv[0] = uc[0]; Recv[1] = 0.0; Recv[2] = 0.0;
 	  break;
 #endif
@@ -389,7 +389,7 @@ void Do_Substepping( const float *const DispTdT0_c, float *const DispTdT, float 
 	  /* Using UDP communication protocol */
 
 	  Send_Data( DispTdT0_c, OrderC, Socket );
-	  if ( recv( Socket, Recv, sizeof(float)*3*OrderC,0) != sizeof(float)*3*OrderC ){
+	  if ( recv( Socket, Recv, sizeof(float)*3*OrderC,0) != (int) sizeof(float)*3*OrderC ){    /* sizeof returns an unsigned integer ? */
 	       PrintErrorAndExit( "recv() failed in connected UDP mode" );
 	  }
 	  break;

@@ -253,7 +253,7 @@ int main( int argc, char **argv )
 
 	  /* Perform substepping */
 	  Do_Substepping( DispTdT0_c.Array, DispTdT.Array, fcprevsub.Array, fc.Array, InitCnt.Type_Protocol,
-			  InitCnt.Delta_t*istep, InitCnt.Delta_t, 4, Socket, InitCnt.OrderC, InitCnt.PosCouple );
+			  InitCnt.Delta_t*istep, Socket, InitCnt.OrderC, InitCnt.PosCouple );
 	  
 	  if ( istep < InitCnt.Nstep ){
 	       /* Calculate the input load for the next step during the
