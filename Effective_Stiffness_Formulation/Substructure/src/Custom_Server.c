@@ -229,7 +229,7 @@ int main( int argc, char **argv )
 	       if( Socket_Type == PROTOCOL_TCP ){
 		    Send_Data( Send, Length, Client_Socket );
 	       } else{
-		    if( sendto( Server_Socket, Send, Length*sizeof(float), 0, (struct sockaddr *) &Client_Addr, sizeof(Client_Addr) ) != sizeof(float)*Length ){
+		    if( sendto( Server_Socket, Send, Length*sizeof(float), 0, (struct sockaddr *) &Client_Addr, sizeof(Client_Addr) ) != (int) sizeof(float)*Length ){  /* Sizeof() returns unsigned int */
 			 PrintErrorAndExit("sendto() failed or send a different ammount of data");
 		    }
 	       }
