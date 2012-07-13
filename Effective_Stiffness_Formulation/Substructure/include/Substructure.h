@@ -1,7 +1,6 @@
 #ifndef SUBSTRUCTURE_H
 #define SUBSTRUCTURE_H
 
-#define NUM_CHANNELS 22  /* Number of channels to save from ADwin */
 #define USE_ADWIN    0    /* Run using ADwin */
 #define USE_EXACT    1    /* Simulate the substructure using the exact solution */
 #define USE_UHYDE    2    /* Simulate the substructure using the exact solution */

@@ -13,6 +13,8 @@
 #ifndef ROUTINESADWIN_HPP_
 #define ROUTINESADWIN_HPP_
 
+#define NUM_CHANNELS 24  /* Number of channels to save from ADwin */
+
 /**
  * \brief Routine to boot ADwin.
  * 
