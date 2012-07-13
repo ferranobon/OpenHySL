@@ -50,7 +50,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
 endif()
 
 if(DEBUG)
-  set(CMAKE_C_FLAGS_DEBUG "-Wall -g3")
+  set(CMAKE_C_FLAGS_DEBUG "-Wall -Wextra -g3")
   # Add profiling flags.
   if(PROFILING)
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -pg")

@@ -15,10 +15,11 @@
 int BootADWIN( const int Device_Number, const char *Boot_Path  )
 {
 
-     /* Set the device into 0x150 */
-     Set_DeviceNo( (int32_t) 336 );
+     /* Set the device into 0x150 (hexadecimal) or 336 */
+     Set_DeviceNo( (int32_t) Device_Number );
  
-     Boot( "/opt/adwin/share/btl/ADwin11.btl" );
+     /* Boot path should be something like "/opt/adwin/share/btl/ADwin11.btl" */
+     Boot( Boot_Path );
  
      /* Check if there is any response from ADwin and if the correct version has
       * been loaded
@@ -102,7 +103,7 @@ void ADWIN_SetGc( const float *const Gc, const int length )
 
 }
 
-void ADWIN_Substep( const float *const u0c, float *const uc, float *const fcprev, float *const fc, const int OrderC, const int NSub, const float Deltat_Sub )
+void ADWIN_Substep( const float *const u0c, float *const uc, float *const fcprev, float *const fc, const int OrderC )
 {
 
   
