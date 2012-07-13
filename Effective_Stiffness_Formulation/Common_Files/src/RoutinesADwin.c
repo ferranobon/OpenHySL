@@ -169,15 +169,15 @@ void GetDataADwin( const int Num_Steps, const int Num_Sub, float *const Data )
      FILE *OutFile;
      int i,j;
 
-     GetData_Float( 97, Data, 1, Num_Sub*Num_Steps*24 );
+     GetData_Float( 97, Data, 1, Num_Sub*Num_Steps*NUM_CHANNELS );
      OutFile = fopen( "Data.txt", "w");
   
      /* Print the header file */
      fprintf( OutFile, "substep\tdctr1\tdctr2\tdmeas1\tdmeas2\taccctrl1\taccctrl2\tameas1\tameas2\taccTMDy\taccTMDx\tAccFrame\tFcY1\tFcY2\tfc\tdTMDx\tdTMDy\tPress_pctrl\tPress_pmeas\tuc\tTime do substep\ttime substep\ttimesynPC\ttime_from_sub1_to_newPCdata\n" );
 
      for (i = 0; i < Num_Sub*Num_Steps; i++ ){
-	  for ( j = 0; j < 24; j++ ){
-	       fprintf(OutFile, "%.10le\t", Data[i*24+j] );
+	  for ( j = 0; j < NUM_CHANNELS; j++ ){
+	       fprintf(OutFile, "%.10le\t", Data[i*NUM_CHANNELS+j] );
 	  }
 	  fprintf(OutFile,"\n");
      }

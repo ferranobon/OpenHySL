@@ -461,7 +461,7 @@ void Close_Connection( int *Socket, const int Protocol_Type, const int OrderC, c
 #if ADWIN_
      case PROTOCOL_ADWIN:
 	  /* Connect directly to ADwin */
-	  ADWIN_DATA = calloc( Num_Sub*Num_Steps*22, sizeof( float ) );
+	  ADWIN_DATA = calloc( Num_Sub*Num_Steps*NUM_CHANNELS, sizeof( float ) );
 	  GetDataADwin( Num_Steps, Num_Sub, ADWIN_DATA );
 	  free( ADWIN_DATA );
 	  break;
