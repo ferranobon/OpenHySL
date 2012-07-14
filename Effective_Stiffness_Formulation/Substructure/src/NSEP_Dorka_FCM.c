@@ -85,6 +85,9 @@ int main ( int argc, char **argv )
 	  }
      }
 
+     /* Initialise the constants of the substructure */
+     Init_Constants_Substructure( &Cnst );
+
      /* Dynamically allocate memory */
      Gc = calloc( Cnst.Order_Couple*Cnst.Order_Couple, sizeof( float ) );
  
