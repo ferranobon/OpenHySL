@@ -109,14 +109,16 @@ void ADWIN_Substep( const float *const u0c, float *const uc, float *const fcprev
   
      static int i;
      
-     float Send_ADwin[OrderC + 1];
-     float ReceiveADwin[3*OrderC + 1];
+     float *Send_ADwin, *ReceiveADwin;
      static int ADWinReady;
 
      static struct timeval t1;
      static struct timeval t2;
      static struct timeval t3;
      static double ElapsedTime;
+
+     Send_ADwin = (float *) calloc( OrderC + 1, sizeof(float) );
+     ReceiveADwin = (float *) calloc( 3*OrderC + 1, sizeof(float) );
 
      for ( i = 0; i < 3*OrderC + 1; i++ ){
 	  ReceiveADwin[i] = 0.0;
@@ -137,7 +139,7 @@ void ADWIN_Substep( const float *const u0c, float *const uc, float *const fcprev
      gettimeofday( &t1, NULL );
      ElapsedTime = 0.0;
           
-     while ( ElapsedTime < 8.0 ){ //(NSub - 1.0)*Deltat_Sub*1000.0 - 0.5){
+     while ( ElapsedTime < 8.0 ){ 
        gettimeofday(&t2, NULL );
        ElapsedTime = (t2.tv_sec - t1.tv_sec)*1000.0;
        ElapsedTime += (t2.tv_usec -t1.tv_usec)/1000.0;
@@ -151,7 +153,6 @@ void ADWIN_Substep( const float *const u0c, float *const uc, float *const fcprev
 	       gettimeofday(&t3, NULL );
 	       ElapsedTime = (t3.tv_sec - t1.tv_sec)*1000.0;
 	       ElapsedTime += (t3.tv_usec -t1.tv_usec)/1000.0;
-	       //printf("%f\n", ElapsedTime );
 	       /* Get the data from ADWIN (DATA_3) */
 
 	       ADWinReady = 1;
@@ -162,6 +163,10 @@ void ADWIN_Substep( const float *const u0c, float *const uc, float *const fcprev
 	       }
 	    }
      }
+
+     /* Free the dynamically allocated memory */
+     free( Send_ADwin );
+     free( ReceiveADwin );
 }
 
 void GetDataADwin( const int Num_Steps, const int Num_Sub, float *const Data )
