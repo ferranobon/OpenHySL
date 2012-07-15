@@ -50,7 +50,12 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
 endif()
 
 if(DEBUG)
-  set(CMAKE_C_FLAGS_DEBUG "-Wall -Wextra -g3")
+  # -D_POSIX_SOURCE is added in order to make gcc be POSIX compliant
+  if(NOT "${CMAKE_C_COMPILER_ID}" STREQUAL "PGI")
+    set(CMAKE_C_FLAGS_DEBUG "-Wall -std=c99 -D_POSIX_SOURCE -pedantic -Wextra -g3")
+  else()
+    set(CMAKE_C_FLAGS_DEBUG "-Minform=inform")
+  endif()
   # Add profiling flags.
   if(PROFILING)
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -pg")

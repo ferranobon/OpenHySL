@@ -43,7 +43,7 @@ void Simulate_Substructure_Measured_Values( const char *FileName, const float *c
 	  }
 
 	  ramp = (float) Substep / (float) NSub;
-	  ramp0 = 1.0 - ramp;   
+	  ramp0 = 1 - ramp;   
 
 	  uc[0] = ramp0*u0c0 + ramp*u0c[0] + Keinv[0]*fc[0];
 
@@ -123,9 +123,9 @@ void ExactSolution_Init( const float Mass, const float Damp, const float Stiff, 
 	       omegaD = omega*sqrtf(1-xi*xi);
 
 	       /* Calculate several constants */
-	       expdt = exp(-xi*omega*DeltaT);
-	       sinDdt = sin(omegaD*DeltaT);
-	       cosDdt = cos(omegaD*DeltaT);
+	       expdt = expf(-xi*omega*DeltaT);
+	       sinDdt = sinf(omegaD*DeltaT);
+	       cosDdt = cosf(omegaD*DeltaT);
 	       omegadt = omega*DeltaT;
 	       omegaDdt = omegaD*DeltaT;
 
