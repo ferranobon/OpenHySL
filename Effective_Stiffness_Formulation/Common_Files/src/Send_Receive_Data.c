@@ -362,7 +362,7 @@ void Send_Effective_Matrix( const float *const Eff_Mat, const int Protocol_Type,
      free( Recv );
 }
 
-void Do_Substepping( const float *const DispTdT0_c, float *const DispTdT, float *const fcprevsub, float *const fc, const int Protocol_Type, const float Time, const const int Socket, const int OrderC, const int Pos_Couple )
+void Do_Substepping( const float *const DispTdT0_c, float *const DispTdT, float *const fcprevsub, float *const fc, const int Protocol_Type, const float Time, const int Socket, const int OrderC, const int Pos_Couple )
 {
 
      int i;
