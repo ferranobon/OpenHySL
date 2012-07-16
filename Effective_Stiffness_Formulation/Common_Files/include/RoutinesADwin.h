@@ -48,24 +48,45 @@ void ADWIN_SetGc( const float *const Gc, const int length );
  * algorithm in ADwin.
  *
  * This routine performs the substepping process of Dorka's substructure
- * algorithm in ADwin. In this routine, displacement control is considered.
+ * algorithm in ADwin considering displacement control.
  * In order to avoid changing each time the code in ADwin, the input and output
  * variables are always stored in the same space in the ADwin memory.
  *
- * \pre ADwin must have, as a process running, the substepping part of Dorka's
+ * \pre - ADwin must have, as a process running, the substepping part of Dorka's
  * substructure algorithm. The process in ADwin must look for the following
  * variables in:
+ * - The vectors u0c, uc, fcprev and fc must be properly initialised and must be of length \f$L \geq OrderC\f$.
  *
- * \param[in] u0c
- * \param[out] uc
- * \param[out] fcprev
- * \param[out] fc
- * \param[in] OrderC
+ * \param[in] u0c      The implicit displacement resulting from the newmark integration process. This array
+ *                       contains only the displacement of the coupling nodes.
+ * \param[out] uc      Displacement containing the implicit and the explicit part at the final sub-step.
+ * \param[out] fcprev  Measured force at the sub-step \f$ j \leq N_{sub\-step} - 1\f$. Used to compute the new
+                         acceleration (Compute_Acceleration()) and velocity (Compute_Velocity()) in the main program. Only the coupling nodes are present.
+ * \param[out] fc      Measured force at the final sub-step. Used in order to calculate the error force at the end
+                         of the step (Compute_Force_Error()).
+ * \param[in] OrderC   Order of the vectors. This is equal to the number of coupling degrees of freedom.
  *
  * \post ADwin will perform the substepping process in displacement control.
  */
 void ADWIN_Substep( const float *const u0c, float *const uc, float *const fcprev, float *const fc, const int OrderC );
 
+/**
+ * \brief Reads the data from ADwin and stores it in a file.
+ *
+ * The data stored in the array 97 of ADwin is read and stored in a file named "Data.txt" with as many columns as
+ * the number of channels (\c NUM_CHANNELS) and as many rows as \f$N_{steps}\cdot N_{substeps}\f$
+ *
+ * \pre Data must be a properly initialised array of length \f$L \geq N_{steps}\cdot N_{substeps}\cdot NUM\_CHANNELS\f$.
+ *
+ * \param[in] Num_Steps Number of steps. Variable involved in the amount of data to be read.
+ * \param[in] Num_Sub Number of substeps. Variable involved in the amount of data to be read.
+ * \param[out] Data Array to store the desired data
+ *
+ * \post Data.txt will contain the data stored in the array 97 of ADwin with:
+ * - A header file with the names of the channels.
+ * - Number of columns equal to \c NUM_CHANNELS.
+ * - Number of rows equal to \f$N_{step}\cdot N_{substep}\f$.
+ */
 void GetDataADwin( const int Num_Steps, const int Num_Sub, float *const Data );
 
 #endif /* ROUTINESADWIN_HPP */

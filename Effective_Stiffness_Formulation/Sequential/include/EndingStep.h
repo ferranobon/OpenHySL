@@ -44,6 +44,20 @@
  */
 void JoinNonCouplingPart( MatrixVector *const VecXm, const MatrixVector *const Keinv_m, const MatrixVector *const fcprevsub, MatrixVector *const Vec, const int PosCouple, const int OrderC );
 
+/**
+ * \brief Computes the new acceleration.
+ *
+ * The new acceleration is computed according to...........
+ *
+ * \param[in] DispTdT
+ * \param[in] DispT
+ * \param[in] VelT
+ * \param[in] AccT
+ * \param[in] a0
+ * \param[in] a2
+ * \param[in] a3
+ * \param[out] AccTdT
+ */
 void Compute_Acceleration( const MatrixVector *const DispTdT, const MatrixVector *const DispT, const MatrixVector *const VelT,
 			   const MatrixVector *const AccT, const float a0, const float a2, const float a3,
 			   MatrixVector *const AccTdT );

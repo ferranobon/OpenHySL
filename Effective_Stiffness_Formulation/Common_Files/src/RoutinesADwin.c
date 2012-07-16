@@ -1,15 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
+#include <assert.h>    /* For assert() */
+#include <sys/time.h>  /* For gettimeoffday() */
 
-// ADwin header files
+/* ADwin header files */
 #include <libadwin.h>
 #include <libadwin/errno.h>
 
 #include "RoutinesADwin.h"
 #include "ErrorHandling.h"
-
-#include <sys/time.h>  /* For gettimeoffday() */
 
 
 int BootADWIN( const int Device_Number, const char *Boot_Path  )
@@ -106,7 +105,6 @@ void ADWIN_SetGc( const float *const Gc, const int length )
 void ADWIN_Substep( const float *const u0c, float *const uc, float *const fcprev, float *const fc, const int OrderC )
 {
 
-  
      static int i;
      
      float Send_ADwin[OrderC + 1];
@@ -138,20 +136,19 @@ void ADWIN_Substep( const float *const u0c, float *const uc, float *const fcprev
      ElapsedTime = 0.0;
           
      while ( ElapsedTime < 8.0 ){ //(NSub - 1.0)*Deltat_Sub*1000.0 - 0.5){
-       gettimeofday(&t2, NULL );
-       ElapsedTime = (t2.tv_sec - t1.tv_sec)*1000.0;
-       ElapsedTime += (t2.tv_usec -t1.tv_usec)/1000.0;
-       }
+	  gettimeofday(&t2, NULL );
+	  ElapsedTime = (t2.tv_sec - t1.tv_sec)*1000.0;
+	  ElapsedTime += (t2.tv_usec -t1.tv_usec)/1000.0;
+     }
      
      /* Get the displacement when substep is over */
      while( ADWinReady == 0 ){
-	    GetData_Float( 3, ReceiveADwin, 1, 3*OrderC + 1);
-	    if ( ReceiveADwin[0] == -1.0){
+	  GetData_Float( 3, ReceiveADwin, 1, 3*OrderC + 1);
+	  if ( ReceiveADwin[0] == -1.0){
 
 	       gettimeofday(&t3, NULL );
 	       ElapsedTime = (t3.tv_sec - t1.tv_sec)*1000.0;
 	       ElapsedTime += (t3.tv_usec -t1.tv_usec)/1000.0;
-	       //printf("%f\n", ElapsedTime );
 	       /* Get the data from ADWIN (DATA_3) */
 
 	       ADWinReady = 1;
@@ -160,7 +157,7 @@ void ADWIN_Substep( const float *const u0c, float *const uc, float *const fcprev
 		    fcprev[i] = ReceiveADwin[OrderC + i+1];
 		    fc[i] = ReceiveADwin[2*OrderC + i+1];
 	       }
-	    }
+	  }
      }
 }
 
