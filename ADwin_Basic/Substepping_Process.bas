@@ -18,14 +18,16 @@
 #define timeoffset 14316.5576170  'time offset for correcting time calculation 
 'when the sign of clock counter changes from max to min
 
+'======================================================================================================
+'====================================                           =======================================
+'==================================== GENERAL CONTROL VARIABLES =======================================
+'====================================                           =======================================
+'======================================================================================================
 #define Num_Step          4096    ' Number of steps in the sub-structure test
 #define dtstep            0.5     ' Time increment of a step
 #define Num_Substep       4       ' Number of sub-steps
-
-' ADlog related
-#define MaxSubStep    32768   ' number of of substeps in whole test
-#define lenghtDataAll 3276801 'lenght of data for data record that will be read by VC software 
-#define lenghtDataDAQ 3276801 'lengh of data array for accquisition
+#define Num_Event_Substep 500     ' Number of events per sub-step. Initially 500
+#define Select_Pressure   1       ' What behaviour will be 
 
 ' Order of matrices and vectors
 #define Order             1       ' Number of DOF of the sub-structure
@@ -33,17 +35,66 @@
 #define Order_Output      4       ' Order of the output array = 3*Order + 1
 #define Order_Gain        1       ' Order of the gain matrix = Order*Order
 
-#define Num_Event_Substep 500     ' Number of events per sub-step. Initially 500
+' ADlog related
+#define MaxSubStep    32768   ' number of of substeps in whole test
+#define lenghtDataAll 3276801 ' length of data for data record that will be read by VC software 
+#define lenghtDataDAQ 3276801 ' length of data array for accquisition
+
+'======================================================================================================
+'====================================                           =======================================
+'====================================    DELAY COMPENSATION     =======================================
+'====================================                           =======================================
+'======================================================================================================
+#define WithActuator			1
+#define MaxThetaOder			99
+#define Maxndelay			30
+#define dcompCompensation		1     '********
+#define dcomphsmax			1.0   '********
+'#define dcomphsmax			0.0
+#define dcompnu				5     '********
+#define dcomplamdaValue			0.99  '*`******
+#define dcompndelay			12
+'#define dcompUsingUrUsingforwardstep   0
+#define dcomppumless			1
+#define dCompStartPoint			125
+#define dCompFullPoint			300
+
+'#define dcompDecreasingStep            2000
+'#define dcompStopStep                  2500
+
+#define dcompDecreasingStep		3700
+#define dcompStopStep			3900
+
+'#define dcomp_devide_Po                50.0
+#define dcomp_devide_Po			35.0
+#define dcompFilter			0       ' 0 or 1
+'#define dcomp_fc			30.0
+#define dcomp_fc			15.0
+
+#define dcompMaxSubstepDelay		200      '
+#define dcompMaxHis			200      ' at least = nu*dcompndelay + 1
+#define dcompfcut			20.0
+
+'======================================================================================================
+'====================================      LIMITATIONS FOR      =======================================
+'====================================      EMERGENCY STOP       =======================================
+'====================================      AND ERROR FLAGS      =======================================
+'======================================================================================================
+' Limit check
+#define Avoid_Limit_Check       1     ' 0 = normal, 1 = avoiding limit checking
 
 ' Limitations for emergency stop
-#define dtabmax 							0.09
-#define accmax 								50.0
-#define dTMDmax               0.095
-#define Fmax                  6000.0
+#define dtabmax 	0.09    ' Maximum displacement of the shake table in m
+#define accmax 		50.0    ' Maximum acceleration in m/s^2
+#define dTMDmax		0.095   ' Maximum displacement of the TMD in m
+#define Fmax            6000.0  ' Maximum force in the load cells in N (load cells of the DFG project)
+'#define Fmax           6000.0  ' Maximum force in the load cells in N (New load cells)
 
 ' Different types of error flags. Used in combination with ERROR_FLAG variable.
-#define ERROR_UNDER_DMIN          1       ' The measured value is below the minimum displacement value
-#define ERROR_OVER_DMAX           2       ' The measured value is over the maximum displacement value
+#define NO_ERROR		0	' The no error case
+#define ERROR_UNDER_DMIN	1       ' The measured value is below the minimum displacement value
+#define ERROR_OVER_DMAX		2       ' The measured value is over the maximum displacement value
+#define ERROR_OVER_FMAX		7       ' The measured force is over the maximum allowed force
 
 ' Zero of the different accelerometers. Check at the begining of each test through adlog, so that it is set
 ' to zero.
@@ -54,8 +105,12 @@
 ' shocks. This was experienced by Van Thuan during some of the E-FAST tests.
 #define compensateFilter   1.0225 
 
-' Limit check
-#define Avoid_Limit_Check       1     ' 0 = normal, 1 = avoiding limit checking
+'======================================================================================================
+'====================================                           =======================================
+'====================================     DECLARATION OF PAR    =======================================
+'====================================     AND FPAR VARIABLES    =======================================
+'====================================                           =======================================
+'======================================================================================================
 
 #define NEW_DATA_AVAILABLE      PAR_4   ' Indicates whether there is new data available (value of 1) or not (value of 0).
 #define EMERGENCY_STOP          PAR_10  ' Variable to stop the process suddenly
@@ -63,17 +118,17 @@
 Rem                                       This is an inter-process communication variable.
 #define ERROR_FLAG              PAR_15  ' Variable used to store the error during the check of measured values against limit values.
 #define Current_Step            PAR_24  ' Counter for the number of steps
-#define NumRecordedData					PAR_29  ' for mornitoring number of tested substeps Ask Van Thuan
+#define NumRecordedData		PAR_29  ' for mornitoring number of tested substeps Ask Van Thuan
 
 ' Control variables
 #define dtdata                  FPAR_2  ' Data to be controlled. Ask Van Thuan
 
 #define dctrl1                  FPAR_3  ' Variable containing the control displacement in direction 1
 #define dctrl2                  FPAR_4  ' Variable containing the control displacement in direction 2
-#define accctrl1 	              FPAR_5
-#define accctrl2 	              FPAR_6
-#define velctrl1 	              FPAR_7
-#define velctrl2 	              FPAR_8
+#define accctrl1		FPAR_5
+#define accctrl2		FPAR_6
+#define velctrl1		FPAR_7
+#define velctrl2		FPAR_8
 
 ' Synchronisation flags
 #define SYNC_PC                 FPAR_31 ' This flag is used to synchronise the uploaded data by the PC. It can have two values:
@@ -85,13 +140,13 @@ Rem                                       - SYNC_ADWIN = 1.0. Perform the sub-st
 Rem                                       - SYNC_ADWIN = -1.0. The sub-step process is finished and the PC can collect the new
 Rem                                         data (see Output_Data).
 
-#define Press_pctrl							FPAR_48 ' Control pressure
-#define Press_pmeas							FPAR_47 ' Measured pressure
+#define Press_pctrl		FPAR_48 ' Control pressure
+#define Press_pmeas		FPAR_47 ' Measured pressure
 
-#define F12x                    FPAR_68 ' Measured Force in the load cell. Used for inter-process communication with the sub-stepping routine
-#define F12y                    FPAR_69 ' Measured Force in the load cell. Used for inter-process communication with the sub-stepping routine
-#define F34x                    FPAR_70 ' Measured Force in the load cell. Used for inter-process communication with the sub-stepping routine
-#define F34y                    FPAR_71 ' Measured Force in the load cell. Used for inter-process communication with the sub-stepping routine
+'#define F12x                    FPAR_68 ' Measured Force in the load cell (new load cells)
+'#define F12y                    FPAR_69 ' Measured Force in the load cell (new load cells)
+'#define F34x                    FPAR_70 ' Measured Force in the load cell (new load cells)
+'#define F34y                    FPAR_71 ' Measured Force in the load cell (new load cells)
 #define dmeas1                  FPAR_72 ' Measured displacement in direction 1. Used for inter-process communication with the sub-stepping routine
 #define dmeas2                  FPAR_73 ' Measured displacement in direction 2. Used for inter-process communication with the sub-stepping routine
 #define ameas1                  FPAR_74 ' Measured acceleration in direction 1. Used for inter-process communication with the sub-stepping routine
@@ -157,7 +212,9 @@ dim uc[order] as float                  ' Vector to be sent to the PC at the end
 dim fcprev[order] as float              ' Vector containing the coupling force measured at Num_Substep - 1
 dim fc[order] as float                  ' Vector containing the coupling force measured at the last sub-step
 
-dim dTMD as float                       ' Displacement of the TMD
+dim Disp_TMDx, Disp_TMDy as float       ' Displacement of the TMD in the x and y directions respectively
+dim FcoupY1, FcoupY2, FcoupX as float   ' Coupling force in the load cells (DFG load cells).
+dim FcoupX1, FcoupX1Old as float	' Auxiliary variables for filtering the coupling force in the X direction.
 
 dim IS_FIRST_STEP as short
 dim DO_SUB_STEP   as short              ' Variable to identify whether the sub-stepping process should be performed (value of 1) or not
@@ -198,19 +255,19 @@ EVENT:
     endif
     'End time checking
     
-    if(IS_FIRST_STEP = 1) then        ' In the first step, ADwin should start inmediately and without waiting.
-      Current_Substep = 1             ' Initialise the counter of sub-steps
-      Current_Event = 1               ' Initialise the event counter
+    if(IS_FIRST_STEP = 1) then		' In the first step, ADwin should start inmediately and without waiting.
+      Current_Substep = 1		' Initialise the counter of sub-steps
+      Current_Event = 1			' Initialise the event counter
       Current_Step = 1
       
-      SYNC_ADWIN = 1.0                ' ADwin is synchronised since this is the first step
-      Output_Data[1] = SYNC_ADWIN     ' The data is not yet ready (ADwin - PC synchronisation)
-      SYNC_PC = 0.0                   ' The values have been received and now the sub-step process will be performed
-      Input_Data[1] = SYNC_PC         ' Inform the PC about this change in the process      
+      SYNC_ADWIN = 1.0			' ADwin is synchronised since this is the first step
+      Output_Data[1] = SYNC_ADWIN	' The data is not yet ready (ADwin - PC synchronisation)
+      SYNC_PC = 0.0			' The values have been received and now the sub-step process will be performed
+      Input_Data[1] = SYNC_PC		' Inform the PC about this change in the process      
       
-      IS_FIRST_STEP = 0               ' No more first step case.
-      TESTING = 1                     ' The testing process is now oficially running
-    else                              ' ADwin notes that the new data is ready since 
+      IS_FIRST_STEP = 0			' No more first step case.
+      TESTING = 1			' The testing process is now oficially running
+    else 				' ADwin notes that the new data is ready since 
       SYNC_ADWIN = 1.0
       Output_Data[1] = SYNC_ADWIN
       SYNC_PC = 0.0
@@ -219,12 +276,12 @@ EVENT:
   endif
   
   
-  if(SYNC_ADWIN = 1.0) then              ' Perform sub-stepping
-    if(Current_Event = 1) then        ' The sub-stepping should only take place at the begining of the scanning loop in order
-      Rem                               to make sure that the process runs at the required time. Otherwise the test results
-      Rem                               would not be coherent since the sub-steps will not take place in the specified time
-      Rem                               increments
-      DO_SUB_STEP = 1                 ' Tell ADwin that the sub-step process should be started/continued in the next events
+  if(SYNC_ADWIN = 1.0) then		' Perform sub-stepping
+    if(Current_Event = 1) then		' The sub-stepping should only take place at the begining of the scanning loop in order
+      Rem                                 to make sure that the process runs at the required time. Otherwise the test results
+      Rem                                 would not be coherent since the sub-steps will not take place in the specified time
+      Rem                                 increments
+      DO_SUB_STEP = 1			' Tell ADwin that the sub-step process should be started/continued in the next events
     endif
     
     if(DO_SUB_STEP = 1) then
@@ -241,7 +298,7 @@ EVENT:
         endif
       endif
       
-      if(Current_Substep=1) then
+      if(Current_Substep = 1) then
         clock_beginning_step = clock_do_substep
       endif
       
@@ -253,14 +310,17 @@ EVENT:
           u01[i] = Input_Data[i+1]               ' Copy the new data coming from the PC at the begining of the sub-stepping process into u01
         next i
       endif
-          
-      uc[1] = ramp0*u0[1] + ramp*u01[1]
-        
+      
+      ucprev[1] = uc[1]                           ' Backup the displacement in order to calculate the velocity.
+      uc[1] = ramp0*u0[1] + ramp*u01[1] + Gain[1]*fc[1]
+      vi[1] = uc[1] - ucprev[1]/dtsub             ' Velocity for delay compensation
+      
       Write_Displacement_Signal()
         
-      ' The forces are measured in the high priority process
-      fc[1] = F12y + F34y
-      fc[1] = 0.0  
+      ' Measure the forces
+      ForceMeasurement()
+      fc[1] = 0.0
+      
       ' Backup the coupling force vector at the Num_Substep -1 substep.
       if ((Current_Substep = (Num_Substep -1)) or (Num_Substep = 1)) then
         scopy(fc, Order, fcprev)
@@ -338,17 +398,18 @@ FINISH:
   Rem -----------------------------------------------------------------------------------------------------------------------
   
 SUB Init_Variables()
-  dtsub = dtstep/Num_Substep        ' Defining the sub-step time increment
-  dtevent = dtsub/Num_Event_Substep ' Defining the time increment of each event
-  PROCESSDELAY = 300000000*dtevent  ' Define the process delay
+  dtsub = dtstep/Num_Substep		' Defining the sub-step time increment
+  dtevent = dtsub/Num_Event_Substep	' Defining the time increment of each event
+  PROCESSDELAY = 300000000*dtevent	' Define the process delay
   
-  Current_Substep = 1               ' Set the sub-step counter to its starting value
-  Current_Event = 1                 ' Set the event counter to its starting value
+  Current_Substep = 1			' Set the sub-step counter to its starting value
+  Current_Event = 1			' Set the event counter to its starting value
   Current_Step = 1
   
-  ERROR_FLAG = 0              ' No error
-  TESTING = 0                 ' We are not yet running a sub-structure test
-  IS_FIRST_STEP = 1           ' The first step will take place once the PC is synchronised
+  ERROR_FLAG = NO_ERROR			' No error
+  TESTING = 0				' We are not yet running a sub-structure test
+  IS_FIRST_STEP = 1			' The first step will take place once the PC is synchronised
+  DO_SUB_STEP = 0			' The sub-step process should not be performed
   
   ' Initialise the vectors to 0.0
   Set2Value(Gain_Matrix, Order_Gain, 0.0)
@@ -359,6 +420,18 @@ SUB Init_Variables()
   Set2Value(uc, Order, 0.0)
   Set2Value(fcprev, Order, 0.0)
   Set2Value(fc, Order, 0.0)
+  
+  ' Measuring variables are set to 0
+  Disp_TMDx = 0.0
+  Disp_TMDy = 0.0
+  
+  FcoupX = 0.0
+  FcoupY1 = 0.0
+  FcoupY2 = 0.0
+  
+  accExt1 = 0.0
+  accExt2 = 0.0
+  accExt3 = 0.0
   
   T = 0.0
   TcompSub = 0.0
@@ -393,6 +466,19 @@ SUB Write_Displacement_Signal()
   
   NEW_DATA_AVAILABLE = 1        ' Tell the other process that new data is available
 EndSub
+SUB ForceMeasurement()
+  dim alpha,temp1,temp2,fcut as float
+  
+  'MeasureCouplingForce
+  FcoupY1 = -((ADCF(1,3) - 32768.0) / 32768.0)* 10000 'N
+  FcoupY2 = -((ADCF(1,4) - 32768.0) / 32768.0)* 10000 'N
+  FcoupX  =  ((ADCF(1,5) - 32768.0) / 32768.0)* 10000 'N  
+  
+  alphaRecursiveFilter  = (dtstep/nsub) / ((1.0/fcutFc) + (dtstep/nsub))
+  FcoupX1 =  FcoupX1Old + alphaRecursiveFilter*(FcoupX - FcoupX1Old)
+  FcoupX1Old = FcoupX1
+  
+ENDSUB
 SUB Check_Limitation()
   
   if(ERROR_FLAG = 0) then
@@ -417,9 +503,18 @@ SUB Check_Limitation()
       endif
     endif
     
-    if((dTMD > dTMDmax) or (dTMD< -dTMDmax)) then
+    if((Disp_TMDx > dTMDmax) or ( Disp_TMDx < -dTMDmax)) then
       EMERGENCY_STOP = 1
-      if(dTMD> dtabmax) then 
+      if(Disp_TMDx > dtabmax) then 
+        ERROR_FLAG = ERROR_OVER_DMAX
+      else
+        ERROR_FLAG = ERROR_UNDER_DMIN
+      endif
+    endif
+    
+    if((Disp_TMDy > dTMDmax) or (Disp_TMDy < -dTMDmax)) then
+      EMERGENCY_STOP = 1
+      if(Disp_TMDy > dtabmax) then 
         ERROR_FLAG = ERROR_OVER_DMAX
       else
         ERROR_FLAG = ERROR_UNDER_DMIN
