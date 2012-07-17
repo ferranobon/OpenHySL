@@ -137,12 +137,20 @@ void ADWIN_Substep( const float *const u0c, float *const uc, float *const fcprev
      gettimeofday( &t1, NULL );
      ElapsedTime = 0.0;
           
+<<<<<<< HEAD
 
      while ( ElapsedTime < 8.0 ){ //(NSub - 1.0)*Deltat_Sub*1000.0 - 0.5){
 	  gettimeofday(&t2, NULL );
 	  ElapsedTime = (t2.tv_sec - t1.tv_sec)*1000.0;
 	  ElapsedTime += (t2.tv_usec -t1.tv_usec)/1000.0;
      }
+=======
+     while ( ElapsedTime < 8.0 ){ 
+       gettimeofday(&t2, NULL );
+       ElapsedTime = (t2.tv_sec - t1.tv_sec)*1000.0;
+       ElapsedTime += (t2.tv_usec -t1.tv_usec)/1000.0;
+       }
+>>>>>>> 92b41d6122091364a2c84063b081c97f86c196bb
      
      /* Get the displacement when substep is over */
      while( ADWinReady == 0 ){
