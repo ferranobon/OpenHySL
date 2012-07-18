@@ -23,22 +23,22 @@
 '==================================== GENERAL CONTROL VARIABLES =======================================
 '====================================                           =======================================
 '======================================================================================================
-#define Num_Step          4096    ' Number of steps in the sub-structure test
-#define dtstep            0.5     ' Time increment of a step
-#define Num_Substep       4       ' Number of sub-steps
-#define Num_Event_Substep 500     ' Number of events per sub-step. Initially 500
-#define Select_Pressure   1       ' What behaviour will be 
+#define Num_Step		4096    ' Number of steps in the sub-structure test
+#define dtstep			0.5     ' Time increment of a step
+#define Num_Substep       	4       ' Number of sub-steps
+#define Num_Event_Substep	500     ' Number of events per sub-step. Initially 500
+#define Select_Air_Pressure	1	' What behaviour will be 
 
 ' Order of matrices and vectors
-#define Order             1       ' Number of DOF of the sub-structure
-#define Order_Input       2       ' Order of the input array = Order + 1
-#define Order_Output      4       ' Order of the output array = 3*Order + 1
-#define Order_Gain        1       ' Order of the gain matrix = Order*Order
+#define Order			1       ' Number of DOF of the sub-structure
+#define Order_Input		2       ' Order of the input array = Order + 1
+#define Order_Output		4       ' Order of the output array = 3*Order + 1
+#define Order_Gain		1       ' Order of the gain matrix = Order*Order
 
 ' ADlog related
-#define MaxSubStep    32768   ' number of of substeps in whole test
-#define lenghtDataAll 3276801 ' length of data for data record that will be read by VC software 
-#define lenghtDataDAQ 3276801 ' length of data array for accquisition
+#define MaxSubStep		32768	' number of of substeps in whole test
+#define lenghtDataAll		3276801	' length of data for data record that will be read by VC software 
+#define lenghtDataDAQ		3276801	' length of data array for accquisition
 
 '======================================================================================================
 '====================================                           =======================================
@@ -167,12 +167,17 @@ Rem                                       - Output_Data[2] stores the uc vector 
 Rem                                       - Output_Data[2+Order] stores the coupling force of the substep 'Num_Substeps -1'
 Rem                                       - Output_Data[2*(1 + Order)] stores the coupling force of the last sub-step
 
-#define UVADATA1 	DATA_92
-#define DataAll 	DATA_97
-#define dataDAQ   DATA_199   ' data accquisition: substep, data data data ... substep, data, data, data, ...
+'======================================================================================================
+'====================================                           =======================================
+'====================================      ADLOG DEFINITION     =======================================
+'====================================      AND STORING DATA     =======================================
+'====================================                           =======================================
+'======================================================================================================
 
-'define of ADlog
-#define NumberLONGsPerStep              51    ' number of longs per each step of record set for ADlog
+#define DataPC	 	DATA_97
+#define dataDAQ		DATA_199   ' data accquisition: substep, data data data ... substep, data, data, data, ...
+
+#define NumberLONGsPerStep	20    ' number of longs per each step of record set for ADlog
 #DEFINE ADlogData1 DATA_180
 #DEFINE ADlogData2 DATA_181
 #DEFINE WritePointer ADlogData2[1]
@@ -184,15 +189,15 @@ Rem                                       - Output_Data[2*(1 + Order)] stores th
 DIM ADlogData1[BUFSIZE] AS LONG AT DRAM_EXTERN
 DIM ADlogData2[200] AS LONG AT DM_LOCAL
 dim byte1,byte2 as long
-'end of define ADLog
+
+
 
 dim Gain_Matrix[Order_Gain] as float at DM_LOCAL    ' Allocate the necesssary memory for the Gain matrix. The values are
 Rem                                                   suplied by the PC.
 dim Input_Data[Order_Input] as float at DM_LOCAL    ' Allocate the necessary space
 dim Output_Data[Order_Output] as float at DM_LOCAL  ' Allocate the necessary space
 
-dim UVADATA1[MaxSubStep] as float
-dim DataAll[lenghtDataAll] as float
+dim DataPC[lenghtDataAll] as float
 dim DataDAQ[lenghtDataDAQ] as float
 
 dim i as long                           ' A simple counter
@@ -222,11 +227,33 @@ Rem                                       (value of 0)
 
 dim accExt1,accExt2,accExt3 as float    ' Variables to store the measurement of external accelerometers
 
+dim Press_pctrl_InitV			' Initial value for the air pressure in the friction device
+
 dim beginning_time,ending_time,time_between_substep as float
 dim clock,clock_synPC,clock_synPC_old,clock_do_substep,clock_do_substep_old,clock_beginning_step as long
 dim time_synPC,time_substep,time_step,time_do_substep,time_from_sub1_to_newPCdata as float
 
-dim T,TcompSub,TcompSubMax as float
+
+'delay compensation
+dim dcompr,dcompdU1,dcompdU2,dcompdU1Old,dcompdu,dcompY,dcompr,dcomperr as float   
+dim dcompphi2,dcompphi,dcompphiphi,dcomplamda,dcompP,dcompPold,dcompPinvertStart as float
+dim dcompnTheta as long
+dim dcompPHI[MaxThetaOder],dcompPHI2[MaxThetaOder],dcompPHIOLD[MaxThetaOder],dcompTHETA[MaxThetaOder],dcompTHETAOLD[MaxThetaOder],dcompK[MaxThetaOder] as float
+dim dcompur1value,dcompur2value as float
+dim dcompdelaydata[dcompMaxSubstepDelay] as float
+dim dcompdctrl[dcompMaxSubstepDelay] as float
+dim dcompdis[dcompMaxSubstepDelay] as float
+dim dcompvel[dcompMaxSubstepDelay] as float
+dim dcompdUold[dcompMaxSubstepDelay] as float
+dim dcompHisdU[dcompMaxHis] as float
+dim dcompHisU[dcompMaxHis] as float
+dim dcompHisV[dcompMaxHis] as float
+dim dcompHisE[dcompMaxHis] as float
+dim idcomp,jdcomp,dcompnewpos as long
+'dim v0vec[num],d0vec[num],a0vec[num] as float
+dim dcomphs,dcompuijold as float
+dim dcomperrfiltered as float
+
 INIT:
   
   Init_Variables()
@@ -301,6 +328,10 @@ EVENT:
       if(Current_Substep = 1) then
         clock_beginning_step = clock_do_substep
       endif
+
+      if(dcompCompensation=1) then
+        Process_dcomp_Before()
+      endif
       
       ramp = Current_Substep/Num_Substep         ' Update the ramp function values
       ramp0 = 1.0 - ramp
@@ -327,7 +358,11 @@ EVENT:
       endif
         
       ' Check the values for safety reasons
-      Check_Limitation() 
+      Check_Limitation()
+
+      if(dcompCompensation=1) then
+        Process_DComp_After()
+      endif
         
       if(Current_Substep < Num_Substep) then
         'Time checking
@@ -348,7 +383,9 @@ EVENT:
         next i
         SYNC_ADWIN = -1.0
         Output_Data[1] = SYNC_ADWIN       ' Say the PC that the Data is ready. Output_Data[1] = -1.0
-        
+
+        PressureControl()
+
         'Time checking
         clock = Read_Timer()
         time_substep = (clock - clock_synPC)*(10.0/3.0)/1000000.0
@@ -356,7 +393,8 @@ EVENT:
           time_substep = time_substep + timeoffset
         endif
           
-        'ADlog()
+        ADlog()
+
         Current_Step = Current_Step + 1
         Current_Substep = 0               ' Reset the sub-step counter
         scopy(u01,Order,u0)               ' Copy the vector received from the PC during this step to u0 in order to compute
@@ -381,7 +419,7 @@ EVENT:
   Current_Event = Current_Event + 1         ' Increase the Event counter 
   
   if((SYNC_ADWIN = 0.0) and (Current_Event = 1)) then
-    'ADlogPre()
+    ADlogPre()
     if((Avoid_Limit_Check=0)) then
       Check_Limitation()
     endif
@@ -426,17 +464,34 @@ SUB Init_Variables()
   Disp_TMDy = 0.0
   
   FcoupX = 0.0
+  FcoupX1Old = 0.0
   FcoupY1 = 0.0
   FcoupY2 = 0.0
+
+  fc[1] = 0.0;
+  fcprev[1] = 0.0;
+  ucprev[1] = 0.0;
   
   accExt1 = 0.0
   accExt2 = 0.0
   accExt3 = 0.0
   
-  T = 0.0
-  TcompSub = 0.0
-  TcompSubMax = 0.0
+  idcomp= 1
+  jdcomp= 1
+  dcomperrfiltered = 0
+  
+  dcompInit()
+
   NumRecordedData = 0
+
+  SelectCase Select_Air_Pressure
+    Case 0
+      Press_pctrl_InitV = 0.0		' No pressure in the friction device
+    Case 1
+      Press_pctrl_InitV = 1.0		' Pressure of 1bar in the friction device
+    CaseElse
+      Press_pctrl_InitV = 0.0		' For any other value, the pressure should be 0 for safety reasons
+  EndSelect
   
 EndSub
 SUB ADlogInnit()
@@ -454,8 +509,8 @@ SUB ADlogInnit()
 ENDSUB
 SUB Write_Displacement_Signal()
   
-  dctrl1 = 0          ' Direction 1 is never used in these tests 
-  dctrl2 = uc[1]      ' Set the control displacement to the value of uc unless it exceeds the table displacement
+  dctrl1 = 0         			' Direction 1 is never used in these tests 
+  dctrl2 = uc[1] + dcompdU * dcomphs	' Set the control displacement to the value of uc unless it exceeds the table displacement
   
   if(dctrl2 > dtabmax) then
     dctrl2 = dtabmax
@@ -530,8 +585,8 @@ SUB	ADlogPre()
   data = 0                                     'trigger
   ADlogData1[WritePointer] = data
   
-  ' Forces are measured in the high priority process
-  
+  Forcemeasurement()
+
   GetAndStoreData_Pre()
   
   WritePointer = WritePointer + NumberLONGsPerStep
@@ -541,6 +596,8 @@ SUB	ADlogPre()
     WritePointer = 1
     INC LoopCounter
   ENDIF
+
+  DAC(1,3,((Press_pctrl_InitV / 2.0)*32768) + 32768)	' Initialise the pressure in the device
 EndSub
 SUB	ADlog()
   dim data as LONG
@@ -549,7 +606,8 @@ SUB	ADlog()
   data = 2147483647                                 'trigger
   ADlogData1[WritePointer] = data
   
-  GetAndStoreData_withDAQ()
+  GetAndStoreData()
+  'GetAndStoreData_withDAQ()
   
   WritePointer = WritePointer + NumberLONGsPerStep
   
@@ -563,27 +621,28 @@ SUB	ADlog()
 endsub
 SUB GetAndStoreData_Pre()
   dim data,dtab,temp as float
-  dim dpisint as long
-  dim i,j,lenght as long
+
+  dim i,j,length as long
   dim numchannelDAQ as long ' number of channels for DAQ
   
+  
+  ' TMD. y-direction
   temp =  - (((ADCF(2, 7)-32768)/32768.0)*10.0 / 0.104) * 9.8065 - acc1_zero      ' Endevco 61-100 Acc tabe                 
   accExt1 = temp
 
+  ' TMD. x-direction
   temp = - (((ADCF(3, 1)-32768)/32768.0)*10.0 / 0.936) * 9.8065 - acc2_zero       ' PCB accelerometer - TMD
   accExt2 = temp
   
-  temp = - (((ADCF(2, 8)-32768)/32768.0)*10.0 / 0.507 ) * 9.8065 - acc3_zero       ' Kistler Acc Frame                     
-  accExt3 = temp
+  ' x direction of the frame
+  temp = - (((ADCF(2, 8)-32768)/32768.0)*10.0 / 0.507 ) * 9.8065 - acc3_zero     ' Kistler 8640A
+  accExt3 = temp    
   
-  dpisint = (ADCF(1,5) -  32768)
-  dtab = ((ADCF(2, 5)-32768)/32768.0) * 0.1  
-  dTMD = - ((ADCF(3, 2)-32768)/32768.0) * 0.1 
+  Disp_TMDx = - ((ADCF(3, 2)-32768)/32768.0) * 0.1 
+  Disp_TMDy = - ((ADCF(2, 5)-32768)/32768.0) * 0.1 
   
-        
   data =  (dctrl1 /0.2)* 2147483647                'dctrl1
   ADlogData1[WritePointer+1] = data
-   
   
   data =  (dctrl2 /0.2)* 2147483647                'dctrl2
   ADlogData1[WritePointer+2] = data
@@ -600,10 +659,10 @@ SUB GetAndStoreData_Pre()
   data =  (accctrl2 / (9.8065 * 10.0)) * 2147483647     'accctrl2
   ADlogData1[WritePointer+6] = data
   
-  data =  (ameas1 / (9.8065 * 10.0)) * 2147483647     'ameas1 by computing dis
+  data =  (accmeas1 / (9.8065 * 10.0)) * 2147483647     'ameas1 by computing dis
   ADlogData1[WritePointer+7] = data
   
-  data =  (ameas2 / (9.8065 * 10.0)) * 2147483647     'ameas2 by computing dis
+  data =  (accmeas2 / (9.8065 * 10.0)) * 2147483647     'ameas2 by computing dis
   ADlogData1[WritePointer+8] = data
   
   data =  (accExt1 / (9.8065 * 10.0)) * 2147483647     'acc1
@@ -611,420 +670,344 @@ SUB GetAndStoreData_Pre()
   
   data =  (accExt2 / (9.8065 * 10.0)) * 2147483647     'acc2
   ADlogData1[WritePointer+10] = data
-
-  temp = ((ADCF(1, 3)-32768)/32768.0) * 250000.0        
-  data = (temp / 250000.0) * 2147483647               'F cylinder 1
+  
+  data =  (accExt3 / (9.8065 * 10.0)) * 2147483647     'acc3
   ADlogData1[WritePointer+11] = data
   
-  temp = ((ADCF(1, 4)-32768)/32768.0) * 250000.0        
-  data = (temp / 250000.0) * 2147483647               'F cylinder 2
+  data = (FcoupY1 / 10000.0) * 2147483647               'FcY1 (N)
   ADlogData1[WritePointer+12] = data
   
-  
-  data = (dtab / 0.1) * 2147483647               'D table (mm)
+  data = (FcoupY2 / 10000.0) * 2147483647               'FcY2 (N)
   ADlogData1[WritePointer+13] = data
   
- 
-  data = (dTMD / 0.1) * 2147483647               'D tmd (mm)
+  data = (FcoupX1  / 10000.0) * 2147483647                'FcX
   ADlogData1[WritePointer+14] = data
   
-  data = (F12x / 20000.0) * 2147483647               'F12x (N)
+  data = (Disp_TMDx / 0.1) * 2147483647               'D tmdx (mm)
   ADlogData1[WritePointer+15] = data
   
-  data = (F34x / 20000.0) * 2147483647               'F34x (N)
+  data = (Disp_TMDy / 0.1) * 2147483647               'D tmdy (mm)
   ADlogData1[WritePointer+16] = data
   
-  data = (F12y / 20000.0) * 2147483647               'F12y (N)
+  data = Press_pctrl/2.0 * 2147483647  'PressureCtrl
   ADlogData1[WritePointer+17] = data
   
-  data = (F34y / 20000.0) * 2147483647               'F34y (N)
+  Press_pmeas = (((ADCF(3,7) - 32768) * compensateFilter) / 32768.0) * 2.0
+  data = (Press_pmeas/2.0 ) * 2147483647 
   ADlogData1[WritePointer+18] = data
   
-  data = Press_pctrl/2.0 * 2147483647  'PressureCtrl
+  data =  (uc[1] / 0.1) * 2147483647     ' disi1
   ADlogData1[WritePointer+19] = data
   
-  Press_pmeas = (((ADCF(3,8) - 32768) * compensateFilter) / 32768.0) * 2.0
-  data = (Press_pmeas/2.0 ) * 2147483647 
-  ADlogData1[WritePointer+20] = data
-  
-  data =  (accExt3 / (9.8065 * 10.0)) * 2147483647     'acc3  (servo Acc)
-  ADlogData1[WritePointer+21] = data
-  
-  data = (dpisint / 32768.0) * 2147483647  ' dcylmeas
-  ADlogData1[WritePointer+22] = data
-  
-  data =  ( UVADATA1[Current_Step] / (0.1)) * 2147483647     'dbase 
-  ADlogData1[WritePointer+23] = data
-  
-  data =  (uc[1] / 0.1) * 2147483647     ' disi1
-  ADlogData1[WritePointer+24] = data
-  
-  data =  (0.0 / 1.0) * 2147483647     ' veli1
-  ADlogData1[WritePointer+25] = data
-  
-  data =  (0.0 /(9.8065 * 10.0)) * 2147483647     ' acci1
-  ADlogData1[WritePointer+26] = data
-  
-  data =  (fc[1] /20000) * 2147483647     ' fc
-  ADlogData1[WritePointer+27] = data
-  
-  'data =  (fu[1] /20000) * 2147483647     ' fui1
-  data = 0
-  ADlogData1[WritePointer+28] = data
-  
-  'data =  (Ff /20000) * 2147483647     ' Ff
-  data = 0
-  ADlogData1[WritePointer+29] = data
-  
-  data =  (0 * 0 / 0.1) * 2147483647     ' diss
-  ADlogData1[WritePointer+30] = data
-  
-  data =  (0 * 0 / 1.0) * 2147483647     ' vels
-  ADlogData1[WritePointer+31] = data
-  
-  data =  (0 * 0 /(9.8065 * 10.0)) * 2147483647     ' accs
-  ADlogData1[WritePointer+32] = data
-  
-  data =  (0.0 /1.0) * 2147483647     ' 
-  ADlogData1[WritePointer+33] = data
-  
-  data =  (0.0 /1.0) * 2147483647     ' 
-  ADlogData1[WritePointer+34] = data
-  
-  'data =  (FucompdF /20000.0) * 2147483647     ' 
-  data =  0
-  ADlogData1[WritePointer+35] = data
-  
-  'data =  (FucompTHETA[1] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+36] = data
-  
-  'data =  (FucompTHETA[2] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+37] = data
-  
-  'data =  (FucompTHETA[3] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+38] = data
-  
-  'data =  (FucompTHETA[4] /1000.0) * 2147483647     '
-  data = 0 
-  ADlogData1[WritePointer+39] = data
-  
-  'data =  (FucompTHETA[5] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+40] = data
-  
-  'data =  (FucompTHETA[6] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+41] = data
-  
-  'data =  (FucompTHETA[7] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+42] = data
-  
-  'data =  (dcompdU /1.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+43] = data
-  
-  'data =  (dcompTHETA[1] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+44] = data
-  
-  'data =  (dcompTHETA[2] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+45] = data
-  
-  ' data =  (dcompTHETA[3] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+46] = data
-  
-  'data =  (dcompTHETA[4] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+47] = data
-  
-  'data =  (dcompTHETA[5] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+48] = data
-  
-  'data =  (dcompTHETA[6] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+49] = data
-  
-  'data =  (dcompTHETA[7] /1000.0) * 2147483647     ' 
-  'data =  (q/0.1) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+50] = data
 ENDSUB
-SUB GetAndStoreData_withDAQ()
+SUB GetAndStoreData()
   dim data,dtab,temp as float
   dim dpisint as long
-  dim i,j,lenght as long
+  dim i,j,length as long
   dim numchannelDAQ as long ' number of channels for DAQ
   
+  
+  ' TMD. y-direction
   temp =  - (((ADCF(2, 7)-32768)/32768.0)*10.0 / 0.104) * 9.8065 - acc1_zero      ' Endevco 61-100 Acc tabe                 
   accExt1 = temp
 
+  ' TMD. x-direction
   temp = - (((ADCF(3, 1)-32768)/32768.0)*10.0 / 0.936) * 9.8065 - acc2_zero       ' PCB accelerometer - TMD
   accExt2 = temp
   
-  temp = - (((ADCF(2, 8)-32768)/32768.0)*10.0 / 0.507 ) * 9.8065 - acc3_zero       ' Kistler Acc Frame                     
-  accExt3 = temp
+  ' x direction of the frame
+  temp = - (((ADCF(2, 8)-32768)/32768.0)*10.0 / 0.507 ) * 9.8065 - acc3_zero     ' Kistler 8640A
+  accExt3 = temp    
   
-  dpisint = (ADCF(1,5) -  32768)
-  dtab = ((ADCF(2, 5)-32768)/32768.0) * 0.1  
-  dTMD = - ((ADCF(3, 2)-32768)/32768.0) * 0.1 
+  Disp_TMDx = - ((ADCF(3, 2)-32768)/32768.0) * 0.1 
+  Disp_TMDy = - ((ADCF(2, 5)-32768)/32768.0) * 0.1 
   
-        
-  data =  (dctrl1 /0.2)* 2147483647                'dctrl1
+
+  length = 24
+  i = (jstep-1)*nsub + isub-1
+  j = (((jstep-1)*nsub + isub)  - 1)*length
+  
+  DataPC[j+1] = i
+
+  'data =  (dctrl1 /0.2)* 2147483647                'dctrl1
+  data = dcompdU
   ADlogData1[WritePointer+1] = data
-   
-  
+  DataPC[j+2] = data
+
   data =  (dctrl2 /0.2)* 2147483647                'dctrl2
   ADlogData1[WritePointer+2] = data
-  
+  DataPC[j+3] = dctrl2
+
   data =  (dmeas1 /0.2)* 2147483647                'dmeas1
   ADlogData1[WritePointer+3] = data
-  
+  DataPC[j+4] = dmeas1
+
   data =  (dmeas2 /0.2)* 2147483647                'dmeas2
   ADlogData1[WritePointer+4] = data
+  DataPC[j+5] = dmeas2
   
-  data =  (accctrl1 / (9.8065 * 10.0)) * 2147483647     'accctrl1 really used ?
+  data =  (accctrl1 / (9.8065 * 10.0)) * 2147483647     'accctrl1
   ADlogData1[WritePointer+5] = data
+  DataPC[j + 6] = accctrl1
   
-  data =  (accctrl2 / (9.8065 * 10.0)) * 2147483647     'accctrl2 really used? Ask van thuan
+  data =  (accctrl2 / (9.8065 * 10.0)) * 2147483647     'accctrl2
   ADlogData1[WritePointer+6] = data
+  DataPC[j+ 7] = accctrl2
   
-  data =  (ameas1 / (9.8065 * 10.0)) * 2147483647     'ameas1 by computing dis
+  data =  (accmeas1 / (9.8065 * 10.0)) * 2147483647     'ameas1 by computing dis
   ADlogData1[WritePointer+7] = data
+  DataPC[j+8] = accmeas1
   
-  data =  (ameas2 / (9.8065 * 10.0)) * 2147483647     'ameas2 by computing dis
+  data =  (accmeas2 / (9.8065 * 10.0)) * 2147483647     'ameas2 by computing dis
   ADlogData1[WritePointer+8] = data
+  DataPC[j+9] = accmeas2
   
   data =  (accExt1 / (9.8065 * 10.0)) * 2147483647     'acc1
   ADlogData1[WritePointer+9] = data
+  DataPC[j+10] = accExt1
   
   data =  (accExt2 / (9.8065 * 10.0)) * 2147483647     'acc2
   ADlogData1[WritePointer+10] = data
-
-  temp = ((ADCF(1, 3)-32768)/32768.0) * 250000.0        
-  data = (temp / 250000.0) * 2147483647               'F cylinder 1
+  DataPC[j+11] = accExt2
+  
+  data =  (accExt3 / (9.8065 * 10.0)) * 2147483647     'acc3
   ADlogData1[WritePointer+11] = data
+  DataPC[j + 12] = accExt3
   
-  temp = ((ADCF(1, 4)-32768)/32768.0) * 250000.0        
-  data = (temp / 250000.0) * 2147483647               'F cylinder 2
+  data = (FcoupY1 / 10000.0) * 2147483647               'FcY1 (N)
   ADlogData1[WritePointer+12] = data
+  DataPC[j+13] = FcoupY1
   
-  
-  data = (dtab / 0.1) * 2147483647               'D table (mm)
+  data = (FcoupY2 / 10000.0) * 2147483647               'FcY2 (N)
   ADlogData1[WritePointer+13] = data
+  DataPC[j+14] = FcoupY2
   
- 
-  data = (dTMD / 0.1) * 2147483647               'D tmd (mm)
+  data = (FcoupX1 / 10000.0) * 2147483647                'FcX
   ADlogData1[WritePointer+14] = data
+  DataPC[j+15] = FcoupX
   
-  data = (F12x / 20000.0) * 2147483647               'F12x (N)
+  data = (Disp_TMDx / 0.1) * 2147483647               'D tmdx (mm)
   ADlogData1[WritePointer+15] = data
+  DataPC[j+16] = Disp_TMDx
   
-  data = (F34x / 20000.0) * 2147483647               'F34x (N)
+  data = (Disp_TMDy / 0.1) * 2147483647               'D tmdy (mm)
   ADlogData1[WritePointer+16] = data
-  
-  data = (F12y / 20000.0) * 2147483647               'F12y (N)
-  ADlogData1[WritePointer+17] = data
-  
-  data = (F34y / 20000.0) * 2147483647               'F34y (N)
-  ADlogData1[WritePointer+18] = data
+  DataPC[j+17] = Disp_TMDy
   
   data = Press_pctrl/2.0 * 2147483647  'PressureCtrl
-  ADlogData1[WritePointer+19] = data
+  ADlogData1[WritePointer+17] = data
+  DataPC[j+18] = Press_pctrl
   
-  Press_pmeas = (((ADCF(3,8) - 32768) * compensateFilter) / 32768.0) * 2.0
+  Press_pmeas = (((ADCF(3,7) - 32768) * compensateFilter) / 32768.0) * 2.0
   data = (Press_pmeas/2.0 ) * 2147483647 
-  ADlogData1[WritePointer+20] = data
-  
-  data =  (accExt3 / (9.8065 * 10.0)) * 2147483647     'acc3  (servo Acc)
-  ADlogData1[WritePointer+21] = data
-  
-  data = (dpisint / 32768.0) * 2147483647  ' dcylmeas
-  ADlogData1[WritePointer+22] = data
-  
-  data =  ( UVADATA1[Current_Step] / (0.1)) * 2147483647     'dbase 
-  ADlogData1[WritePointer+23] = data
+  ADlogData1[WritePointer+18] = data
+  DataPC[j+19] = Press_pmeas
   
   data =  (uc[1] / 0.1) * 2147483647     ' disi1
-  ADlogData1[WritePointer+24] = data
+  ADlogData1[WritePointer+19] = data
+  DataPC[j+20] = uc[1]
   
-  data =  (0.0 / 1.0) * 2147483647     ' veli1
-  ADlogData1[WritePointer+25] = data
-  
-  data =  (0.0 /(9.8065 * 10.0)) * 2147483647     ' acci1
-  ADlogData1[WritePointer+26] = data
-  
-  data =  (fc[1] /20000) * 2147483647     ' fc
-  ADlogData1[WritePointer+27] = data
-  
-  'data =  (fu[1] /20000) * 2147483647     ' fui1
-  data = 0
-  ADlogData1[WritePointer+28] = data
-  
-  'data =  (Ff /20000) * 2147483647     ' Ff
-  data = 0
-  ADlogData1[WritePointer+29] = data
-  
-  data =  (0 * 0 / 0.1) * 2147483647     ' diss
-  ADlogData1[WritePointer+30] = data
-  
-  data =  (0 * 0 / 1.0) * 2147483647     ' vels
-  ADlogData1[WritePointer+31] = data
-  
-  data =  (0 * 0 /(9.8065 * 10.0)) * 2147483647     ' accs
-  ADlogData1[WritePointer+32] = data
-  
-  data =  (0.0 /1.0) * 2147483647     ' 
-  ADlogData1[WritePointer+33] = data
-  
-  data =  (0.0 /1.0) * 2147483647     ' 
-  ADlogData1[WritePointer+34] = data
-  
-  'data =  (FucompdF /20000.0) * 2147483647     ' 
-  data =  0
-  ADlogData1[WritePointer+35] = data
-  
-  'data =  (FucompTHETA[1] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+36] = data
-  
-  'data =  (FucompTHETA[2] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+37] = data
-  
-  'data =  (FucompTHETA[3] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+38] = data
-  
-  'data =  (FucompTHETA[4] /1000.0) * 2147483647     '
-  data = 0 
-  ADlogData1[WritePointer+39] = data
-  
-  'data =  (FucompTHETA[5] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+40] = data
-  
-  'data =  (FucompTHETA[6] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+41] = data
-  
-  'data =  (FucompTHETA[7] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+42] = data
-  
-  'data =  (dcompdU /1.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+43] = data
-  
-  'data =  (dcompTHETA[1] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+44] = data
-  
-  'data =  (dcompTHETA[2] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+45] = data
-  
-  ' data =  (dcompTHETA[3] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+46] = data
-  
-  'data =  (dcompTHETA[4] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+47] = data
-  
-  'data =  (dcompTHETA[5] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+48] = data
-  
-  'data =  (dcompTHETA[6] /1000.0) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+49] = data
-  
-  'data =  (dcompTHETA[7] /1000.0) * 2147483647     ' 
-  'data =  (q/0.1) * 2147483647     ' 
-  data = 0
-  ADlogData1[WritePointer+50] = data
-    
-  'these indexes for recording dataDAQ[]
-  numchannelDAQ = 16
-  j = (((Current_Step-1)*Num_Substep + Current_Substep)  - 1) * numchannelDAQ
-  DataDAQ[j+1] = (Current_Step-1)*Num_Substep + Current_Substep
-  DataDAQ[j+2] = uc[1]
-  DataDAQ[j+3] = dctrl2
-  DataDAQ[j+4] = dmeas2
-  DataDAQ[j+5] = (dpisint/32768.0)*0.1
-  DataDAQ[j+6] = accExt1 ' atab
-  DataDAQ[j+7] = accExt2 ' atmd
-  DataDAQ[j+8] = accExt3 ' aframe
-  DataDAQ[j+9] = dtab ' dtab
-  DataDAQ[j+10] = dtmd ' atmd
-  DataDAQ[j+11] = F12x ' Fc
-  DataDAQ[j+12] = F34x ' Fc
-  DataDAQ[j+13] = F12y ' Fc
-  DataDAQ[j+14] = F34y ' Fc
-  DataDAQ[j+15] = Press_pctrl '
-  DataDAQ[j+16] = Press_pmeas '
-    
-  lenght = Num_Step*Num_Substep
-  i = (Current_Step-1)*Num_Substep + Current_Substep  
-  j = 0
-  DataAll[j*lenght + i] = i
-  j = j+1
-  DataAll[j*lenght + i] = time_do_substep
-  j = j+1
-  DataAll[j*lenght + i] = time_substep
-  j = j+1
-  DataAll[j*lenght + i] = time_synPC
-  j = j+1
-  DataAll[j*lenght + i] =  time_from_sub1_to_newPCdata
-  
-  j = j+1
-  DataAll[j*lenght + i] =  u01[1]
-  j = j+1
-  DataAll[j*lenght + i] =  uc[1]
-  j = j+1
-  DataAll[j*lenght + i] =  fc[1]
-  j = j+1
-  DataAll[j*lenght + i] =  dctrl2
-  j = j+1
-  DataAll[j*lenght + i] =  dmeas2
-  
-  j = j+1
-  DataAll[j*lenght + i] =  (dpisint/32768.0)*0.1
-  j = j+1
-  DataAll[j*lenght + i] =  accExt1 ' atab
-  j = j+1
-  DataAll[j*lenght + i] =  accExt2 ' atmd
-  j = j+1
-  DataAll[j*lenght + i] =  accExt3 ' aframe
-  j = j+1
-  DataAll[j*lenght + i] =  dtab ' dtab
-  
-  j = j+1
-  DataAll[j*lenght + i] =  dtmd ' atmd
-  j = j+1
-  DataAll[j*lenght + i] =  F12x ' Fc
-  j = j+1
-  DataAll[j*lenght + i] =  F34x ' Fc
-  j = j+1
-  DataAll[j*lenght + i] =  F12y ' Fc
-  j = j+1
-  DataAll[j*lenght + i] =  F34y ' Fc
-  
-  j = j+1
-  DataAll[j*lenght + i] =  Press_pctrl '
-  j = j+1
-  DataAll[j*lenght + i] =  Press_pmeas '
-  
-  'Total number of channels for data recoreding: 22
+  DataPC[j+21] = time_do_substep
+  DataPC[j+22] = time_substep
+  DataPC[j+23] = time_synPC
+  DataPC[j+24] = time_from_sub1_to_newPCdata
   
 endsub
+SUB PressureControl()
+  SelectCase Select_Air_Pressure
+    Case 0
+      Press_pctrl = Press_pctrl_InitV
+    Case 1
+      Press_pctrl = Press_pctrl_InitV
+    CaseElse
+      Press_pctrl = 0
+  EndSelect
+  DAC(1,3,((Press_pctrl / 2.0)*32768) + 32768)
+ENDSUB
+SUB dCompInit()
+  
+  dcompdU1old= 0.0
+  dcompdU = 0.0
+  dcompdU1   = 0.0
+  dcompdU2   = 0.0
+  dcomperr  = 0.0
+  dcompPinvertStart = 0.0
+  dcomplamda= dcomplamdaValue
+  dcompnTheta=3*dcompnu
+  for i = 1 to MaxThetaOder
+    dcompPHIOLD[i]= 0.0
+    dcompTHETA[i] = 0.0
+    dcompTHETAOLD[i]=0.0
+    dcompK[i]=0.0
+  next i
+        
+  for i = 1 to dcompMaxSubstepDelay
+    dcompdelaydata[i] = 0.0
+    dcompdctrl[i]=0.0
+    dcompdis[i]=0.0
+    dcompvel[i]=0.0
+    dcompdUold[i]=0.0
+  next i
+  
+  for i = 1 to dcompMaxSubstepDelay
+    dcompHisdU[i]=0.0
+    dcompHisU[i]=0.0
+    dcompHisV[i]=0.0
+    dcompHisE[i]=0.0
+  next i
+  dcompnewpos = (dcompndelay * dcompnu) + 1
+
+  dcompuijold = 0.0
+  dcomphs = 0
+ENDSUB
+
+SUB dCompSetPHI()
+  'Put new vectors to phi[]
+  for i = 1 to dCompnu
+    dCompPHI[i]           = -dCompHisdU[dcompnewpos-(i*dcompndelay)]
+    'dCompPHI[i+dCompnu]   = dCompHisU[dcompnewpos-((i-1)*dcompndelay)]
+    dCompPHI[i+1*dCompnu] = (dCompHisV[dcompnewpos-(i*dcompndelay)] )
+    dCompPHI[i+2*dCompnu] = dCompHisE[dcompnewpos-(i*dcompndelay)]
+  next i
+ENDSUB
+'=================================
+SUB  dCompEstimatedU()
+  dCompdU = 0.0
+  if(dcomppumless = 0) then
+    for i = 1 to dCompnTheta
+      dCompdU = dCompdU + (dCompPHI[i] * dCompTHETA[i])
+    next i
+  else
+    dcompr = jdcomp
+    dcompr = dcompr / dcompndelay 
+    for i = 1 to dCompnTheta
+      dCompdU = dCompdU + (dCompPHI[i] * (dCompTHETAold[i]*(1-dcompr)+dCompTHETA[i]*dcompr))
+    next i
+  endif
+ENDSUB
+'=================================
+SUB dCompUpdateModel()
+  
+  'backup old values
+  for i = 1 to dCompnTheta
+    dCompTHETAOLD[i] = dCompTHETA[i]
+  next i
+
+  'new theta
+  dCompphiphi = 0.0
+  for i = 1 to dcompnTheta
+    dcompphiphi = dcompphiphi + (dcompPHI[i]*dcompPHI[i])
+  next i
+  dcompP = (dcompPold - (dcompPold*dcompPold*dcompphiphi) /(dComplamda + dCompPold*dCompphiphi)) / dComplamda
+  for i = 1 to dCompnTheta
+    dCompK[i] = dCompP*dCompPHI[i]
+    dCompTHETA[i] = dCompTHETAOLD[i] + dCompK[i]*dComperr
+  next i
+
+  'backup old values
+  for i = 1 to dCompnTheta
+    dCompPHIOLD[i]   = dCompPHI[i]
+  next i
+  
+ENDSUB
+'====================================================================================================================
+SUB dCompCheckInitationP()
+  if(idcomp<(dCompStartPoint-1)) then
+    'dcompPinvertStart = dcompPinvertStart + dcomperr*dcomperr + velvecj[1]*velvecj[1]
+    dcompPinvertStart = dcompPinvertStart + dcomperr*dcomperr + vi[1]*vi[1]
+    'dcompPinvertStart = dcompPinvertStart + dcomperr*dcomperr + uc[1]*uc[1]
+  else
+    if(idcomp=(dCompStartPoint-1))then
+      dcompPold = (1.0/dcompPinvertStart) / dcomp_devide_Po
+      'dcompPold = (1.0/dcompPinvertStart)
+      ' larger value dcompP will more sensitive and fast convergense
+      ' the devide value from 1.0 to 20.0 has been tested, ok 
+      ' devide 20, result no fluctiation 
+      dcompP = dcompPold
+    endif
+  endif
+ENDSUB
+SUB Process_Dcomp_Before()
+  'calculate displacement compensation dcopmdU
+  if(dcompCompensation = 1) then
+    'Measure the initation value Po for time delay compensation
+    if((jdcomp = 1) and  (idcomp<dCompStartPoint)) then
+      dCompCheckInitationP()
+    endif
+  
+    if(jstep<dcompStartPoint) then 
+      dcomphs = 0.0
+    else
+      if(jstep<dcompFullPoint) then 
+        dcomphs = (jstep-dcompStartPoint)*dcomphsmax / (dcompFullPoint-dcompStartPoint)
+      else
+        if(jstep<dcompDecreasingStep) then
+          dcomphs = dcomphsmax
+        else
+          if(jstep<dcompStopStep) then
+            dcomphs = dcomphsmax * (1.0 - (jstep-dcompDecreasingStep) / (dcompStopStep - dcompDecreasingStep))
+          else 
+            dcomphs = 0.0
+          endif
+        endif
+      endif
+    endif
+  endif
+  if((dcompCompensation=1) and (WithActuator=1)) then
+    dCompSetPHI()
+    dCompEstimatedU()
+  else
+    dcompdU = 0.0
+  endif
+ENDSUB
+
+SUB Process_Dcomp_After() 
+  
+  dim temp1,temp2,fc,kfc as float
+  
+  'Backup History of data for dcomp
+  if(dcompFilter = 0) then 
+    dcomperr  = (uc[1] - dmeas2) - (1.0-dcomphs)*dcompdU
+  else
+    fc = dcomp_fc
+    kfc = dtdata / ((1.0/(2*3.14*fc))+ dtdata)
+    temp1 = dcomperrfiltered
+    temp2 = (uc[1] - dmeas2) - (1.0-dcomphs)*dcompdU
+    dcomperrfiltered = temp1 + kfc*(temp2 - temp1)
+    dcomperr = dcomperrfiltered
+  endif
+  
+  
+  
+  for i = 1 to dcompnewpos-1
+    dcompHisdU[i]=  dcompHisdU[i+1]
+    dcompHisU[i] =  dcompHisU[i+1]
+    dcompHisV[i] =  dcompHisV[i+1]
+    dcompHisE[i] =  dcompHisE[i+1]
+  next i
+  'dcompHisdU[(dcompndelay*dcompnu)+1]=  dcompdUfiltered
+  dcompHisdU[(dcompndelay*dcompnu)+1]= dcompdU
+  
+  'Put new displacement and new error to the history ***
+  dcompHisU[(dcompndelay*dcompnu)+1] =  uc[1]
+  dcompHisV[(dcompndelay*dcompnu)+1] =  (uc[1] - dcompuijold)/dtdata
+  dcompHisE[(dcompndelay*dcompnu)+1] =  dcomperr
+  
+  dcompuijold = uc[1]
+  
+  'Update model at each delay time period
+  if(WithActuator=1) then
+    if(jdcomp = dcompndelay) then
+      if(((dcompCompensation = 1) and (jstep>dCompStartPoint)))then
+        dCompUpdatemodel()
+      endif
+      jdcomp = 0
+      idcomp = idcomp + 1
+    endif
+    jdcomp=jdcomp+1
+  endif
+  
+ENDSUB
 ' Set all the elements of the vector to a specified value
 SUB Set2Value(vec, Num_Elements, Value)
   dim k as long
