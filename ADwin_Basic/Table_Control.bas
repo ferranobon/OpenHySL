@@ -22,8 +22,9 @@ Rem                                         the shake table can handle.
 #define Offset_DA_AD              32768   ' Zero offset of the DA and AD converter
 #define Max_Error_Int             0.1     ' Limit value of the integration error
 #define Clock_To_Time_Conv        ((10.0/3.0)*1.0e-9) ' Conversion from clock to time units [seconds]
-#define Default_dtcontrol         0.00025 ' Default value of the time increment for the control loop. In seconds. Initially 0.1ms
-'#define Default_dtcontrol         0.0025 
+#define Default_dtcontrol         0.0001	' Default value of the time increment for the control loop. Possible values are
+Rem						  - 0.00010 in the case of real time tests.
+Rem						  - 0.0025 in the case of distributed tests with a step time of 2s
 #define Default_dtdata            0.5     ' Time increment for displacement/new data. Ask Van Thuan
 #define Default_Freq_Filter       35.0    ' Default frequency filter
 
@@ -32,13 +33,14 @@ Rem                                         the shake table can handle.
 #define Length_His_Vel            1000    ' This value should be larger than DtCompVA/dtcontrol
 
 ' Different types of error flags. Used in combination with ERROR_FLAG variable.
-#define ERROR_UNDER_DMIN          1       ' The measured value is below the minimum displacement value
-#define ERROR_OVER_DMAX           2       ' The measured value is over the maximum displacement value
-#define ERROR_UNDER_VMIN          3       ' The measured value is below the minimum velocity value
-#define ERROR_OVER_VMAX           4       ' The measured value is over the maximum velocity value
-#define ERROR_UNDER_AMIN          5       ' The measured value is below the minimum acceleration value
-#define ERROR_OVER_AMAX           6       ' The measured value is over the maximum acceleration value
-#define ERROR_OVER_FMAX           7       ' The measured value is over the maximum force value
+#define NO_ERROR		0	' No error
+#define ERROR_UNDER_DMIN	1       ' The measured value is below the minimum displacement value
+#define ERROR_OVER_DMAX		2       ' The measured value is over the maximum displacement value
+#define ERROR_UNDER_VMIN	3       ' The measured value is below the minimum velocity value
+#define ERROR_OVER_VMAX		4       ' The measured value is over the maximum velocity value
+#define ERROR_UNDER_AMIN	5       ' The measured value is below the minimum acceleration value
+#define ERROR_OVER_AMAX		6       ' The measured value is over the maximum acceleration value
+#define ERROR_OVER_FMAX		7       ' The measured value is over the maximum force value
 
 ' ----------------------------------------------------------------------------------
 ' ------------------------- Definition of global variables -------------------------
@@ -285,14 +287,6 @@ SUB Init_Variables()
     Disp_Conversion[k] = 0.2/32768.0      ' +/- 0.2m = 10V = 32768
     Current_Conversion[k] = 30.0/32768.0  ' +/- 30mA  = 10V = 32768
   next k
-     
-  ' Set the initial forces to 0
-  F12x = 0.0
-  F12y = 0.0
-  F34x = 0.0
-  F34y = 0.0
-  F3y = 0.0
-  F4y = 0.0
   
   ' Initialisation of control variables
   dctrl1 = 0.0
@@ -531,7 +525,7 @@ Endsub
 SUB Check_Limits()
   dim k as long
   ' There is no need to repeat this routine if some error in the previous events is found
-  if(ERROR_FLAG = 0) then
+  if(ERROR_FLAG = NO_ERROR) then
          
     ' Check for maximum displacements, velocities and accelerations of the cylinder
     for k=1 to Num_Channel
