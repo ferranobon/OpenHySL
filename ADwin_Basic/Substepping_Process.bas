@@ -34,6 +34,7 @@
 #define Order_Input		2       ' Order of the input array = Order + 1
 #define Order_Output		4       ' Order of the output array = 3*Order + 1
 #define Order_Gain		1       ' Order of the gain matrix = Order*Order
+#define Freq_Cut_Fc   		65.0    ' Frequency cut for the coupling forces
 
 ' ADlog related
 #define MaxSubStep		32768	' number of of substeps in whole test
@@ -211,9 +212,11 @@ dim Current_Event   as long             ' Counter for the number of events in a 
 dim ramp  as float                      ' Variable to store the operation Current_Substep/Num_Substep.
 dim ramp0 as float                      ' Variable to store the operation 1.0 - Current_Substep/Num_Substep
 
+dim vi[order] as float                  ' Stores the velocity within a sub-step. Used in the delay compensation.
 dim u0[order] as float                  ' To store the data received from the PC at the previous step
 dim u01[order] as float                 ' To store the data received from the PC at the beginning of the sub-step (current step)
 dim uc[order] as float                  ' Vector to be sent to the PC at the end of each sub-stepping process.
+dim ucprev[order] as float              ' Backup the displacement vector to compute velocity
 dim fcprev[order] as float              ' Vector containing the coupling force measured at Num_Substep - 1
 dim fc[order] as float                  ' Vector containing the coupling force measured at the last sub-step
 
@@ -226,8 +229,9 @@ dim DO_SUB_STEP   as short              ' Variable to identify whether the sub-s
 Rem                                       (value of 0)
 
 dim accExt1,accExt2,accExt3 as float    ' Variables to store the measurement of external accelerometers
+dim alphaRecursiveFilter as float       ' Recursive filter for accelerations and coupling forces
 
-dim Press_pctrl_InitV			' Initial value for the air pressure in the friction device
+dim Press_pctrl_InitV	as float		' Initial value for the air pressure in the friction device
 
 dim beginning_time,ending_time,time_between_substep as float
 dim clock,clock_synPC,clock_synPC_old,clock_do_substep,clock_do_substep_old,clock_beginning_step as long
@@ -343,7 +347,7 @@ EVENT:
       endif
       
       ucprev[1] = uc[1]                           ' Backup the displacement in order to calculate the velocity.
-      uc[1] = ramp0*u0[1] + ramp*u01[1] + Gain[1]*fc[1]
+      uc[1] = ramp0*u0[1] + ramp*u01[1] + Gain_Matrix[1]*fc[1]
       vi[1] = uc[1] - ucprev[1]/dtsub             ' Velocity for delay compensation
       
       Write_Displacement_Signal()
@@ -403,10 +407,6 @@ EVENT:
       
       Current_Substep = Current_Substep + 1 ' Increase the substep counter
       
-      if(TcompSubmax < TcompSub) then
-        TcompSubmax = TcompSub
-      endif
-      
       DO_SUB_STEP = 0                       ' Do not perform any sub-step until the next cycle of events to assure that the
       Rem                                     specified amount of time has passed between to consecutive sub-steps
     endif    
@@ -430,6 +430,8 @@ FINISH:
   
   dtdata = 5.0    ' Reset the new data/measurement time increment to a larger value in seconds
   Rem               to move the hydraulic cylinders slowlier.
+
+  DAC(1,3,((0.0 / 2.0)*32768) + 32768)	' Set the pressure in the friction device to zero
   
   Rem -----------------------------------------------------------------------------------------------------------------------
   Rem ------------------------------------------------- SUB-ROUTINES SECTION ------------------------------------------------
@@ -468,9 +470,9 @@ SUB Init_Variables()
   FcoupY1 = 0.0
   FcoupY2 = 0.0
 
-  fc[1] = 0.0;
-  fcprev[1] = 0.0;
-  ucprev[1] = 0.0;
+  fc[1] = 0.0
+  fcprev[1] = 0.0
+  ucprev[1] = 0.0
   
   accExt1 = 0.0
   accExt2 = 0.0
@@ -529,7 +531,7 @@ SUB ForceMeasurement()
   FcoupY2 = -((ADCF(1,4) - 32768.0) / 32768.0)* 10000 'N
   FcoupX  =  ((ADCF(1,5) - 32768.0) / 32768.0)* 10000 'N  
   
-  alphaRecursiveFilter  = (dtstep/nsub) / ((1.0/fcutFc) + (dtstep/nsub))
+  alphaRecursiveFilter  = (dtstep/Num_Substep) / ((1.0/Freq_Cut_Fc) + (dtstep/Num_Substep))
   FcoupX1 =  FcoupX1Old + alphaRecursiveFilter*(FcoupX - FcoupX1Old)
   FcoupX1Old = FcoupX1
   
@@ -659,10 +661,10 @@ SUB GetAndStoreData_Pre()
   data =  (accctrl2 / (9.8065 * 10.0)) * 2147483647     'accctrl2
   ADlogData1[WritePointer+6] = data
   
-  data =  (accmeas1 / (9.8065 * 10.0)) * 2147483647     'ameas1 by computing dis
+  data =  (ameas1 / (9.8065 * 10.0)) * 2147483647     'ameas1 by computing dis
   ADlogData1[WritePointer+7] = data
   
-  data =  (accmeas2 / (9.8065 * 10.0)) * 2147483647     'ameas2 by computing dis
+  data =  (ameas2 / (9.8065 * 10.0)) * 2147483647     'ameas2 by computing dis
   ADlogData1[WritePointer+8] = data
   
   data =  (accExt1 / (9.8065 * 10.0)) * 2147483647     'acc1
@@ -724,8 +726,8 @@ SUB GetAndStoreData()
   
 
   length = 24
-  i = (jstep-1)*nsub + isub-1
-  j = (((jstep-1)*nsub + isub)  - 1)*length
+  i = (Current_Step-1)*Num_Substep + Current_Substep-1
+  j = (((Current_Step-1)*Num_Substep + Current_Substep)  - 1)*length
   
   DataPC[j+1] = i
 
@@ -754,13 +756,13 @@ SUB GetAndStoreData()
   ADlogData1[WritePointer+6] = data
   DataPC[j+ 7] = accctrl2
   
-  data =  (accmeas1 / (9.8065 * 10.0)) * 2147483647     'ameas1 by computing dis
+  data =  (ameas1 / (9.8065 * 10.0)) * 2147483647     'ameas1 by computing dis
   ADlogData1[WritePointer+7] = data
-  DataPC[j+8] = accmeas1
+  DataPC[j+8] = ameas1
   
-  data =  (accmeas2 / (9.8065 * 10.0)) * 2147483647     'ameas2 by computing dis
+  data =  (ameas2 / (9.8065 * 10.0)) * 2147483647     'ameas2 by computing dis
   ADlogData1[WritePointer+8] = data
-  DataPC[j+9] = accmeas2
+  DataPC[j+9] = ameas2
   
   data =  (accExt1 / (9.8065 * 10.0)) * 2147483647     'acc1
   ADlogData1[WritePointer+9] = data
@@ -935,17 +937,17 @@ SUB Process_Dcomp_Before()
       dCompCheckInitationP()
     endif
   
-    if(jstep<dcompStartPoint) then 
+    if(Current_Step<dcompStartPoint) then 
       dcomphs = 0.0
     else
-      if(jstep<dcompFullPoint) then 
-        dcomphs = (jstep-dcompStartPoint)*dcomphsmax / (dcompFullPoint-dcompStartPoint)
+      if(Current_Step<dcompFullPoint) then 
+        dcomphs = (Current_Step-dcompStartPoint)*dcomphsmax / (dcompFullPoint-dcompStartPoint)
       else
-        if(jstep<dcompDecreasingStep) then
+        if(Current_Step<dcompDecreasingStep) then
           dcomphs = dcomphsmax
         else
-          if(jstep<dcompStopStep) then
-            dcomphs = dcomphsmax * (1.0 - (jstep-dcompDecreasingStep) / (dcompStopStep - dcompDecreasingStep))
+          if(Current_Step<dcompStopStep) then
+            dcomphs = dcomphsmax * (1.0 - (Current_Step-dcompDecreasingStep) / (dcompStopStep - dcompDecreasingStep))
           else 
             dcomphs = 0.0
           endif
@@ -998,7 +1000,7 @@ SUB Process_Dcomp_After()
   'Update model at each delay time period
   if(WithActuator=1) then
     if(jdcomp = dcompndelay) then
-      if(((dcompCompensation = 1) and (jstep>dCompStartPoint)))then
+      if(((dcompCompensation = 1) and (Current_Step>dCompStartPoint)))then
         dCompUpdatemodel()
       endif
       jdcomp = 0
