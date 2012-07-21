@@ -25,6 +25,7 @@ int main ( int argc, char **argv )
      int Length;             /* Length of the data to be transfered */
      int ierr;               /* Error. OpenFresco routines */
      int Is_Not_Finished;    /* To check if the process is finished or not */
+     int Receive_G_Matrix;   /* To receive the Gain matrix instead of normal displacements */
 
      /* Variables required by OpenFresco */
      int iData[11];
@@ -149,22 +150,22 @@ int main ( int argc, char **argv )
 	  ExactSolution_Init( 285, 352.18177, 68000, Cnst.DeltaT_Sub, &Num_TMD );
      } else if ( Mode == USE_UHYDE ){
 	  printf( "Simulating the friction device UHYDE-fbr.\n" );
-	  Simulate_UHYDE_1D_Init( 500.0, 1.0, 9.0, &Num_UHYDE );
+	  Simulate_UHYDE_1D_Init( 0.0002, 0.9, 500.0, &Num_UHYDE );
      } else {
 	  printf( "Simulating the sub-structure using measured values as an input.\n");
 	  /* Do nothing for the moment */
      }
 
      /* The process is not finished. */
-     Is_Not_Finished = 1;  
+     Is_Not_Finished = 1;
      DataTypeSize = sizeof( double );
-     while( Is_Not_Finished ){
-     
+     /* Initialise the openfresco server/controller connection */
+     while ( Recv[0] != 98.0 && Is_Not_Finished ){
 	  Data = (char *) Recv;
 	  recvdata( &Server_Socket, &DataTypeSize, Data, &Length, &ierr );
 
 	  if ( Recv[0] == 2.0 ){
-	       /* TODO */
+	       /* Implement */
 	  } else if ( Recv[0] == 3.0 ){
 	       /* Check if what has been received are the control values */
 	       for ( i = 0; i < Cnst.Order_Couple; i++ ){
@@ -178,21 +179,74 @@ int main ( int argc, char **argv )
 		    /* Run using ADwin */
 		    ADWIN_Substep( u0c, uc, fcprev, fc, Cnst.Order_Couple );
 #endif
-	       } else if ( Mode == USE_EXACT ){
-		    /* Run without ADwin and simulating the substructure using an exact
-		     * solution.
-		     */
-		    Simulate_Substructure( &Num_TMD, Mode, Gc, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
-	       } else if ( Mode == USE_UHYDE ){
-		    /*
-		     * Simulate the UHYDE-fbr without ADwin
-		     */
-		    Simulate_Substructure( &Num_UHYDE, Mode, Gc, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+	       }
+	  } else if ( Recv[0] == 6.0 ){
+	       printf("Received query to send DAQ values\n");
+	       /* Compose the data */
+	       for ( i = 0; i < Cnst.Order_Couple; i++ ){
+		    Send[i] = (double) uc[i];
+		    Send[i + Cnst.Order_Couple] = (double) fcprev[i];
+		    Send[i + 2*Cnst.Order_Couple] = (double) fc[i];
+	       }
+	       Data = (char *) Send;
+	       senddata( &Server_Socket, &DataTypeSize, Data, &Length, &ierr );
+	  } else if ( Recv[0] == 99.0 ){
+	       Is_Not_Finished = 0;
+	       /* End the connection with OpenFresco */
+	       closeconnection( &Server_Socket, &ierr );
+	  }
+     }
+
+     /* Start the distributed test process. The first data to receive 
+      * using control command values is the gain matrix. This is a workaround
+      * to the problem until a better solution to send/receive this matrix
+      * is found */
+     printf( "The setup has finished. Ready to start the test\n" );
+     Receive_G_Matrix = 1;
+     while( Is_Not_Finished ){
+     
+	  Data = (char *) Recv;
+	  recvdata( &Server_Socket, &DataTypeSize, Data, &Length, &ierr );
+
+	  if ( Recv[0] == 3.0 ){
+	       if ( Receive_G_Matrix == 1 ){
+		    printf( "Receiving the Gain Matrix" );
+		    Receive_G_Matrix = 0;   /* The gain matrix will be received no more */
+		    for ( i = 0; i < Cnst.Order_Couple*Cnst.Order_Couple; i++ ){
+			 printf("Received control values values\n");
+			 Gc[i] = (float) Recv[1+i];
+			 printf("Gc %e\n", Gc[0] );
+		    }
 	       } else {
-		    /* Run without ADwin and simulating the substructure using measured
-		     * values of the coupling force.
-		     */
-		    Simulate_Substructure_Measured_Values( "fc.txt", Gc, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub );
+		    /* Check if what has been received are the control values */
+		    for ( i = 0; i < Cnst.Order_Couple; i++ ){
+			 printf("Received control values values\n");
+			 u0c[i] = (float) Recv[1+i];
+		    }
+	       
+
+		    /* Perform the substepping process */
+		    if ( Mode == USE_ADWIN ){
+#if ADWIN_
+			 /* Run using ADwin */
+			 ADWIN_Substep( u0c, uc, fcprev, fc, Cnst.Order_Couple );
+#endif
+		    } else if ( Mode == USE_EXACT ){
+			 /* Run without ADwin and simulating the substructure using an exact
+			  * solution.
+			  */
+			 Simulate_Substructure( &Num_TMD, Mode, Gc, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+		    } else if ( Mode == USE_UHYDE ){
+			 /*
+			  * Simulate the UHYDE-fbr without ADwin
+			  */
+			 Simulate_Substructure( &Num_UHYDE, Mode, Gc, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+		    } else {
+			 /* Run without ADwin and simulating the substructure using measured
+			  * values of the coupling force.
+			  */
+			 Simulate_Substructure_Measured_Values( "fc.txt", Gc, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub );
+		    }
 	       }
 
 	  } else if ( Recv[0] == 6.0 ){
