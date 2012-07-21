@@ -354,6 +354,9 @@ void Send_Effective_Matrix( const float *const Eff_Mat, const int Protocol_Type,
 	  if ( Communicate_With_OpenFresco( Eff_Mat, Recv, OrderC*OrderC, 1 ) < 0 ){
 	       exit( EXIT_FAILURE );
 	  }
+	  if ( Communicate_With_OpenFresco( Eff_Mat, Recv, OrderC*OrderC, 3 ) < 0 ){
+	       exit( EXIT_FAILURE );
+	  }
 	  /* TODO Implement Send the Matrix G in OpenFresco. Wait for the answer from Andreas */
 	  break;
      }

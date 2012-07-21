@@ -77,7 +77,7 @@ int Communicate_With_OpenFresco( const float *const Data_To_Send, float *const D
 	  iData[4] = 0;      /* Time */
 	  /* sizeDaq */
 	  iData[5] = Size;   /* Displacement */
-	  iData[6] = 0;      /* Velocity */
+	  iData[6] = Size;   /* Velocity. This is done so that we can send a vector of size 3 */
 	  iData[7] = 0;      /* Acceleration */
 	  iData[8] = 2*Size; /* Force */
 	  iData[9] = 0;      /* Time */
@@ -117,7 +117,7 @@ int Communicate_With_OpenFresco( const float *const Data_To_Send, float *const D
 	  nleft = DataSize;
 	  recvdata( &SocketID, &DataTypeSize, gMsg, &nleft, &ierr );
 
-	  for ( i = 0; i < 3*Size; i++ ){
+	  for ( i = 0; i < Size; i++ ){
 	       Data_To_Receive[i]= (float) rData[i];
 	       Data_To_Receive[i + Size]= (float) rData[i + Size];
 	       Data_To_Receive[i + 2*Size]= (float) rData[i + 2*Size];
