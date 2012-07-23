@@ -99,36 +99,43 @@ void EffK_ComputeU0( const MatrixVector *const Eff_Force, const MatrixVector *co
      ssymv_( &uplo, &Tempvec->Rows, &Alpha, Keinv->Array, &Tempvec->Rows, Tempvec->Array, &incx, &Beta, Disp0->Array, &incy );
 }
 
-void CreateVectorXm( const MatrixVector *const VectorX, MatrixVector *const VectorXm, const int PosCouple, const int OrderC )
+void CreateVectorXm( const MatrixVector *const VectorX, MatrixVector *const VectorXm, const Coupling_Node *const CNodes )
 {
 
 	static int incx, incy;
 	static int length;
 	static int posX, posXm;
+	static int icoup;    /* Counter for the coupling nodes */
+	static int OrderC;   /* Order of the consecutive coupling nodes */
 
 	incx = 1; incy = 1;
-
-	/* Copy the first part of the vector (from 1 to position PosCoupl -1) */
-	length = PosCouple - 1;
-	scopy_( &length, (*VectorX).Array, &incx, (*VectorXm).Array, &incy );
-
-	/* Copy the second part of the vector (from position PosCoupl + 1 until the end) */
-	length = (*VectorX).Rows - (PosCouple + OrderC - 1);
-	posX = PosCouple + OrderC - 1;
-	posXm = PosCouple - 1;
-
-	scopy_( &length, &(*VectorX).Array[posX], &incx, &(*VectorXm).Array[posXm], &incy );
+	for( icoup = 0; icoup < CNodes->Order; icoup++ ){
+	     OrderC = 1;
+	     /* Copy the first part of the vector (from 1 to position PosCoupl -1) */
+	     length = CNodes->Array[icoup] -1;
+	     scopy_( &length, (*VectorX).Array, &incx, (*VectorXm).Array, &incy );
+	     
+	     /* Copy the second part of the vector (from position PosCoupl + 1 until the end) */
+	     length = (*VectorX).Rows - (CNodes->Array[icoup] + OrderC - 1);
+	     posX = CNodes->Array[icoup] + OrderC - 1;
+	     posXm = CNodes->Array[icoup] - 1;
+	     
+	     scopy_( &length, &(*VectorX).Array[posX], &incx, &(*VectorXm).Array[posXm], &incy );
+	}
 
 }
 
-void CreateVectorXc( const MatrixVector *const VecX, float *VecXc, const int PosCouple, int OrderC )
+void CreateVectorXc( const MatrixVector *const VecX, float *VecXc, const Coupling_Node *const CNodes )
 {
-
-
+	static int icoup;    /* Counter for the coupling nodes */
+	static int OrderC;   /* Order of the consecutive coupling nodes */
 	static int incx, incy;
 
 	incx = 1; incy = 1;
 
-	scopy_( &OrderC, &(*VecX).Array[PosCouple - 1], &incx, VecXc, &incy );
+	for( icoup = 0; icoup < CNodes->Order; icoup++ ){
+	     OrderC = 1;
+	     scopy_( &OrderC, &(*VecX).Array[CNodes->Array[icoup] - 1], &incx, VecXc, &incy );
+	}
 }
 

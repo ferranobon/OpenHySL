@@ -16,6 +16,7 @@
 #define COMPUTEU0_H_
 
 #include "MatrixVector.h"
+#include "Initiation.h"
 
 /**
  * \brief Calculate force vector.
@@ -75,15 +76,14 @@ void EffK_ComputeU0( const MatrixVector *const Eff_Force, const MatrixVector *co
  * \param[in] VectorX The global vector.
  * \param[in,out] VectorXm The vector that will contain the non-coupling elements of \c VectorX. As an input,
  * only the size of the vector is referenced, not its elements.
- * \param[in] PosCouple The position of the first coupling node.
- * \param[in] OrderC The number of coupling nodes. In case that \f$OrderC > 1\f$, the routine assumes that they are consecutive.
+ * \param[in] CNodes Structure containing the coupling nodes.
  *
  * \post
  * - \c VectorXm contains only the non-coupling nodes of \c Vec.
  *
  * \sa MatrixVector.
  */
-void CreateVectorXm( const MatrixVector *const VectorX, MatrixVector *const VectorXm, const int PosCouple, const int OrderC );
+void CreateVectorXm( const MatrixVector *const VectorX, MatrixVector *const VectorXm, const Coupling_Node *const CNodes );
 
 /**
  * \brief Copies the coupling part a vector.
@@ -100,14 +100,13 @@ void CreateVectorXm( const MatrixVector *const VectorX, MatrixVector *const Vect
  *
  * \param[in] VecX The global vector.
  * \param[out] VecXc The vector that will contain the coupling elements of \c VectorX.
- * \param[in] PosCouple The position of the first coupling node.
- * \param[in] OrderC The number of coupling nodes. In case that \f$OrderC > 1\f$, the routine assumes that they are consecutive.
+ * \param[in] CNodes Structure containing the coupling nodes.
  *
  * \post
  * - \c VectorXc contains only the coupling nodes of \c Vec.
  *
  * \sa MatrixVector.
  */
-void CreateVectorXc( const MatrixVector *const VecX, float *VecXc, const int PosCouple, int OrderC );
+void CreateVectorXc( const MatrixVector *const VecX, float *VecXc, const Coupling_Node *const CNodes );
 
 #endif /* COMPUTEU0_H_ */

@@ -55,6 +55,17 @@ typedef struct {
 } NewmarkConst;
 
 /**
+ * \brief Structure to store the coupling nodes.
+ * 
+ * This structure is used in order to store the coupling nodes that will be used
+ * during a test. The nodes are stored sequentially and in increasing order.
+ */
+typedef struct {
+     int *Array;  /*!< \brief Array containing the coupling nodes */
+     int Order;   /*!< \brief Number of coupling nodes */
+} Coupling_Node;
+
+/**
  * \brief Structure to wrap constants and filenames.
  *
  * This structure stores several constants that will be used in different parts of the substructure
@@ -69,10 +80,8 @@ typedef struct {
 
      int Order;               /*!< \brief Order of the matrices */
 
-     int OrderC;              /*!< \brief Number of coupling DOF */
-     int PosCouple;           /*!< \brief Position of the coupling DOF */
-
      unsigned int Nstep;               /*!< \brief Number of steps */
+
      int Use_Absolute_Values; /*!< \brief Variable to control whether to use absolute values in the equation of motion or relative values. Affects how the input load is calculated */
      float Delta_t;           /*!< \brief Time increment \f$\Delta t\f$ */
 
@@ -100,6 +109,7 @@ typedef struct {
      const char* FileK;       /*!< \brief Stores the name of the file that contains the Stiffness Matrix */
      const char* FileC;       /*!< \brief Stores the name of the file that contains the Damping Matrix */
      const char* FileLVector; /*!< \brief Stores the name of the file that contains the vector used for the load. This vector usually contains 1 and 0 */
+     const char* FileCNodes;  /*!< \brief Stores the name of the file that contains the vector of coupling nodes. */
      const char* FileData;    /*!< \brief Stores the name of the file that contains displacement, velocity and acceleration */
 
      /* Information regarding the type of communication */
@@ -143,6 +153,26 @@ void InitConstants( AlgConst *const AConst );
  * - -1 if the desired protocol is not recognised.
  */
 int Get_Type_Protocol( void );
+
+/**
+ * \brief Reads the coupling nodes from a file.
+ *
+ * The coupling nodes are read from a file and stored sequentially in a dynamically
+ * allocated array. The first number of the file must be always the number of 
+ * coupling nodes to be readen.
+ * 
+ * \pre - The file must be an ASCII file with the first value meaning the number
+ * of nodes to be read.
+ * - The datastructure Coupling_Nodes should not be initialised, since this is done
+ * in this routine.
+ *
+ * \param[out] CNodes Data structure to store both: the number of coupling nodes and
+ * a list of them.
+ * \param[in] Filename The name of the file to be opened.
+ *
+ * \post CNodes must contain a list of the coupling nodes and the number of them.
+ */
+void Read_Coupling_Nodes( Coupling_Node *const CNodes, const char *Filename );
 
 /**
  * \brief Construction of Proportional Viscous Damping Matrix using Rayleigh Damping.
@@ -221,7 +251,7 @@ void CalculateMatrixG( MatrixVector *const Gain, const MatrixVector *const Meinv
  *
  * \param[in] Mat The matrix that will be decoupled.
  * \param[out] MatCouple The matrix where the coupling nodes are saved.
- * \param[in] PosCpl The position of the first coupling node.
+ * \param[in] CNodes Structure containing the coupling nodes.
  * \param[in] OrderC The number of coupling nodes. In case that \f$OrderC > 1\f$, the routine assumes that they are consecutive.
  *
  * \post \c MatCouple is a symmetrical matrix \f$OrderC\cdot OrderC\f$ in general storage that contains the coupling nodes.
@@ -229,7 +259,7 @@ void CalculateMatrixG( MatrixVector *const Gain, const MatrixVector *const Meinv
  * \sa MatrixVector.
  *
  */
-void BuildMatrixXc( const MatrixVector *const Mat, float *MatCouple, const int PosCpl, const int OrderC );
+void BuildMatrixXc( const MatrixVector *const Mat, float *MatCouple, const Coupling_Node *const CNodes );
 
 /**
  * \brief Construction of the non-coupling part of the row where the Coupling node is located.
@@ -245,14 +275,13 @@ void BuildMatrixXc( const MatrixVector *const Mat, float *MatCouple, const int P
  *
  * \param[in] Mat The matrix that will be decoupled.
  * \param[in,out] VecXcm The matrix where the non-coupling elemets of a row with a couping node are stored.
- * \param[in] PosCpl The position of the first coupling node.
- * \param[in] OrderC The number of coupling nodes. In case that \f$OrderC > 1\f$, the routine assumes that they are consecutive.
+ * \param[in] CNodes Structure containing the coupling nodes.
  *
  * \post \c VecXcm is a general matrix of size \f$size = (Order - OrderC)\cdot OrderC\f$ with the non-coupling elements of the row with a coupling node.
  *
  * \sa MatrixVector.
  */
-void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const VecXcm, const int PosCpl, const int OrderC );
+void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const VecXcm,  const Coupling_Node *const CNodes );
 
 
 #endif /* INITIATION_H_ */
