@@ -207,7 +207,6 @@ void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const 
 void BuildMatrixXc( const MatrixVector *const Mat, float *MatCouple, const Coupling_Node *const CNodes )
 {
 
-
      int icoup;    /* Counter for the coupling nodes */
      int jcoup;    /* Another counter */
      
