@@ -67,6 +67,36 @@ void Init_MatrixVector( MatrixVector *Mat, const int Rows, const int Cols );
  */
 void MatrixVector_From_File( MatrixVector *const Mat, const char *Filename );
 
+
+/**
+ * \brief Reads a sparse matrix/vector from a file and stores it in dense format.
+ *
+ * A sparse matrix/vector will be read from a file and it will be stored in dense
+ * format. The file must be formatted as follows, and the row and column number must
+ * begin at zero:
+ *
+ * 0:0:45.2700
+ * 1:1:67.8991
+ * 5:0:51.2414
+ * ...
+ *
+ * Note that the order of the elements does not matter in this case. This routine
+ * will read the contents within the file until it reaches the end, making use of
+ * the feof() function. Therefore it is important to make sure that the amount of 
+ * dynamically allocated memory is enough to handle properly the contents of the
+ * file.
+ *
+ * \pre
+ * - The file is supposed to be an ASCII file with the format mentioned above.
+ * - The data structure MatrixVector should be properly initialised through the Init_MatrixVector() routine.
+ *
+ * \param[in,out] Mat The matrix or vector where the content of the file will be
+ * stored in a dense format.
+ * \param[in] Filename The name of the file to be opened.
+ *
+ * \sa MatrixVector.
+ */
+void MatrixVector_From_File_Sp2Dense( MatrixVector *const Mat, const char *Filename );
 /**
  * \brief Sets all the elements to the desired value
  *
