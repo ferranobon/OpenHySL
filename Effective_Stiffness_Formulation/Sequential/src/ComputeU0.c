@@ -122,7 +122,6 @@ void CreateVectorXm( const MatrixVector *const VectorX, MatrixVector *const Vect
 	/* Copy the elements from the last position until the end of the vector */
 	Length = VectorX->Rows - CNodes->Array[CNodes->Order-1];
 	scopy_( &Length, &VectorX->Array[PosX], &incx, &VectorXm->Array[PosXm], &incy );
-
 }
 
 void CreateVectorXc( const MatrixVector *const VecX, float *VecXc, const Coupling_Node *const CNodes )

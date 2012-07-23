@@ -377,7 +377,11 @@ void Send_Effective_Matrix( float *const Eff_Mat, const int Protocol_Type, const
      free( Recv );
 }
 
+<<<<<<< HEAD
 void Do_Substepping( float *const DispTdT0_c, float *const DispTdT, float *const fcprevsub, float *const fc, const int Protocol_Type, const float Time, const int Socket, const unsigned int OrderC, const unsigned int *Pos_Couple )
+=======
+void Do_Substepping( const float *const DispTdT0_c, float *const DispTdT, float *const fcprevsub, float *const fc, const int Protocol_Type, const float Time, const int Socket, const int OrderC, const int *Pos_Couple )
+>>>>>>> Added support for non-consecutive coupling nodes.
 {
 
      unsigned int i;
@@ -420,9 +424,15 @@ void Do_Substepping( float *const DispTdT0_c, float *const DispTdT, float *const
      }
 
      for ( i = 0; i < OrderC; i++ ){
+<<<<<<< HEAD
 	  DispTdT[Pos_Couple[i] - 1] = Recv[i];
 	  fcprevsub[i] = Recv[OrderC + i];
 	  fc[Pos_Couple[i] - 1] = Recv[2*OrderC + i];
+=======
+	  DispTdT[(Pos_Couple[i] - 1) + i] = Recv[i];
+	  fcprevsub[(Pos_Couple[i] - 1) + i] = Recv[OrderC + i];
+	  fc[(Pos_Couple[i] - 1 ) + i] = Recv[2*OrderC + i];
+>>>>>>> Added support for non-consecutive coupling nodes.
      }
 
      free( Recv );

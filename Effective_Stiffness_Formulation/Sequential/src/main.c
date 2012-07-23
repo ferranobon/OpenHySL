@@ -208,7 +208,7 @@ int main( int argc, char **argv )
 
      BuildMatrixXc( &Keinv, Keinv_c.Array, &CNodes );
      BuildMatrixXcm( &Keinv, &Keinv_m, &CNodes );
-  
+
      /* Send the coupling part of the effective matrix */
      Send_Effective_Matrix( Keinv_c.Array, InitCnt.Type_Protocol, (unsigned int) CNodes.Order, &Socket );
 
@@ -293,6 +293,7 @@ int main( int argc, char **argv )
 	  Compute_Force_Error( &M, &C, &K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &fu );
 
 	  /* Output variables */
+
 	  TimeHistoryli[istep - 1] = LoadTdT.Array[30];
 	  TimeHistoryai1[istep - 1] = AccTdT.Array[30];
 	  TimeHistoryai[istep - 1] = AccT.Array[30];
@@ -302,7 +303,6 @@ int main( int argc, char **argv )
 	  TimeHistoryui[istep - 1] = DispT.Array[30];
 	  TimeHistoryfc[istep - 1] = fc.Array[30];
 	  TimeHistoryfu[istep - 1] = fu.Array[30];
-	  
 
 	  /* Backup vectors */
 	  scopy_( &LoadTdT1.Rows, LoadTdT1.Array, &incx, LoadTdT.Array, &incy ); /* li = li1 */
@@ -327,8 +327,9 @@ int main( int argc, char **argv )
      fclose( OutputFile );
      printf("3\n");
      /* Close the Connection */
+
      Close_Connection( &Socket, InitCnt.Type_Protocol, (unsigned int) CNodes.Order, InitCnt.Nstep, 4 );
-   
+
      /* Free the memory stored in TimeHistory variables */
      free( TimeHistoryli );
      free( TimeHistoryvi1 );
