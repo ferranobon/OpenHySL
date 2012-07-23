@@ -365,7 +365,7 @@ void Send_Effective_Matrix( const float *const Eff_Mat, const int Protocol_Type,
      free( Recv );
 }
 
-void Do_Substepping( const float *const DispTdT0_c, float *const DispTdT, float *const fcprevsub, float *const fc, const int Protocol_Type, const float Time, const int Socket, const int OrderC, const int Pos_Couple )
+void Do_Substepping( const float *const DispTdT0_c, float *const DispTdT, float *const fcprevsub, float *const fc, const int Protocol_Type, const float Time, const int Socket, const int OrderC, const int *Pos_Couple )
 {
 
      int i;
@@ -409,9 +409,9 @@ void Do_Substepping( const float *const DispTdT0_c, float *const DispTdT, float 
      }
 
      for ( i = 0; i < OrderC; i++ ){
-	  DispTdT[(Pos_Couple - 1) + i] = Recv[i];
-	  fcprevsub[(Pos_Couple - 1) + i] = Recv[OrderC + i];
-	  fc[(Pos_Couple - 1 ) + i] = Recv[2*OrderC + i];
+	  DispTdT[(Pos_Couple[i] - 1) + i] = Recv[i];
+	  fcprevsub[(Pos_Couple[i] - 1) + i] = Recv[OrderC + i];
+	  fc[(Pos_Couple[i] - 1 ) + i] = Recv[2*OrderC + i];
      }
 
      free( Recv );

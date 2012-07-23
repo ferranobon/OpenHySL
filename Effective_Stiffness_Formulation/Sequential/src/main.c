@@ -59,6 +59,8 @@ int main( int argc, char **argv )
 
      MatrixVector Disp, Vel, Acc;
 
+     Coupling_Node CNodes;
+
      time_t clock;
 
      /* TCP socket connection Variables */
@@ -124,6 +126,9 @@ int main( int argc, char **argv )
      /* Constants definitions. */
      InitConstants( &InitCnt );
 
+     /* Read the coupling nodes from a file */
+     Read_Coupling_Nodes( &CNodes, InitCnt.FileCNodes );
+
      /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will
       * be used during the test */
      AccAll = calloc( InitCnt.Nstep, sizeof(float) );
@@ -149,8 +154,8 @@ int main( int argc, char **argv )
      Init_MatrixVector( &C, InitCnt.Order, InitCnt.Order );
      Init_MatrixVector( &Keinv, InitCnt.Order, InitCnt.Order );
  
-     Init_MatrixVector( &Keinv_c, InitCnt.OrderC, InitCnt.OrderC );
-     Init_MatrixVector( &Keinv_m, InitCnt.Order - InitCnt.OrderC, InitCnt.OrderC );
+     Init_MatrixVector( &Keinv_c, CNodes.Order, CNodes.Order );
+     Init_MatrixVector( &Keinv_m, InitCnt.Order - CNodes.Order, CNodes.Order );
 
      Init_MatrixVector( &tempvec, InitCnt.Order, 1 );
 
@@ -158,8 +163,8 @@ int main( int argc, char **argv )
      Init_MatrixVector( &DispTdT0, InitCnt.Order, 1 );
      Init_MatrixVector( &DispTdT, InitCnt.Order, 1 );
 
-     Init_MatrixVector( &DispTdT0_c, InitCnt.OrderC, 1 );
-     Init_MatrixVector( &DispTdT0_m, InitCnt.Order-InitCnt.OrderC, 1 );
+     Init_MatrixVector( &DispTdT0_c, CNodes.Order, 1 );
+     Init_MatrixVector( &DispTdT0_m, InitCnt.Order-CNodes.Order, 1 );
 
      Init_MatrixVector( &VelT, InitCnt.Order, 1 );
      Init_MatrixVector( &VelTdT, InitCnt.Order, 1 );
@@ -197,11 +202,11 @@ int main( int argc, char **argv )
      Constants.Gamma = InitCnt.a1;
      CalculateMatrixKeinv( &Keinv, &M, &C, &K, Constants );
 
-     BuildMatrixXc( &Keinv, Keinv_c.Array, InitCnt.PosCouple, InitCnt.OrderC );
-     BuildMatrixXcm( &Keinv, &Keinv_m, InitCnt.PosCouple, InitCnt.OrderC );
+     BuildMatrixXc( &Keinv, Keinv_c.Array, &CNodes );
+     BuildMatrixXcm( &Keinv, &Keinv_m, &CNodes );
 
      /* Send the coupling part of the effective matrix */
-     Send_Effective_Matrix( Keinv_c.Array, InitCnt.Type_Protocol, InitCnt.OrderC, &Socket );
+     Send_Effective_Matrix( Keinv_c.Array, InitCnt.Type_Protocol, CNodes.Order, &Socket );
 
      /* Read the earthquake data from a file */
      if( InitCnt.Use_Absolute_Values ){
@@ -248,12 +253,12 @@ int main( int argc, char **argv )
 
 
 	  /* Split DispTdT into coupling and non-coupling part */
-	  CreateVectorXm( &DispTdT0, &DispTdT0_m, InitCnt.PosCouple, InitCnt.OrderC );
-	  CreateVectorXc( &DispTdT0, DispTdT0_c.Array, InitCnt.PosCouple, InitCnt.OrderC );
+	  CreateVectorXm( &DispTdT0, &DispTdT0_m, &CNodes );
+	  CreateVectorXc( &DispTdT0, DispTdT0_c.Array, &CNodes );
 
 	  /* Perform substepping */
 	  Do_Substepping( DispTdT0_c.Array, DispTdT.Array, fcprevsub.Array, fc.Array, InitCnt.Type_Protocol,
-			  InitCnt.Delta_t*istep, Socket, InitCnt.OrderC, InitCnt.PosCouple );
+			  InitCnt.Delta_t*istep, Socket, CNodes.Order, CNodes.Array  );
 	  
 	  if ( istep < InitCnt.Nstep ){
 	       /* Calculate the input load for the next step during the
@@ -271,7 +276,7 @@ int main( int argc, char **argv )
 
 	  /* Join the non-coupling part. DispTdT_m = Keinv_m*fc + DispTdT0_m. Although DispTdT0_m is what has been received from the other computer,
 	     it has the name of DispTdT_m to avoid further operations if using the NETLIB libraries. */
-	  JoinNonCouplingPart( &DispTdT0_m, &Keinv_m, &fcprevsub, &DispTdT, InitCnt.PosCouple, InitCnt.OrderC );
+	  JoinNonCouplingPart( &DispTdT0_m, &Keinv_m, &fcprevsub, &DispTdT, &CNodes );
 
 	  /* Compute acceleration ai1 = a0*(ui1 -ui) - a2*vi -a3*ai */
 	  Compute_Acceleration( &DispTdT, &DispT, &VelT, &AccT, InitCnt.a0, InitCnt.a2, InitCnt.a3, &AccTdT );
@@ -283,15 +288,17 @@ int main( int argc, char **argv )
 	  Compute_Force_Error( &M, &C, &K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &fu );
 
 	  /* Output variables */
-	  TimeHistoryli[istep - 1] = LoadTdT.Array[InitCnt.PosCouple - 1];
-	  TimeHistoryai1[istep - 1] = AccTdT.Array[InitCnt.PosCouple - 1];
-	  TimeHistoryai[istep - 1] = AccT.Array[InitCnt.PosCouple - 1];
-	  TimeHistoryvi1[istep - 1] = VelTdT.Array[InitCnt.PosCouple - 1];
-	  TimeHistoryvi[istep - 1] = VelT.Array[InitCnt.PosCouple - 1];
-	  TimeHistoryui1[istep - 1] = DispTdT.Array[InitCnt.PosCouple - 1];
-	  TimeHistoryui[istep - 1] = DispT.Array[InitCnt.PosCouple - 1];
-	  TimeHistoryfc[istep - 1] = fc.Array[InitCnt.PosCouple - 1];
-	  TimeHistoryfu[istep - 1] = fu.Array[InitCnt.PosCouple - 1];
+	  for( i = 0; i < CNodes.Order; i++ ){
+	       TimeHistoryli[istep - 1] = LoadTdT.Array[CNodes.Array[i] - 1];
+	       TimeHistoryai1[istep - 1] = AccTdT.Array[CNodes.Array[i] - 1];
+	       TimeHistoryai[istep - 1] = AccT.Array[CNodes.Array[i] - 1];
+	       TimeHistoryvi1[istep - 1] = VelTdT.Array[CNodes.Array[i] - 1];
+	       TimeHistoryvi[istep - 1] = VelT.Array[CNodes.Array[i] - 1];
+	       TimeHistoryui1[istep - 1] = DispTdT.Array[CNodes.Array[i] - 1];
+	       TimeHistoryui[istep - 1] = DispT.Array[CNodes.Array[i] - 1];
+	       TimeHistoryfc[istep - 1] = fc.Array[CNodes.Array[i] - 1];
+	       TimeHistoryfu[istep - 1] = fu.Array[CNodes.Array[i] - 1];
+	  }
 
 	  /* Backup vectors */
 	  scopy_( &LoadTdT1.Rows, LoadTdT1.Array, &incx, LoadTdT.Array, &incy ); /* li = li1 */
@@ -316,7 +323,7 @@ int main( int argc, char **argv )
      fclose( OutputFile );
 
      /* Close the Connection */
-     Close_Connection( &Socket, InitCnt.Type_Protocol, InitCnt.OrderC, InitCnt.Nstep, 4 );
+     Close_Connection( &Socket, InitCnt.Type_Protocol, CNodes.Order, InitCnt.Nstep, 4 );
    
      /* Free the memory stored in TimeHistory variables */
      free( TimeHistoryli );
@@ -336,6 +343,9 @@ int main( int argc, char **argv )
 	  free( VelAll );
 	  free( DispAll );
      }
+
+     /* Free the coupling nodes memory */
+     free( CNodes.Array );
 
      /* Destroy the data structures */
      Destroy_MatrixVector( &M );

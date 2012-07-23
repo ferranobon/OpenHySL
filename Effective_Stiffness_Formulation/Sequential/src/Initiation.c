@@ -29,10 +29,6 @@ void InitConstants( AlgConst *const InitConst )
      /* Order of the matrices */
      (*InitConst).Order = 33;
 
-     /* Order of the coupling nodes and their starting position */
-     (*InitConst).OrderC = 1;
-     (*InitConst).PosCouple = 31;
-
      /* Number of steps and Time step */
      (*InitConst).Nstep = 4096;
      (*InitConst).Delta_t = 0.01;
@@ -71,6 +67,7 @@ void InitConstants( AlgConst *const InitConst )
      (*InitConst).FileK = "33K.txt";
      (*InitConst).FileC = "33C.txt";
      (*InitConst).FileLVector = "33LV.txt";
+     (*InitConst).FileCNodes = "Couple_Nodes.txt";
      (*InitConst).FileData = "GroundMovement.txt";
 
      /* Get the communication protocol to be used */
@@ -99,6 +96,31 @@ int Get_Type_Protocol( )
      } else {
 	  return -1;
      }
+}
+
+void Read_Coupling_Nodes( Coupling_Node *const CNodes, const char *Filename )
+{
+     FILE *InFile;
+     int i;
+     
+     InFile = fopen( Filename, "r" );
+
+     if ( InFile != NULL ){
+	  /* The first value should be the number of Coupling nodes */
+	  fscanf( InFile, "%i", &CNodes->Order );
+	  
+	  /* Allocate the necessary memory */
+	  CNodes->Array = (int *) calloc( CNodes->Order, sizeof(int) );
+	  
+	  /* Read the contents of the file */
+	  for( i = 0; i < CNodes->Order; i++ ){
+	       fscanf( InFile, "%i", &CNodes->Array[i] );
+	  }
+
+	  /* Close the file */
+	  fclose( InFile );
+     } else ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
+
 }
 
 void CalculateMatrixC( const MatrixVector *const Mass, const MatrixVector *const Stif, MatrixVector *const Damp, const RayleighConst *const Rayleigh )
@@ -182,32 +204,38 @@ void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const 
 
 }
 
-void BuildMatrixXc( const MatrixVector *const Mat, float *MatCouple, const int PosCpl, const int OrderC )
+void BuildMatrixXc( const MatrixVector *const Mat, float *MatCouple, const Coupling_Node *const CNodes )
 {
 
      int i, j, m;
      int GRowIndex, GColIndex;
-
-     j = 0;
-     for (i = 0; i < OrderC; i++){
-
-	  GRowIndex = PosCpl + i;
-	  GColIndex = PosCpl + j;
-
-	  MatCouple[i*OrderC + j] = (*Mat).Array[(GRowIndex - 1) + (*Mat).Rows*(GColIndex - 1)];
-
-	  for (m = 1; m < OrderC -i; m++){
-
-	       GColIndex = PosCpl + j + m;
-
-	       MatCouple[i*OrderC + j + m] = (*Mat).Array[(GRowIndex - 1) + (*Mat).Cols*(GColIndex - 1)];
-	       MatCouple[i*OrderC + j + m*OrderC] = MatCouple[i*OrderC + j + m];
+     int icoup;    /* Counter for the coupling nodes */
+     int OrderC;   /* Order of the consecutive coupling nodes */
+     
+     for( icoup = 0; icoup < CNodes->Order; icoup++ ){
+	  /* For the moment all the coupling nodes will be treated separately */
+	  OrderC = 1;
+	  j = 0;
+	  for (i = 0; i < OrderC; i++){
+	       
+	       GRowIndex = CNodes->Array[icoup] + i;
+	       GColIndex = CNodes->Array[icoup] + j;
+	       
+	       MatCouple[i*OrderC + j] = (*Mat).Array[(GRowIndex - 1) + (*Mat).Rows*(GColIndex - 1)];
+	       
+	       for (m = 1; m < OrderC -i; m++){
+		    
+		    GColIndex = CNodes->Array[icoup] + j + m;
+		    
+		    MatCouple[i*OrderC + j + m] = (*Mat).Array[(GRowIndex - 1) + (*Mat).Cols*(GColIndex - 1)];
+		    MatCouple[i*OrderC + j + m*OrderC] = MatCouple[i*OrderC + j + m];
+	       }
+	       j = j + 1;
 	  }
-	  j = j + 1;
      }
 }
 
-void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const VecXcm, const int PosCpl, const int OrderC )
+void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const VecXcm, const Coupling_Node *const CNodes )
 {
 
      int i, j;  /* Counters */
@@ -215,34 +243,39 @@ void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const VecXcm, 
      int GRowIndex, GColIndex;
      int GRowIndexXcm, GColIndexXcm;
      int aux;
+     int icoup;    /* Counter for the coupling nodes */
+     int OrderC;   /* Order of the consecutive coupling nodes */
 
-     for ( i = 0; i < OrderC; i++ ){
-	  for( j = 0; j < PosCpl -1; j++ ){
-	       GRowIndex = PosCpl + i;
-	       GColIndex = j + 1;
-
-	       GRowIndexXcm = j + 1;
-	       GColIndexXcm = i + 1;
-
-	       (*VecXcm).Array[(GColIndexXcm -1)*(*VecXcm).Rows + (GRowIndexXcm -1)] = (*Mat).Array[(GRowIndex - 1) + (*Mat).Rows*(GColIndex - 1)];
+     for( icoup = 0; icoup < CNodes->Order; icoup++ ){
+	  OrderC = 1;
+	  for ( i = 0; i < OrderC; i++ ){
+	       for( j = 0; j < CNodes->Array[icoup] -1; j++ ){
+		    GRowIndex = CNodes->Array[icoup] + i;
+		    GColIndex = j + 1;
+		    
+		    GRowIndexXcm = j + 1;
+		    GColIndexXcm = i + 1;
+		    
+		    (*VecXcm).Array[(GColIndexXcm -1)*(*VecXcm).Rows + (GRowIndexXcm -1)] = (*Mat).Array[(GRowIndex - 1) + (*Mat).Rows*(GColIndex - 1)];
+	       }
 	  }
-     }
+	  
+	  aux = GRowIndexXcm;
+	  
+	  for ( j = 0; j < OrderC; j++ ){
+	       
+	       GRowIndexXcm = aux;
+	       
+	       for ( i = 0; i < (*Mat).Rows - (CNodes->Array[icoup] + OrderC - 1); i++ ){
 
-     aux = GRowIndexXcm;
-
-     for ( j = 0; j < OrderC; j++ ){
-
-	  GRowIndexXcm = aux;
-
-	  for ( i = 0; i < (*Mat).Rows - (PosCpl + OrderC - 1); i++ ){
-
-	       GRowIndex = PosCpl + OrderC + i;
-	       GColIndex = PosCpl + j;
+	       GRowIndex = CNodes->Array[icoup] + OrderC + i;
+	       GColIndex = CNodes->Array[icoup] + j;
 
 	       GRowIndexXcm = GRowIndexXcm + 1;
 
 	       (*VecXcm).Array[(GColIndexXcm -1)*(*VecXcm).Rows + (GRowIndexXcm -1)] = (*Mat).Array[(GRowIndex - 1) + (*Mat).Rows*(GColIndex - 1)];
+	       }
+	       GColIndexXcm = GColIndexXcm + 1;
 	  }
-	  GColIndexXcm = GColIndexXcm + 1;
      }
 }

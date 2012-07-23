@@ -56,6 +56,27 @@ void MatrixVector_From_File( MatrixVector *const Mat, const char *Filename )
 
 }
 
+void MatrixVector_From_File_Sp2Dense( MatrixVector *const Mat, const char *Filename )
+{
+     FILE *InFile;  /* Input file */
+     int i, j;      /* Indexes of the position within the matrix of the readen value */
+     char d;        /* Dump character between two values */
+     float Value;   /* Value to be saved in the position (i,j) of the matrix */
+
+
+     InFile = fopen( Filename, "r" );
+
+     if( InFile != NULL ){
+	  while( !feof(InFile) ) {    /* Returns true once the end of the file has been reached */
+	       fscanf( InFile, "%i%c%i%c%f", &i, &d, &j, &d, &Value );
+	       Mat->Array[i*Mat->Cols + j] = Value;
+	  }
+	  /* The program has reached the end of the file */
+	  fclose( InFile );
+     } else ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
+}
+	  
+
 void Set2Value( MatrixVector *const Mat, const float Value )
 {
 
