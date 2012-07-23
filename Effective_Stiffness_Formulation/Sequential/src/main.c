@@ -205,6 +205,9 @@ int main( int argc, char **argv )
      BuildMatrixXc( &Keinv, Keinv_c.Array, &CNodes );
      BuildMatrixXcm( &Keinv, &Keinv_m, &CNodes );
 
+     MatrixVector_To_File( &Keinv, "Keinv.txt" );
+     MatrixVector_To_File( &Keinv_c, "Keinv_c.txt" );
+     MatrixVector_To_File( &Keinv_m, "Keinv_m.txt" );
      /* Send the coupling part of the effective matrix */
      Send_Effective_Matrix( Keinv_c.Array, InitCnt.Type_Protocol, CNodes.Order, &Socket );
 
