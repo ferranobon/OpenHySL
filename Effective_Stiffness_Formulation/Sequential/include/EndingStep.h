@@ -17,6 +17,7 @@
 #define ENDINGSTEP_H_
 
 #include "MatrixVector.h"
+#include "Initiation.h"
 
 /**
  * \brief Joins the non-coupling of a vector.
@@ -34,15 +35,14 @@
  *
  * \param[in] VecXm The non-coupling part of the vector.
  * \param[in,out] Vec The global vector. As an input, only the size of the vector is referenced, not its elements.
- * \param[in] PosCouple The position of the first coupling node.
- * \param[in] OrderC The number of coupling nodes. In case that \f$OrderC > 1\f$, the routine assumes that they are consecutive.
+ * \param[in] CNodes Structure containing the coupling nodes.
  *
  * \post
  * - \c Vec contains the non-coupling part of the vector, leaving the coupling nodes untouched.
  *
  * \sa MatrixVector.
  */
-void JoinNonCouplingPart( MatrixVector *const VecXm, const MatrixVector *const Keinv_m, const MatrixVector *const fcprevsub, MatrixVector *const Vec, const int PosCouple, const int OrderC );
+void JoinNonCouplingPart( MatrixVector *const VecXm, const MatrixVector *const Keinv_m, const MatrixVector *const fcprevsub, MatrixVector *const Vec, const Coupling_Node *const CNodes );
 
 /**
  * \brief Computes the new acceleration.
