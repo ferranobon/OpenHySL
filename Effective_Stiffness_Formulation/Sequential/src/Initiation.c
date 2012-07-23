@@ -207,30 +207,18 @@ void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const 
 void BuildMatrixXc( const MatrixVector *const Mat, float *MatCouple, const Coupling_Node *const CNodes )
 {
 
-     int i, j, m;
-     int GRowIndex, GColIndex;
      int icoup;    /* Counter for the coupling nodes */
-     int OrderC;   /* Order of the consecutive coupling nodes */
+     int jcoup;    /* Another counter */
      
      for( icoup = 0; icoup < CNodes->Order; icoup++ ){
-	  /* For the moment all the coupling nodes will be treated separately */
-	  OrderC = 1;
-	  j = 0;
-	  for (i = 0; i < OrderC; i++){
+
+	  for (jcoup = icoup; jcoup < CNodes->Order; jcoup++){
 	       
-	       GRowIndex = CNodes->Array[icoup] + i;
-	       GColIndex = CNodes->Array[icoup] + j;
-	       
-	       MatCouple[i*OrderC + j] = (*Mat).Array[(GRowIndex - 1) + (*Mat).Rows*(GColIndex - 1)];
-	       
-	       for (m = 1; m < OrderC -i; m++){
-		    
-		    GColIndex = CNodes->Array[icoup] + j + m;
-		    
-		    MatCouple[i*OrderC + j + m] = (*Mat).Array[(GRowIndex - 1) + (*Mat).Cols*(GColIndex - 1)];
-		    MatCouple[i*OrderC + j + m*OrderC] = MatCouple[i*OrderC + j + m];
-	       }
-	       j = j + 1;
+	       MatCouple[icoup*CNodes->Order + jcoup] = Mat->Array[(CNodes->Array[icoup]-1)*Mat->Cols + CNodes->Array[jcoup] - 1];
+	       /* Now add the elements belonging to the same row as the current coupling
+		* node but also belonging to the same column as the rest of the coupling
+		* nodes */
+	       MatCouple[jcoup*CNodes->Order + icoup] = MatCouple[icoup*CNodes->Order + jcoup];
 	  }
      }
 }
