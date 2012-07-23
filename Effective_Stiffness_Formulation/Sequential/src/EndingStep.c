@@ -16,11 +16,13 @@
 #include "EndingStep.h"
 #include "MatrixVector.h"
 #include "Netlib.h"
+#include "Initiation.h"
 
 void JoinNonCouplingPart( MatrixVector *const VecXm, const MatrixVector *const Keinv_m, const MatrixVector *const fcprevsub,
-			  MatrixVector *const Vec, const int PosCouple, const int OrderC )
+			  MatrixVector *const Vec, const Coupling_Node *const CNodes )
 {
-
+	static int icoup;    /* Counter for the coupling nodes */
+	static int OrderC;   /* Order of the consecutive coupling nodes */
 	static int incx, incy;
 	static float Alpha, Beta;
 	static char trans;
@@ -34,16 +36,19 @@ void JoinNonCouplingPart( MatrixVector *const VecXm, const MatrixVector *const K
 	Cols = Keinv_m->Cols;
 	lda = Max( 1, Keinv_m->Rows);
 
-	sgemv_( &trans, &Rows, &Cols, &Alpha, Keinv_m->Array, &lda,
-		  &fcprevsub->Array[PosCouple - 1], &incx, &Beta, VecXm->Array, &incy );
+	for( icoup = 0; icoup < CNodes->Order; icoup++ ){
+	     OrderC = 1;
+	     sgemv_( &trans, &Rows, &Cols, &Alpha, Keinv_m->Array, &lda,
+		     &fcprevsub->Array[CNodes->Array[icoup] - 1], &incx, &Beta, VecXm->Array, &incy );
 
-	/* Copy the first elements */
-	TempSize = PosCouple - 1;
-	scopy_( &TempSize, (*VecXm).Array, &incx, (*Vec).Array, &incy );
-
-	/* Join the part after the coupling position */
-	TempSize = (*Vec).Rows - ( PosCouple + OrderC - 1 );
-	scopy_( &TempSize, &(*VecXm).Array[PosCouple - 1], &incx, &(*Vec).Array[PosCouple + OrderC - 1], &incy );
+	     /* Copy the first elements */
+	     TempSize = CNodes->Array[icoup] - 1;
+	     scopy_( &TempSize, (*VecXm).Array, &incx, (*Vec).Array, &incy );
+	     
+	     /* Join the part after the coupling position */
+	     TempSize = (*Vec).Rows - ( CNodes->Array[icoup] + OrderC - 1 );
+	     scopy_( &TempSize, &(*VecXm).Array[CNodes->Array[icoup] - 1], &incx, &(*Vec).Array[CNodes->Array[icoup] + OrderC - 1], &incy );
+	}
 
 }
 
