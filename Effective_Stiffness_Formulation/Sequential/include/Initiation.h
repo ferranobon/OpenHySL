@@ -80,7 +80,7 @@ typedef struct {
 
      int Order;               /*!< \brief Order of the matrices */
 
-     unsigned int Nstep;               /*!< \brief Number of steps */
+     unsigned int Nstep;      /*!< \brief Number of steps */
 
      int Use_Absolute_Values; /*!< \brief Variable to control whether to use absolute values in the equation of motion or relative values. Affects how the input load is calculated */
      float Delta_t;           /*!< \brief Time increment \f$\Delta t\f$ */
@@ -153,6 +153,26 @@ void InitConstants( AlgConst *const AConst );
  * - -1 if the desired protocol is not recognised.
  */
 int Get_Type_Protocol( void );
+
+/**
+ * \brief Reads the coupling nodes from a file.
+ *
+ * The coupling nodes are read from a file and stored sequentially in a dynamically
+ * allocated array. The first number of the file must be always the number of 
+ * coupling nodes to be readen.
+ * 
+ * \pre - The file must be an ASCII file with the first value meaning the number
+ * of nodes to be read.
+ * - The datastructure Coupling_Nodes should not be initialised, since this is done
+ * in this routine.
+ *
+ * \param[out] CNodes Data structure to store both: the number of coupling nodes and
+ * a list of them.
+ * \param[in] Filename The name of the file to be opened.
+ *
+ * \post CNodes must contain a list of the coupling nodes and the number of them.
+ */
+void Read_Coupling_Nodes( Coupling_Node *const CNodes, const char *Filename );
 
 /**
  * \brief Reads the coupling nodes from a file.

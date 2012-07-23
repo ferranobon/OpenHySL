@@ -207,6 +207,7 @@ void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const 
 void BuildMatrixXc( const MatrixVector *const Mat, float *MatCouple, const Coupling_Node *const CNodes )
 {
 
+
      int icoup;    /* Counter for the coupling nodes */
      int jcoup;    /* Another counter */
      
@@ -232,8 +233,6 @@ void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const VecXcm, 
      int incx, incy;
      int PosXcm, Acumulated_Length;
 
-
-     
      incx = Mat->Rows;
      incy = 1;          /* The values in the Xm matrix are stored in columns. Therefore the stride
 			 * has to be 1 because of the way FORTRAN handles arrays (major column ordering) */
@@ -271,7 +270,6 @@ void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const VecXcm, 
      for ( jcoup = CNodes->Order - 1; jcoup >= 0; jcoup = jcoup - 1 ){
 	  PosXcm = VecXcm->Rows*(jcoup+1) - Length;
 	  scopy_( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1)*Mat->Rows + (CNodes->Array[CNodes->Order-1])], &incx, &VecXcm->Array[PosXcm], &incy );
-
      }
      Acumulated_Length = Length;
      incx = 1;
@@ -280,7 +278,6 @@ void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const VecXcm, 
 	  for( jcoup = icoup; jcoup >= 0; jcoup = jcoup - 1){
 	       PosXcm = (jcoup+1)*VecXcm->Rows - Acumulated_Length - Length;
 	       scopy_( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1)*Mat->Rows + (CNodes->Array[icoup])], &incx, &VecXcm->Array[PosXcm], &incy );
-
 	  }
 	  Acumulated_Length = Acumulated_Length + Length;
      }

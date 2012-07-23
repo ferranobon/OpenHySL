@@ -51,7 +51,6 @@ void JoinNonCouplingPart( MatrixVector *const VecXm, const MatrixVector *const K
 	 * in the vector */
 	Length = Vec->Rows - CNodes->Array[CNodes->Order -1];
 	scopy_( &Length, &VecXm->Array[PosXm], &incx, &Vec->Array[PosX], &incy );	
-		  
 }
 
 void Compute_Acceleration( const MatrixVector *const DispTdT, const MatrixVector *const DispT, const MatrixVector *const VelT,
