@@ -253,7 +253,6 @@ void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const VecXcm, 
      for( icoup = 1; icoup < CNodes->Order; icoup++ ){
 	     
 	  Length = CNodes->Array[icoup] - CNodes->Array[icoup-1] - 1;
-
 	  for ( jcoup = icoup; jcoup < CNodes->Order; jcoup++ ){
 	 
 	       PosXcm = jcoup*VecXcm->Rows + Acumulated_Length;
