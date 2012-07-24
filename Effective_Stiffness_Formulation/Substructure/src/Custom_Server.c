@@ -132,6 +132,7 @@ int main( int argc, char **argv )
      Init_Constants_Substructure( &Cnst );
 
      /* Dynamically allocate memory */
+
      Gc = (float *) calloc( (size_t) Cnst.Order_Couple*Cnst.Order_Couple, sizeof( float ) );
  
      u0c = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
