@@ -204,9 +204,7 @@ int main( int argc, char **argv )
 
      BuildMatrixXc( &Keinv, Keinv_c.Array, &CNodes );
      BuildMatrixXcm( &Keinv, &Keinv_m, &CNodes );
-
-     MatrixVector_To_File( &Keinv, "Keinv.txt" );
-     MatrixVector_To_File( &Keinv_m, "Keinv_m.txt" );
+  
      /* Send the coupling part of the effective matrix */
      Send_Effective_Matrix( Keinv_c.Array, InitCnt.Type_Protocol, CNodes.Order, &Socket );
 
@@ -243,7 +241,7 @@ int main( int argc, char **argv )
      incx = 1; incy = 1;
      printf( "Starting stepping process\n" );
      while ( istep <= InitCnt.Nstep ){
-
+	  printf("1\n");
 	  /* Calculate the effective force vector
 	     Fe = M*(a0*u + a2*v + a3*a) + C*(a1*u + a4*v + a5*a) */
 	  EffK_Calc_Effective_Force( &M, &C, &DispT, &VelT, &AccT, &tempvec,
@@ -259,8 +257,8 @@ int main( int argc, char **argv )
 	  CreateVectorXc( &DispTdT0, DispTdT0_c.Array, &CNodes );
 
 	  /* Perform substepping */
-	  Do_Substepping( DispTdT0_c.Array, DispTdT.Array, fcprevsub.Array, fc.Array, InitCnt.Type_Protocol,
-			  InitCnt.Delta_t*istep, Socket, CNodes.Order, CNodes.Array  );
+//	  Do_Substepping( DispTdT0_c.Array, DispTdT.Array, fcprevsub.Array, fc.Array, InitCnt.Type_Protocol,
+//			  InitCnt.Delta_t*istep, Socket, CNodes.Order, CNodes.Array  );
 	  
 	  if ( istep < InitCnt.Nstep ){
 	       /* Calculate the input load for the next step during the
@@ -278,7 +276,7 @@ int main( int argc, char **argv )
 
 	  /* Join the non-coupling part. DispTdT_m = Keinv_m*fc + DispTdT0_m. Although DispTdT0_m is what has been received from the other computer,
 	     it has the name of DispTdT_m to avoid further operations if using the NETLIB libraries. */
-	  JoinNonCouplingPart( &DispTdT0_m, &Keinv_m, &fcprevsub, &DispTdT, &CNodes );
+//	  JoinNonCouplingPart( &DispTdT0_m, &Keinv_m, &fcprevsub, &DispTdT, &CNodes );
 
 	  /* Compute acceleration ai1 = a0*(ui1 -ui) - a2*vi -a3*ai */
 	  Compute_Acceleration( &DispTdT, &DispT, &VelT, &AccT, InitCnt.a0, InitCnt.a2, InitCnt.a3, &AccTdT );
