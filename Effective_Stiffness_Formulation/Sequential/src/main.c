@@ -182,7 +182,7 @@ int main( int argc, char **argv )
      Init_MatrixVector( &LoadTdT1, InitCnt.Order, 1 );
 
      Init_MatrixVector( &fc, InitCnt.Order, 1 );
-     Init_MatrixVector( &fcprevsub, InitCnt.Order, 1 );
+     Init_MatrixVector( &fcprevsub, CNodes.Order, 1 );
      Init_MatrixVector( &fu, InitCnt.Order, 1 );
 
      Init_MatrixVector( &ErrCompT, InitCnt.Order, 1 );
@@ -244,7 +244,7 @@ int main( int argc, char **argv )
      incx = 1; incy = 1;
      printf( "Starting stepping process\n" );
      while ( istep <= InitCnt.Nstep ){
-	  printf("1\n");
+
 	  /* Calculate the effective force vector
 	     Fe = M*(a0*u + a2*v + a3*a) + C*(a1*u + a4*v + a5*a) */
 	  EffK_Calc_Effective_Force( &M, &C, &DispT, &VelT, &AccT, &tempvec,
@@ -280,7 +280,7 @@ int main( int argc, char **argv )
 
 	  /* Join the non-coupling part. DispTdT_m = Keinv_m*fc + DispTdT0_m. Although DispTdT0_m is what has been received from the other computer,
 	     it has the name of DispTdT_m to avoid further operations if using the NETLIB libraries. */
-//	  JoinNonCouplingPart( &DispTdT0_m, &Keinv_m, &fcprevsub, &DispTdT, &CNodes );
+	  JoinNonCouplingPart( &DispTdT0_m, &Keinv_m, &fcprevsub, &DispTdT, &CNodes );
 
 	  /* Compute acceleration ai1 = a0*(ui1 -ui) - a2*vi -a3*ai */
 	  Compute_Acceleration( &DispTdT, &DispT, &VelT, &AccT, InitCnt.a0, InitCnt.a2, InitCnt.a3, &AccTdT );
@@ -292,17 +292,16 @@ int main( int argc, char **argv )
 	  Compute_Force_Error( &M, &C, &K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &fu );
 
 	  /* Output variables */
-	  for( i = 0; i < CNodes.Order; i++ ){
-	       TimeHistoryli[istep - 1] = LoadTdT.Array[CNodes.Array[i] - 1];
-	       TimeHistoryai1[istep - 1] = AccTdT.Array[CNodes.Array[i] - 1];
-	       TimeHistoryai[istep - 1] = AccT.Array[CNodes.Array[i] - 1];
-	       TimeHistoryvi1[istep - 1] = VelTdT.Array[CNodes.Array[i] - 1];
-	       TimeHistoryvi[istep - 1] = VelT.Array[CNodes.Array[i] - 1];
-	       TimeHistoryui1[istep - 1] = DispTdT.Array[CNodes.Array[i] - 1];
-	       TimeHistoryui[istep - 1] = DispT.Array[CNodes.Array[i] - 1];
-	       TimeHistoryfc[istep - 1] = fc.Array[CNodes.Array[i] - 1];
-	       TimeHistoryfu[istep - 1] = fu.Array[CNodes.Array[i] - 1];
-	  }
+	  TimeHistoryli[istep - 1] = LoadTdT.Array[30];
+	  TimeHistoryai1[istep - 1] = AccTdT.Array[30];
+	  TimeHistoryai[istep - 1] = AccT.Array[30];
+	  TimeHistoryvi1[istep - 1] = VelTdT.Array[30];
+	  TimeHistoryvi[istep - 1] = VelT.Array[30];
+	  TimeHistoryui1[istep - 1] = DispTdT.Array[30];
+	  TimeHistoryui[istep - 1] = DispT.Array[30];
+	  TimeHistoryfc[istep - 1] = fc.Array[30];
+	  TimeHistoryfu[istep - 1] = fu.Array[30];
+	  
 
 	  /* Backup vectors */
 	  scopy_( &LoadTdT1.Rows, LoadTdT1.Array, &incx, LoadTdT.Array, &incy ); /* li = li1 */
@@ -325,7 +324,7 @@ int main( int argc, char **argv )
      }
      /* Close the output file */
      fclose( OutputFile );
-
+     printf("3\n");
      /* Close the Connection */
      Close_Connection( &Socket, InitCnt.Type_Protocol, (unsigned int) CNodes.Order, InitCnt.Nstep, 4 );
    
