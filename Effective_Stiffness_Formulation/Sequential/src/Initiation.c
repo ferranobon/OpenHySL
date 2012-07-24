@@ -226,44 +226,62 @@ void BuildMatrixXc( const MatrixVector *const Mat, float *MatCouple, const Coupl
 void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const VecXcm, const Coupling_Node *const CNodes )
 {
 
-     int i, j;  /* Counters */
+     int Length;
+     int icoup;      /* Counter for the coupling nodes */
+     int jcoup;
+     int incx, incy;
+     int PosXcm, Acumulated_Length;
 
-     int GRowIndex, GColIndex;
-     int GRowIndexXcm, GColIndexXcm;
-     int aux;
-     int icoup;    /* Counter for the coupling nodes */
-     int OrderC;   /* Order of the consecutive coupling nodes */
 
-     for( icoup = 0; icoup < CNodes->Order; icoup++ ){
-	  OrderC = 1;
-	  for ( i = 0; i < OrderC; i++ ){
-	       for( j = 0; j < CNodes->Array[icoup] -1; j++ ){
-		    GRowIndex = CNodes->Array[icoup] + i;
-		    GColIndex = j + 1;
-		    
-		    GRowIndexXcm = j + 1;
-		    GColIndexXcm = i + 1;
-		    
-		    (*VecXcm).Array[(GColIndexXcm -1)*(*VecXcm).Rows + (GRowIndexXcm -1)] = (*Mat).Array[(GRowIndex - 1) + (*Mat).Rows*(GColIndex - 1)];
-	       }
-	  }
-	  
-	  aux = GRowIndexXcm;
-	  
-	  for ( j = 0; j < OrderC; j++ ){
+     
+     incx = Mat->Rows;
+     incy = 1;          /* The values in the Xm matrix are stored in columns. Therefore the stride
+			 * has to be 1 because of the way FORTRAN handles arrays (major column ordering) */
+
+     /* Since the matrix is symmetric and only a part of it is stored, this routine has to be splitted into two
+      * parts. The first will copy the elements above the coupling node, while the second will focus on the
+      * other part */
+
+     /* Copy until the first coupling node */
+     PosXcm = 0;
+     Length = CNodes->Array[0] - 1;
+     for ( jcoup = 0; jcoup < CNodes->Order; jcoup++ ){
+	  PosXcm = jcoup*VecXcm->Rows;
+	  scopy_( &Length, &Mat->Array[CNodes->Array[jcoup] - 1], &incx, &VecXcm->Array[PosXcm], &incy );
+     }
+
+     /* Copy until the last coupling node */
+     Acumulated_Length = Length;
+     for( icoup = 1; icoup < CNodes->Order; icoup++ ){
+	     
+	  Length = CNodes->Array[icoup] - CNodes->Array[icoup-1] - 1;
+
+	  for ( jcoup = icoup; jcoup < CNodes->Order; jcoup++ ){
+	 
+	       PosXcm = jcoup*VecXcm->Rows + Acumulated_Length;
 	       
-	       GRowIndexXcm = aux;
-	       
-	       for ( i = 0; i < (*Mat).Rows - (CNodes->Array[icoup] + OrderC - 1); i++ ){
-
-	       GRowIndex = CNodes->Array[icoup] + OrderC + i;
-	       GColIndex = CNodes->Array[icoup] + j;
-
-	       GRowIndexXcm = GRowIndexXcm + 1;
-
-	       (*VecXcm).Array[(GColIndexXcm -1)*(*VecXcm).Rows + (GRowIndexXcm -1)] = (*Mat).Array[(GRowIndex - 1) + (*Mat).Rows*(GColIndex - 1)];
-	       }
-	       GColIndexXcm = GColIndexXcm + 1;
+	       scopy_( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1) + (CNodes->Array[icoup-1])*Mat->Rows], &incx, &VecXcm->Array[PosXcm], &incy );
 	  }
+	  Acumulated_Length = Acumulated_Length + Length;
+     }
+
+     /* Do the same but starting from the opposite side */
+     incx = 1;
+     Length = Mat->Rows - CNodes->Array[CNodes->Order -1];
+     for ( jcoup = CNodes->Order - 1; jcoup >= 0; jcoup = jcoup - 1 ){
+	  PosXcm = VecXcm->Rows*(jcoup+1) - Length;
+	  scopy_( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1)*Mat->Rows + (CNodes->Array[CNodes->Order-1])], &incx, &VecXcm->Array[PosXcm], &incy );
+
+     }
+     Acumulated_Length = Length;
+     incx = 1;
+     for( icoup = CNodes->Order -2; icoup >= 0; icoup = icoup -1 ){
+	  Length = CNodes->Array[icoup + 1] - CNodes->Array[icoup] - 1;
+	  for( jcoup = icoup; jcoup >= 0; jcoup = jcoup - 1){
+	       PosXcm = (jcoup+1)*VecXcm->Rows - Acumulated_Length - Length;
+	       scopy_( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1)*Mat->Rows + (CNodes->Array[icoup])], &incx, &VecXcm->Array[PosXcm], &incy );
+
+	  }
+	  Acumulated_Length = Acumulated_Length + Length;
      }
 }
