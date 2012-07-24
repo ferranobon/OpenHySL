@@ -8,7 +8,7 @@
 
 void Init_Constants_Substructure( ConstSub *const Constants )
 {
-     (*Constants).Order_Couple = 1;
+     (*Constants).Order_Couple = 5;
      (*Constants).Num_Steps = 4096;
      (*Constants).Num_Sub = 4;
      (*Constants).DeltaT = 0.01f;
