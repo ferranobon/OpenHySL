@@ -410,9 +410,9 @@ void Do_Substepping( const float *const DispTdT0_c, float *const DispTdT, float 
      }
 
      for ( i = 0; i < OrderC; i++ ){
-	  DispTdT[(Pos_Couple[i] - 1) + i] = Recv[i];
-	  fcprevsub[(Pos_Couple[i] - 1) + i] = Recv[OrderC + i];
-	  fc[(Pos_Couple[i] - 1 ) + i] = Recv[2*OrderC + i];
+	  DispTdT[Pos_Couple[i] - 1] = Recv[i];
+	  fcprevsub[i] = Recv[OrderC + i];
+	  fc[Pos_Couple[i] - 1] = Recv[2*OrderC + i];
      }
 
      free( Recv );
