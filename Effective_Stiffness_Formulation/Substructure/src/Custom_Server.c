@@ -20,7 +20,7 @@
 
 int main( int argc, char **argv )
 {
-     int i;
+     int i,j;
 
      /* Variables concerning data communication */
      int Server_Socket;                /* Socket for the server */
@@ -133,7 +133,7 @@ int main( int argc, char **argv )
 
      /* Dynamically allocate memory */
      Gc = calloc( Cnst.Order_Couple*Cnst.Order_Couple, sizeof( float ) );
- 
+
      u0c = calloc( Cnst.Order_Couple, sizeof( float ) );
      uc = calloc( Cnst.Order_Couple, sizeof( float ) );
 
@@ -147,12 +147,18 @@ int main( int argc, char **argv )
 
      if( Socket_Type == PROTOCOL_TCP ){
 	  Receive_Data( Gc, Length, Client_Socket );
+	  for( i = 0; i < Cnst.Order_Couple; i++ ){
+	       for( j = 0; j < Cnst.Order_Couple; j++ ){
+		    printf("%e\t", Gc[i*Cnst.Order_Couple + j] );
+	       }
+	       printf("\n");
+	  }
+
      } else {
 	  Client_AddrLen = sizeof(Client_Addr);
 	  if ( recvfrom( Server_Socket, Gc, Length*sizeof(float), 0, (struct sockaddr *) &Client_Addr, &Client_AddrLen) < 0 ){
 	       PrintErrorAndExit("Recvfrom failed" );
 	  }
-	  printf("%e\n", Gc[0]);
      }
 
      if ( Mode == USE_ADWIN ){
@@ -258,7 +264,7 @@ int main( int argc, char **argv )
      
      /* Free the dinamically allocated memory */
      free( Gc );
-
+     
      free( u0c );
      free( uc );
 
