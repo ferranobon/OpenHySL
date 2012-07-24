@@ -103,24 +103,20 @@ void CreateVectorXm( const MatrixVector *const VectorX, MatrixVector *const Vect
 {
 
 	static int incx, incy;
-	static int length;
-	static int posX, posXm;
+	static int Length;
+	static int PosX, PosXm;
 	static int icoup;    /* Counter for the coupling nodes */
-	static int OrderC;   /* Order of the consecutive coupling nodes */
 
 	incx = 1; incy = 1;
+	PosX = 0; PosXm = 0;
 	for( icoup = 0; icoup < CNodes->Order; icoup++ ){
-	     OrderC = 1;
-	     /* Copy the first part of the vector (from 1 to position PosCoupl -1) */
-	     length = CNodes->Array[icoup] -1;
-	     scopy_( &length, (*VectorX).Array, &incx, (*VectorXm).Array, &incy );
-	     
-	     /* Copy the second part of the vector (from position PosCoupl + 1 until the end) */
-	     length = (*VectorX).Rows - (CNodes->Array[icoup] + OrderC - 1);
-	     posX = CNodes->Array[icoup] + OrderC - 1;
-	     posXm = CNodes->Array[icoup] - 1;
-	     
-	     scopy_( &length, &(*VectorX).Array[posX], &incx, &(*VectorXm).Array[posXm], &incy );
+
+	     /* Copy the part of the vector between twwo positions */
+	     Length = CNodes->Array[icoup] - PosX - 1;
+	     scopy_( &Length, &VectorX->Array[PosX], &incx, &VectorXm->Array[PosXm], &incy );
+	     /* Update the values of the position in the vectors */
+	     PosX = VectorX->Array[icoup];
+	     PosXm = PosXm + Length;
 	}
 
 }
@@ -128,14 +124,10 @@ void CreateVectorXm( const MatrixVector *const VectorX, MatrixVector *const Vect
 void CreateVectorXc( const MatrixVector *const VecX, float *VecXc, const Coupling_Node *const CNodes )
 {
 	static int icoup;    /* Counter for the coupling nodes */
-	static int OrderC;   /* Order of the consecutive coupling nodes */
-	static int incx, incy;
 
-	incx = 1; incy = 1;
-
+#pragma omp parallel for
 	for( icoup = 0; icoup < CNodes->Order; icoup++ ){
-	     OrderC = 1;
-	     scopy_( &OrderC, &(*VecX).Array[CNodes->Array[icoup] - 1], &incx, VecXc, &incy );
+	     VecXc[icoup] = VecX->Array[CNodes->Array[icoup] - 1];
 	}
 }
 
