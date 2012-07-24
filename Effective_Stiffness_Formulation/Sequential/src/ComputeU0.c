@@ -115,6 +115,7 @@ void CreateVectorXm( const MatrixVector *const VectorX, MatrixVector *const Vect
 	     Length = CNodes->Array[icoup] - PosX - 1;
 	     scopy_( &Length, &VectorX->Array[PosX], &incx, &VectorXm->Array[PosXm], &incy );
 	     /* Update the values of the position in the vectors */
+
 	     PosX = CNodes->Array[icoup];
 	     PosXm = PosXm + Length;
 	}
