@@ -22,12 +22,12 @@ void JoinNonCouplingPart( MatrixVector *const VecXm, const MatrixVector *const K
 			  MatrixVector *const Vec, const Coupling_Node *const CNodes )
 {
 	static int icoup;    /* Counter for the coupling nodes */
-	static int OrderC;   /* Order of the consecutive coupling nodes */
 	static int incx, incy;
 	static float Alpha, Beta;
 	static char trans;
-	static int Rows, Cols, TempSize;
+	static int Rows, Cols;
 	static int lda;
+	static int Length, PosX, PosXm;
 
 	incx = 1; incy = 1;
 	trans = 'N';
@@ -36,20 +36,22 @@ void JoinNonCouplingPart( MatrixVector *const VecXm, const MatrixVector *const K
 	Cols = Keinv_m->Cols;
 	lda = Max( 1, Keinv_m->Rows);
 
-	for( icoup = 0; icoup < CNodes->Order; icoup++ ){
-	     OrderC = 1;
-	     sgemv_( &trans, &Rows, &Cols, &Alpha, Keinv_m->Array, &lda,
-		     &fcprevsub->Array[CNodes->Array[icoup] - 1], &incx, &Beta, VecXm->Array, &incy );
+	sgemv_( &trans, &Rows, &Cols, &Alpha, Keinv_m->Array, &lda,
+		fcprevsub->Array, &incx, &Beta, VecXm->Array, &incy );
 
-	     /* Copy the first elements */
-	     TempSize = CNodes->Array[icoup] - 1;
-	     scopy_( &TempSize, (*VecXm).Array, &incx, (*Vec).Array, &incy );
-	     
-	     /* Join the part after the coupling position */
-	     TempSize = (*Vec).Rows - ( CNodes->Array[icoup] + OrderC - 1 );
-	     scopy_( &TempSize, &(*VecXm).Array[CNodes->Array[icoup] - 1], &incx, &(*Vec).Array[CNodes->Array[icoup] + OrderC - 1], &incy );
+	PosX = 0; PosXm = 0;
+	for ( icoup = 0; icoup < CNodes->Order; icoup++ ){
+	     Length = CNodes->Array[icoup] - PosX -1;
+	     scopy_( &Length, &VecXm->Array[PosXm], &incx, &Vec->Array[PosX], &incy );
+	     PosX = CNodes->Array[icoup];
+	     PosXm = PosXm + Length;
 	}
 
+	/* Add the elements between the final coupling node and the final element
+	 * in the vector */
+	Length = Vec->Rows - CNodes->Array[CNodes->Order -1];
+	scopy_( &Length, &VecXm->Array[PosXm], &incx, &Vec->Array[PosX], &incy );	
+		  
 }
 
 void Compute_Acceleration( const MatrixVector *const DispTdT, const MatrixVector *const DispT, const MatrixVector *const VelT,
