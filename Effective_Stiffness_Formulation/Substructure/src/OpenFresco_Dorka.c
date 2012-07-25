@@ -138,6 +138,7 @@ int main ( int argc, char **argv )
 #if ADWIN_
 	  /* Run with ADwin */
 	  printf( "Using ADwin to perform the sub-stepping process.\n" );
+
 	  ADWIN_DATA = (float *) calloc( (size_t) Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
 #else 
 	  fprintf(stderr, "The program was not compiled with ADwin support.\n");

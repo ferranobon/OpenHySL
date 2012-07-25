@@ -5,6 +5,7 @@
 
 #include "Substructure.h"
 #include "ErrorHandling.h"
+#include "Netlib.h"
 
 void Init_Constants_Substructure( ConstSub *const Constants )
 {
@@ -57,30 +58,46 @@ void Simulate_Substructure( void *const Num, const int Mode, const float *const 
 
      unsigned int i, Substep;
      float ramp0, ramp;
-     static float u0c0 = 0.0;
-     
+     static float u0c0[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
+     int incx = 1, incy = 1;
+     float One;
+     int Length;
+     char uplo = 'L';
+
+     Length = OrderC;
+     One = 1.0;
+
      for ( Substep = 1; Substep <= NSub; Substep++ ){
 
 	  for ( i = 0; i < OrderC; i++ ){
 	       /* Backup data so that fcprev contains always the last coupling force */
-	       fcprev[i] = fc[i];
+	       scopy_( &Length, fc, &incx, fcprev, &incy );
 	  }
 
 	  ramp = (float) Substep / (float) NSub;
+
 	  ramp0 = 1.0f - ramp;   
-
-	  uc[0] = ramp0*u0c0 + ramp*u0c[0] + Keinv[0]*fc[0];
-
+	  if ( OrderC > 1 ){
+	       scopy_( &Length, u0c0, &incx, uc, &incy );
+	       sscal_( &Length, &ramp0, uc, &incx );
+	       saxpy_( &Length, &ramp, u0c, &incx, uc, &incy );
+	       ssymv_( &uplo, &Length, &One, Keinv, &Length, fc, &incx, &One, uc, &incy ); 
+	       printf("fc: %f\n", fc[4]);
+	  } else {
+	       uc[0] = ramp0*u0c0[0] + ramp*u0c[0] + Keinv[0]*fc[0];
+	  }
+	  
 	  /* Compute the new fc */
 	  if( Mode == USE_EXACT ){
-	       ExactSolution_SDOF( u0c[0], DeltaT_Sub, (TMD_Sim *) Num, &fc[0] );
+	       ExactSolution_SDOF( u0c[4], DeltaT_Sub, (TMD_Sim *) Num, &fc[4] );
 	  } else if ( Mode == USE_UHYDE ){
-	       Simulate_UHYDE_1D( u0c[0], DeltaT_Sub, (UHYDE_Sim *) Num, &fc[0] );
+	       Simulate_UHYDE_1D( u0c[4], DeltaT_Sub, (UHYDE_Sim *) Num, &fc[4] );
 	  } else assert( Mode < USE_EXACT || Mode > USE_UHYDE );
+	  
      }
 
      /* Backup u0c */
-     u0c0 = u0c[0];
+     scopy_( &Length, u0c, &incx, u0c0, &incy );
 }
 
 
