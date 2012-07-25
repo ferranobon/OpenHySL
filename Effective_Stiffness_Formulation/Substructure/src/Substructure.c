@@ -75,8 +75,8 @@ void Simulate_Substructure( void *const Num, const int Mode, const float *const 
 	  }
 
 	  ramp = (float) Substep / (float) NSub;
-
 	  ramp0 = 1.0f - ramp;   
+
 	  if ( OrderC > 1 ){
 	       scopy_( &Length, u0c0, &incx, uc, &incy );
 	       sscal_( &Length, &ramp0, uc, &incx );
