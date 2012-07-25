@@ -131,7 +131,6 @@ int main( int argc, char **argv )
 
      /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will
       * be used during the test */
-
      AccAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
      if( InitCnt.Use_Absolute_Values ){
 	  VelAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
