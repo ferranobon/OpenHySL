@@ -299,6 +299,7 @@ void Send_Effective_Matrix( float *const Eff_Mat, const int Protocol_Type, const
      Remote_Machine_Info Server;
      float *Send = NULL, *Recv = NULL;
 
+
      Send = (float *) calloc( (size_t) OrderC, sizeof(float) );
      Recv = (float *) calloc( (size_t) 3*OrderC, sizeof(float) );
 
@@ -382,8 +383,8 @@ void Do_Substepping( float *const DispTdT0_c, float *const DispTdT, float *const
      unsigned int i;
      float *Recv = NULL;
 
-     Recv = (float *) calloc( (size_t) 3*OrderC, sizeof(float) );
 
+     Recv = (float *) calloc( (size_t) 3*OrderC, sizeof(float) );
 
      switch ( Protocol_Type ){
 #if ADWIN_
@@ -465,6 +466,7 @@ void Close_Connection( int *Socket, const int Protocol_Type, const unsigned int 
      float *Send = NULL;
 
      float *ADWIN_DATA = NULL;
+
 
      Send = (float *) calloc( (size_t) OrderC, sizeof(float) );
 
