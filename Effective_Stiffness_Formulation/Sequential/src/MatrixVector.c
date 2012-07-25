@@ -33,7 +33,7 @@ void Init_MatrixVector( MatrixVector *const Mat, const int Rows, const int Cols 
 	  PrintErrorAndExit( "The number of rows must be equal or greater than zero" );
      }
 	     
-     (*Mat).Array = calloc( (*Mat).Rows*(*Mat).Cols, sizeof(float));
+     (*Mat).Array = (float *) calloc( (*Mat).Rows*(*Mat).Cols, sizeof(float));
 }
 
 

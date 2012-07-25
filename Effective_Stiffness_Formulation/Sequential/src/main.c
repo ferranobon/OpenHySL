@@ -131,22 +131,22 @@ int main( int argc, char **argv )
 
      /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will
       * be used during the test */
-     AccAll = calloc( InitCnt.Nstep, sizeof(float) );
+     AccAll = (float *) calloc( InitCnt.Nstep, sizeof(float) );
      if( InitCnt.Use_Absolute_Values ){
-	  VelAll = calloc( InitCnt.Nstep, sizeof(float) );
-	  DispAll = calloc( InitCnt.Nstep, sizeof(float) );
+	  VelAll = (float *) calloc( InitCnt.Nstep, sizeof(float) );
+	  DispAll = (float *) calloc( InitCnt.Nstep, sizeof(float) );
      }
 
      /* Allocate the memory for the variables to store. The results will be saved each step */
-     TimeHistoryli = calloc( InitCnt.Nstep, sizeof(float) );
-     TimeHistoryui1 = calloc( InitCnt.Nstep, sizeof(float) );
-     TimeHistoryvi1 = calloc( InitCnt.Nstep, sizeof(float) );
-     TimeHistoryai1 = calloc( InitCnt.Nstep, sizeof(float) );
-     TimeHistoryui = calloc( InitCnt.Nstep, sizeof(float) );
-     TimeHistoryvi = calloc( InitCnt.Nstep, sizeof(float) );
-     TimeHistoryai = calloc( InitCnt.Nstep, sizeof(float) );
-     TimeHistoryfc = calloc( InitCnt.Nstep, sizeof(float) );
-     TimeHistoryfu = calloc( InitCnt.Nstep, sizeof(float) );
+     TimeHistoryli = (float *) calloc( InitCnt.Nstep, sizeof(float) );
+     TimeHistoryui1 = (float *) calloc( InitCnt.Nstep, sizeof(float) );
+     TimeHistoryvi1 = (float *) calloc( InitCnt.Nstep, sizeof(float) );
+     TimeHistoryai1 = (float *) calloc( InitCnt.Nstep, sizeof(float) );
+     TimeHistoryui = (float *) calloc( InitCnt.Nstep, sizeof(float) );
+     TimeHistoryvi = (float *) calloc( InitCnt.Nstep, sizeof(float) );
+     TimeHistoryai = (float *) calloc( InitCnt.Nstep, sizeof(float) );
+     TimeHistoryfc = (float *) calloc( InitCnt.Nstep, sizeof(float) );
+     TimeHistoryfu = (float *) calloc( InitCnt.Nstep, sizeof(float) );
 
      /* Initialise the matrices and vectors that will be used in the Time Integration process */
      Init_MatrixVector( &M, InitCnt.Order, InitCnt.Order );
