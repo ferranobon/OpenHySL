@@ -119,13 +119,13 @@ int main ( int argc, char **argv )
      /* Initialise the constants of the substructure */
      Init_Constants_Substructure( &Cnst );
 
-     Gc = calloc( Cnst.Order_Couple*Cnst.Order_Couple, sizeof( float ) );
+     Gc = (float *) calloc( Cnst.Order_Couple*Cnst.Order_Couple, sizeof( float ) );
 
-     u0c = calloc( Cnst.Order_Couple, sizeof( float ) );
-     uc = calloc( Cnst.Order_Couple, sizeof( float ) );
+     u0c = (float *) calloc( Cnst.Order_Couple, sizeof( float ) );
+     uc = (float *) calloc( Cnst.Order_Couple, sizeof( float ) );
 
-     fcprev = calloc( Cnst.Order_Couple, sizeof( float ) );
-     fc = calloc( Cnst.Order_Couple, sizeof( float ) );
+     fcprev = (float *) calloc( Cnst.Order_Couple, sizeof( float ) );
+     fc = (float *) calloc( Cnst.Order_Couple, sizeof( float ) );
 
      /* The size of the data to be exchanged is given by the last element of iData */
      Length = iData[10];
@@ -138,7 +138,7 @@ int main ( int argc, char **argv )
 #if ADWIN_
 	  /* Run with ADwin */
 	  printf( "Using ADwin to perform the sub-stepping process.\n" );
-	  ADWIN_DATA = calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
+	  ADWIN_DATA = (float *) calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
 #else 
 	  fprintf(stderr, "The program was not compiled with ADwin support.\n");
 	  exit( EXIT_FAILURE );
