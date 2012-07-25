@@ -14,7 +14,11 @@
 #ifndef SEND_RECEIVE_DATA_H_
 #define SEND_RECEIVE_DATA_H_
 
+#if _WIN32_
+/* Do nothing */
+#else 
 #include <netdb.h>  /* For struct sockaddr */
+#endif
 
 #define MAXPENDING   5    /* Maximum outstanding connection requests */
 
