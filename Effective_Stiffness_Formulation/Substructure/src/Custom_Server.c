@@ -132,15 +132,15 @@ int main( int argc, char **argv )
      Init_Constants_Substructure( &Cnst );
 
      /* Dynamically allocate memory */
-     Gc = calloc( Cnst.Order_Couple*Cnst.Order_Couple, sizeof( float ) );
+     Gc = (float *) calloc( Cnst.Order_Couple*Cnst.Order_Couple, sizeof( float ) );
 
-     u0c = calloc( Cnst.Order_Couple, sizeof( float ) );
-     uc = calloc( Cnst.Order_Couple, sizeof( float ) );
+     u0c = (float *) calloc( Cnst.Order_Couple, sizeof( float ) );
+     uc = (float *) calloc( Cnst.Order_Couple, sizeof( float ) );
 
-     fcprev = calloc( Cnst.Order_Couple, sizeof( float ) );
-     fc = calloc( Cnst.Order_Couple, sizeof( float ) );
+     fcprev = (float *) calloc( Cnst.Order_Couple, sizeof( float ) );
+     fc = (float *) calloc( Cnst.Order_Couple, sizeof( float ) );
 
-     Send = calloc( 3*Cnst.Order_Couple, sizeof( float ) );
+     Send = (float *) calloc( 3*Cnst.Order_Couple, sizeof( float ) );
 
      /* Receive matrix Gc */
      Length = Cnst.Order_Couple*Cnst.Order_Couple;
@@ -166,7 +166,7 @@ int main( int argc, char **argv )
 	  /* Run with ADwin */
 	  ADWIN_SetGc( Gc, Cnst.Order_Couple*Cnst.Order_Couple );
 	  printf( "Using ADwin to perform the sub-stepping process.\n" );
-	  ADWIN_DATA = calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
+	  ADWIN_DATA = (float *) calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
 #else
 	  fprintf(stderr, "The program was not compiled with ADwin support.\n");
 	  exit( EXIT_FAILURE );
