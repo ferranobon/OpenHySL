@@ -16,7 +16,8 @@
 #include <string.h>
 
 #if _WIN32_
-#include <winsock2.h>
+#include <winsock2.h> /* For send(), recv(), sockadrr... */
+#include <WS2tcpip.h> /* For socklen_t */
 #else
 #include <sys/socket.h>
 #include <sys/types.h>
