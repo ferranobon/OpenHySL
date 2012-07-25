@@ -137,7 +137,6 @@ int main ( int argc, char **argv )
      if ( Mode == USE_ADWIN ){
 #if ADWIN_
 	  /* Run with ADwin */
-	  ADWIN_SetGc( Gc, Cnst.Order_Couple*Cnst.Order_Couple );
 	  printf( "Using ADwin to perform the sub-stepping process.\n" );
 	  ADWIN_DATA = calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
 #else 
@@ -216,6 +215,12 @@ int main ( int argc, char **argv )
 			 printf("Received control values values\n");
 			 Gc[i] = (float) Recv[1+i];
 			 printf("Gc %e\n", Gc[0] );
+		    }
+		    if ( Mode == USE_ADWIN ){
+#if ADWIN_
+			 /* Send the matrix to the controller */
+			 ADWIN_SetGc( Gc, Cnst.Order_Couple*Cnst.Order_Couple );
+#endif
 		    }
 	       } else {
 		    /* Check if what has been received are the control values */
