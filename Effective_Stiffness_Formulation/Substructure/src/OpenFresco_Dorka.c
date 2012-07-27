@@ -15,20 +15,20 @@ void Print_Help( const char *Program_Name );
 
 int main ( int argc, char **argv )
 {
-     int i;
+     unsigned int i;
      /* Variables concerning data communication */
      int Server_Socket;      /* Socket for the server */
-     unsigned int Port;      /* Port */
+     uint16_t Port;          /* Port */
 
-     int DataTypeSize;       /* Size of the data type to be transfered */
+     unsigned int DataTypeSize;       /* Size of the data type to be transfered */
      char *Data;             /* To Send and receive data */
-     int Length;             /* Length of the data to be transfered */
+     unsigned int Length;             /* Length of the data to be transfered */
      int ierr;               /* Error. OpenFresco routines */
      int Is_Not_Finished;    /* To check if the process is finished or not */
      int Receive_G_Matrix;   /* To receive the Gain matrix instead of normal displacements */
 
      /* Variables required by OpenFresco */
-     int iData[11];
+     unsigned int iData[11];
 
      ConstSub Cnst;
 
@@ -77,7 +77,7 @@ int main ( int argc, char **argv )
 	       }
 	       break;
 	  case 'p':
-	       Port = (unsigned int) atoi( optarg );
+	       Port = (uint16_t) atoi( optarg );
 	       break;
 	  case 'h':
 	       Print_Help( argv[0] );
@@ -119,26 +119,26 @@ int main ( int argc, char **argv )
      /* Initialise the constants of the substructure */
      Init_Constants_Substructure( &Cnst );
 
-     Gc = calloc( Cnst.Order_Couple*Cnst.Order_Couple, sizeof( float ) );
+     Gc = (float *) calloc( (size_t) Cnst.Order_Couple*Cnst.Order_Couple, sizeof( float ) );
 
-     u0c = calloc( Cnst.Order_Couple, sizeof( float ) );
-     uc = calloc( Cnst.Order_Couple, sizeof( float ) );
+     u0c = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
+     uc = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
 
-     fcprev = calloc( Cnst.Order_Couple, sizeof( float ) );
-     fc = calloc( Cnst.Order_Couple, sizeof( float ) );
+     fcprev = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
+     fc = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
 
      /* The size of the data to be exchanged is given by the last element of iData */
      Length = iData[10];
      printf("%d\n", Length);
-     Send = (double*) calloc( Length, sizeof(double) );
-     Recv = (double*) calloc( Length, sizeof(double) );   
+     Send = (double*) calloc( (size_t) Length, sizeof(double) );
+     Recv = (double*) calloc( (size_t) Length, sizeof(double) );   
      
 
      if ( Mode == USE_ADWIN ){
 #if ADWIN_
 	  /* Run with ADwin */
 	  printf( "Using ADwin to perform the sub-stepping process.\n" );
-	  ADWIN_DATA = calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
+	  ADWIN_DATA = (float *) calloc( (size_t) Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
 #else 
 	  fprintf(stderr, "The program was not compiled with ADwin support.\n");
 	  exit( EXIT_FAILURE );
@@ -146,10 +146,10 @@ int main ( int argc, char **argv )
      } else if ( Mode == USE_EXACT ){
 	  /* Simulate the substructure numerically */
 	  printf( "Simulating the sub-structure using an exact integration method.\n");
-	  ExactSolution_Init( 285, 352.18177, 68000, Cnst.DeltaT_Sub, &Num_TMD );
+	  ExactSolution_Init( 285.0f, 352.18177f, 68000.0f, Cnst.DeltaT_Sub, &Num_TMD );
      } else if ( Mode == USE_UHYDE ){
 	  printf( "Simulating the friction device UHYDE-fbr.\n" );
-	  Simulate_UHYDE_1D_Init( 0.0002, 0.9, 500.0, &Num_UHYDE );
+	  Simulate_UHYDE_1D_Init( 0.0002f, 0.9f, 500.0f, &Num_UHYDE );
      } else {
 	  printf( "Simulating the sub-structure using measured values as an input.\n");
 	  /* Do nothing for the moment */

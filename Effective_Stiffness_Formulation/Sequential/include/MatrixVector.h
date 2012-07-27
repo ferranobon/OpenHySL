@@ -49,7 +49,7 @@ typedef struct Scal {
  *
  * \sa MatrixVector.
  */
-void Init_MatrixVector( MatrixVector *Mat, const int Rows, const int Cols );
+void Init_MatrixVector( MatrixVector *const Mat, const int Rows, const int Cols );
 
 /**
  * \brief Reads a Matrix or a vector from a file

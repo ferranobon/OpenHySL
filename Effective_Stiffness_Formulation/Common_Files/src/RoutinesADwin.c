@@ -93,19 +93,20 @@ void ADWIN_CheckProcessStatus( int ProcessNumber )
      }
 }
 
-void ADWIN_SetGc( const float *const Gc, const int length )
+void ADWIN_SetGc( float *const Gc, const unsigned int length )
 {
      /* In the code of ADWIN, the variable G is stored in DATA_1 */
      Set_DeviceNo( (int32_t) 336 );
 
-     SetData_Float( 1, (float *)Gc, 1, length );
+     SetData_Float( 1, Gc, 1, (int32_t) length );
 
 }
 
-void ADWIN_Substep( const float *const u0c, float *const uc, float *const fcprev, float *const fc, const int OrderC )
+void ADWIN_Substep( const float *const u0c, float *const uc, float *const fcprev, float *const fc, const unsigned int OrderC )
 {
 
-     static int i;
+     static unsigned int i;
+     static unsigned int Length_Receive, Length_Send;
      
      float *Send_ADwin, *ReceiveADwin;
      static int ADWinReady;
@@ -115,10 +116,13 @@ void ADWIN_Substep( const float *const u0c, float *const uc, float *const fcprev
      static struct timeval t3;
      static double ElapsedTime;
 
-     Send_ADwin = (float *) calloc( OrderC + 1, sizeof(float) );
-     ReceiveADwin = (float *) calloc( 3*OrderC + 1, sizeof(float) );
+     Length_Receive = 3*OrderC + 1;
+     Length_Send = OrderC + 1;
 
-     for ( i = 0; i < 3*OrderC + 1; i++ ){
+     Send_ADwin = (float *) calloc( (size_t) Length_Send, sizeof(float) );
+     ReceiveADwin = (float *) calloc( (size_t) Length_Receive, sizeof(float) );
+
+     for ( i = 0; i < Length_Receive; i++ ){
 	  ReceiveADwin[i] = 0.0;
      }
      ADWinReady = 0;
@@ -131,26 +135,26 @@ void ADWIN_Substep( const float *const u0c, float *const uc, float *const fcprev
      }
 
      /* Set the displacement. In ADwin the array storing the displacement is DATA_2 */
-     SetData_Float( 2, Send_ADwin, 1, OrderC + 1 );
+     SetData_Float( 2, Send_ADwin, 1, (int32_t) Length_Send );
 
      /* Do nothing until a certain time has passed to avoid overloading adwin system */
      gettimeofday( &t1, NULL );
      ElapsedTime = 0.0;
           
-     while ( ElapsedTime < 8.0 ){ //(NSub - 1.0)*Deltat_Sub*1000.0 - 0.5){
+     while ( ElapsedTime < 8.0 ){ /*(NSub - 1.0)*Deltat_Sub*1000.0 - 0.5){*/
 	  gettimeofday(&t2, NULL );
-	  ElapsedTime = (t2.tv_sec - t1.tv_sec)*1000.0;
-	  ElapsedTime += (t2.tv_usec -t1.tv_usec)/1000.0;
+	  ElapsedTime = (double) (t2.tv_sec - t1.tv_sec)*1000.0;
+	  ElapsedTime += (double) (t2.tv_usec -t1.tv_usec)/1000.0;
      }
 
      /* Get the displacement when substep is over */
      while( ADWinReady == 0 ){
-	  GetData_Float( 3, ReceiveADwin, 1, 3*OrderC + 1);
+	  GetData_Float( 3, ReceiveADwin, 1, (int32_t) Length_Receive );
 	  if ( ReceiveADwin[0] == -1.0){
 
 	       gettimeofday(&t3, NULL );
-	       ElapsedTime = (t3.tv_sec - t1.tv_sec)*1000.0;
-	       ElapsedTime += (t3.tv_usec -t1.tv_usec)/1000.0;
+	       ElapsedTime = (double) (t3.tv_sec - t1.tv_sec)*1000.0;
+	       ElapsedTime += (double) (t3.tv_usec -t1.tv_usec)/1000.0;
 	       /* Get the data from ADWIN (DATA_3) */
 
 	       ADWinReady = 1;
@@ -167,12 +171,14 @@ void ADWIN_Substep( const float *const u0c, float *const uc, float *const fcprev
      free( ReceiveADwin );
 }
 
-void GetDataADwin( const int Num_Steps, const int Num_Sub, float *const Data )
+void GetDataADwin( const unsigned int Num_Steps, const unsigned int Num_Sub, float *const Data )
 {
-     FILE *OutFile;
-     int i,j;
 
-     GetData_Float( 97, Data, 1, Num_Sub*Num_Steps*NUM_CHANNELS );
+     FILE *OutFile;
+     unsigned int i,j, Length;
+
+     Length = Num_Sub*Num_Steps*NUM_CHANNELS;
+     GetData_Float( 97, Data, 1, (int32_t) Length );
      OutFile = fopen( "Data.txt", "w");
   
      /* Print the header file */

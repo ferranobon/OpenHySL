@@ -26,7 +26,7 @@ int main( int argc, char **argv )
      /* Output file */
      FILE *OutputFile;
 
-     int i, istep;		/* Counters */
+     unsigned int i, istep;		/* Counters */
      AlgConst InitCnt;
 
      /* NETLIB Variables */
@@ -126,22 +126,25 @@ int main( int argc, char **argv )
 
      /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will
       * be used during the test */
-     AccAll = calloc( InitCnt.Nstep, sizeof(float) );
+     AccAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
      if( InitCnt.Use_Absolute_Values ){
-	  VelAll = calloc( InitCnt.Nstep, sizeof(float) );
-	  DispAll = calloc( InitCnt.Nstep, sizeof(float) );
+	  VelAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
+	  DispAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
+     } else {
+	  VelAll = NULL;
+	  DispAll = NULL;
      }
 
      /* Allocate the memory for the variables to store. The results will be saved each step */
-     TimeHistoryli = calloc( InitCnt.Nstep, sizeof(float) );
-     TimeHistoryui1 = calloc( InitCnt.Nstep, sizeof(float) );
-     TimeHistoryvi1 = calloc( InitCnt.Nstep, sizeof(float) );
-     TimeHistoryai1 = calloc( InitCnt.Nstep, sizeof(float) );
-     TimeHistoryui = calloc( InitCnt.Nstep, sizeof(float) );
-     TimeHistoryvi = calloc( InitCnt.Nstep, sizeof(float) );
-     TimeHistoryai = calloc( InitCnt.Nstep, sizeof(float) );
-     TimeHistoryfc = calloc( InitCnt.Nstep, sizeof(float) );
-     TimeHistoryfu = calloc( InitCnt.Nstep, sizeof(float) );
+     TimeHistoryli = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
+     TimeHistoryui1 = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
+     TimeHistoryvi1 = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
+     TimeHistoryai1 = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
+     TimeHistoryui = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
+     TimeHistoryvi = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
+     TimeHistoryai = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
+     TimeHistoryfc = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
+     TimeHistoryfu = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
 
      /* Initialise the matrices and vectors that will be used in the Time Integration process */
      Init_MatrixVector( &M, InitCnt.Order, InitCnt.Order );
@@ -201,7 +204,7 @@ int main( int argc, char **argv )
      BuildMatrixXcm( &Keinv, &Keinv_m, InitCnt.PosCouple, InitCnt.OrderC );
 
      /* Send the coupling part of the effective matrix */
-     Send_Effective_Matrix( Keinv_c.Array, InitCnt.Type_Protocol, InitCnt.OrderC, &Socket );
+     Send_Effective_Matrix( Keinv_c.Array, InitCnt.Type_Protocol, (unsigned int) InitCnt.OrderC, &Socket );
 
      /* Read the earthquake data from a file */
      if( InitCnt.Use_Absolute_Values ){
@@ -253,7 +256,7 @@ int main( int argc, char **argv )
 
 	  /* Perform substepping */
 	  Do_Substepping( DispTdT0_c.Array, DispTdT.Array, fcprevsub.Array, fc.Array, InitCnt.Type_Protocol,
-			  InitCnt.Delta_t*istep, Socket, InitCnt.OrderC, InitCnt.PosCouple );
+			  InitCnt.Delta_t*(float) istep, Socket, (unsigned int) InitCnt.OrderC, (unsigned int) InitCnt.PosCouple );
 	  
 	  if ( istep < InitCnt.Nstep ){
 	       /* Calculate the input load for the next step during the
@@ -316,7 +319,8 @@ int main( int argc, char **argv )
      fclose( OutputFile );
 
      /* Close the Connection */
-     Close_Connection( &Socket, InitCnt.Type_Protocol, InitCnt.OrderC, InitCnt.Nstep, 4 );
+     Close_Connection( &Socket, InitCnt.Type_Protocol, (unsigned int) InitCnt.OrderC,
+		       InitCnt.Nstep, 4 );
    
      /* Free the memory stored in TimeHistory variables */
      free( TimeHistoryli );

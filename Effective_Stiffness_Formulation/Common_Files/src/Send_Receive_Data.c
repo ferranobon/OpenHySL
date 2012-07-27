@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if _WIN32_
+#if WIN32
 #include <winsock2.h> /* For send(), recv(), sockadrr... */
 #include <WS2tcpip.h> /* For socklen_t */
 #else
@@ -79,7 +79,7 @@ int Setup_Server_Socket( const char* Port, const int Socket_Type )
      struct sockaddr_storage Local_Addr;
      socklen_t addrSize;
      int rtnVal;
-     int Socket;
+     int Socket = -1;
 
 
      memset( &addrCriteria, 0, sizeof(addrCriteria) ); /* Initialisee the structure */
@@ -147,7 +147,7 @@ int Setup_Server_Socket( const char* Port, const int Socket_Type )
      return Socket; 
 }
 
-void PrintSocketAddress( const struct sockaddr *address )
+void PrintSocketAddress( struct sockaddr *const address )
 {
      if (address == NULL ){
 	  return;
@@ -241,7 +241,7 @@ int Setup_Client_Socket( const Remote_Machine_Info Server, const int Socket_Type
 	  /* Create the TCP/UDP socket */
 	  Socket = socket( addr->ai_family, addr->ai_socktype, addr->ai_protocol );
 	  if ( Socket < 0 ){
-	       continue;  // Socket creation failed; try next address
+	       continue;  /* Socket creation failed; try next address */
 	  }
 
 	  /* Establish the connection with the Server to start the simulation */
@@ -256,41 +256,51 @@ int Setup_Client_Socket( const Remote_Machine_Info Server, const int Socket_Type
      
      /* Free the address list allocated by getaddrinfo() */
      freeaddrinfo(Server_Addr);
+
      return Socket;
 }
 
-void Send_Data( const float *Data, const int DATA_LENGTH, const int sock )
+void Send_Data( float *const Data, const unsigned int Data_Length, const int sock )
 {
+     char *Msg;
+     size_t Length;
 
-  if ( send(sock, Data, sizeof Data  * DATA_LENGTH, 0) != (int)sizeof Data * DATA_LENGTH ){
+     Msg = (char *) Data;
+     Length = Data_Length*sizeof(float);
+
+     if ( send(sock, Msg, Length, 0) != (ssize_t) Length ){
 	  PrintErrorAndExit( "send() sent a different number of bytes than expected" );
   }
 
 }
 
-void Receive_Data( float *Data, const int DATA_LENGTH, const int sock )
+void Receive_Data( float *const Data, const unsigned int Data_Length, const int sock )
 {
-     int bytesRcvd, totalBytesRcvd;
+     char *Msg;
+     ssize_t bytesRcvd, totalBytesRcvd;
+     size_t Length;
 
      totalBytesRcvd = 0;
+     Length = sizeof(float) * Data_Length;
+     Msg = (char *) Data;
 
-     while (totalBytesRcvd < (int)sizeof Data * DATA_LENGTH)
+     while (totalBytesRcvd < (ssize_t) Length )
      {
-	  if ((bytesRcvd = recv(sock, Data, sizeof Data * DATA_LENGTH,0)) <= 0){
+	  if ((bytesRcvd = recv(sock, Msg, Length,0)) <= 0){
 	       PrintErrorAndExit( "recv() failed or connection closed prematurely" );
 	  }
 	  totalBytesRcvd += bytesRcvd;
      }
 }
 
-void Send_Effective_Matrix( const float *const Eff_Mat, const int Protocol_Type, const int OrderC, int *const Socket )
+void Send_Effective_Matrix( float *const Eff_Mat, const int Protocol_Type, const unsigned int OrderC, int *const Socket )
 {
-     int i, j; /* Counters */
+     unsigned int i, j; /* Counters */
      Remote_Machine_Info Server;
-     float *Send, *Recv;
+     float *Send = NULL, *Recv = NULL;
 
-     Send = calloc( OrderC, sizeof(float) );
-     Recv = calloc( 3*OrderC, sizeof(float) );
+     Send = (float *) calloc( (size_t) OrderC, sizeof(float) );
+     Recv = (float *) calloc( (size_t) 3*OrderC, sizeof(float) );
 
      switch( Protocol_Type ){
 
@@ -366,13 +376,13 @@ void Send_Effective_Matrix( const float *const Eff_Mat, const int Protocol_Type,
      free( Recv );
 }
 
-void Do_Substepping( const float *const DispTdT0_c, float *const DispTdT, float *const fcprevsub, float *const fc, const int Protocol_Type, const float Time, const int Socket, const int OrderC, const int Pos_Couple )
+void Do_Substepping( float *const DispTdT0_c, float *const DispTdT, float *const fcprevsub, float *const fc, const int Protocol_Type, const float Time, const int Socket, const unsigned int OrderC, const unsigned int Pos_Couple )
 {
 
-     int i;
-     float *Recv;
+     unsigned int i;
+     float *Recv = NULL;
 
-     Recv = calloc( 3*OrderC, sizeof(float) );
+     Recv = (float *) calloc( (size_t) 3*OrderC, sizeof(float) );
 
 
      switch ( Protocol_Type ){
@@ -380,7 +390,6 @@ void Do_Substepping( const float *const DispTdT0_c, float *const DispTdT, float 
      case PROTOCOL_ADWIN:
 	  /* Tell ADwin to perform the substepping process */
 	  ADWIN_Substep( DispTdT0_c, &Recv[0], &Recv[1], &Recv[2], OrderC );
-	  //Recv[0] = uc[0]; Recv[1] = 0.0; Recv[2] = 0.0;
 	  break;
 #endif
      case PROTOCOL_TCP:
@@ -450,22 +459,20 @@ void Receive_Data_TCP( const int Socket, const int Data_Type_Size, char *const T
 }
 */
 
-void Close_Connection( int *Socket, const int Protocol_Type, const int OrderC, const int Num_Steps, const int Num_Sub )
+void Close_Connection( int *Socket, const int Protocol_Type, const unsigned int OrderC, const unsigned int Num_Steps, const unsigned int Num_Sub )
 {
 
-     float *Send;
+     float *Send = NULL;
 
-#if ADWIN_
-     float *ADWIN_DATA;
-#endif
+     float *ADWIN_DATA = NULL;
 
-     Send = calloc( OrderC, sizeof(float) );
+     Send = (float *) calloc( (size_t) OrderC, sizeof(float) );
 
      switch ( Protocol_Type ){
 #if ADWIN_
      case PROTOCOL_ADWIN:
 	  /* Connect directly to ADwin */
-	  ADWIN_DATA = calloc( Num_Sub*Num_Steps*NUM_CHANNELS, sizeof( float ) );
+	  ADWIN_DATA = (float *) calloc( (size_t) Num_Sub*Num_Steps*NUM_CHANNELS, sizeof( float ) );
 	  GetDataADwin( Num_Steps, Num_Sub, ADWIN_DATA );
 	  free( ADWIN_DATA );
 	  break;
@@ -500,7 +507,7 @@ void Close_Connection( int *Socket, const int Protocol_Type, const int OrderC, c
 void Close_Socket( int *Socket )
 {
 
-#if _WIN32_
+#if WIN32
      closesocket( *Socket );
 #else
      close( *Socket );

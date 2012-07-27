@@ -42,9 +42,9 @@
  * - \c Acceleration, \c Velocity and \c Displacement will store the acceleration, velocity and displacement of the recorded earthquake.
  * \sa InitConstants()
  */
-void ReadDataEarthquake_AbsValues( float *Acceleration, float *Velocity, float *Displacement, const int NumSteps, const char *Filename );
+void ReadDataEarthquake_AbsValues( float *Acceleration, float *Velocity, float *Displacement, const unsigned int NumSteps, const char *Filename );
 
-void ReadDataEarthquake_RelValues( float *Acceleration, const int NumSteps, const char *Filename );
+void ReadDataEarthquake_RelValues( float *Acceleration, const unsigned int NumSteps, const char *Filename );
 
 /**
  * \brief Copies the diagonal values of a matrix into a vector.
