@@ -21,7 +21,7 @@
 int main( int argc, char **argv )
 {
 
-     unsigned int i;
+     unsigned int i,j;
 
      /* Variables concerning data communication */
      int Server_Socket;                /* Socket for the server */
