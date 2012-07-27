@@ -14,7 +14,7 @@
 #ifndef SEND_RECEIVE_DATA_H_
 #define SEND_RECEIVE_DATA_H_
 
-#if _WIN32_
+#if WIN32
 /* Do nothing */
 #else 
 #include <netdb.h>  /* For struct sockaddr */
@@ -68,7 +68,7 @@ void GetServerInformation( Remote_Machine_Info *const Server );
 
 
 int Setup_Server_Socket( const char* Port, const int Socket_Type );
-void PrintSocketAddress( const struct sockaddr *address );
+void PrintSocketAddress( struct sockaddr *const address );
 int Accept_TCP_Client_Connection( int Server_Socket );
 
 int Setup_Client_Socket( const Remote_Machine_Info Server, const int Socket_Type );
@@ -90,7 +90,7 @@ int Setup_Client_Socket( const Remote_Machine_Info Server, const int Socket_Type
  * \post
  * - The data inside \c Data is sent successfully through TCP/IP.
  */
-void Send_Data( const float *Data, const int DATA_LENGTH, const int sock );
+void Send_Data( float *const Data, const unsigned int Data_Length, const int sock );
 
 /**
  * \brief Receives data from the server (blocking)
@@ -109,12 +109,12 @@ void Send_Data( const float *Data, const int DATA_LENGTH, const int sock );
  * \post
  * - The received data from the Server through TCP/IP is stored in the array \c Data.
  */
-void Receive_Data( float *Data, const int DATA_LENGTH, const int sock );
+void Receive_Data( float *const Data, const unsigned int Data_Length, const int sock );
 
-void Send_Effective_Matrix( const float *const Eff_Mat, const int Protocol_Type, const int OrderC, int *const Socket );
+void Send_Effective_Matrix( float *const Eff_Mat, const int Protocol_Type, const unsigned int OrderC, int *const Socket );
 
-void Do_Substepping( const float *const DispTdT0_c, float *const DispTdT, float *const fcprevsub, float *const fc, const int Protocol_Type, const float Time, const int Socket, const int OrderC, const int Pos_Couple );
-void Close_Connection( int *Socket, const int Protocol_Type, const int OrderC, const int Num_Steps, const int Num_Sub );
+void Do_Substepping( float *const DispTdT0_c, float *const DispTdT, float *const fcprevsub, float *const fc, const int Protocol_Type, const float Time, const int Socket, const unsigned int OrderC, const unsigned int Pos_Couple );
+void Close_Connection( int *Socket, const int Protocol_Type, const unsigned int OrderC, const  unsigned int Num_Steps, const unsigned int Num_Sub );
 
 void Close_Socket( int *Socket );
 

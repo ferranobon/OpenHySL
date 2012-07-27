@@ -16,51 +16,49 @@
  * TCP/IP communication. 
  */
 #include <stdio.h>
-#include <stdlib.h>            /* For calloc( ) and free( ) */
+#include <stdlib.h>            /* For calloc( (size_t) ) and free( ) */
 #include <string.h>            /* For strlen( ) */
 
 #include "Send_Receive_Data.h" /* Common routines to handle TCP/IP or UDP
 				* communication */
+#include "OpenFresco_Communication.h"
 #include "OPSocket.h"          /* OpenFresco routines setupconnectionclient()
 				* senddata(), recvdata() and closeconnection() */
-
 /* Global variables */
-int DataSize = 256;
 int SocketID;
+unsigned int DataSize = 256;
 
-int Communicate_With_OpenFresco( const float *const Data_To_Send, float *const Data_To_Receive, int Size, int WhatToDo )
+int Communicate_With_OpenFresco( const float *const Data_To_Send, float *const Data_To_Receive, unsigned int Size, int WhatToDo )
 {
 
      /* Local Variables */
-     static int i, iData[11];
+     static unsigned int i, iData[11];
 
      /* OpenFresco uses type double to send/receive messages */
      static double *sData, *rData;
 
      /* Data communication variables */
-     int ierr, nleft, DataTypeSize;
+     int ierr;
+     unsigned int nleft, DataTypeSize;
      char *gMsg;
 
      /* Setup the connection with the OpenFresco's SimAppServer */
      if( WhatToDo == 1 ){
-	  int Size_Machine_Inet;
 	  Remote_Machine_Info RMachine;
-	  unsigned int Port;
+	  uint16_t Port;
 
 	  /* Allocate memory to send and receive vectors */
 	  DataSize = ( 2*Size > DataSize ) ? 2*Size : DataSize;
 	  DataSize = ( Size*Size > DataSize ) ? Size*Size : DataSize;
      
-	  sData = (double *) calloc( DataSize, sizeof (double) );
-	  rData = (double *) calloc( DataSize, sizeof (double) );
+	  sData = (double *) calloc( (size_t) DataSize, sizeof (double) );
+	  rData = (double *) calloc( (size_t) DataSize, sizeof (double) );
 
 	  /* Setup the connection */
 	  GetServerInformation( &RMachine );
-	  Size_Machine_Inet = strlen( RMachine.IP ) + 1;
 	  printf("Trying to connect to OpenFresco Server at %s through port %s\n", RMachine.IP, RMachine.Port );
-	  Port = (unsigned int) atoi(RMachine.Port);
-	  setupconnectionclient( &Port, RMachine.IP, &Size_Machine_Inet,
-				 &SocketID );
+	  Port = (uint16_t) atoi(RMachine.Port);
+	  setupconnectionclient( &Port, RMachine.IP, &SocketID );
 
 	  /* Check if the connection could be established */
 	  if ( SocketID < 0 ){

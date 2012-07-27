@@ -13,6 +13,6 @@
 #ifndef OPENFRESCO_COMMUNICATION_H
 #define OPENFRESCO_COMMUNICATION_H
 
-int Communicate_With_OpenFresco( const float *const Data_To_Send, float *const Data_To_Receive, int Size, int WhatToDo );
+int Communicate_With_OpenFresco( const float *const Data_To_Send, float *const Data_To_Receive, unsigned int Size, int WhatToDo );
 
 #endif /* OPENFRESCO_COMMUNICATION_H */

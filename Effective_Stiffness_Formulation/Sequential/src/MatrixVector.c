@@ -23,17 +23,17 @@
 void Init_MatrixVector( MatrixVector *const Mat, const int Rows, const int Cols )
 {
      if ( Rows >= 0 ){ 
-	  (*Mat).Rows = Rows;
+	  Mat->Rows = Rows;
 	  if ( Rows > 0 ){
-	       (*Mat).Cols = Cols;
+	       Mat->Cols = Cols;
 	  } else {
-	       (*Mat).Cols = 0;
+	       Mat->Cols = 0;
 	  }
      } else {
 	  PrintErrorAndExit( "The number of rows must be equal or greater than zero" );
      }
 	     
-     (*Mat).Array = calloc( (*Mat).Rows*(*Mat).Cols, sizeof(float));
+     Mat->Array = (float *) calloc( (size_t) Mat->Rows*Mat->Cols, sizeof(float));
 }
 
 
@@ -47,8 +47,8 @@ void MatrixVector_From_File( MatrixVector *const Mat, const char *Filename )
      if ( InFile != NULL ){
 
 	  int i;
-	  for ( i = 0; i < (*Mat).Rows*(*Mat).Cols; i++ ){
-	       fscanf(InFile,"%f", &(*Mat).Array[i]);
+	  for ( i = 0; i < Mat->Rows*Mat->Cols; i++ ){
+	       fscanf(InFile,"%f", &Mat->Array[i]);
 	  }
 	  fclose( InFile );
      } else ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
@@ -64,10 +64,10 @@ void Set2Value( MatrixVector *const Mat, const float Value )
      static int Length;
      static float Val;
 
-     Length = (*Mat).Rows*(*Mat).Cols;
+     Length = Mat->Rows*Mat->Cols;
      Val = Value;
 
-     scopy_( &Length, &Val, &incx, (*Mat).Array, &incy );
+     scopy_( &Length, &Val, &incx, Mat->Array, &incy );
 }
 
 void Modify_Element( MatrixVector *const Mat, const int RowIndex, const int ColIndex, const float Value, const char *Operation )
@@ -79,13 +79,13 @@ void Modify_Element( MatrixVector *const Mat, const int RowIndex, const int ColI
      const char *OpDiv = "Divide";
 
      if ( strcmp( Operation, OpSet ) == 0 ){
-	  (*Mat).Array[(RowIndex - 1)*(*Mat).Cols + (ColIndex - 1)] = Value;
+	  Mat->Array[(RowIndex - 1)*Mat->Cols + (ColIndex - 1)] = Value;
      }else if ( strcmp( Operation, OpAdd ) == 0 ){
-	  (*Mat).Array[(RowIndex - 1)*(*Mat).Cols + (ColIndex - 1)] = (*Mat).Array[(RowIndex - 1)*(*Mat).Cols + (ColIndex - 1)] + Value;
+	  Mat->Array[(RowIndex - 1)*Mat->Cols + (ColIndex - 1)] = Mat->Array[(RowIndex - 1)*Mat->Cols + (ColIndex - 1)] + Value;
      } else if ( strcmp( Operation, OpMult ) == 0 ){
-	  (*Mat).Array[(RowIndex - 1)*(*Mat).Cols + (ColIndex - 1)] = (*Mat).Array[(RowIndex - 1)*(*Mat).Cols + (ColIndex - 1)]*Value;
+	  Mat->Array[(RowIndex - 1)*Mat->Cols + (ColIndex - 1)] = Mat->Array[(RowIndex - 1)*Mat->Cols + (ColIndex - 1)]*Value;
      } else if ( strcmp( Operation, OpDiv ) == 0 ){
-	  (*Mat).Array[(RowIndex - 1)*(*Mat).Cols + (ColIndex - 1)] = (*Mat).Array[(RowIndex - 1)*(*Mat).Cols + (ColIndex - 1)]/Value;
+	  Mat->Array[(RowIndex - 1)*Mat->Cols + (ColIndex - 1)] = Mat->Array[(RowIndex - 1)*Mat->Cols + (ColIndex - 1)]/Value;
      } else {
 	  fprintf( stderr, "%s: Operation not identified. Valid operations are:\n", Operation );
 	  fprintf( stderr, "\t1) %s\n", OpSet );
@@ -152,9 +152,9 @@ void MatrixVector_To_File( const MatrixVector *const Mat, const char *Filename )
 
 	  int i;
 	  int j;
-	  for ( i = 0; i < (*Mat).Rows; i++){
-	       for( j = 0; j < (*Mat).Cols; j++ ){
-		    fprintf(OutFile,"%e\t", (*Mat).Array[i + j*(*Mat).Rows]);
+	  for ( i = 0; i < Mat->Rows; i++){
+	       for( j = 0; j < Mat->Cols; j++ ){
+		    fprintf(OutFile,"%e\t", Mat->Array[i + j*Mat->Rows]);
 	       }
 	       fprintf( OutFile, "\n" );
 	  }
@@ -165,9 +165,9 @@ void MatrixVector_To_File( const MatrixVector *const Mat, const char *Filename )
 void Destroy_MatrixVector( MatrixVector *const Mat)
 {
      /* Set the number of rows and columns to 0 */
-     (*Mat).Rows = 0;
-     (*Mat).Cols = 0;
-     free( (*Mat).Array );
+     Mat->Rows = 0;
+     Mat->Cols = 0;
+     free( Mat->Array );
 }
 
 

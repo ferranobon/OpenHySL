@@ -72,7 +72,7 @@ typedef struct {
      int OrderC;              /*!< \brief Number of coupling DOF */
      int PosCouple;           /*!< \brief Position of the coupling DOF */
 
-     int Nstep;               /*!< \brief Number of steps */
+     unsigned int Nstep;               /*!< \brief Number of steps */
      int Use_Absolute_Values; /*!< \brief Variable to control whether to use absolute values in the equation of motion or relative values. Affects how the input load is calculated */
      float Delta_t;           /*!< \brief Time increment \f$\Delta t\f$ */
 
@@ -142,7 +142,7 @@ void InitConstants( AlgConst *const AConst );
  * - 2 if the desired protocol is of type \c OpenFresco.
  * - -1 if the desired protocol is not recognised.
  */
-int Get_Type_Protocol( );
+int Get_Type_Protocol( void );
 
 /**
  * \brief Construction of Proportional Viscous Damping Matrix using Rayleigh Damping.

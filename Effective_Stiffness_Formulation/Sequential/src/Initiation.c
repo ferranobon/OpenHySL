@@ -35,34 +35,34 @@ void InitConstants( AlgConst *const InitConst )
 
      /* Number of steps and Time step */
      (*InitConst).Nstep = 4096;
-     (*InitConst).Delta_t = 0.01;
+     (*InitConst).Delta_t = 0.01f;
 
      /* Rayleigh values */
-     (*InitConst).Rayleigh.Alpha = 1.4;
-     (*InitConst).Rayleigh.Beta = 0.0004;
+     (*InitConst).Rayleigh.Alpha = 1.4f;
+     (*InitConst).Rayleigh.Beta = 0.0004f;
 
      /* Newmark integration constants */
-     (*InitConst).Newmark.Gamma = 0.5;
-     (*InitConst).Newmark.Beta = 0.25;
+     (*InitConst).Newmark.Gamma = 0.5f;
+     (*InitConst).Newmark.Beta = 0.25f;
 
      /* PID Constants */
-     (*InitConst).PID.P = 0.95;
+     (*InitConst).PID.P = 0.95f;
      (*InitConst).PID.I = 0.0;
      (*InitConst).PID.D = 0.0;
 
      /* Several constants to multiply the vectors */
      (*InitConst).Const1 = (*InitConst).Newmark.Beta*(*InitConst).Delta_t*(*InitConst).Delta_t;
-     (*InitConst).Const2 = (0.5 - 2.0*(*InitConst).Newmark.Beta + (*InitConst).Newmark.Gamma)*(*InitConst).Delta_t*(*InitConst).Delta_t;
-     (*InitConst).Const3 = (0.5 + (*InitConst).Newmark.Beta - (*InitConst).Newmark.Gamma)*(*InitConst).Delta_t*(*InitConst).Delta_t;
+     (*InitConst).Const2 = (0.5f - 2.0f*(*InitConst).Newmark.Beta + (*InitConst).Newmark.Gamma)*(*InitConst).Delta_t*(*InitConst).Delta_t;
+     (*InitConst).Const3 = (0.5f + (*InitConst).Newmark.Beta - (*InitConst).Newmark.Gamma)*(*InitConst).Delta_t*(*InitConst).Delta_t;
 
      /* Constants for Ending Step */
-     (*InitConst).a0 = 1.0/((*InitConst).Newmark.Beta*(*InitConst).Delta_t*(*InitConst).Delta_t);
+     (*InitConst).a0 = 1.0f/((*InitConst).Newmark.Beta*(*InitConst).Delta_t*(*InitConst).Delta_t);
      (*InitConst).a1 = (*InitConst).Newmark.Gamma/((*InitConst).Newmark.Beta*(*InitConst).Delta_t);
-     (*InitConst).a2 = 1.0/((*InitConst).Newmark.Beta*(*InitConst).Delta_t);
-     (*InitConst).a3 = 1.0/(2.0*(*InitConst).Newmark.Beta) - 1.0;
-     (*InitConst).a4 = (*InitConst).Newmark.Gamma/(*InitConst).Newmark.Beta - 1.0;
-     (*InitConst).a5 = ((*InitConst).Delta_t/2.0)*((*InitConst).Newmark.Gamma/(*InitConst).Newmark.Beta - 2.0);
-     (*InitConst).a6 = (1.0 - (*InitConst).Newmark.Gamma)*(*InitConst).Delta_t;
+     (*InitConst).a2 = 1.0f/((*InitConst).Newmark.Beta*(*InitConst).Delta_t);
+     (*InitConst).a3 = 1.0f/(2.0f*(*InitConst).Newmark.Beta) - 1.0f;
+     (*InitConst).a4 = (*InitConst).Newmark.Gamma/(*InitConst).Newmark.Beta - 1.0f;
+     (*InitConst).a5 = ((*InitConst).Delta_t/2.0f)*((*InitConst).Newmark.Gamma/(*InitConst).Newmark.Beta - 2.0f);
+     (*InitConst).a6 = (1.0f - (*InitConst).Newmark.Gamma)*(*InitConst).Delta_t;
      (*InitConst).a7 = (*InitConst).Newmark.Gamma*(*InitConst).Delta_t;
 
      /* File Names */
@@ -80,7 +80,7 @@ void InitConstants( AlgConst *const InitConst )
      }
 }
 
-int Get_Type_Protocol( )
+int Get_Type_Protocol( void )
 {
      Remote_Machine_Info Remote;
 

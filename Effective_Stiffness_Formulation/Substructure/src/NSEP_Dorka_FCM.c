@@ -20,7 +20,7 @@ void Print_Help( const char *Program_Name );
 int main ( int argc, char **argv )
 {
 
-     int i, j;            /* Counters */
+     unsigned int i, j;            /* Counters */
 
      /* Variables for the sub-structure testing/simulation */
      int Is_Not_Finished;
@@ -89,16 +89,16 @@ int main ( int argc, char **argv )
      Init_Constants_Substructure( &Cnst );
 
      /* Dynamically allocate memory */
-     Gc = calloc( Cnst.Order_Couple*Cnst.Order_Couple, sizeof( float ) );
+     Gc = (float *) calloc( (size_t) Cnst.Order_Couple*Cnst.Order_Couple, sizeof( float ) );
  
-     u0c = calloc( Cnst.Order_Couple, sizeof( float ) );
-     uc = calloc( Cnst.Order_Couple, sizeof( float ) );
+     u0c = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
+     uc = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
 
-     fcprev = calloc( Cnst.Order_Couple, sizeof( float ) );
-     fc = calloc( Cnst.Order_Couple, sizeof( float ) );
+     fcprev = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
+     fc = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
 
-     Send = calloc( 3*Cnst.Order_Couple, sizeof( float ) );
-     Recv = calloc( Cnst.Order_Couple, sizeof( float ) );
+     Send = (float *) calloc( (size_t) 3*Cnst.Order_Couple, sizeof( float ) );
+     Recv = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
 
      /* Using NSEP */
      /* Open the Socket */
@@ -120,7 +120,7 @@ int main ( int argc, char **argv )
 	  /* Run with ADwin */
 	  ADWIN_SetGc( Gc, Cnst.Order_Couple*Cnst.Order_Couple );
 	  printf( "Using ADwin to perform the sub-stepping process.\n" );
-	  ADWIN_DATA = calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
+	  ADWIN_DATA = (float *) calloc( (size_t) Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
 #else
 	  fprintf(stderr, "The program was not compiled with ADwin support.\n");
 	  exit( EXIT_FAILURE );
@@ -128,10 +128,10 @@ int main ( int argc, char **argv )
      } else if ( Mode == USE_EXACT ){
 	  /* Simulate the substructure numerically */
 	  printf( "Simulating the sub-structure using an exact integration method.\n");
-	  ExactSolution_Init( 285, 352.18177, 68000, Cnst.DeltaT_Sub, &Num_TMD );
+	  ExactSolution_Init( 285.0f, 352.18177f, 68000.0f, Cnst.DeltaT_Sub, &Num_TMD );
      } else if ( Mode == USE_UHYDE ){
 	  printf( "Simulating the friction device UHYDE-fbr.\n" );
-	  Simulate_UHYDE_1D_Init( 500.0, 1.0, 9.0, &Num_UHYDE );
+	  Simulate_UHYDE_1D_Init( 0.0002f, 0.9f, 500.0f, &Num_UHYDE );
      } else {
 	  printf( "Simulating the sub-structure using measured values as an input.\n");
 	  /* Do nothing for the moment */

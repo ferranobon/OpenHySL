@@ -17,7 +17,7 @@
 #include <stdlib.h>      /* For atoi() and exit( ) */
 #include <string.h>      /* For memset() */
 
-#if _WIN32_
+#if WIN32
 #include <winsock2.h>
 #else
 #include <sys/types.h>
@@ -30,10 +30,10 @@
 #include "ErrorHandling.h"              /* Error handling routines */
 
 void Communicate_With_PNSE( const int WhatToDo, float Time,
-			    const float *const Data_To_Send, float *Data_To_Receive, const int Order )
+			    const float *const Data_To_Send, float *Data_To_Receive, const unsigned int Order )
 {
      static Remote_Machine_Info Server;
-     static int Length;
+     static unsigned int Length;
      static int NSEP_Type;
      static int Socket;
      static int Error;  /* To help identifying the error source */
@@ -271,7 +271,7 @@ void Login_Server( const int Socket, const Remote_Machine_Info Login, char *cons
 
 void Send_Login_Information( const int Socket, const Remote_Machine_Info Login, char *const Send_Buffer, int *Error_TCP )
 {
-     int Length;    /* Length of the message */
+     size_t Length;    /* Length of the message */
      int NSEP_Type; /* NSEP type of message */
      char *pos;     /* Pointer to identify the position within the message */
 
@@ -293,7 +293,7 @@ void Send_Login_Information( const int Socket, const Remote_Machine_Info Login, 
      /* Send the message through TCP/IP and check if there were any problems with
       * the communication
       */
-     if ( send( Socket, Send_Buffer, Length, 0) != (int) sizeof (char)*Length ){
+     if ( send( Socket, Send_Buffer, Length, 0) != (ssize_t) Length ){
 	  (*Error_TCP) = 1;
      } else {
 	  (*Error_TCP) = 0;
@@ -303,7 +303,7 @@ void Send_Login_Information( const int Socket, const Remote_Machine_Info Login, 
 void Receive_Login_Information( const int Socket, char *const Receive_Buffer,
 				int *Error_TCP, int *const NSEP_Type, int *const Error_Code ){
 
-     int Length; /* Length of the message */
+     unsigned int Length; /* Length of the message */
 
      /* Receive the message from the server and check if there were any problems
       * with the communication
@@ -323,9 +323,9 @@ void Receive_Login_Information( const int Socket, char *const Receive_Buffer,
 void Send_Client_State( const int Socket, char *const Send_Buffer,
 			int *Error_TCP, const int Run_State )
 {
-     int Length;    /* Length of the message */
-     int NSEP_Type; /* NSEP type of message */
-     char *pos;     /* Pointer to identify the position within the message */
+     size_t Length;    /* Length of the message */
+     int NSEP_Type;    /* NSEP type of message */
+     char *pos;        /* Pointer to identify the position within the message */
 
      Length = 12;
      NSEP_Type = NSEP_CLNSTATE;
@@ -338,7 +338,7 @@ void Send_Client_State( const int Socket, char *const Send_Buffer,
      
      pos = pos + sizeof (int);    
      memcpy( pos, &Run_State, sizeof (int) );
-     if( send( Socket, Send_Buffer, Length, 0 ) != (int) sizeof (char)*Length ){
+     if( send( Socket, Send_Buffer, Length, 0 ) != (ssize_t) Length ){
 	  (*Error_TCP) = 1;
      }
 

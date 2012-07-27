@@ -53,7 +53,7 @@
  * - If any error occurs during the execution of this routine, like communication problems, the program shows the appropiate
  * error message befor exiting with \c EXIT_FAILURE.
  */
-void Communicate_With_PNSE( const int WhatToDo, float Time, const float *const Data_To_Send, float *const Data_To_Receive, const int Order );
+void Communicate_With_PNSE( const int WhatToDo, float Time, const float *const Data_To_Send, float *const Data_To_Receive, const unsigned int Order );
 
 /**
  * \brief Login to the server in order to proceed with the test.

@@ -41,7 +41,7 @@ void ADWIN_CheckProcessStatus( int ProcessNumber );
  * \param[in] Gc
  * \param[in] length
  */
-void ADWIN_SetGc( const float *const Gc, const int length );
+void ADWIN_SetGc( float *const Gc, const unsigned int length );
 
 /**
  * \brief Routine to perform the substepping process of Dorka's substructure
@@ -68,7 +68,7 @@ void ADWIN_SetGc( const float *const Gc, const int length );
  *
  * \post ADwin will perform the substepping process in displacement control.
  */
-void ADWIN_Substep( const float *const u0c, float *const uc, float *const fcprev, float *const fc, const int OrderC );
+void ADWIN_Substep( const float *const u0c, float *const uc, float *const fcprev, float *const fc, const unsigned int OrderC );
 
 /**
  * \brief Reads the data from ADwin and stores it in a file.
@@ -87,6 +87,6 @@ void ADWIN_Substep( const float *const u0c, float *const uc, float *const fcprev
  * - Number of columns equal to \c NUM_CHANNELS.
  * - Number of rows equal to \f$N_{step}\cdot N_{substep}\f$.
  */
-void GetDataADwin( const int Num_Steps, const int Num_Sub, float *const Data );
+void GetDataADwin( const unsigned int Num_Steps, const unsigned int Num_Sub, float *const Data );
 
 #endif /* ROUTINESADWIN_HPP */

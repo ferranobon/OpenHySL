@@ -20,20 +20,20 @@
 
 int main( int argc, char **argv )
 {
-     int i;
+     unsigned int i;
 
      /* Variables concerning data communication */
      int Server_Socket;                /* Socket for the server */
      int Client_Socket;                /* Socket for the client */
 
      int Socket_Type;
-     char *Port;
+     const char *Port;
      struct sockaddr_storage Client_Addr;
      socklen_t Client_AddrLen;
 
      /* Variables for the sub-structure testing/simulation */
      int Is_Not_Finished;
-     int Length;
+     unsigned int Length;
 
      ConstSub Cnst;
 
@@ -45,10 +45,9 @@ int main( int argc, char **argv )
      TMD_Sim Num_TMD;
      UHYDE_Sim Num_UHYDE;
 
-#if ADWIN_
+
      /* Array where the data from ADwin will be stored */
-     float *ADWIN_DATA;
-#endif
+     float *ADWIN_DATA = NULL;
 
      /* Variables to deal with arguments */
      int Mode, Selected_Option;
@@ -63,7 +62,7 @@ int main( int argc, char **argv )
 
      /* Set the default value for Port, socket type and Mode before the user input. */
      Port = "3333";  /* Default port */
-     Mode = 1;     /* Simulate the sub-structure using an exact solution. */
+     Mode = 1;       /* Simulate the sub-structure using an exact solution. */
      Socket_Type = PROTOCOL_TCP;
 
     /* This is only used if there are no arguments */
@@ -132,15 +131,15 @@ int main( int argc, char **argv )
      Init_Constants_Substructure( &Cnst );
 
      /* Dynamically allocate memory */
-     Gc = calloc( Cnst.Order_Couple*Cnst.Order_Couple, sizeof( float ) );
+     Gc = (float *) calloc( (size_t) Cnst.Order_Couple*Cnst.Order_Couple, sizeof( float ) );
  
-     u0c = calloc( Cnst.Order_Couple, sizeof( float ) );
-     uc = calloc( Cnst.Order_Couple, sizeof( float ) );
+     u0c = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
+     uc = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
 
-     fcprev = calloc( Cnst.Order_Couple, sizeof( float ) );
-     fc = calloc( Cnst.Order_Couple, sizeof( float ) );
+     fcprev = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
+     fc = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
 
-     Send = calloc( 3*Cnst.Order_Couple, sizeof( float ) );
+     Send = (float *) calloc( (size_t) 3*Cnst.Order_Couple, sizeof( float ) );
 
      /* Receive matrix Gc */
      Length = Cnst.Order_Couple*Cnst.Order_Couple;
@@ -160,7 +159,7 @@ int main( int argc, char **argv )
 	  /* Run with ADwin */
 	  ADWIN_SetGc( Gc, Cnst.Order_Couple*Cnst.Order_Couple );
 	  printf( "Using ADwin to perform the sub-stepping process.\n" );
-	  ADWIN_DATA = calloc( Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
+	  ADWIN_DATA = (float *) calloc( (size_t) Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
 #else
 	  fprintf(stderr, "The program was not compiled with ADwin support.\n");
 	  exit( EXIT_FAILURE );
@@ -168,10 +167,10 @@ int main( int argc, char **argv )
      } else if ( Mode == USE_EXACT ){
 	  /* Simulate the substructure numerically */
 	  printf( "Simulating the sub-structure using an exact integration method.\n");
-	  ExactSolution_Init( 285, 352.18177, 68000, Cnst.DeltaT_Sub, &Num_TMD );
+	  ExactSolution_Init( 285.0f, 352.18177f, 68000.0f, Cnst.DeltaT_Sub, &Num_TMD );
      } else if ( Mode == USE_UHYDE ){
 	  printf( "Simulating the friction device UHYDE-fbr.\n" );
-	  Simulate_UHYDE_1D_Init( 0.0002, 0.9, 500.0, &Num_UHYDE );
+	  Simulate_UHYDE_1D_Init( 0.0002f, 0.9f, 500.0f, &Num_UHYDE );
      } else {
 	  printf( "Simulating the sub-structure using measured values as an input.\n");
 	  /* Do nothing for the moment */

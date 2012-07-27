@@ -8,12 +8,14 @@
 #ifndef OPSOCKET_H_
 #define OPSOCKET_H_
 
-#if _WIN32_
+#if WIN32
 #include <winsock2.h>
 #else
 #include <sys/socket.h>
 #include <sys/types.h>
 #endif
+
+#include <stdint.h>
 
 #define MAX_UDP_DATAGRAM 9126
 #define MAX_INET_ADDR 28
@@ -41,14 +43,14 @@ static SocketConnection *theSockets = NULL;
 static int socketIDs = 0;
 
 void startupsockets(int *ierr);
-void cleanupsockets();
-void setupconnectionserver(unsigned int *port, int *socketID);
-void setupconnectionclient(unsigned int *other_Port, const char other_InetAddr[], int *lengthInet, int *socketID);
+void cleanupsockets( void );
+void setupconnectionserver(uint16_t *port, int *socketID);
+void setupconnectionclient(uint16_t *other_Port, const char other_InetAddr[], int *socketID);
 void closeconnection(int *socketID, int *ierr);
-void senddata(int *socketID, int *dataTypeSize, char data[], int *lenData, int *ierr);
-void sendnbdata(int *socketID, int *dataTypeSize, char data[], int *lenData, int *ierr);
-void recvdata(int *socketID, int *dataTypeSize, char data[], int *lenData, int *ierr);
-void recvnbdata(int *socketID, int *dataTypeSize, char data[], int *lenData, int *ierr);
-void getsocketid(unsigned int *port, const char machineInetAddr[], int *lengthInet, int *socketID);
+void senddata(int *socketID, unsigned int *dataTypeSize, char data[], unsigned int *lenData, int *ierr);
+void sendnbdata(int *socketID, unsigned int *dataTypeSize, char data[], unsigned int *lenData, int *ierr);
+void recvdata(int *socketID, unsigned int *dataTypeSize, char data[], unsigned int *lenData, int *ierr);
+void recvnbdata(int *socketID, unsigned int *dataTypeSize, char data[], unsigned int *lenData, int *ierr);
+void getsocketid(unsigned int *port, const char machineInetAddr[], int *socketID);
 
 #endif /* OPSOCKET_H_ */

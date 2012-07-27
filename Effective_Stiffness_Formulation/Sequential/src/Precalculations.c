@@ -19,7 +19,7 @@
 #include "Netlib.h"  /* BLAS and LAPACK prototypes. */
 #include "Precalculations.h"
 
-void ReadDataEarthquake_AbsValues( float *Acceleration, float *Velocity, float *Displacement, const int NumSteps, const char *Filename )
+void ReadDataEarthquake_AbsValues( float *Acceleration, float *Velocity, float *Displacement, const unsigned int NumSteps, const char *Filename )
 {
 
      int i;					/* A counter */
@@ -33,9 +33,9 @@ void ReadDataEarthquake_AbsValues( float *Acceleration, float *Velocity, float *
      if ( InFile != NULL ){
 	  for ( i = 0; i < NumSteps; i++ ){
 	       fscanf( InFile, "%E %E %E %E", &unnecessary, &temp1, &temp2, &temp3 );
-	       Acceleration[i] = temp1/1000.0;
-	       Velocity[i] = temp2/1000.0;
-	       Displacement[i] = temp3/1000.0;
+	       Acceleration[i] = temp1/1000.0f;
+	       Velocity[i] = temp2/1000.0f;
+	       Displacement[i] = temp3/1000.0f;
 	  }
 
 	  /* Close File */
@@ -45,10 +45,10 @@ void ReadDataEarthquake_AbsValues( float *Acceleration, float *Velocity, float *
      }
 }
 
-void ReadDataEarthquake_RelValues( float *Acceleration, const int NumSteps, const char *Filename )
+void ReadDataEarthquake_RelValues( float *Acceleration, const unsigned int NumSteps, const char *Filename )
 {
 
-     int i;					/* A counter */
+     unsigned int i;					/* A counter */
      float unnecessary;		/* Variable to store unnecessary data */
      float temp1, temp2, temp3;
      FILE *InFile;
@@ -59,7 +59,7 @@ void ReadDataEarthquake_RelValues( float *Acceleration, const int NumSteps, cons
      if ( InFile != NULL ){
 	  for ( i = 0; i < NumSteps; i++ ){
 	       fscanf( InFile, "%E %E %E %E", &unnecessary, &temp1, &temp2, &temp3 );
-	       Acceleration[i] = temp1/1000.0;
+	       Acceleration[i] = temp1/1000.0f;
 	  }
 
 	  /* Close File */
@@ -106,9 +106,11 @@ void Apply_LoadVectorForm ( MatrixVector *const Vector, const MatrixVector *cons
 {
      static int incx = 1;
      static int incy = 1;
+     static float Scalar;
 
+     Scalar = Value;
      scopy_( &Vector->Rows, LoadForm->Array, &incx, Vector->Array, &incy );
-     sscal_( &Vector->Rows, &Value, Vector->Array, &incx );
+     sscal_( &Vector->Rows, &Scalar, Vector->Array, &incx );
 }
 
 void Calc_Input_Load_RelValues( MatrixVector *const InLoad, const MatrixVector *const Mass, const MatrixVector *const A )

@@ -11,13 +11,13 @@ void Init_Constants_Substructure( ConstSub *const Constants )
      (*Constants).Order_Couple = 1;
      (*Constants).Num_Steps = 4096;
      (*Constants).Num_Sub = 4;
-     (*Constants).DeltaT = 0.01;
+     (*Constants).DeltaT = 0.01f;
      (*Constants).DeltaT_Sub = (*Constants).DeltaT/(float)(*Constants).Num_Sub;
 }
 
-void Simulate_Substructure_Measured_Values( const char *FileName, const float *const Keinv, const float *const u0c, float *const uc, float *const fcprev, float *const fc, const int OrderC, const int NSub )
+void Simulate_Substructure_Measured_Values( const char *FileName, const float *const Keinv, const float *const u0c, float *const uc, float *const fcprev, float *const fc, const unsigned int OrderC, const unsigned int NSub )
 {
-     int i, Substep;
+     unsigned int i, Substep;
      float ramp0, ramp;
 
      static float u0c0 = 0.0;
@@ -52,10 +52,10 @@ void Simulate_Substructure_Measured_Values( const char *FileName, const float *c
      }
 }
 
-void Simulate_Substructure( void *const Num, const int Mode, const float *const Keinv, const float *const u0c, float *const uc, float *const fcprev, float *const fc, const int OrderC, const int NSub, const float DeltaT_Sub )
+void Simulate_Substructure( void *const Num, const int Mode, const float *const Keinv, const float *const u0c, float *const uc, float *const fcprev, float *const fc, const unsigned int OrderC, const unsigned int NSub, const float DeltaT_Sub )
 {
 
-     int i, Substep;
+     unsigned int i, Substep;
      float ramp0, ramp;
      static float u0c0 = 0.0;
      
@@ -67,7 +67,7 @@ void Simulate_Substructure( void *const Num, const int Mode, const float *const 
 	  }
 
 	  ramp = (float) Substep / (float) NSub;
-	  ramp0 = 1.0 - ramp;   
+	  ramp0 = 1.0f - ramp;   
 
 	  uc[0] = ramp0*u0c0 + ramp*u0c[0] + Keinv[0]*fc[0];
 
@@ -131,12 +131,12 @@ void ExactSolution_Init( const float Mass, const float Damp, const float Stiff, 
 
 	       Num->A = expdt*(xi*omega*sinDdt/omega + cosDdt);
 	       Num->B = expdt*sinDdt/omegaD;
-	       Num->C = (expdt*(((1.0-2.0*xi*xi)/omegaDdt-xi*omega/omegaD)*sinDdt-(1.0+2.0*xi/omegadt)*cosDdt)+2.0*xi/omegadt)/Stiff;
-	       Num->D = (expdt*((2.0*xi*xi-1.0)*sinDdt/omegaDdt + 2.0*xi*cosDdt/omegadt)+(1.0-2*xi/omegadt))/Stiff;
+	       Num->C = (expdt*(((1.0f-2.0f*xi*xi)/omegaDdt-xi*omega/omegaD)*sinDdt-(1.0f+2.0f*xi/omegadt)*cosDdt)+2.0f*xi/omegadt)/Stiff;
+	       Num->D = (expdt*((2.0f*xi*xi-1.0f)*sinDdt/omegaDdt + 2.0f*xi*cosDdt/omegadt)+(1.0f-2.0f*xi/omegadt))/Stiff;
 	       Num->E = -expdt * omega * omega * sinDdt / omegaD;
 	       Num->F = expdt * (cosDdt - xi*omega*sinDdt/omegaD);
-	       Num->G = (expdt*((omega*omega/omegaD + xi*omega/omegaDdt)*sinDdt + cosDdt/DeltaT)-1.0/DeltaT)/Stiff;
-	       Num->H = (-expdt*(xi*omega*sinDdt/omegaD + cosDdt) + 1.0)/(Stiff*DeltaT);
+	       Num->G = (expdt*((omega*omega/omegaD + xi*omega/omegaDdt)*sinDdt + cosDdt/DeltaT)-1.0f/DeltaT)/Stiff;
+	       Num->H = (-expdt*(xi*omega*sinDdt/omegaD + cosDdt) + 1.0f)/(Stiff*DeltaT);
 
 	   } else {
 	       fprintf( stderr, "Exact Solution: Negative or overcritical damping.\n" );
