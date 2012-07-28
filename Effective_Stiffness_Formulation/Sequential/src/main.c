@@ -131,6 +131,7 @@ int main( int argc, char **argv )
 
      /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will
       * be used during the test */
+
      AccAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
      if( InitCnt.Use_Absolute_Values ){
 	  VelAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
@@ -209,6 +210,7 @@ int main( int argc, char **argv )
      BuildMatrixXcm( &Keinv, &Keinv_m, &CNodes );
   
      /* Send the coupling part of the effective matrix */
+
      Send_Effective_Matrix( Keinv_c.Array, InitCnt.Type_Protocol, (unsigned int) CNodes.Order, &Socket );
 
      /* Read the earthquake data from a file */
@@ -260,8 +262,6 @@ int main( int argc, char **argv )
 	  CreateVectorXc( &DispTdT0, DispTdT0_c.Array, &CNodes );
 
 	  /* Perform substepping */
-
-
 	  Do_Substepping( DispTdT0_c.Array, DispTdT.Array, fcprevsub.Array, fc.Array, InitCnt.Type_Protocol,
 			  InitCnt.Delta_t*(float) istep, Socket, (unsigned int) CNodes.Order, CNodes.Array  );
 	  
@@ -326,7 +326,6 @@ int main( int argc, char **argv )
      fclose( OutputFile );
      printf("3\n");
      /* Close the Connection */
-
      Close_Connection( &Socket, InitCnt.Type_Protocol, (unsigned int) CNodes.Order, InitCnt.Nstep, 4 );
 
      /* Free the memory stored in TimeHistory variables */

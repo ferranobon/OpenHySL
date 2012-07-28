@@ -32,7 +32,6 @@ void Init_MatrixVector( MatrixVector *const Mat, const int Rows, const int Cols 
      } else {
 	  PrintErrorAndExit( "The number of rows must be equal or greater than zero" );
      }
-	     
 
      Mat->Array = (float *) calloc( (size_t) Mat->Rows*Mat->Cols, sizeof(float));
 }
