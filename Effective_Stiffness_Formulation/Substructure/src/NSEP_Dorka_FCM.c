@@ -120,7 +120,6 @@ int main ( int argc, char **argv )
 	  /* Run with ADwin */
 	  ADWIN_SetGc( Gc, Cnst.Order_Couple*Cnst.Order_Couple );
 	  printf( "Using ADwin to perform the sub-stepping process.\n" );
-
 	  ADWIN_DATA = (float *) calloc( (size_t) Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
 #else
 	  fprintf(stderr, "The program was not compiled with ADwin support.\n");

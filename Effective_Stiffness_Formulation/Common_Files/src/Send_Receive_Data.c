@@ -299,8 +299,6 @@ void Send_Effective_Matrix( float *const Eff_Mat, const int Protocol_Type, const
      Remote_Machine_Info Server;
      float *Send = NULL, *Recv = NULL;
 
-
-
      Send = (float *) calloc( (size_t) OrderC, sizeof(float) );
      Recv = (float *) calloc( (size_t) 3*OrderC, sizeof(float) );
 
@@ -378,9 +376,9 @@ void Send_Effective_Matrix( float *const Eff_Mat, const int Protocol_Type, const
      free( Recv );
 }
 
-
 void Do_Substepping( float *const DispTdT0_c, float *const DispTdT, float *const fcprevsub, float *const fc, const int Protocol_Type, const float Time, const int Socket, const unsigned int OrderC, const unsigned int *Pos_Couple )
 {
+
 
      unsigned int i;
      float *Recv = NULL;
@@ -468,15 +466,12 @@ void Close_Connection( int *Socket, const int Protocol_Type, const unsigned int 
 
      float *ADWIN_DATA = NULL;
 
-
-
      Send = (float *) calloc( (size_t) OrderC, sizeof(float) );
 
      switch ( Protocol_Type ){
 #if ADWIN_
      case PROTOCOL_ADWIN:
 	  /* Connect directly to ADwin */
-
 	  ADWIN_DATA = (float *) calloc( (size_t) Num_Sub*Num_Steps*NUM_CHANNELS, sizeof( float ) );
 	  GetDataADwin( Num_Steps, Num_Sub, ADWIN_DATA );
 	  free( ADWIN_DATA );
