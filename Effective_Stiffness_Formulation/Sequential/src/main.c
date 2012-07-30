@@ -324,7 +324,6 @@ int main( int argc, char **argv )
      }
      /* Close the output file */
      fclose( OutputFile );
-     printf("3\n");
      /* Close the Connection */
      Close_Connection( &Socket, InitCnt.Type_Protocol, (unsigned int) CNodes.Order, InitCnt.Nstep, 4 );
 
