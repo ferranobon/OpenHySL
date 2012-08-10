@@ -3,16 +3,12 @@
 #include <string.h>      /* For memset( ) */
 #include <getopt.h>      /* For getopt_long() */
 
-#include <sys/socket.h> /* for socket() and bind() */
-#include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
+#include <netdb.h>
 
 #include "ErrorHandling.h"
 #include "Substructure.h"
 #include "Send_Receive_Data.h"
 #include "Custom_Server.h"
-#include <sys/socket.h>
-#include <netdb.h>
-#include <unistd.h>
 
 #if ADWIN_
 #include "RoutinesADwin.h"
