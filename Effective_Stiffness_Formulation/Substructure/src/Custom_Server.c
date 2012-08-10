@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>      /* For atoi( ) and exit() */
-#include <string.h>      /* For memset( ) */
 #include <getopt.h>      /* For getopt_long() */
-
 #include <netdb.h>
 
 #include "ErrorHandling.h"
