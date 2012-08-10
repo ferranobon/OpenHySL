@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>       /* For exit( ) and atoi( ) */
-#include <string.h>       /* For memset( ) */
 
 #include <getopt.h>      /* For getopt_long() */
 #include "Substructure.h" /* For NUM_CHANNELS, ConstSub and Init_Constants_Substructure( ) */
