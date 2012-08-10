@@ -6,14 +6,23 @@
 #include "Substructure.h"
 #include "ErrorHandling.h"
 #include "Netlib.h"
+#include "Conf_Parser.h"
 
-void Init_Constants_Substructure( ConstSub *const Constants )
+void Init_Constants_Substructure( ConstSub *const Constants, const char *Filename )
 {
-     (*Constants).Order_Couple = 5;
-     (*Constants).Num_Steps = 4096;
-     (*Constants).Num_Sub = 4;
-     (*Constants).DeltaT = 0.01f;
-     (*Constants).DeltaT_Sub = (*Constants).DeltaT/(float)(*Constants).Num_Sub;
+     ConfFile *Config;
+
+     Config = ConfFile_Create( 45 );
+
+     ConfFile_ReadFile( Config, Filename );
+
+     Constants->Order_Couple = (unsigned int) ConfFile_GetInt( Config, "Substructure:Order" );
+     Constants->Num_Steps = (unsigned int) ConfFile_GetInt( Config, "General:Num_Steps" );
+     Constants->Num_Sub = (unsigned int) ConfFile_GetInt( Config, "Substructure:Num_Substeps");
+     Constants->DeltaT = ConfFile_GetFloat( Config, "General:Delta" );
+     Constants->DeltaT_Sub = (*Constants).DeltaT/(float)(*Constants).Num_Sub;
+     
+     ConfFile_Free( Config );
 }
 
 void Simulate_Substructure_Measured_Values( const char *FileName, const float *const Keinv, const float *const u0c, float *const uc, float *const fcprev, float *const fc, const unsigned int OrderC, const unsigned int NSub )
@@ -53,19 +62,20 @@ void Simulate_Substructure_Measured_Values( const char *FileName, const float *c
      }
 }
 
-void Simulate_Substructure( void *const Num, const int Mode, const float *const Keinv, const float *const u0c, float *const uc, float *const fcprev, float *const fc, const unsigned int OrderC, const unsigned int NSub, const float DeltaT_Sub )
+void Simulate_Substructure( void *const Num, const int Mode, float *const Keinv, float *const u0c0, float *const u0c, float *const uc, float *const fcprev, float *const fc, const unsigned int OrderC, const unsigned int NSub, const float DeltaT_Sub )
 {
 
      unsigned int i, Substep;
      float ramp0, ramp;
-     static float u0c0[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
      int incx = 1, incy = 1;
      float One;
      int Length;
      char uplo = 'L';
+     TMD_Sim *TMD;
+     UHYDE_Sim *UHYDE;  
 
-     Length = OrderC;
-     One = 1.0;
+     Length = (int) OrderC;
+     One = 1.0f;
 
      for ( Substep = 1; Substep <= NSub; Substep++ ){
 
@@ -83,17 +93,20 @@ void Simulate_Substructure( void *const Num, const int Mode, const float *const 
 	       sscal_( &Length, &ramp0, uc, &incx );
 	       saxpy_( &Length, &ramp, u0c, &incx, uc, &incy );
 	       ssymv_( &uplo, &Length, &One, Keinv, &Length, fc, &incx, &One, uc, &incy ); 
-	       printf("fc: %f\n", fc[4]);
 	  } else {
 	       uc[0] = ramp0*u0c0[0] + ramp*u0c[0] + Keinv[0]*fc[0];
 	  }
 	  
 	  /* Compute the new fc */
-	  if( Mode == USE_EXACT ){
-	       ExactSolution_SDOF( u0c[4], DeltaT_Sub, (TMD_Sim *) Num, &fc[4] );
-	  } else if ( Mode == USE_UHYDE ){
-	       Simulate_UHYDE_1D( u0c[4], DeltaT_Sub, (UHYDE_Sim *) Num, &fc[4] );
-	  } else assert( Mode < USE_EXACT || Mode > USE_UHYDE );
+	  for( i = 0; i < OrderC; i ++ ){
+	       if( Mode == USE_EXACT ){
+		    TMD = (TMD_Sim *) Num;
+		    ExactSolution_SDOF( u0c[i], DeltaT_Sub, &TMD[i], &fc[i] );
+	       } else if ( Mode == USE_UHYDE ){
+		    UHYDE = (UHYDE_Sim *) Num;
+		    Simulate_UHYDE_1D( u0c[i], DeltaT_Sub, &UHYDE[i], &fc[i] );
+	       } else assert( Mode < USE_EXACT || Mode > USE_UHYDE );
+	  }
 	  
      }
 
@@ -136,9 +149,9 @@ void ExactSolution_Init( const float Mass, const float Damp, const float Stiff, 
 	  xi = Damp/(2*Mass*omega);
 	  
 	  /* Check the value of xi */
-	  if ( xi >= 0.0 && xi < 1 ){
+	  if ( xi >= 0.0 && xi < 1.0f ){
 	       /* Calculate the damping vibration frequency */
-	       omegaD = omega*sqrtf(1-xi*xi);
+	       omegaD = omega*sqrtf(1.0f-xi*xi);
 
 	       /* Calculate several constants */
 	       expdt = expf(-xi*omega*DeltaT);
@@ -197,8 +210,8 @@ void ExactSolution_SDOF( const float u0c, const float DeltaT, TMD_Sim *const Num
 void Simulate_UHYDE_1D_Init( const float qyield, const float yield_factor, const float Friction, UHYDE_Sim *const Num )
 {
 
-     Num->u0c_old = 0.0;
-     Num->q = 0.0;
+     Num->u0c_old = 0.0f;
+     Num->q = 0.0f;
 
      Num->qyield = qyield;
      Num->qplastic = qyield/yield_factor;
@@ -218,9 +231,9 @@ void Simulate_UHYDE_1D( const float u0c, const float DeltaT, UHYDE_Sim *const Nu
 
      v = (u0c - Num->u0c_old)/DeltaT;
 
-     if ( ( fabsf(Num->q) <= Num->qyield) || Num->q*v <= 0.0 ){
-	  hq = 1.0;
-     } else if ( Num->qyield < fabsf(Num->q) || Num->q*v > 0.0 ){
+     if ( ( fabsf(Num->q) <= Num->qyield) || Num->q*v <= 0.0f ){
+	  hq = 1.0f;
+     } else if ( Num->qyield < fabsf(Num->q) || Num->q*v > 0.0f ){
 	  hq = (Num->qplastic - Num->q)/(Num->qplastic - Num->qyield);
      } else {
 	  assert( 0 );

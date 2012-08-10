@@ -20,6 +20,8 @@
 #include <netdb.h>  /* For struct sockaddr */
 #endif
 
+#include "Conf_Parser.h"  /* For ConfFile struct */
+
 #define MAXPENDING   5    /* Maximum outstanding connection requests */
 
 /**
@@ -29,11 +31,11 @@
  * of the algorithm is performed. The port that will be used throughout the TCP/IP communication is also stored.
  */
 typedef struct {
-     char IP[20];               /*!< IP address (IPv4) of the server. */
-     char Port[10];             /*!< Port that will be used for TCP/IP communication. */
-     char Type[15];             /* Type of Server to connect: OpenFresco, PNSE or Custom */
-     char Account_Name[20];     /*!< Account information */
-     char Account_Password[20]; /*!< Account password */
+     char *IP;               /*!< IP address (IPv4) of the server. */
+     char *Port;             /*!< Port that will be used for TCP/IP communication. */
+     char *Account_Name;     /*!< Account information */
+     char *Account_Password; /*!< Account password */
+     int Type;             /*!< Type of Server to connect: OpenFresco, PNSE or Custom */
 } Remote_Machine_Info;
 
 #define PROTOCOL_ADWIN  0
@@ -58,14 +60,43 @@ typedef struct {
  * - The file must be named "Connection.txt".
  *
  * \param[out] Server Struct to store the IP address of the server and the port that will be used.
+ * \param[in] CFile Stores the variables specified in the configuration file.
  *
  * \post
  * - \c Server has the server IP address and the port that will be used for the TCP/IP communication.
  *
  * \sa Remote_Machine_Info.
  */
-void GetServerInformation( Remote_Machine_Info *const Server );
+void GetServerInformation( Remote_Machine_Info *const Server, const ConfFile *const CFile );
 
+/**
+ * \brief Frees the memory allocated during GetServerInformation.
+ *
+ * The memory allocated during the GetServerInformation() routine by the strdup()
+ * function is deallocated.
+ * 
+ * \param[out] Server Struct storing the IP address, port and login information.
+ *
+ */
+void Delete_ServerInformation( Remote_Machine_Info *const Server );
+
+/**
+ * \brief Identify the communication protocol to be used
+ *
+ * The communication protocol to be used is identified, and a proper return value is given. It makes use of the function
+ * Get_Server_Information().
+ *
+ * \pre The first line of the file \c Connection.txt must contain the desired protocol type
+ *
+ * \param[in] Type It contains a string with the names of the supported protocols.
+ *
+ * \return 
+ * - 0 if the desired protocol is of type \c Custom.
+ * - 1 if the desired protocol is of type \c PNSE.
+ * - 2 if the desired protocol is of type \c OpenFresco.
+ * - -1 if the desired protocol is not recognised.
+ */
+int Get_Type_Protocol( const char *Type );
 
 int Setup_Server_Socket( const char* Port, const int Socket_Type );
 void PrintSocketAddress( struct sockaddr *const address );
@@ -111,7 +142,7 @@ void Send_Data( float *const Data, const unsigned int Data_Length, const int soc
  */
 void Receive_Data( float *const Data, const unsigned int Data_Length, const int sock );
 
-void Send_Effective_Matrix( float *const Eff_Mat, const int Protocol_Type, const unsigned int OrderC, int *const Socket );
+void Send_Effective_Matrix( float *const Eff_Mat, const unsigned int OrderC, int *const Socket, const Remote_Machine_Info Server );
 
 void Do_Substepping( float *const DispTdT0_c, float *const DispTdT, float *const fcprevsub, float *const fc, const int Protocol_Type, const float Time, const int Socket, const unsigned int OrderC, const unsigned int *Pos_Couple );
 void Close_Connection( int *Socket, const int Protocol_Type, const unsigned int OrderC, const unsigned int Num_Steps, const unsigned int Num_Sub );

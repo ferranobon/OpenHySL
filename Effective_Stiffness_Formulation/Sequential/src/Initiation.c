@@ -20,31 +20,52 @@
 #include "MatrixVector.h"
 #include "Netlib.h"
 #include "Send_Receive_Data.h"
+#include "Conf_Parser.h"
 
-void InitConstants( AlgConst *const InitConst )
+void InitConstants( AlgConst *const InitConst, const char *FileName )
 {
+
+     ConfFile *Config;
+     
+     Config = ConfFile_Create( 35 );
+
+     ConfFile_ReadFile( Config, FileName );
+
      /* Use Relative or absolute values */
-     (*InitConst).Use_Absolute_Values = 1;     
+     (*InitConst).Use_Absolute_Values = ConfFile_GetInt( Config, "General:Use_Absolute_Values" );
+     if ( InitConst->Use_Absolute_Values != 0 && InitConst->Use_Absolute_Values != 1 ){
+	  PrintErrorAndExit( "Invalid option for Use_Absolute_Values" );
+     }
 
      /* Order of the matrices */
-     (*InitConst).Order = 33;
+     (*InitConst).Order = ConfFile_GetInt( Config, "General:Order" );
+     if ( InitConst->Order <= 0 ){
+	  PrintErrorAndExit( "Invalid option for the order of the matrices" );
+     }
 
      /* Number of steps and Time step */
-     (*InitConst).Nstep = 4096;
-     (*InitConst).Delta_t = 0.01f;
+     (*InitConst).Nstep = (unsigned int) ConfFile_GetInt( Config, "General:Num_Steps" );
+     if ( InitConst->Nstep <= 0 ){
+	  PrintErrorAndExit( "Invalid number of steps" );
+     }
+
+     (*InitConst).Delta_t = ConfFile_GetFloat( Config, "General:Delta" );
+     if ( InitConst->Delta_t <= 0.0f ){
+	  PrintErrorAndExit( "Invalid time step" );
+     }
 
      /* Rayleigh values */
-     (*InitConst).Rayleigh.Alpha = 1.4f;
-     (*InitConst).Rayleigh.Beta = 0.0004f;
+     (*InitConst).Rayleigh.Alpha = ConfFile_GetFloat( Config, "Rayleigh:Alpha" );
+     (*InitConst).Rayleigh.Beta = ConfFile_GetFloat( Config, "Rayleigh:Beta" );
 
      /* Newmark integration constants */
-     (*InitConst).Newmark.Gamma = 0.5f;
-     (*InitConst).Newmark.Beta = 0.25f;
+     (*InitConst).Newmark.Gamma = ConfFile_GetFloat( Config, "Newmark:Gamma" );
+     (*InitConst).Newmark.Beta = ConfFile_GetFloat( Config, "Newmark:Beta" );
 
      /* PID Constants */
-     (*InitConst).PID.P = 0.95f;
-     (*InitConst).PID.I = 0.0;
-     (*InitConst).PID.D = 0.0;
+     (*InitConst).PID.P = ConfFile_GetFloat( Config, "PID:P" );
+     (*InitConst).PID.I = ConfFile_GetFloat( Config, "PID:I" );
+     (*InitConst).PID.D = ConfFile_GetFloat( Config, "PID:D" );
 
      /* Several constants to multiply the vectors */
      (*InitConst).Const1 = (*InitConst).Newmark.Beta*(*InitConst).Delta_t*(*InitConst).Delta_t;
@@ -63,39 +84,33 @@ void InitConstants( AlgConst *const InitConst )
 
      /* File Names */
 /*EFAST*/
-     (*InitConst).FileM = "33M.txt";
-     (*InitConst).FileK = "33K.txt";
-     (*InitConst).FileC = "33C.txt";
-     (*InitConst).FileLVector = "33LV.txt";
-     (*InitConst).FileCNodes = "Couple_Nodes.txt";
-     (*InitConst).FileData = "GroundMovement.txt";
+     (*InitConst).FileM = strdup( ConfFile_GetString( Config, "FileNames:Mass_Matrix" ) );
+     (*InitConst).FileK = strdup( ConfFile_GetString( Config, "FileNames:Stiffness_Matrix" ) );
+     (*InitConst).FileC = strdup( ConfFile_GetString( Config, "FileNames:Damping_Matrix" ) );
+     (*InitConst).FileLVector = strdup( ConfFile_GetString( Config, "FileNames:FileLVector" ) );
+     (*InitConst).FileCNodes = strdup( ConfFile_GetString( Config, "FileNames:Coupling_Nodes" ) );
+     (*InitConst).FileData = strdup( ConfFile_GetString( Config, "FileNames:Ground_Motion" ) );
+     (*InitConst).FileOutput = strdup( ConfFile_GetString( Config, "FileNames:OutputFile" ) );
 
      /* Get the communication protocol to be used */
-     (*InitConst).Type_Protocol = Get_Type_Protocol( );
-     if( (*InitConst).Type_Protocol == -1 ){
-	  PrintErrorAndExit( "Invalid Protocol type." );
-     }
+     GetServerInformation( &InitConst->Remote, Config );
+     ConfFile_Free( Config );
 }
 
-int Get_Type_Protocol( void )
+void Delete_InitConstants( AlgConst *const InitConst )
 {
-     Remote_Machine_Info Remote;
 
-     GetServerInformation( &Remote );
-
-     if ( !strcmp( Remote.Type, "None" ) ){
-	  return PROTOCOL_ADWIN;
-     } else if ( !strcmp( Remote.Type, "TCPCustom" ) ){
-	  return PROTOCOL_TCP;
-     } else if ( !strcmp( Remote.Type, "UDPCustom" ) ){
-	  return PROTOCOL_UDP;
-     } else if ( !strcmp( Remote.Type, "PNSE" ) ){
-	  return PROTOCOL_NSEP; 
-     } else if ( !strcmp( Remote.Type, "OpenFresco" ) ){
-	  return PROTOCOL_OF;
-     } else {
-	  return -1;
+     free( InitConst->FileM );
+     free( InitConst->FileK );
+     if( InitConst->FileC != NULL ){
+	  free( InitConst->FileC );
      }
+     free( InitConst->FileLVector );
+     free( InitConst->FileCNodes );
+     free( InitConst->FileData );
+     free( InitConst->FileOutput );
+
+     Delete_ServerInformation( &InitConst->Remote );
 }
 
 void Read_Coupling_Nodes( Coupling_Node *const CNodes, const char *Filename )
@@ -110,7 +125,7 @@ void Read_Coupling_Nodes( Coupling_Node *const CNodes, const char *Filename )
 	  fscanf( InFile, "%i", &CNodes->Order );
 	  
 	  /* Allocate the necessary memory */
-	  CNodes->Array = (int *) calloc( CNodes->Order, sizeof(int) );
+	  CNodes->Array = (int *) calloc( (size_t) CNodes->Order, sizeof(int) );
 	  
 	  /* Read the contents of the file */
 	  for( i = 0; i < CNodes->Order; i++ ){

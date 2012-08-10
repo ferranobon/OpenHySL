@@ -16,6 +16,9 @@
 #define INITIATION_H_
 
 #include "MatrixVector.h"
+#include "Conf_Parser.h"
+#include "Send_Receive_Data.h"
+
 /**
  * \brief Structure to handle the PID error compensator.
  *
@@ -105,27 +108,26 @@ typedef struct {
      float a7;               /*!< \brief \f$a_7 = \gamma_N\Delta t\f$ */
 
      /* Files where data are located */
-     const char* FileM;       /*!< \brief Stores the name of the file that contains the Mass Matrix */
-     const char* FileK;       /*!< \brief Stores the name of the file that contains the Stiffness Matrix */
-     const char* FileC;       /*!< \brief Stores the name of the file that contains the Damping Matrix */
-     const char* FileLVector; /*!< \brief Stores the name of the file that contains the vector used for the load. This vector usually contains 1 and 0 */
-     const char* FileCNodes;  /*!< \brief Stores the name of the file that contains the vector of coupling nodes. */
-     const char* FileData;    /*!< \brief Stores the name of the file that contains displacement, velocity and acceleration */
+     char* FileM;       /*!< \brief Stores the name of the file that contains the Mass Matrix */
+     char* FileK;       /*!< \brief Stores the name of the file that contains the Stiffness Matrix */
+     char* FileC;       /*!< \brief Stores the name of the file that contains the Damping Matrix */
+     char* FileLVector; /*!< \brief Stores the name of the file that contains the vector used for the load. This vector usually contains 1 and 0 */
+     char* FileCNodes;  /*!< \brief Stores the name of the file that contains the vector of coupling nodes. */
+     char* FileData;    /*!< \brief Stores the name of the file that contains displacement, velocity and acceleration */
+     char* FileOutput;    /*!< \brief Name of the file to store the output values of the process */
 
      /* Information regarding the type of communication */
-     int Type_Protocol;           /*!< \brief Identifies the protocol to be used. 1 = Custom, 2 = NSEP, 3 = OpenFresco */
+     Remote_Machine_Info Remote;
 } AlgConst;
 
 /**
  * \brief Definition of constant values and filenames that will be used during the Algorithm.
  *
- * This routine is intended to be used as a configuration file. In it, several constants like the order of the matrices,
- * the number of steps and file names where the Mass and Stiffness matrices are stored (the damping matrix is optional). Although
- * this function could be implemented reading this values from a configuration file, thus skiping the need to compile it each time one
- * of these values is changed, the actual approach has some benefits from the performance point of view. This is specially important in
- * the case of loops, since the compiler knows before hand the size of them.
+ * This routine reads the values specified in a configuration file. In it, several constants like the order of the matrices,
+ * the number of steps and file names where the Mass and Stiffness matrices are stored (the damping matrix is optional).
  *
- * \param[out] AConst A structure that comprises of several constants.
+ * \param[out] InitConst A structure that comprises of several constants.
+ * \param[in] FileName Name of the configuration file.
  *
  * \post
  * - The size of the matrices will determine the memory that will be allocated when defining a MatrixVector type and also how
@@ -136,23 +138,19 @@ typedef struct {
  * \sa RayleighConst, NewmarkConst and PIDValues.
  *
  */
-void InitConstants( AlgConst *const AConst );
+void InitConstants( AlgConst *const InitConst, const char* FileName );
 
 /**
- * \brief Identify the communication protocol to be used
+ * \brief Frees the memory allocated during the InitConstants() routine.
  *
- * The communication protocol to be used is identified, and a proper return value is given. It makes use of the function
- * Get_Server_Information().
+ * The memory allocated in the InitConstants() by the strdup() function is deallocated.
+ * This includes basically the filenames and the IP, Port, Login and Password variables.
+ * 
+ * \param[out] InitConst Structure containing the data to be deallocated.
  *
- * \pre The first line of the file \c Connection.txt must contain the desired protocol type
- *
- * \return 
- * - 0 if the desired protocol is of type \c Custom.
- * - 1 if the desired protocol is of type \c PNSE.
- * - 2 if the desired protocol is of type \c OpenFresco.
- * - -1 if the desired protocol is not recognised.
+ * \sa InitConstants Delete_ServerInformation.
  */
-int Get_Type_Protocol( void );
+void Delete_InitConstants( AlgConst *const InitConst );
 
 /**
  * \brief Reads the coupling nodes from a file.

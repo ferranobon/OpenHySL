@@ -31,42 +31,72 @@
 #include "OpenFresco_Communication.h"  /* OpenFresco header files */
 #include "NSEP_Definitions.h"          /* NSEP Definitions and constants */
 #include "NSEP_Communication_Sync.h"   /* NSEP header files */
+#include "Conf_Parser.h"               /* Configuration file parser */
 
 #if ADWIN_
 #include "RoutinesADwin.h"             /* Communicate with ADwin */
 #endif
 
-void GetServerInformation( Remote_Machine_Info *const Server )
+void GetServerInformation( Remote_Machine_Info *const Server, const ConfFile *const CFile )
 {
-     FILE *InFile;
+     char *Type;
 
-     /* Read the IP address and the port from file */
-     InFile = fopen( "Connection.txt", "r" );
+     /* See the type of client */	     
+     Type = strdup( ConfFile_GetString( CFile, "Network:Protocol" ) );
+     Server->Type = Get_Type_Protocol( Type );
 
-     if ( InFile != NULL ){
+     /* Server IP address */
+     Server->IP = strdup( ConfFile_GetString( CFile, "Network:IP_Address" ) );
 
-	  /* See the type of client */	     
-	  fscanf( InFile, "%s", (*Server).Type );
-	  /* Server IP address */
-	  fscanf( InFile, "%s", (*Server).IP );
+     /* Server port */
+     Server->Port = strdup( ConfFile_GetString( CFile, "Network:Port" ) );
 
-	  /* Server port */
-	  fscanf( InFile, "%s", (*Server).Port );
-
-	  /* If the Server is of type PNSE, then read the account name and the
-	   *	password associated to it.
-	   */
-	  if ( !strcmp( (*Server).Type, "PNSE" ) ){
-	       /* Account name */
-	       fscanf( InFile, "%s", (*Server).Account_Name );
-	       /* Password */
-	       fscanf( InFile, "%s", (*Server).Account_Password );
-	  }
-	  fclose( InFile );		  
+     /* If the Server is of type PNSE, then read the account name and the
+      *	password associated to it.
+      */
+     if ( !strcmp( Type, "PNSE" ) ){
+	  /* Account name */
+	  Server->Account_Name = strdup( ConfFile_GetString( CFile, "Network:Username" ) );
+	  /* Password */
+	  Server->Account_Password = strdup( ConfFile_GetString( CFile, "Network:Password" ) );
+	  
      } else {
-	  ErrorFileAndExit( "Error while setting up the connection because it was not possible to open ", "Connection.txt" );
+	  Server->Account_Name = NULL;
+	  Server->Account_Password = NULL;
+     }
+     free( Type );
+}
+
+void Delete_ServerInformation( Remote_Machine_Info *const Server )
+{
+     free( Server->IP );
+     free( Server->Port );
+
+     if( Server->Account_Name != NULL ){
+	  free( Server->Account_Name );
      }
 
+     if( Server->Account_Password != NULL ){
+	  free( Server->Account_Password );
+     }
+
+}
+int Get_Type_Protocol( const char *Type )
+{
+
+     if ( !strcmp( Type, "None" ) ){
+	  return PROTOCOL_ADWIN;
+     } else if ( !strcmp( Type, "TCPCustom" ) ){
+	  return PROTOCOL_TCP;
+     } else if ( !strcmp( Type, "UDPCustom" ) ){
+	  return PROTOCOL_UDP;
+     } else if ( !strcmp( Type, "PNSE" ) ){
+	  return PROTOCOL_NSEP; 
+     } else if ( !strcmp( Type, "OpenFresco" ) ){
+	  return PROTOCOL_OF;
+     } else {
+	  return -1;
+     }
 }
 
 int Setup_Server_Socket( const char* Port, const int Socket_Type )
@@ -246,7 +276,7 @@ int Setup_Client_Socket( const Remote_Machine_Info Server, const int Socket_Type
 
 	  /* Establish the connection with the Server to start the simulation */
 	  if ( connect( Socket, addr->ai_addr, addr->ai_addrlen ) == 0 ){
-	       printf( "Successfully connected to the %s Server: %s on port %s.\n", Server.Type, Server.IP, Server.Port );
+	       printf( "Successfully connected to Server type %d: %s on port %s.\n", Server.Type, Server.IP, Server.Port );
 	       break;    /* The socket has been successfully created, break and return Socket */
 	  }
 	  
@@ -293,16 +323,15 @@ void Receive_Data( float *const Data, const unsigned int Data_Length, const int 
      }
 }
 
-void Send_Effective_Matrix( float *const Eff_Mat, const int Protocol_Type, const unsigned int OrderC, int *const Socket )
+void Send_Effective_Matrix( float *const Eff_Mat, const unsigned int OrderC, int *const Socket, const Remote_Machine_Info Server )
 {
      unsigned int i, j; /* Counters */
-     Remote_Machine_Info Server;
      float *Send = NULL, *Recv = NULL;
 
      Send = (float *) calloc( (size_t) OrderC, sizeof(float) );
      Recv = (float *) calloc( (size_t) 3*OrderC, sizeof(float) );
-
-     switch( Protocol_Type ){
+     printf("Server.Type = %d REMOTE %d\n", Server.Type, PROTOCOL_TCP );
+     switch( Server.Type ){
 
 #if ADWIN_
      case PROTOCOL_ADWIN:
@@ -314,7 +343,6 @@ void Send_Effective_Matrix( float *const Eff_Mat, const int Protocol_Type, const
 #endif
      case PROTOCOL_TCP:  
 	  /* Using TCP communication protocol */
-	  GetServerInformation( &Server );
 	  printf( "Establishing connection with the TCP Server.\n" );
 	  
 	  *Socket = Setup_Client_Socket( Server, PROTOCOL_TCP );
@@ -323,10 +351,10 @@ void Send_Effective_Matrix( float *const Eff_Mat, const int Protocol_Type, const
 	  }
 	  
 	  Send_Data( Eff_Mat, OrderC*OrderC, (*Socket) );
+	  printf("Effective Mass matrix sent.\n" );
 	  break;
      case PROTOCOL_UDP:
 	  /* Using the UDP protocol */
-	  GetServerInformation( &Server );
 	  printf( "Establishing connection with the UDP Server.\n" );
 
 

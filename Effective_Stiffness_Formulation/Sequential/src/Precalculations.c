@@ -22,7 +22,7 @@
 void ReadDataEarthquake_AbsValues( float *Acceleration, float *Velocity, float *Displacement, const unsigned int NumSteps, const char *Filename )
 {
 
-     int i;					/* A counter */
+     unsigned int i;					/* A counter */
      float unnecessary;		/* Variable to store unnecessary data */
      float temp1, temp2, temp3;
      FILE *InFile;
