@@ -28,11 +28,11 @@
 #include "NSEP_Definitions.h"           /* Definition of various NSEP constants */
 #include "Send_Receive_Data.h"          /* Send and receive data routines */
 #include "ErrorHandling.h"              /* Error handling routines */
+#include "Conf_Parser.h"
 
 void Communicate_With_PNSE( const int WhatToDo, float Time,
 			    const float *const Data_To_Send, float *Data_To_Receive, const unsigned int Order )
 {
-     static Remote_Machine_Info Server;
      static unsigned int Length;
      static int NSEP_Type;
      static int Socket;
@@ -45,10 +45,16 @@ void Communicate_With_PNSE( const int WhatToDo, float Time,
 
      /* Connect and login to the server and set the state to running */
      if ( WhatToDo == 0 ){
-	  
+	  Remote_Machine_Info Server;
+	  ConfFile *Config;
+
 	  /* Get the information regarding the PNSE server, Account Name and Password */
-	  GetServerInformation( &Server );
-     
+     	  Config = ConfFile_Create( 5 );
+	  ConfFile_ReadFile( Config, "ConfFile.conf" );
+	  GetServerInformation( &Server, Config );
+	  /* Free the configuration File */
+	  ConfFile_Free( Config );
+
 	  /* Connect to the PNSE server */
 	  Socket = Setup_Client_Socket( Server, PROTOCOL_TCP );
      
@@ -73,6 +79,8 @@ void Communicate_With_PNSE( const int WhatToDo, float Time,
 	       Close_Socket( &Socket );
 	       PrintErrorAndExit( "CGM: send() sent a different number of bytes than expected. Exiting." );
 	  }
+	  ConfFile_Free( Config );
+	  Delete_ServerInformation( &Server );
 	  
      } else if ( WhatToDo == 1 ) { /* Send the displacement to the server */
 

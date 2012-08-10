@@ -124,7 +124,7 @@ int main( int argc, char **argv )
 
 
      /* Constants definitions. */
-     InitConstants( &InitCnt );
+       InitConstants( &InitCnt, "ConfFile.conf" );
 
      /* Read the coupling nodes from a file */
      Read_Coupling_Nodes( &CNodes, InitCnt.FileCNodes );
@@ -211,7 +211,7 @@ int main( int argc, char **argv )
   
      /* Send the coupling part of the effective matrix */
 
-     Send_Effective_Matrix( Keinv_c.Array, InitCnt.Type_Protocol, (unsigned int) CNodes.Order, &Socket );
+     Send_Effective_Matrix( Keinv_c.Array, (unsigned int) CNodes.Order, &Socket, InitCnt.Remote );
 
      /* Read the earthquake data from a file */
      if( InitCnt.Use_Absolute_Values ){
@@ -221,7 +221,7 @@ int main( int argc, char **argv )
      }
 
      /* Open Output file. If the file cannot be opened, the program will exit, since the results cannot be stored. */
-     OutputFile = fopen( "Out.txt", "w" );
+     OutputFile = fopen( InitCnt.FileOutput, "w" );
      if ( OutputFile == NULL ){
 	  PrintErrorAndExit( "Cannot proceed because the file Out.txt could not be opened" );
      } else {
@@ -262,8 +262,8 @@ int main( int argc, char **argv )
 	  CreateVectorXc( &DispTdT0, DispTdT0_c.Array, &CNodes );
 
 	  /* Perform substepping */
-	  Do_Substepping( DispTdT0_c.Array, DispTdT.Array, fcprevsub.Array, fc.Array, InitCnt.Type_Protocol,
-			  InitCnt.Delta_t*(float) istep, Socket, (unsigned int) CNodes.Order, CNodes.Array  );
+	  Do_Substepping( DispTdT0_c.Array, DispTdT.Array, fcprevsub.Array, fc.Array, InitCnt.Remote.Type,
+			  InitCnt.Delta_t*(float) istep, Socket, (unsigned int) CNodes.Order, (unsigned int *) CNodes.Array  );
 	  
 	  if ( istep < InitCnt.Nstep ){
 	       /* Calculate the input load for the next step during the
@@ -325,8 +325,11 @@ int main( int argc, char **argv )
      /* Close the output file */
      fclose( OutputFile );
      /* Close the Connection */
-     Close_Connection( &Socket, InitCnt.Type_Protocol, (unsigned int) CNodes.Order, InitCnt.Nstep, 4 );
+     Close_Connection( &Socket, InitCnt.Remote.Type, (unsigned int) CNodes.Order, InitCnt.Nstep, 4 );
 
+     /* Free initiation values */
+     Delete_InitConstants( &InitCnt );
+     
      /* Free the memory stored in TimeHistory variables */
      free( TimeHistoryli );
      free( TimeHistoryvi1 );

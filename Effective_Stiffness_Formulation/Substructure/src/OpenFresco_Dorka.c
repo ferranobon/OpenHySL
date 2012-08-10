@@ -33,12 +33,12 @@ int main ( int argc, char **argv )
      ConstSub Cnst;
 
      float *Gc;
-     float *u0c, *uc;
+     float *u0c0, *u0c, *uc;
      float *fcprev, *fc;
      double *Send, *Recv;
 
-     TMD_Sim Num_TMD;
-     UHYDE_Sim Num_UHYDE;
+     TMD_Sim *Num_TMD;
+     UHYDE_Sim *Num_UHYDE;
 
 #if ADWIN_
      /* Array where the data from ADwin will be stored */
@@ -117,10 +117,11 @@ int main ( int argc, char **argv )
      printf("\n");
 
      /* Initialise the constants of the substructure */
-     Init_Constants_Substructure( &Cnst );
+     Init_Constants_Substructure( &Cnst, "ConfFile.conf" );
 
      Gc = (float *) calloc( (size_t) Cnst.Order_Couple*Cnst.Order_Couple, sizeof( float ) );
 
+     u0c0 = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
      u0c = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
      uc = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
 
@@ -146,10 +147,18 @@ int main ( int argc, char **argv )
      } else if ( Mode == USE_EXACT ){
 	  /* Simulate the substructure numerically */
 	  printf( "Simulating the sub-structure using an exact integration method.\n");
-	  ExactSolution_Init( 285.0f, 352.18177f, 68000.0f, Cnst.DeltaT_Sub, &Num_TMD );
+	  /* Allocate memory for the number of sub-structures */
+	  Num_TMD = (TMD_Sim *) malloc( sizeof(TMD_Sim)*(size_t) Cnst.Order_Couple );
+	  for( i = 0; i < Cnst.Order_Couple; i++ ){
+	       ExactSolution_Init( 285.0f, 352.18177f, 68000.0f, Cnst.DeltaT_Sub, &Num_TMD[i] );
+	  }
      } else if ( Mode == USE_UHYDE ){
 	  printf( "Simulating the friction device UHYDE-fbr.\n" );
-	  Simulate_UHYDE_1D_Init( 0.0002f, 0.9f, 500.0f, &Num_UHYDE );
+	  /* Allocate memory for the number of sub-structures */
+	  Num_UHYDE = (UHYDE_Sim *) malloc( sizeof(UHYDE_Sim)*(size_t) Cnst.Order_Couple );
+	  for( i = 0; i < Cnst.Order_Couple; i++ ){
+	       Simulate_UHYDE_1D_Init( 0.0002f, 0.9f, 500.0f, &Num_UHYDE[i] );
+	  }
      } else {
 	  printf( "Simulating the sub-structure using measured values as an input.\n");
 	  /* Do nothing for the moment */
@@ -240,12 +249,12 @@ int main ( int argc, char **argv )
 			 /* Run without ADwin and simulating the substructure using an exact
 			  * solution.
 			  */
-			 Simulate_Substructure( &Num_TMD, Mode, Gc, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+			 Simulate_Substructure( &Num_TMD, Mode, Gc, u0c0, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
 		    } else if ( Mode == USE_UHYDE ){
 			 /*
 			  * Simulate the UHYDE-fbr without ADwin
 			  */
-			 Simulate_Substructure( &Num_UHYDE, Mode, Gc, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
+			 Simulate_Substructure( &Num_UHYDE, Mode, Gc, u0c0, u0c, uc, fcprev, fc, Cnst.Order_Couple, Cnst.Num_Sub, Cnst.DeltaT_Sub );
 		    } else {
 			 /* Run without ADwin and simulating the substructure using measured
 			  * values of the coupling force.
@@ -281,13 +290,22 @@ int main ( int argc, char **argv )
      
 	  free( ADWIN_DATA );
 #endif
+     } else if ( Mode == USE_EXACT ){
+	  printf("The simulatiovn has finished\n");
+	  free( Num_TMD );
+     } else if ( Mode == USE_UHYDE ){
+	  printf("The simulatiovn has finished\n");
+	  free( Num_UHYDE );
      } else {
 	  printf("The simulatiovn has finished\n");
      }
 
+
+
      /* Free the dinamically allocated memory */
      free( Gc );
 
+     free( u0c0 );
      free( u0c );
      free( uc );
 

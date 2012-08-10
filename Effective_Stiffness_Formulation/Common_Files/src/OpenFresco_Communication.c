@@ -24,6 +24,8 @@
 #include "OpenFresco_Communication.h"
 #include "OPSocket.h"          /* OpenFresco routines setupconnectionclient()
 				* senddata(), recvdata() and closeconnection() */
+#include "Conf_Parser.h"
+
 /* Global variables */
 int SocketID;
 unsigned int DataSize = 256;
@@ -46,6 +48,7 @@ int Communicate_With_OpenFresco( const float *const Data_To_Send, float *const D
      if( WhatToDo == 1 ){
 	  Remote_Machine_Info RMachine;
 	  uint16_t Port;
+	  ConfFile *Config;
 
 	  /* Allocate memory to send and receive vectors */
 	  DataSize = ( 2*Size > DataSize ) ? 2*Size : DataSize;
@@ -55,7 +58,11 @@ int Communicate_With_OpenFresco( const float *const Data_To_Send, float *const D
 	  rData = (double *) calloc( (size_t) DataSize, sizeof (double) );
 
 	  /* Setup the connection */
-	  GetServerInformation( &RMachine );
+	  Config = ConfFile_Create( 5 );
+	  ConfFile_ReadFile( Config, "ConfFile.conf" );
+	  GetServerInformation( &RMachine, Config );
+	  /* Free the configuration File */
+	  ConfFile_Free( Config );
 	  printf("Trying to connect to OpenFresco Server at %s through port %s\n", RMachine.IP, RMachine.Port );
 	  Port = (uint16_t) atoi(RMachine.Port);
 	  setupconnectionclient( &Port, RMachine.IP, &SocketID );
@@ -86,6 +93,8 @@ int Communicate_With_OpenFresco( const float *const Data_To_Send, float *const D
 	  DataTypeSize = sizeof( int );
 	  nleft = 11;
 	  senddata( &SocketID, &DataTypeSize, gMsg, &nleft, &ierr );
+	  ConfFile_Free( Config );
+	  Delete_ServerInformation( &RMachine );
 
      } else if ( WhatToDo == 3 ) {
 	  /* Send Trial response to the experimental site */
