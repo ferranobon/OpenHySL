@@ -66,6 +66,12 @@ int main( int argc, char **argv )
      /* TCP socket connection Variables */
      int Socket;
 
+#if _SPARSE_
+     /* Sparse matrices */
+     Sp_MatrixVector Sp_M, Sp_C, Sp_K;     /* Sparse representation of the M, C and K matrices */
+     Sp_MatrixVector Sp_Keinv, Sp_Keinv_m; /* Sparse representation of Keinv and Keinv_m matrices */
+#endif
+
 #if REAL_TIME_
      struct sched_param sp;
      int policy;
@@ -209,6 +215,18 @@ int main( int argc, char **argv )
      BuildMatrixXc( &Keinv, Keinv_c.Array, &CNodes );
      BuildMatrixXcm( &Keinv, &Keinv_m, &CNodes );
   
+#if _SPARSE_
+     /* Transform the matrices into CSR format */
+     Dense_to_CSR( &M, &Sp_M, 0 );            /* Transform into CSR format */
+     Destroy_MatrixVector( &M );        /* Destroy the dense matrix */
+     
+     Dense_to_CSR( &K, &Sp_K, 0 );            /* Transform into CSR format */
+     Destroy_MatrixVector( &K );        /* Destroy the dense matrix */
+
+     Dense_to_CSR( &C, &Sp_C, 0 );            /* Transform into CSR format */
+     Destroy_MatrixVector( &C );        /* Destroy the dense matrix */
+#endif
+
      /* Send the coupling part of the effective matrix */
      Send_Effective_Matrix( Keinv_c.Array, (unsigned int) CNodes.Order, &Socket, InitCnt.Remote );
 
@@ -228,29 +246,41 @@ int main( int argc, char **argv )
 	  fprintf( OutputFile, "Test started at %s", ctime( &clock ) );
      }
 
-     istep = 1;
-
      /* Calculate the input load */
      if( InitCnt.Use_Absolute_Values ){
 	  /* Copy the diagonal elements of M */
 	  Apply_LoadVectorForm( &Disp, &LoadVectorForm, DispAll[istep - 1] );
 	  Apply_LoadVectorForm( &Vel, &LoadVectorForm, VelAll[istep - 1] );
-	  Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep - 1] );
+#if _SPARSE_
+	  Calc_Input_Load_AbsValues_Sparse( &LoadTdT, &Sp_K, &Sp_C, &Disp, &Vel );
+#else
 	  Calc_Input_Load_AbsValues( &LoadTdT, &K, &C, &Disp, &Vel );
+#endif
      } else {
 	  Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep - 1] );
+#if _SPARSE_
+	  Calc_Input_Load_RelValues_Sparse( &LoadTdT, &Sp_M, &Acc );
+#else
 	  Calc_Input_Load_RelValues( &LoadTdT, &M, &Acc );
+#endif
      }
 
      incx = 1; incy = 1;
+     istep = 1;
      printf( "Starting stepping process\n" );
      while ( istep <= InitCnt.Nstep ){
 
 	  /* Calculate the effective force vector
 	     Fe = M*(a0*u + a2*v + a3*a) + C*(a1*u + a4*v + a5*a) */
+#if _SPARSE_
+	  EffK_Calc_Effective_Force_Sparse( &Sp_M, &Sp_C, &DispT, &VelT, &AccT, &tempvec,
+				     InitCnt.a0, InitCnt.a1, InitCnt.a2, InitCnt.a3, InitCnt.a4, InitCnt.a5,
+				     &EffT );
+#else
 	  EffK_Calc_Effective_Force( &M, &C, &DispT, &VelT, &AccT, &tempvec,
 				     InitCnt.a0, InitCnt.a1, InitCnt.a2, InitCnt.a3, InitCnt.a4, InitCnt.a5,
 				     &EffT );
+#endif
 
 	  /* Compute the new Displacement u0 */
 	  EffK_ComputeU0( &EffT, &LoadTdT, &fu, InitCnt.PID.P, &Keinv, &tempvec, &DispTdT0 );
@@ -262,18 +292,25 @@ int main( int argc, char **argv )
 	  /* Perform substepping */
 	  Do_Substepping( DispTdT0_c.Array, DispTdT.Array, fcprevsub.Array, fc.Array, InitCnt.Remote.Type,
 			  InitCnt.Delta_t*(float) istep, Socket, (unsigned int) CNodes.Order, (unsigned int *) CNodes.Array  );
-	  
+
 	  if ( istep < InitCnt.Nstep ){
 	       /* Calculate the input load for the next step during the
 		  sub-stepping process. */
 	       if( InitCnt.Use_Absolute_Values ){
 		    Apply_LoadVectorForm( &Disp, &LoadVectorForm, DispAll[istep] );
 		    Apply_LoadVectorForm( &Vel, &LoadVectorForm, VelAll[istep] );
-		    Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep] );
+#if _SPARSE_
+		    Calc_Input_Load_AbsValues_Sparse( &LoadTdT1, &Sp_K, &Sp_C, &Disp, &Vel );
+#else
 		    Calc_Input_Load_AbsValues( &LoadTdT1, &K, &C, &Disp, &Vel );
+#endif
 	       } else {
 		    Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep] );
+#if _SPARSE_
+		    Calc_Input_Load_RelValues_Sparse( &LoadTdT1, &Sp_M, &Acc );
+#else
 		    Calc_Input_Load_RelValues( &LoadTdT1, &M, &Acc );
+#endif
 	       }
 	  }
 
@@ -288,7 +325,12 @@ int main( int argc, char **argv )
 	  Compute_Velocity( &VelT, &AccT, &AccTdT, InitCnt.a6, InitCnt.a7, &VelTdT );
 
 	  /* Error Compensation. fu = LoatTdT + fc -(Mass*AccTdT + Damp*VelTdT + Stiff*DispTdT) */
+
+#if _SPARSE_
+	  Compute_Force_Error_Sparse( &Sp_M, &Sp_C, &Sp_K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &fu );
+#else
 	  Compute_Force_Error( &M, &C, &K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &fu );
+#endif
 
 	  /* Output variables */
 	  TimeHistoryli[istep - 1] = LoadTdT.Array[30];
@@ -320,8 +362,10 @@ int main( int argc, char **argv )
      for ( i = 0; i < InitCnt.Nstep; i++ ){
 	  fprintf( OutputFile, "%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\n", TimeHistoryli[i], TimeHistoryai1[i], TimeHistoryai[i], TimeHistoryvi1[i], TimeHistoryvi[i], TimeHistoryui1[i], TimeHistoryui[i], TimeHistoryfc[i], TimeHistoryfu[i] );
      }
+
      /* Close the output file */
      fclose( OutputFile );
+
      /* Close the Connection */
      Close_Connection( &Socket, InitCnt.Remote.Type, (unsigned int) CNodes.Order, InitCnt.Nstep, 4 );
 
@@ -350,10 +394,16 @@ int main( int argc, char **argv )
      /* Free the coupling nodes memory */
      free( CNodes.Array );
 
+#if _SPARSE_
+     Destroy_MatrixVector_Sparse( &Sp_M );
+     Destroy_MatrixVector_Sparse( &Sp_C );
+     Destroy_MatrixVector_Sparse( &Sp_K );
+#else
      /* Destroy the data structures */
      Destroy_MatrixVector( &M );
      Destroy_MatrixVector( &C );
      Destroy_MatrixVector( &K );
+#endif
 
      Destroy_MatrixVector( &Keinv );
      Destroy_MatrixVector( &Keinv_c );
