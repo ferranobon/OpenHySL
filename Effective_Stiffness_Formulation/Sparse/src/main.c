@@ -210,7 +210,11 @@ int main( int argc, char **argv )
      Constants.Alpha = 1.0;
      Constants.Beta = InitCnt.a0;
      Constants.Gamma = InitCnt.a1;
-     CalculateMatrixKeinv( &Keinv, &M, &C, &K, Constants );
+//    CalculateMatrixKeinv( &Keinv, &M, &C, &K, Constants );
+
+     CalculateMatrixKeinv_Pardiso( &Keinv, &M, &C, &K, Constants );
+
+     MatrixVector_To_File( &Keinv, "Keinv_PARDISO.txt" );
 
      BuildMatrixXc( &Keinv, Keinv_c.Array, &CNodes );
      BuildMatrixXcm( &Keinv, &Keinv_m, &CNodes );
@@ -242,14 +246,16 @@ int main( int argc, char **argv )
      if ( OutputFile == NULL ){
 	  PrintErrorAndExit( "Cannot proceed because the file Out.txt could not be opened" );
      } else {
-	  clock = time (NULL);
+	  clock = time (NULL);	  
 	  fprintf( OutputFile, "Test started at %s", ctime( &clock ) );
      }
 
      /* Calculate the input load */
+     istep = 1;
      if( InitCnt.Use_Absolute_Values ){
 	  /* Copy the diagonal elements of M */
 	  Apply_LoadVectorForm( &Disp, &LoadVectorForm, DispAll[istep - 1] );
+
 	  Apply_LoadVectorForm( &Vel, &LoadVectorForm, VelAll[istep - 1] );
 #if _SPARSE_
 	  Calc_Input_Load_AbsValues_Sparse( &LoadTdT, &Sp_K, &Sp_C, &Disp, &Vel );
@@ -266,7 +272,6 @@ int main( int argc, char **argv )
      }
 
      incx = 1; incy = 1;
-     istep = 1;
      printf( "Starting stepping process\n" );
      while ( istep <= InitCnt.Nstep ){
 

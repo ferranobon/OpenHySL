@@ -217,6 +217,10 @@ void CalculateMatrixC( const MatrixVector *const Mass, const MatrixVector *const
  */
 void CalculateMatrixKeinv( MatrixVector *const Meinv, const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *const Stif, const Scalars Const );
 
+void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *const Stiff, const Scalars Const );
+
+MatrixVector Generate_IdentityMatrix( int Rows, int Cols );
+
 /**
  * \brief Construction of the coupling nodes
  *
