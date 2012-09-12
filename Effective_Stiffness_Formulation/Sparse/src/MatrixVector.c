@@ -259,7 +259,7 @@ void MatrixVector_To_File( const MatrixVector *const Mat, const char *Filename )
 	  int j;
 	  for ( i = 0; i < Mat->Rows; i++){
 	       for( j = 0; j < Mat->Cols; j++ ){
-		    fprintf(OutFile,"%f\t", Mat->Array[i + j*Mat->Rows]);
+		    fprintf(OutFile,"%e\t", Mat->Array[i + j*Mat->Rows]);
 	       }
 	       fprintf( OutFile, "\n" );
 	  }

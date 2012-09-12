@@ -131,12 +131,10 @@ void Apply_LoadVectorForm ( MatrixVector *const Vector, const MatrixVector *cons
 void Calc_Input_Load_AbsValues_Sparse( MatrixVector *const InLoad, const Sp_MatrixVector *const Stif, const Sp_MatrixVector *const Damp, const MatrixVector *const D, const MatrixVector *const V )
 {
 
-     static int incx, incy;       /* Stride in the vectors for BLAS library */
      static float Alpha, Beta;    /* Constants to use in the BLAS library */
      static char trans = 'N';
      static char matdescra[6] = {'s', 'u', 'n', 'c'};
 
-     incx = 1; incy = 1;
      Alpha = 1.0f; Beta = 0.0f;
 
      mkl_scsrmv( &trans, &InLoad->Rows, &InLoad->Rows, &Alpha, matdescra, Stif->Values, Stif->Columns, Stif->RowIndex, &(Stif->RowIndex[1]), D->Array, &Beta, InLoad->Array );
@@ -148,12 +146,10 @@ void Calc_Input_Load_AbsValues_Sparse( MatrixVector *const InLoad, const Sp_Matr
 void Calc_Input_Load_RelValues_Sparse( MatrixVector *const InLoad, const Sp_MatrixVector *const Mass, const MatrixVector *const A )
 {
 
-     static int incx, incy;       /* Stride in the vectors for BLAS library */
      static float Alpha, Beta;    /* Constants to use in the BLAS library */
      static char trans = 'N';
-     static char matdescra[6] = {'D', 'L', 'N', 'F'};
+     static char matdescra[6] = {'s', 'u', 'n', 'c'};
 
-     incx = 1; incy = 1;
      Alpha = 1.0; Beta = 0.0;
 
      mkl_scsrmv( &trans, &InLoad->Rows, &InLoad->Rows, &Alpha, matdescra, Mass->Values, Mass->Columns, Mass->RowIndex, &Mass->RowIndex[1], A->Array, &Beta, InLoad->Array );

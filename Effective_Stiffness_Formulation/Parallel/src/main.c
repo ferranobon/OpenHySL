@@ -1,10 +1,3 @@
-/*
- * mAccTn.c
- *
- *  Created on: 22/07/2011
- *      Author: ferran
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 

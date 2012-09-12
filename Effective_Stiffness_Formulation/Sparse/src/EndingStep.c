@@ -136,7 +136,7 @@ void JoinNonCouplingPart_Sparse( MatrixVector *const VecXm, const Sp_MatrixVecto
 	static int Rows, Cols;
 	static int lda;
 	static int Length, PosX, PosXm;
-	static char matdescra[6] = {'G', 'L', 'N', 'F'};
+	static char matdescra[6] = {'G', 'U', 'N', 'C'};
 
 	incx = 1; incy = 1;
 	trans = 'N';
