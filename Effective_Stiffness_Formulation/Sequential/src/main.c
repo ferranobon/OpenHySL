@@ -77,54 +77,54 @@ int main( int argc, char **argv )
 	  printf("Setting priority: SCHED_FIFO.\n");
 	  sp.sched_priority = sched_get_priority_max(SCHED_FIFO);
 	  if(sched_setscheduler(0, SCHED_FIFO, &sp) == -1 ){
-	    PrintErrorAndExit("Filed real time\n");
+	       PrintErrorAndExit("Filed real time\n");
 	  }
      }
 
      // Allocate some memory
-       int page_size;
-       char* buffer;       
+     int page_size;
+     char* buffer;       
 
-       // Now lock all current and future pages from preventing of being paged
-       if (mlockall(MCL_CURRENT | MCL_FUTURE ))
-       {
-           perror("mlockall failed:");
-       }
+     // Now lock all current and future pages from preventing of being paged
+     if (mlockall(MCL_CURRENT | MCL_FUTURE ))
+     {
+	  perror("mlockall failed:");
+     }
        
 
-       // Turn off malloc trimming.
-       mallopt (M_TRIM_THRESHOLD, -1);
+     // Turn off malloc trimming.
+     mallopt (M_TRIM_THRESHOLD, -1);
        
 
-       // Turn off mmap usage.
-       mallopt (M_MMAP_MAX, 0);
+     // Turn off mmap usage.
+     mallopt (M_MMAP_MAX, 0);
        
 
-       page_size = sysconf(_SC_PAGESIZE);
-       buffer = malloc(SOMESIZE);
+     page_size = sysconf(_SC_PAGESIZE);
+     buffer = malloc(SOMESIZE);
        
 
-       // Touch each page in this piece of memory to get it mapped into RAM
-       for (i=0; i < SOMESIZE; i+=page_size){
-           // Each write to this buffer will generate a pagefault.
-           // Once the pagefault is handled a page will be locked in memory and never
-           // given back to the system.
-           buffer[i] = 0;
-       }
-       free(buffer);
-       // buffer is now released. As glibc is configured such that it never gives back memory to
-       // the kernel, the memory allocated above is locked for this process. All malloc() and new()
-       // calls come from the memory pool reserved and locked above. Issuing free() and delete()
-       // does NOT make this locking undone. So, with this locking mechanism we can build C++ applications
-       // that will never run into a major/minor pagefault, even with swapping enabled.
+     // Touch each page in this piece of memory to get it mapped into RAM
+     for (i=0; i < SOMESIZE; i+=page_size){
+	  // Each write to this buffer will generate a pagefault.
+	  // Once the pagefault is handled a page will be locked in memory and never
+	  // given back to the system.
+	  buffer[i] = 0;
+     }
+     free(buffer);
+     // buffer is now released. As glibc is configured such that it never gives back memory to
+     // the kernel, the memory allocated above is locked for this process. All malloc() and new()
+     // calls come from the memory pool reserved and locked above. Issuing free() and delete()
+     // does NOT make this locking undone. So, with this locking mechanism we can build C++ applications
+     // that will never run into a major/minor pagefault, even with swapping enabled.
        
 
-       //<do your RT-thing>
+     //<do your RT-thing>
 #endif
 
 
      /* Constants definitions. */
-       InitConstants( &InitCnt, "ConfFile.conf" );
+     InitConstants( &InitCnt, "ConfFile.conf" );
 
      /* Read the coupling nodes from a file */
      Read_Coupling_Nodes( &CNodes, InitCnt.FileCNodes );
