@@ -14,6 +14,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#if _SPARSE_
+#include <mkl_spblas.h>
+#endif
+
 #include "ErrorHandling.h"
 #include "MatrixVector.h"
 #include "Netlib.h"  /* BLAS and LAPACK prototypes. */
@@ -90,15 +94,26 @@ void Calc_Input_Load_AbsValues( MatrixVector *const InLoad, const MatrixVector *
      static char uplo;            /* Character to use in the BLAS library */
 
      incx = 1; incy = 1;
-     Alpha = 1.0; Beta = 0.0;
+     Alpha = 1.0f; Beta = 0.0f;
      uplo = 'L';     /* Character defining that the lower part of the symmetric matrix is referenced (see man dsymv) */
 
      /* {r} is the load form vector */
      /* li = K*{r}*ug */
      ssymv_( &uplo, &(*InLoad).Rows, &Alpha, (*Stif).Array, &(*InLoad).Rows, (*D).Array, &incx, &Beta, (*InLoad).Array, &incy );
+     MatrixVector_To_File( InLoad, "InLoad" );
      /* li = K*{r}*ug + C*{r}*vg = li + C*{r}*vg */
      Beta = 1.0;
      ssymv_( &uplo, &(*InLoad).Rows, &Alpha, (*Damp).Array, &(*InLoad).Rows, (*V).Array, &incx, &Beta, (*InLoad).Array, &incy );
+}
+
+void Calc_Input_Load_RelValues( MatrixVector *const InLoad, const MatrixVector *const Mass, const MatrixVector *const A )
+{
+
+     static int incx = 1, incy = 1;         /* Stride in the vectors for BLAS library */
+     static float Alpha = -1.0, Beta = 0.0;  /* Constants to use in the BLAS library */
+     static char uplo = 'L';                /* Character defining that the lower part of the symmetric matrix is referenced (see man ssymv) */
+
+     ssymv_( &uplo, &(*InLoad).Rows, &Alpha, (*Mass).Array, &(*InLoad).Rows, (*A).Array, &incx, &Beta, (*InLoad).Array, &incy );
 }
 
 void Apply_LoadVectorForm ( MatrixVector *const Vector, const MatrixVector *const LoadForm, const float Value )
@@ -112,12 +127,32 @@ void Apply_LoadVectorForm ( MatrixVector *const Vector, const MatrixVector *cons
      sscal_( &Vector->Rows, &Scalar, Vector->Array, &incx );
 }
 
-void Calc_Input_Load_RelValues( MatrixVector *const InLoad, const MatrixVector *const Mass, const MatrixVector *const A )
+#if _SPARSE_
+void Calc_Input_Load_AbsValues_Sparse( MatrixVector *const InLoad, const Sp_MatrixVector *const Stif, const Sp_MatrixVector *const Damp, const MatrixVector *const D, const MatrixVector *const V )
 {
 
-     static int incx = 1, incy = 1;         /* Stride in the vectors for BLAS library */
-     static float Alpha = -1.0, Beta = 0.0;  /* Constants to use in the BLAS library */
-     static char uplo = 'L';                /* Character defining that the lower part of the symmetric matrix is referenced (see man ssymv) */
+     static float Alpha, Beta;    /* Constants to use in the BLAS library */
+     static char trans = 'N';
+     static char matdescra[6] = {'s', 'u', 'n', 'c'};
 
-     ssymv_( &uplo, &(*InLoad).Rows, &Alpha, (*Mass).Array, &(*InLoad).Rows, (*A).Array, &incx, &Beta, (*InLoad).Array, &incy );
+     Alpha = 1.0f; Beta = 0.0f;
+
+     mkl_scsrmv( &trans, &InLoad->Rows, &InLoad->Rows, &Alpha, matdescra, Stif->Values, Stif->Columns, Stif->RowIndex, &(Stif->RowIndex[1]), D->Array, &Beta, InLoad->Array );
+     MatrixVector_To_File( InLoad, "InLoad" );
+     Beta = 1.0;
+     mkl_scsrmv( &trans, &InLoad->Rows, &InLoad->Rows, &Alpha, matdescra, Damp->Values, Damp->Columns, Damp->RowIndex, &(Damp->RowIndex[1]), V->Array, &Beta, InLoad->Array );
 }
+
+void Calc_Input_Load_RelValues_Sparse( MatrixVector *const InLoad, const Sp_MatrixVector *const Mass, const MatrixVector *const A )
+{
+
+     static float Alpha, Beta;    /* Constants to use in the BLAS library */
+     static char trans = 'N';
+     static char matdescra[6] = {'s', 'u', 'n', 'c'};
+
+     Alpha = 1.0; Beta = 0.0;
+
+     mkl_scsrmv( &trans, &InLoad->Rows, &InLoad->Rows, &Alpha, matdescra, Mass->Values, Mass->Columns, Mass->RowIndex, &Mass->RowIndex[1], A->Array, &Beta, InLoad->Array );
+}
+
+#endif

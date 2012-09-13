@@ -1,28 +1,8 @@
-/**
- * \file Initiation.c
- * \author Ferran Obón Santacana
- * \version 1.0
- * \date 10th of August 2011
- * \todo Add support for packaged storages to decrease the memory use.
- * \todo Make the routines BuildMatrixXc() and BuildMatrixXcm() to be able to handle non consecutive coupling nodes.
- *
- * \brief Source code of the functions used in the Initiation phase.
- *
- * This file contains the source code of the routines used during the initiation phase of the substructure algorithm: construction of the Proportional Viscous
- * Damping Matrix, the Effective Mass Matrix and the Gain Matrix and their non-coupling and coupling part.
- */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include <stdio.h>   /* For fprintf( ) and stderr */
-#include <stdlib.h>  /* For exit( ) */
-#include <string.h>  /* For strcmp( ) */
-#include "ErrorHandling.h"
-#include "Initiation.h"
-#include "MatrixVector.h"
-#include "Netlib.h"
-#include "Send_Receive_Data.h"
-#include "Conf_Parser.h"
-
-void InitConstants( AlgConst *const InitConst, const char *FileName )
+void Init_Algorithm( AlgConst *const InitConst, const char *FileName )
 {
 
      ConfFile *Config;
@@ -97,7 +77,7 @@ void InitConstants( AlgConst *const InitConst, const char *FileName )
      ConfFile_Free( Config );
 }
 
-void Delete_InitConstants( AlgConst *const InitConst )
+void Delete_Algorithm( AlgConst *const InitConst )
 {
 
      free( InitConst->FileM );
@@ -138,7 +118,7 @@ void Read_Coupling_Nodes( Coupling_Node *const CNodes, const char *Filename )
 
 }
 
-void CalculateMatrixC( const MatrixVector *const Mass, const MatrixVector *const Stif, MatrixVector *const Damp, const RayleighConst *const Rayleigh )
+void Rayleigh_Damping( const MatrixVector *const Mass, const MatrixVector *const Stif, MatrixVector *const Damp, const RayleighConst *const Rayleigh )
 {
      char uplo;
      int ione;
@@ -180,7 +160,7 @@ void CalculateMatrixC( const MatrixVector *const Mass, const MatrixVector *const
 
 }
 
-void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *const Stif, const Scalars Const )
+void EffK_GainMatrix( MatrixVector *const Keinv, const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *const Stif, const Scalars Const )
 {
 
      char uplo;
@@ -219,7 +199,109 @@ void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const 
 
 }
 
-void BuildMatrixXc( const MatrixVector *const Mat, float *MatCouple, const Coupling_Node *const CNodes )
+void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const Sp_MatrixVector *const Mass, const Sp_MatrixVector *const Damp, const Sp_MatrixVector *const Stiff, const Scalars Const )
+{
+
+     int iparm[64];
+
+     Add3Mat_Sparse( &(*Keinv), &(*Stif), &(*Mass), &(*Damp), Const );
+
+     /* Setup the Pardiso control parameters */
+     for (i = 0; i < 64; i++){
+	  iparm[i] = 0;
+     }
+     iparm[0] = 1;	/* No solver default */
+     iparm[1] = 2;	/* Fill-in reordering from METIS */
+     iparm[3] = 0;	/* No iterative-direct algorithm */
+     iparm[4] = 0;	/* No user fill-in reducing permutation */
+     iparm[5] = 0;	/* Write solution into x */
+     iparm[7] = 2;	/* Max numbers of iterative refinement steps */
+     iparm[9] = 13;	/* Perturb the pivot elements with 1E-13 */
+     iparm[10] = 1;	/* Use nonsymmetric permutation and scaling MPS */
+     iparm[12] = 0;	/* Maximum weighted matching algorithm is switched-off (default for symmetric). Try iparm[12] = 1 in case of inappropriate accuracy */
+     iparm[13] = 0;	/* Output: Number of perturbed pivots */
+     iparm[17] = -1;	/* Output: Number of nonzeros in the factor LU */
+     iparm[18] = -1;	/* Output: Mflops for LU factorization */
+     iparm[19] = 0;	/* Output: Numbers of CG Iterations */
+     iparm[28] = 1;     /* Input/output matrices are single precision */
+     iparm[34] = 1;	/* PARDISO use C-style indexing for ia and ja arrays */
+     maxfct = 1;	/* Maximum number of numerical factorizations. */
+     mnum = 1;		/* Which factorization to use. */
+     msglvl = 1;	/* Print statistical information in file */
+     error = 0;		/* Initialize error flag */
+
+     /* -------------------------------------------------------------------- */
+/* .. Initialize the internal solver memory pointer. This is only */
+/* necessary for the FIRST call of the PARDISO solver. */
+/* -------------------------------------------------------------------- */
+  for (i = 0; i < 64; i++)
+    {
+      pt[i] = 0;
+    }
+/* -------------------------------------------------------------------- */
+/* .. Reordering and Symbolic Factorization. This step also allocates */
+/* all memory that is necessary for the factorization. */
+/* -------------------------------------------------------------------- */
+  phase = 11;
+  PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
+	   &n, a, ia, ja, &idum, &nrhs, iparm, &msglvl, &ddum, &ddum, &error);
+  if (error != 0)
+    {
+      printf ("\nERROR during symbolic factorization: %d", error);
+      exit (1);
+    }
+  printf ("\nReordering completed ... ");
+  printf ("\nNumber of nonzeros in factors = %d", iparm[17]);
+  printf ("\nNumber of factorization MFLOPS = %d", iparm[18]);
+/* -------------------------------------------------------------------- */
+/* .. Numerical factorization. */
+/* -------------------------------------------------------------------- */
+  phase = 22;
+  PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
+	   &n, a, ia, ja, &idum, &nrhs, iparm, &msglvl, &ddum, &ddum, &error);
+  if (error != 0)
+    {
+      printf ("\nERROR during numerical factorization: %d", error);
+      exit (2);
+    }
+  printf ("\nFactorization completed ... ");
+/* -------------------------------------------------------------------- */
+/* .. Back substitution and iterative refinement. */
+/* -------------------------------------------------------------------- */
+  phase = 33;
+  iparm[7] = 2;			/* Max numbers of iterative refinement steps. */
+  /* Set right hand side to one. */
+  for (i = 0; i < n; i++)
+    {
+      b[i] = 1;
+    }
+  PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
+	   &n, a, ia, ja, &idum, &nrhs, iparm, &msglvl, b, x, &error);
+  if (error != 0)
+    {
+      printf ("\nERROR during solution: %d", error);
+      exit (3);
+    }
+  printf ("\nSolve completed ... ");
+  printf ("\nThe solution of the system is: ");
+  for (i = 0; i < n; i++)
+    {
+      printf ("\n x [%d] = % f", i, x[i]);
+    }
+  printf ("\n");
+/* -------------------------------------------------------------------- */
+/* .. Termination and release of memory. */
+/* -------------------------------------------------------------------- */
+  phase = -1;			/* Release internal memory. */
+  PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
+	   &n, &ddum, ia, ja, &idum, &nrhs,
+	   iparm, &msglvl, &ddum, &ddum, &error);
+  return 0;
+}
+
+     
+
+void Build_MatrixXc( const MatrixVector *const Mat, float *MatCouple, const Coupling_Node *const CNodes )
 {
 
      int icoup;    /* Counter for the coupling nodes */
@@ -238,7 +320,7 @@ void BuildMatrixXc( const MatrixVector *const Mat, float *MatCouple, const Coupl
      }
 }
 
-void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const VecXcm, const Coupling_Node *const CNodes )
+void Build_MatrixXcm( const MatrixVector *const Mat, MatrixVector *const VecXcm, const Coupling_Node *const CNodes )
 {
 
      int Length;

@@ -16,6 +16,9 @@
 #define INITIATION_H_
 
 #include "MatrixVector.h"
+#include "Conf_Parser.h"
+#include "Send_Receive_Data.h"
+
 /**
  * \brief Structure to handle the PID error compensator.
  *
@@ -55,6 +58,17 @@ typedef struct {
 } NewmarkConst;
 
 /**
+ * \brief Structure to store the coupling nodes.
+ * 
+ * This structure is used in order to store the coupling nodes that will be used
+ * during a test. The nodes are stored sequentially and in increasing order.
+ */
+typedef struct {
+     int *Array;  /*!< \brief Array containing the coupling nodes */
+     int Order;   /*!< \brief Number of coupling nodes */
+} Coupling_Node;
+
+/**
  * \brief Structure to wrap constants and filenames.
  *
  * This structure stores several constants that will be used in different parts of the substructure
@@ -69,12 +83,10 @@ typedef struct {
 
      int Order;               /*!< \brief Order of the matrices */
 
-     int OrderC;              /*!< \brief Number of coupling DOF */
-     int PosCouple;           /*!< \brief Position of the coupling DOF */
+     unsigned int Nstep;      /*!< \brief Number of steps */
 
-     int Nstep;               /*!< \brief Number of steps */
      int Use_Absolute_Values; /*!< \brief Variable to control whether to use absolute values in the equation of motion or relative values. Affects how the input load is calculated */
-     float Delta_t;          /*!< \brief Time increment \f$\Delta t\f$ */
+     float Delta_t;           /*!< \brief Time increment \f$\Delta t\f$ */
 
      RayleighConst Rayleigh;  /*!< \brief Stores Rayleigh Constants alpha (\c Rayleigh.Alpha or \f$\alpha_R\f$) and beta (\c Rayleigh.Beta or \f$\beta_R\f$) */
      NewmarkConst Newmark;    /*!< \brief Stores Newmark Constants gamma (\c Newmark.Gamma or \f$\gamma_N\f$) and (\c Newmark.Beta or \f$\beta_N\f$) */
@@ -96,29 +108,29 @@ typedef struct {
      float a7;               /*!< \brief \f$a_7 = \gamma_N\Delta t\f$ */
 
      /* Files where data are located */
-     const char* FileM;       /*!< \brief Stores the name of the file that contains the Mass Matrix */
-     const char* FileK;       /*!< \brief Stores the name of the file that contains the Stiffness Matrix */
-     const char* FileC;       /*!< \brief Stores the name of the file that contains the Damping Matrix */
-     const char* FileLVector; /*!< \brief Stores the name of the file that contains the vector used for the load. This vector usually contains 1 and 0 */
-     const char* FileData;    /*!< \brief Stores the name of the file that contains displacement, velocity and acceleration */
+     char* FileM;       /*!< \brief Stores the name of the file that contains the Mass Matrix */
+     char* FileK;       /*!< \brief Stores the name of the file that contains the Stiffness Matrix */
+     char* FileC;       /*!< \brief Stores the name of the file that contains the Damping Matrix */
+     char* FileLVector; /*!< \brief Stores the name of the file that contains the vector used for the load. This vector usually contains 1 and 0 */
+     char* FileCNodes;  /*!< \brief Stores the name of the file that contains the vector of coupling nodes. */
+     char* FileData;    /*!< \brief Stores the name of the file that contains displacement, velocity and acceleration */
+     char* FileOutput;    /*!< \brief Name of the file to store the output values of the process */
 
      /* Information regarding the type of communication */
-     int Type_Protocol;           /*!< \brief Identifies the protocol to be used. 1 = Custom, 2 = NSEP, 3 = OpenFresco */
+     Remote_Machine_Info Remote;
 } AlgConst;
 
 /**
  * \brief Definition of constant values and filenames that will be used during the Algorithm.
  *
- * This routine is intended to be used as a configuration file. In it, several constants like the order of the matrices,
- * the number of steps and file names where the Mass and Stiffness matrices are stored (the damping matrix is optional). Although
- * this function could be implemented reading this values from a configuration file, thus skiping the need to compile it each time one
- * of these values is changed, the actual approach has some benefits from the performance point of view. This is specially important in
- * the case of loops, since the compiler knows before hand the size of them.
+ * This routine reads the values specified in a configuration file. In it, several constants like the order of the matrices,
+ * the number of steps and file names where the Mass and Stiffness matrices are stored (the damping matrix is optional).
  *
- * \param[out] AConst A structure that comprises of several constants.
+ * \param[out] InitConst A structure that comprises of several constants.
+ * \param[in] FileName Name of the configuration file.
  *
  * \post
- * - The size of the matrices will determine the memory that will be allocated when defining a Dense_MatrixVector type and also how
+ * - The size of the matrices will determine the memory that will be allocated when defining a MatrixVector type and also how
  * many elements will be read/written from/to the files.
  * - The number of steps must be equal to the number of rows of the file "DataFile".
  * - The values of the Newmark integration, PID and Rayleigh constants must be coherent/feasible. The algorithm will not perform checks
@@ -126,23 +138,39 @@ typedef struct {
  * \sa RayleighConst, NewmarkConst and PIDValues.
  *
  */
-void InitConstants( AlgConst *const AConst );
+void InitConstants( AlgConst *const InitConst, const char* FileName );
 
 /**
- * \brief Identify the communication protocol to be used
+ * \brief Frees the memory allocated during the InitConstants() routine.
  *
- * The communication protocol to be used is identified, and a proper return value is given. It makes use of the function
- * Get_Server_Information().
+ * The memory allocated in the InitConstants() by the strdup() function is deallocated.
+ * This includes basically the filenames and the IP, Port, Login and Password variables.
+ * 
+ * \param[out] InitConst Structure containing the data to be deallocated.
  *
- * \pre The first line of the file \c Connection.txt must contain the desired protocol type
- *
- * \return 
- * - 0 if the desired protocol is of type \c Custom.
- * - 1 if the desired protocol is of type \c PNSE.
- * - 2 if the desired protocol is of type \c OpenFresco.
- * - -1 if the desired protocol is not recognised.
+ * \sa InitConstants Delete_ServerInformation.
  */
-int Get_Type_Protocol( );
+void Delete_InitConstants( AlgConst *const InitConst );
+
+/**
+ * \brief Reads the coupling nodes from a file.
+ *
+ * The coupling nodes are read from a file and stored sequentially in a dynamically
+ * allocated array. The first number of the file must be always the number of 
+ * coupling nodes to be readen.
+ * 
+ * \pre - The file must be an ASCII file with the first value meaning the number
+ * of nodes to be read.
+ * - The datastructure Coupling_Nodes should not be initialised, since this is done
+ * in this routine.
+ *
+ * \param[out] CNodes Data structure to store both: the number of coupling nodes and
+ * a list of them.
+ * \param[in] Filename The name of the file to be opened.
+ *
+ * \post CNodes must contain a list of the coupling nodes and the number of them.
+ */
+void Read_Coupling_Nodes( Coupling_Node *const CNodes, const char *Filename );
 
 /**
  * \brief Construction of Proportional Viscous Damping Matrix using Rayleigh Damping.
@@ -160,9 +188,9 @@ int Get_Type_Protocol( );
  * \post \c Damp is a symmetric matrix in general storage with only the upper part referenced (Lower part in FORTRAN routines).
  * It contains the result of \f$[C] = \alpha [M] \cdot \beta [K]\f$.
  *
- * \sa Dense_MatrixVector and RayleighConst.
+ * \sa MatrixVector and RayleighConst.
  */
-void CalculateMatrixC( const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const Stif, Dense_MatrixVector *const Damp, const RayleighConst *const Rayleigh );
+void CalculateMatrixC( const MatrixVector *const Mass, const MatrixVector *const Stif, MatrixVector *const Damp, const RayleighConst *const Rayleigh );
 
 /**
  * \brief Construction of the inverse of the Effective Mass Matrix.
@@ -185,26 +213,13 @@ void CalculateMatrixC( const Dense_MatrixVector *const Mass, const Dense_MatrixV
  * \post \c Meinv is a symmetric matrix in general storage with only the upper part referenced (Lower part in FORTRAN routines). It contains the result of
  * \f$M_{e,inv} = [M + \gamma\Delta tC + \beta\Delta t^2 K]^{-1}\f$.
  *
- * \sa Dense_MatrixVector, Scalars and Add3Mat( ).
+ * \sa MatrixVector, Scalars and Add3Mat( ).
  */
-void CalculateMatrixKeinv( Dense_MatrixVector *const Meinv, const Dense_MatrixVector *const Mass, const Dense_MatrixVector *const Damp, const Dense_MatrixVector *const Stif, const Scalars Const );
+void CalculateMatrixKeinv( MatrixVector *const Meinv, const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *const Stif, const Scalars Const );
 
-/**
- * \brief Construction of the Gain Matrix
- *
- * This routine calculates the Gain Matrix \f$G = \beta\Delta t^2 M_{e,inv}\f$. It makes use of the dlacpy_( ) and dlascl_( ) LAPACK routines.
- *
- * \pre The matrices must be symmetrical and only the upper part of it will be referenced (lower part in FORTRAN routines)
- *
- * \param[in,out] Gain The Gain matrix. As an input, only the size of the matrix is referenced, not its elements.
- * \param[in] Meinv The inverse of the effective mass matrix.
- * \param[in] Const On entry \f$Const = \beta\Delta t^2\f$.
- *
- * \post \c Gain is a symmetric matrix in general storage with only the upper part referenced (Lower part in FORTRAN routines). It contains the result of \f$G = \beta\Delta t^2 M_{e,inv}\f$.
- *
- * \sa Dense_MatrixVector.
- */
-void CalculateMatrixG( Dense_MatrixVector *const Gain, const Dense_MatrixVector *const Meinv, float Const );
+void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *const Stiff, const Scalars Const );
+
+MatrixVector Generate_IdentityMatrix( int Rows, int Cols );
 
 /**
  * \brief Construction of the coupling nodes
@@ -221,15 +236,15 @@ void CalculateMatrixG( Dense_MatrixVector *const Gain, const Dense_MatrixVector 
  *
  * \param[in] Mat The matrix that will be decoupled.
  * \param[out] MatCouple The matrix where the coupling nodes are saved.
- * \param[in] PosCpl The position of the first coupling node.
+ * \param[in] CNodes Structure containing the coupling nodes.
  * \param[in] OrderC The number of coupling nodes. In case that \f$OrderC > 1\f$, the routine assumes that they are consecutive.
  *
  * \post \c MatCouple is a symmetrical matrix \f$OrderC\cdot OrderC\f$ in general storage that contains the coupling nodes.
  *
- * \sa Dense_MatrixVector.
+ * \sa MatrixVector.
  *
  */
-void BuildMatrixXc( const Dense_MatrixVector *const Mat, float *MatCouple, const int PosCpl, const int OrderC );
+void BuildMatrixXc( const MatrixVector *const Mat, float *MatCouple, const Coupling_Node *const CNodes );
 
 /**
  * \brief Construction of the non-coupling part of the row where the Coupling node is located.
@@ -245,14 +260,13 @@ void BuildMatrixXc( const Dense_MatrixVector *const Mat, float *MatCouple, const
  *
  * \param[in] Mat The matrix that will be decoupled.
  * \param[in,out] VecXcm The matrix where the non-coupling elemets of a row with a couping node are stored.
- * \param[in] PosCpl The position of the first coupling node.
- * \param[in] OrderC The number of coupling nodes. In case that \f$OrderC > 1\f$, the routine assumes that they are consecutive.
+ * \param[in] CNodes Structure containing the coupling nodes.
  *
  * \post \c VecXcm is a general matrix of size \f$size = (Order - OrderC)\cdot OrderC\f$ with the non-coupling elements of the row with a coupling node.
  *
- * \sa Dense_MatrixVector.
+ * \sa MatrixVector.
  */
-void BuildMatrixXcm( const Dense_MatrixVector *const Mat, Dense_MatrixVector *const VecXcm, const int PosCpl, const int OrderC );
+void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const VecXcm,  const Coupling_Node *const CNodes );
 
 
 #endif /* INITIATION_H_ */

@@ -1,10 +1,3 @@
-/*
- * mAccTn.c
- *
- *  Created on: 22/07/2011
- *      Author: ferran
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -38,11 +31,10 @@ int main( int argc, char **argv )
      Scalars Constants;
 
      /* Variables required by the Substructure Algorithm */
-     int i, istep;       /* A counter */
+     unsigned int i, istep;       /* A counter */
      AlgConst InitCnt;
 
      float *AccAll, *VelAll, *DispAll;
-
 
      /* Matrices and Vectors */
      PMatrixVector M, C, K;               /* Mass, Damping and Stiffness matrices */
@@ -50,7 +42,6 @@ int main( int argc, char **argv )
 
      PMatrixVector Keinv_m;
 
-     PMatrixVector DiagM;
      PMatrixVector EffT;
 
      PMatrixVector DispT, DispTdT0, DispTdT;
@@ -60,7 +51,7 @@ int main( int argc, char **argv )
      PMatrixVector VelT, VelTdT;
      PMatrixVector AccT, AccTdT;
 
-     PMatrixVector LoadTdT, LoadTdT1;
+     PMatrixVector LoadVectorForm, LoadTdT, LoadTdT1;
 
      PMatrixVector fc, fcprevsub;
      PMatrixVector fu;
@@ -78,6 +69,8 @@ int main( int argc, char **argv )
      float TimeElapsed;
      float TimeElapsedEnd;
 
+     Coupling_Node CNodes;
+
      /* TCP socket connection variables */
      int Socket;
 
@@ -90,18 +83,18 @@ int main( int argc, char **argv )
 	  InitConstants( &InitCnt, size );
      }
 
-     // Send the information read in process 0 to all other processes using MPI_Bcast
+     /* Send the information read in process 0 to all other processes using MPI_Bcast */
      BroadcastConfFile( &InitCnt );
 
-     AccAll = calloc( InitCnt.Nstep, sizeof(float) );
-     VelAll = calloc( InitCnt.Nstep, sizeof(float) );
-     DispAll = calloc( InitCnt.Nstep, sizeof(float) );
+     AccAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
+     VelAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
+     DispAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
 
-     // BLACS: Initialise BLACS
+     /* BLACS: Initialise BLACS */
      bhandle = Csys2blacs_handle( MPI_COMM_WORLD );
      icontxt = bhandle;
 
-     // BLACS: Initialise the process grid
+     /* BLACS: Initialise the process grid */
      Cblacs_gridinit( &icontxt, (char *)"Row", InitCnt.ProcessGrid.Rows, InitCnt.ProcessGrid.Cols );
      Cblacs_gridinfo( icontxt, &nprow, &npcol, &myrow, &mycol );
 

@@ -66,6 +66,12 @@ int main( int argc, char **argv )
      /* TCP socket connection Variables */
      int Socket;
 
+#if _SPARSE_
+     /* Sparse matrices */
+     Sp_MatrixVector Sp_M, Sp_C, Sp_K;     /* Sparse representation of the M, C and K matrices */
+     Sp_MatrixVector Sp_Keinv, Sp_Keinv_m; /* Sparse representation of Keinv and Keinv_m matrices */
+#endif
+
 #if REAL_TIME_
      struct sched_param sp;
      int policy;
@@ -82,49 +88,49 @@ int main( int argc, char **argv )
      }
 
      // Allocate some memory
-       int page_size;
-       char* buffer;       
+     int page_size;
+     char* buffer;       
 
-       // Now lock all current and future pages from preventing of being paged
-       if (mlockall(MCL_CURRENT | MCL_FUTURE ))
-       {
-           perror("mlockall failed:");
-       }
+     // Now lock all current and future pages from preventing of being paged
+     if (mlockall(MCL_CURRENT | MCL_FUTURE ))
+     {
+	  perror("mlockall failed:");
+     }
        
 
-       // Turn off malloc trimming.
-       mallopt (M_TRIM_THRESHOLD, -1);
+     // Turn off malloc trimming.
+     mallopt (M_TRIM_THRESHOLD, -1);
        
 
-       // Turn off mmap usage.
-       mallopt (M_MMAP_MAX, 0);
+     // Turn off mmap usage.
+     mallopt (M_MMAP_MAX, 0);
        
 
-       page_size = sysconf(_SC_PAGESIZE);
-       buffer = malloc(SOMESIZE);
+     page_size = sysconf(_SC_PAGESIZE);
+     buffer = malloc(SOMESIZE);
        
 
-       // Touch each page in this piece of memory to get it mapped into RAM
-       for (i=0; i < SOMESIZE; i+=page_size){
-           // Each write to this buffer will generate a pagefault.
-           // Once the pagefault is handled a page will be locked in memory and never
-           // given back to the system.
-           buffer[i] = 0;
-       }
-       free(buffer);
-       // buffer is now released. As glibc is configured such that it never gives back memory to
-       // the kernel, the memory allocated above is locked for this process. All malloc() and new()
-       // calls come from the memory pool reserved and locked above. Issuing free() and delete()
-       // does NOT make this locking undone. So, with this locking mechanism we can build C++ applications
-       // that will never run into a major/minor pagefault, even with swapping enabled.
+     // Touch each page in this piece of memory to get it mapped into RAM
+     for (i=0; i < SOMESIZE; i+=page_size){
+	  // Each write to this buffer will generate a pagefault.
+	  // Once the pagefault is handled a page will be locked in memory and never
+	  // given back to the system.
+	  buffer[i] = 0;
+     }
+     free(buffer);
+     // buffer is now released. As glibc is configured such that it never gives back memory to
+     // the kernel, the memory allocated above is locked for this process. All malloc() and new()
+     // calls come from the memory pool reserved and locked above. Issuing free() and delete()
+     // does NOT make this locking undone. So, with this locking mechanism we can build C++ applications
+     // that will never run into a major/minor pagefault, even with swapping enabled.
        
 
-       //<do your RT-thing>
+     //<do your RT-thing>
 #endif
 
 
      /* Constants definitions. */
-       InitConstants( &InitCnt, "ConfFile.conf" );
+     InitConstants( &InitCnt, "ConfFile.conf" );
 
      /* Read the coupling nodes from a file */
      Read_Coupling_Nodes( &CNodes, InitCnt.FileCNodes );
@@ -204,11 +210,27 @@ int main( int argc, char **argv )
      Constants.Alpha = 1.0;
      Constants.Beta = InitCnt.a0;
      Constants.Gamma = InitCnt.a1;
-     CalculateMatrixKeinv( &Keinv, &M, &C, &K, Constants );
+//    CalculateMatrixKeinv( &Keinv, &M, &C, &K, Constants );
+
+     CalculateMatrixKeinv_Pardiso( &Keinv, &M, &C, &K, Constants );
+
+     MatrixVector_To_File( &Keinv, "Keinv_PARDISO.txt" );
 
      BuildMatrixXc( &Keinv, Keinv_c.Array, &CNodes );
      BuildMatrixXcm( &Keinv, &Keinv_m, &CNodes );
   
+#if _SPARSE_
+     /* Transform the matrices into CSR format */
+     Dense_to_CSR( &M, &Sp_M, 0 );            /* Transform into CSR format */
+     Destroy_MatrixVector( &M );        /* Destroy the dense matrix */
+     
+     Dense_to_CSR( &K, &Sp_K, 0 );            /* Transform into CSR format */
+     Destroy_MatrixVector( &K );        /* Destroy the dense matrix */
+
+     Dense_to_CSR( &C, &Sp_C, 0 );            /* Transform into CSR format */
+     Destroy_MatrixVector( &C );        /* Destroy the dense matrix */
+#endif
+
      /* Send the coupling part of the effective matrix */
      Send_Effective_Matrix( Keinv_c.Array, (unsigned int) CNodes.Order, &Socket, InitCnt.Remote );
 
@@ -224,22 +246,29 @@ int main( int argc, char **argv )
      if ( OutputFile == NULL ){
 	  PrintErrorAndExit( "Cannot proceed because the file Out.txt could not be opened" );
      } else {
-	  clock = time (NULL);
+	  clock = time (NULL);	  
 	  fprintf( OutputFile, "Test started at %s", ctime( &clock ) );
      }
 
-     istep = 1;
-
      /* Calculate the input load */
+     istep = 1;
      if( InitCnt.Use_Absolute_Values ){
 	  /* Copy the diagonal elements of M */
 	  Apply_LoadVectorForm( &Disp, &LoadVectorForm, DispAll[istep - 1] );
+
 	  Apply_LoadVectorForm( &Vel, &LoadVectorForm, VelAll[istep - 1] );
-	  Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep - 1] );
+#if _SPARSE_
+	  Calc_Input_Load_AbsValues_Sparse( &LoadTdT, &Sp_K, &Sp_C, &Disp, &Vel );
+#else
 	  Calc_Input_Load_AbsValues( &LoadTdT, &K, &C, &Disp, &Vel );
+#endif
      } else {
 	  Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep - 1] );
+#if _SPARSE_
+	  Calc_Input_Load_RelValues_Sparse( &LoadTdT, &Sp_M, &Acc );
+#else
 	  Calc_Input_Load_RelValues( &LoadTdT, &M, &Acc );
+#endif
      }
 
      incx = 1; incy = 1;
@@ -248,9 +277,15 @@ int main( int argc, char **argv )
 
 	  /* Calculate the effective force vector
 	     Fe = M*(a0*u + a2*v + a3*a) + C*(a1*u + a4*v + a5*a) */
+#if _SPARSE_
+	  EffK_Calc_Effective_Force_Sparse( &Sp_M, &Sp_C, &DispT, &VelT, &AccT, &tempvec,
+					    InitCnt.a0, InitCnt.a1, InitCnt.a2, InitCnt.a3, InitCnt.a4, InitCnt.a5,
+					    &EffT );
+#else
 	  EffK_Calc_Effective_Force( &M, &C, &DispT, &VelT, &AccT, &tempvec,
 				     InitCnt.a0, InitCnt.a1, InitCnt.a2, InitCnt.a3, InitCnt.a4, InitCnt.a5,
 				     &EffT );
+#endif
 
 	  /* Compute the new Displacement u0 */
 	  EffK_ComputeU0( &EffT, &LoadTdT, &fu, InitCnt.PID.P, &Keinv, &tempvec, &DispTdT0 );
@@ -262,18 +297,25 @@ int main( int argc, char **argv )
 	  /* Perform substepping */
 	  Do_Substepping( DispTdT0_c.Array, DispTdT.Array, fcprevsub.Array, fc.Array, InitCnt.Remote.Type,
 			  InitCnt.Delta_t*(float) istep, Socket, (unsigned int) CNodes.Order, (unsigned int *) CNodes.Array  );
-	  
+
 	  if ( istep < InitCnt.Nstep ){
 	       /* Calculate the input load for the next step during the
 		  sub-stepping process. */
 	       if( InitCnt.Use_Absolute_Values ){
 		    Apply_LoadVectorForm( &Disp, &LoadVectorForm, DispAll[istep] );
 		    Apply_LoadVectorForm( &Vel, &LoadVectorForm, VelAll[istep] );
-		    Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep] );
+#if _SPARSE_
+		    Calc_Input_Load_AbsValues_Sparse( &LoadTdT1, &Sp_K, &Sp_C, &Disp, &Vel );
+#else
 		    Calc_Input_Load_AbsValues( &LoadTdT1, &K, &C, &Disp, &Vel );
+#endif
 	       } else {
 		    Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep] );
+#if _SPARSE_
+		    Calc_Input_Load_RelValues_Sparse( &LoadTdT1, &Sp_M, &Acc );
+#else
 		    Calc_Input_Load_RelValues( &LoadTdT1, &M, &Acc );
+#endif
 	       }
 	  }
 
@@ -288,7 +330,12 @@ int main( int argc, char **argv )
 	  Compute_Velocity( &VelT, &AccT, &AccTdT, InitCnt.a6, InitCnt.a7, &VelTdT );
 
 	  /* Error Compensation. fu = LoatTdT + fc -(Mass*AccTdT + Damp*VelTdT + Stiff*DispTdT) */
+
+#if _SPARSE_
+	  Compute_Force_Error_Sparse( &Sp_M, &Sp_C, &Sp_K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &fu );
+#else
 	  Compute_Force_Error( &M, &C, &K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &fu );
+#endif
 
 	  /* Output variables */
 	  TimeHistoryli[istep - 1] = LoadTdT.Array[30];
@@ -320,8 +367,10 @@ int main( int argc, char **argv )
      for ( i = 0; i < InitCnt.Nstep; i++ ){
 	  fprintf( OutputFile, "%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\n", TimeHistoryli[i], TimeHistoryai1[i], TimeHistoryai[i], TimeHistoryvi1[i], TimeHistoryvi[i], TimeHistoryui1[i], TimeHistoryui[i], TimeHistoryfc[i], TimeHistoryfu[i] );
      }
+
      /* Close the output file */
      fclose( OutputFile );
+
      /* Close the Connection */
      Close_Connection( &Socket, InitCnt.Remote.Type, (unsigned int) CNodes.Order, InitCnt.Nstep, 4 );
 
@@ -350,10 +399,16 @@ int main( int argc, char **argv )
      /* Free the coupling nodes memory */
      free( CNodes.Array );
 
+#if _SPARSE_
+     Destroy_MatrixVector_Sparse( &Sp_M );
+     Destroy_MatrixVector_Sparse( &Sp_C );
+     Destroy_MatrixVector_Sparse( &Sp_K );
+#else
      /* Destroy the data structures */
      Destroy_MatrixVector( &M );
      Destroy_MatrixVector( &C );
      Destroy_MatrixVector( &K );
+#endif
 
      Destroy_MatrixVector( &Keinv );
      Destroy_MatrixVector( &Keinv_c );

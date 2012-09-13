@@ -173,46 +173,6 @@ void Delete_InitConstants( AlgConst *const InitConst );
 void Read_Coupling_Nodes( Coupling_Node *const CNodes, const char *Filename );
 
 /**
- * \brief Reads the coupling nodes from a file.
- *
- * The coupling nodes are read from a file and stored sequentially in a dynamically
- * allocated array. The first number of the file must be always the number of 
- * coupling nodes to be readen.
- * 
- * \pre - The file must be an ASCII file with the first value meaning the number
- * of nodes to be read.
- * - The datastructure Coupling_Nodes should not be initialised, since this is done
- * in this routine.
- *
- * \param[out] CNodes Data structure to store both: the number of coupling nodes and
- * a list of them.
- * \param[in] Filename The name of the file to be opened.
- *
- * \post CNodes must contain a list of the coupling nodes and the number of them.
- */
-void Read_Coupling_Nodes( Coupling_Node *const CNodes, const char *Filename );
-
-/**
- * \brief Reads the coupling nodes from a file.
- *
- * The coupling nodes are read from a file and stored sequentially in a dynamically
- * allocated array. The first number of the file must be always the number of 
- * coupling nodes to be readen.
- * 
- * \pre - The file must be an ASCII file with the first value meaning the number
- * of nodes to be read.
- * - The datastructure Coupling_Nodes should not be initialised, since this is done
- * in this routine.
- *
- * \param[out] CNodes Data structure to store both: the number of coupling nodes and
- * a list of them.
- * \param[in] Filename The name of the file to be opened.
- *
- * \post CNodes must contain a list of the coupling nodes and the number of them.
- */
-void Read_Coupling_Nodes( Coupling_Node *const CNodes, const char *Filename );
-
-/**
  * \brief Construction of Proportional Viscous Damping Matrix using Rayleigh Damping.
  *
  * This routine calculates the Proportional Viscous Damping Matrix using Rayleigh Damping through the equation \f$[C] = \alpha [M] \cdot \beta [K]\f$
@@ -256,23 +216,6 @@ void CalculateMatrixC( const MatrixVector *const Mass, const MatrixVector *const
  * \sa MatrixVector, Scalars and Add3Mat( ).
  */
 void CalculateMatrixKeinv( MatrixVector *const Meinv, const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *const Stif, const Scalars Const );
-
-/**
- * \brief Construction of the Gain Matrix
- *
- * This routine calculates the Gain Matrix \f$G = \beta\Delta t^2 M_{e,inv}\f$. It makes use of the dlacpy_( ) and dlascl_( ) LAPACK routines.
- *
- * \pre The matrices must be symmetrical and only the upper part of it will be referenced (lower part in FORTRAN routines)
- *
- * \param[in,out] Gain The Gain matrix. As an input, only the size of the matrix is referenced, not its elements.
- * \param[in] Meinv The inverse of the effective mass matrix.
- * \param[in] Const On entry \f$Const = \beta\Delta t^2\f$.
- *
- * \post \c Gain is a symmetric matrix in general storage with only the upper part referenced (Lower part in FORTRAN routines). It contains the result of \f$G = \beta\Delta t^2 M_{e,inv}\f$.
- *
- * \sa MatrixVector.
- */
-void CalculateMatrixG( MatrixVector *const Gain, const MatrixVector *const Meinv, float Const );
 
 /**
  * \brief Construction of the coupling nodes
