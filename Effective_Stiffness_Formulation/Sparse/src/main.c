@@ -207,7 +207,7 @@ int main( int argc, char **argv )
      CalculateMatrixC( &M, &K, &C, &InitCnt.Rayleigh );
 
      /* Calculate Matrix Keinv = [K + a0*M + a1*C]^(-1) */
-     Constants.Alpha = 1.0;
+     Constants.Alpha = 1.0f;
      Constants.Beta = InitCnt.a0;
      Constants.Gamma = InitCnt.a1;
 //    CalculateMatrixKeinv( &Keinv, &M, &C, &K, Constants );
