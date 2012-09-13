@@ -15,6 +15,7 @@
 #include <stdio.h>   /* For fprintf( ) and stderr */
 #include <stdlib.h>  /* For exit( ) */
 #include <string.h>  /* For strcmp( ) */
+
 #include "ErrorHandling.h"
 #include "Initiation.h"
 #include "MatrixVector.h"
@@ -22,12 +23,16 @@
 #include "Send_Receive_Data.h"
 #include "Conf_Parser.h"
 
+#if _SPARSE_
+#include "mkl_pardiso.h"
+#endif
+
 void InitConstants( AlgConst *const InitConst, const char *FileName )
 {
 
      ConfFile *Config;
      
-     Config = ConfFile_Create( 35 );
+     Config = ConfFile_Create( 50 );
 
      ConfFile_ReadFile( Config, FileName );
 
@@ -218,6 +223,128 @@ void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const 
      }
 
 }
+
+#if _SPARSE_
+void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *const Stiff, const Scalars Const )
+{
+     unsigned short int i;
+     int iparm[64];
+     void *pt[64];
+     int maxfct, mnum, msglvl, error;
+     int mtype = -2;                   /* Real symmetric matrix */
+     int phase;
+     MatrixVector IdentMatrix;
+     MatrixVector TempMat;
+     Sp_MatrixVector Sp_TempMat;
+     float fdum;                       /* Dummy float */
+     int idum;                         /* Dummy integer */
+
+     Init_MatrixVector( &TempMat, Keinv->Rows, Keinv->Cols );
+
+     Add3Mat( &TempMat, &(*Stiff), &(*Mass), &(*Damp), Const );
+
+     Dense_to_CSR( &TempMat, &Sp_TempMat, 0 );  /* Transform into CSR format */
+     Destroy_MatrixVector( &TempMat );                /* Destroy the dense matrix */
+
+     /* Setup the Pardiso control parameters */
+     for (i = 0; i < 64; i++){
+	  iparm[i] = 0;
+     }
+     iparm[0] = 1;	/* No solver default */
+     iparm[1] = 2;	/* Fill-in reordering from METIS */
+     iparm[3] = 0;	/* No iterative-direct algorithm */
+     iparm[4] = 0;	/* No user fill-in reducing permutation */
+     iparm[5] = 0;	/* Write solution into x */
+     iparm[7] = 2;	/* Max numbers of iterative refinement steps */
+     iparm[9] = 13;	/* Perturb the pivot elements with 1E-13 */
+     iparm[10] = 1;	/* Use nonsymmetric permutation and scaling MPS */
+     iparm[12] = 1;	/* Maximum weighted matching algorithm is switched-off (default for symmetric). Try iparm[12] = 1 in case of inappropriate accuracy */
+     iparm[13] = 0;	/* Output: Number of perturbed pivots */
+     iparm[17] = -1;	/* Output: Number of nonzeros in the factor LU */
+     iparm[18] = -1;	/* Output: Mflops for LU factorization */
+     iparm[19] = 0;	/* Output: Numbers of CG Iterations */
+     iparm[27] = 1;     /* Input/output matrices are single precision */
+     iparm[34] = 1;	/* PARDISO use C-style indexing for ia and ja arrays */
+     maxfct = 1;	/* Maximum number of numerical factorizations. */
+     mnum = 1;		/* Which factorization to use. */
+     msglvl = 1;	/* Print statistical information in file */
+     error = 0;		/* Initialize error flag */
+
+     /* -------------------------------------------------------------------- */
+     /* .. Initialize the internal solver memory pointer. This is only */
+     /* necessary for the FIRST call of the PARDISO solver. */
+     /* -------------------------------------------------------------------- */
+     for (i = 0; i < 64; i++)
+     {
+	  pt[i] = 0;
+     }
+     /* -------------------------------------------------------------------- */
+     /* .. Reordering and Symbolic Factorization. This step also allocates */
+     /* all memory that is necessary for the factorization. */
+     /* -------------------------------------------------------------------- */
+     phase = 11;
+     PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
+	      &Sp_TempMat.Rows, Sp_TempMat.Values, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &Keinv->Rows, iparm, &msglvl, &fdum, &fdum, &error);
+     if (error != 0)
+     {
+	  printf ("\nERROR during symbolic factorization: %d", error);
+	  exit (1);
+     }
+     printf ("\nReordering completed ... ");
+     printf ("\nNumber of nonzeros in factors = %d", iparm[17]);
+     printf ("\nNumber of factorization MFLOPS = %d", iparm[18]);
+/* -------------------------------------------------------------------- */
+/* .. Numerical factorization. */
+/* -------------------------------------------------------------------- */
+     phase = 22;
+     PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
+	      &Sp_TempMat.Rows, Sp_TempMat.Values, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &Keinv->Rows, iparm, &msglvl, &fdum, &fdum, &error);
+     if (error != 0)
+     {
+	  printf ("\nERROR during numerical factorization: %d", error);
+	  exit (2);
+     }
+     printf ("\nFactorization completed ... ");
+/* -------------------------------------------------------------------- */
+/* .. Back substitution and iterative refinement. */
+/* -------------------------------------------------------------------- */
+     phase = 33;
+     iparm[7] = 2;			/* Max numbers of iterative refinement steps. */
+
+     /* Set right hand side to be the identity matrix. */
+     IdentMatrix = Generate_IdentityMatrix( Keinv->Rows, Keinv->Cols );
+
+     PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
+	      &Sp_TempMat.Rows, Sp_TempMat.Values, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &Keinv->Rows, iparm, &msglvl, IdentMatrix.Array, Keinv->Array, &error);
+
+/* -------------------------------------------------------------------- */
+/* .. Termination and release of memory. */
+/* -------------------------------------------------------------------- */
+     phase = -1;			/* Release internal memory. */
+     PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
+	      &Sp_TempMat.Rows, &fdum, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &Keinv->Rows,
+	      iparm, &msglvl, &fdum, &fdum, &error);
+
+     Destroy_MatrixVector( &IdentMatrix );
+     Destroy_MatrixVector_Sparse( &Sp_TempMat );
+}
+
+#endif
+
+MatrixVector Generate_IdentityMatrix( int Rows, int Cols )
+{
+     MatrixVector Identity;
+     unsigned short int i;
+
+     Init_MatrixVector( &Identity, Rows, Cols );
+     
+     for( i = 0; i < Rows; i++ ){
+	  Identity.Array[i + Rows*i] = 1.0f;
+     }
+
+     return Identity;
+}
+
 
 void BuildMatrixXc( const MatrixVector *const Mat, float *MatCouple, const Coupling_Node *const CNodes )
 {

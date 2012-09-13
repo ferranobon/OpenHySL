@@ -11,8 +11,6 @@
  * and calculate the input load.
  */
 
-#include "MatrixVector.h"
-
 #ifndef PRECALCULATIONS_H_
 #define PRECALCULATIONS_H_
 
@@ -44,7 +42,9 @@
  * - \c Acceleration, \c Velocity and \c Displacement will store the acceleration, velocity and displacement of the recorded earthquake.
  * \sa InitConstants()
  */
-void ReadDataEarthquake( float *Acceleration, float *Velocity, float *Displacement, const int NumSteps, const char *Filename );
+void ReadDataEarthquake_AbsValues( float *Acceleration, float *Velocity, float *Displacement, const unsigned int NumSteps, const char *Filename );
+
+void ReadDataEarthquake_RelValues( float *Acceleration, const unsigned int NumSteps, const char *Filename );
 
 /**
  * \brief Copies the diagonal values of a matrix into a vector.
@@ -62,9 +62,9 @@ void ReadDataEarthquake( float *Acceleration, float *Velocity, float *Displaceme
  *
  * \post The vector \c Vec contains the diagonal elements of the matrix \c Mat.
  *
- * \sa Dense_MatrixVector.
+ * \sa MatrixVector.
  */
-void CopyDiagonalValues( const Dense_MatrixVector *const Mat, Dense_MatrixVector *const Vec );
+void CopyDiagonalValues( const MatrixVector *const Mat, MatrixVector *const Vec );
 
 /**
  * \brief Calculates the input load.
@@ -75,12 +75,12 @@ void CopyDiagonalValues( const Dense_MatrixVector *const Mat, Dense_MatrixVector
  * - \f$\{ld_v\} = [C]\cdot{Velocity_i}\f$ is the load caused by ground velocity,
  * - \f$\{ld_a\} = [C]\cdot{Acceleration_i}\f$ is the load caused by ground acceleration and
  * - \e i denotes the step.
- * It makes use of the MKL level 2 Sparse BLAS routine mkl_scsrsymv().
+ * It makes use of the level 2 BLAS routine dsymv_().
  *
  * \pre
- * - All elements of type Dense_MatrixVector must be properly initialised through the Init_Dense_MatrixVector() routine.
- * - The sparse matrices must be in Intel MKL three-array variation format and in one-based index.  
- * - In the case of matrices, they are supposed to be symmetrical and they must contain at least the upper triangular part.
+ * - All elements of type MatrixVector must be properly initialised through the Init_MatrixVector() routine.
+ * - In the case of matrices, they are supposed to be symmetrical and they must contain at least the upper elements in
+ * general storage format.
  * - The number of rows of the vectors must be indicative of their length.
  * - The size of the elements must be coeherent, since it will not be checked in the routine: the number of rows of the
  * vectors (\c InLoad, \c DiagM, \c D, \c V and \c A) must be \f$NumRows_{Vec} = NumRows_{Mat}\f$.
@@ -89,22 +89,23 @@ void CopyDiagonalValues( const Dense_MatrixVector *const Mat, Dense_MatrixVector
  * is referenced, not its elements.
  * \param[in] Stif The Stiffness matrix.
  * \param[in] Damp The Viscous Damping matrix.
- * \param[in] Mass The Mass matrix.
- * \param[in] DiagM Vector that has the diagonal elements of the Mass matrix.
  * \param[in] D Vector containing the ground motion of the earthquake at a certain step.
  * \param[in] V Vector containing the ground velocity of the earthquake at a certain step.
- * \param[in] A Vector containing the ground acceleration of the earthquake at a certain step.
- * \param[in,out] Temp_Array A temporal vector to handle operations. Included to avoid allocating memory during each step.
  *
  * \post \c InLoad has the value of \f$ \{l_{i+1}\} = \{ld_g\} + \{ld_v\} + \{ld_a\} -[M]\cdot [I]\cdot\{Acceleration_i\}\f$.
  *
- * \sa Dense_MatrixVector, Sp_MatrixVector.
+ * \sa MatrixVector.
  */
+void Calc_Input_Load_AbsValues( MatrixVector *const InLoad, const MatrixVector *const Stif, const MatrixVector *const Damp, const MatrixVector *const D, const MatrixVector *const V );
 
-void Calc_Input_Load( Dense_MatrixVector *const InLoad, const Sp_MatrixVector *const Stif, const Sp_MatrixVector *const Damp, const Sp_MatrixVector *const Mass, const Dense_MatrixVector *const DiagM, const Dense_MatrixVector *const D, const Dense_MatrixVector *const V, const Dense_MatrixVector *const A );
+void Apply_LoadVectorForm ( MatrixVector *const Vector, const MatrixVector *const LoadForm, const float Value );
 
-void Apply_LoadVectorForm ( Dense_MatrixVector *const Vector, const Dense_MatrixVector *const LoadForm, const float Value );
+void Calc_Input_Load_RelValues( MatrixVector *const InLoad, const MatrixVector *const Mass, const MatrixVector *const A );
 
-void Calc_Input_Load_RelValues( Dense_MatrixVector *const InLoad, const Sp_MatrixVector *const Mass, const Dense_MatrixVector *const A );
+#if _SPARSE_
+void Calc_Input_Load_AbsValues_Sparse( MatrixVector *const InLoad, const Sp_MatrixVector *const Stif, const Sp_MatrixVector *const Damp, const MatrixVector *const D, const MatrixVector *const V );
+
+void Calc_Input_Load_RelValues_Sparse( MatrixVector *const InLoad, const Sp_MatrixVector *const Mass, const MatrixVector *const A );
+#endif
 
 #endif /* PRECALCULATIONS_H_ */

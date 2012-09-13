@@ -223,6 +223,7 @@ int main( int argc, char **argv )
 	  Length = Cnst.Order_Couple;
 	  if ( Socket_Type == PROTOCOL_TCP ){
 	       Receive_Data( u0c, Length, Client_Socket );
+
 	  } else if ( Socket_Type ==  PROTOCOL_UDP ){
 	       Client_AddrLen = sizeof(Client_Addr);
 	       if ( recvfrom( Server_Socket, u0c, Length*sizeof(float), 0, (struct sockaddr *) &Client_Addr, &Client_AddrLen) < 0 ){
@@ -242,7 +243,7 @@ int main( int argc, char **argv )
   
 	  if ( u0c[0] == -9999.0f ){
 	       Is_Not_Finished = 0;
-	  } else if ({
+	  } else if ( ){
 	       /* Perform the substepping process */
 	       if ( Mode == USE_ADWIN ){
 #if ADWIN_

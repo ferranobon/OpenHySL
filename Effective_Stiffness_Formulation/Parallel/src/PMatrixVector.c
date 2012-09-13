@@ -41,7 +41,7 @@ void CreateDistMatrix( int icntxt, PMatrixVector *const Mat, const int NumRows, 
 	}
 
 	/* Allocate memory for the local array */
-	(*Mat).Array = calloc( (*Mat).LocalSize.Row*(*Mat).LocalSize.Col, sizeof(float) );
+	(*Mat).Array = (float *) calloc( (size_t) Mat->LocalSize.Row*Mat->LocalSize.Col, sizeof(float) );
 }
 
 void Set2Value( PMatrixVector *const Mat, const float Value )
