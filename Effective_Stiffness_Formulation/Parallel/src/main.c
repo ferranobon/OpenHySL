@@ -87,8 +87,13 @@ int main( int argc, char **argv )
      BroadcastConfFile( &InitCnt );
 
      AccAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
-     VelAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
-     DispAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
+     if( InitCnt.Use_Absolute_Values ){
+	  VelAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
+	  DispAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
+     } else {
+	  VellAll = NULL;
+	  DispAll = NULL;
+     }
 
      /* BLACS: Initialise BLACS */
      bhandle = Csys2blacs_handle( MPI_COMM_WORLD );
@@ -156,23 +161,24 @@ int main( int argc, char **argv )
 		       InitCnt.BlockSize.Rows, 1 );
 
      if ( rank == 0 ){
-	  Keinv_c = calloc( InitCnt.OrderC*InitCnt.OrderC, sizeof(float) );
+	  Keinv_c = (float *) calloc( (size_t) InitCnt.OrderC*InitCnt.OrderC, sizeof(float) );
 	  for ( i = 0; i < InitCnt.OrderC*InitCnt.OrderC; i++ ){
-	       Keinv_c[i] = 0.0;
+	       Keinv_c[i] = 0.0f;
 	  }
 
-	  DispTdT0_c = calloc( InitCnt.OrderC, sizeof(float) );
+	  DispTdT0_c = (float *) calloc( (size_t) InitCnt.OrderC, sizeof(float) );
 	  for ( i = 0; i < InitCnt.OrderC; i++ ){
-	       DispTdT0_c[i] = 0.0;
+	       DispTdT0_c[i] = 0.0f;
 	  }
-	  Recv = calloc( 3*InitCnt.OrderC, sizeof(float) );
+	  Recv = (float *) calloc( (size_t) 3*InitCnt.OrderC, sizeof(float) );
 	  for ( i = 0; i < 3*InitCnt.OrderC; i++ ){
-	       Recv[i] = 0.0;
+	       Recv[i] = 0.0f;
 	  }
 
      } else {
 	  Keinv_c = NULL;
 	  DispTdT0_c = NULL;
+	  Recv = NULL;
      }
 
      /***********************************************************
@@ -184,17 +190,13 @@ int main( int argc, char **argv )
      /* Read Matrices M and K */
      DistMatrixFromFile( &M, InitCnt.FileM );
      DistMatrixFromFile( &K, InitCnt.FileK );
-
-     /* Add mass to specific nodes (Nodes 31, 32 and 33) */
-     ModifyElement( &M, InitCnt.PosCouple, InitCnt.PosCouple, 600, "Add" );
-     ModifyElement( &M, InitCnt.PosCouple + 1, InitCnt.PosCouple + 1, 300, "Add" );
-     ModifyElement( &M, InitCnt.PosCouple + 2, InitCnt.PosCouple + 2, 300, "Add" );
+     DistMatrixFromFile( &LoadVectorForm, InitCnt.FileLVector );
 
      /* Calculate the Damping matrix */
      CalculateMatrixC( &M, &K, &C, InitCnt.Rayleigh );
 
-     /* Calculate Matrix Keinv = [M + gamma*Delta_t*C + beta*Delta_t^2*K]^(-1) */
-     Constants.Alpha = 1.0;
+     /* Calculate Matrix Keinv = [K + a0*M + a1*C]^(-1) */
+     Constants.Alpha = 1.0f;
      Constants.Beta = InitCnt.a0;
      Constants.Gamma = InitCnt.a1;
      CalculateMatrixKeinv( &Keinv, &M, &C, &K, Constants );
@@ -213,15 +215,6 @@ int main( int argc, char **argv )
       */
      infog2l_( &InitCnt.PosCouple, &ione, fc.Desc, &nprow, &npcol, &myrow, &mycol, &LRowIndex_fc, &LColIndex_fc, &RowProcess_fc, &ColProcess_fc );
 
-     if ( rank == Cblacs_pnum ( fc.Desc[1], RowProcess_fc, ColProcess_fc ) ){
-	  OutputFile = fopen( "Out.txt", "w" );
-	  if ( OutputFile == NULL ){
-	       PrintErrorAndExit( "Cannot proceed because the file Out.txt could not be opened" );
-	  } else {
-	       fprintf( OutputFile, "Test with %d DOF\n", InitCnt.Order );
-	       fprintf( OutputFile, "ui1 (m) \t fc (N) \t fu (N)\n" );
-	  }
-     }
      /***********************************************************
       **************    END of INITIATION PHASE     *************
       **********************************************************/
@@ -234,17 +227,33 @@ int main( int argc, char **argv )
 
      /* Read the earthquake data from a file and distribute it to all processes */
      if ( rank == 0 ){
-	  ReadDataEarthquake( DispAll, VelAll, AccAll, InitCnt.Nstep, InitCnt.FileData );
+	  if( InitCnt.Use_Absolute_Values ){
+	       ReadDataEarthquake_AbsValues( AccAll, VelAll, DispAll, InitCnt.Nstep, InitCnt.FileData );
+	  } else {
+	       ReadDataEarthquake_RelValues( AccAll, InitCnt.Nstep, InitCnt.FileData );
+	  }
      }
 
-     MPI_Bcast( DispAll, InitCnt.Nstep, MPI_FLOAT, 0, MPI_COMM_WORLD );
-     MPI_Bcast( VelAll, InitCnt.Nstep, MPI_FLOAT, 0, MPI_COMM_WORLD );
-     MPI_Bcast( AccAll, InitCnt.Nstep, MPI_FLOAT, 0, MPI_COMM_WORLD );
+     if ( InitCnt.Use_Absolute_Values ){
+	  MPI_Bcast( DispAll, InitCnt.Nstep, MPI_FLOAT, 0, MPI_COMM_WORLD );
+	  MPI_Bcast( VelAll, InitCnt.Nstep, MPI_FLOAT, 0, MPI_COMM_WORLD );
+	  MPI_Bcast( AccAll, InitCnt.Nstep, MPI_FLOAT, 0, MPI_COMM_WORLD );
+     } else {
+	  MPI_Bcast( AccAll, InitCnt.Nstep, MPI_FLOAT, 0, MPI_COMM_WORLD );
+     }
+
+
+     if ( rank == Cblacs_pnum ( fc.Desc[1], RowProcess_fc, ColProcess_fc ) ){
+	  OutputFile = fopen( Icnt.FileOutput, "w" );
+	  if ( OutputFile == NULL ){
+	       PrintErrorAndExit( "Cannot proceed because the file Out.txt could not be opened" );
+	  } else {
+	       clock = time (NULL);	  
+	       fprintf( OutputFile, "Test started at %s", ctime( &clock ) );
+	  }
+     }
 
      istep = 1;
-
-     /* Copy the diagonal elements of M */
-     CopyDiagonalValues( MPI_COMM_WORLD, &M, &DiagM );
 
      /* Calculate the input load */ 
      Set2Value( &Disp, DispAll[istep - 1] );
@@ -342,8 +351,10 @@ int main( int argc, char **argv )
      }
 
      free( AccAll );
-     free( VelAll );
-     free( DispAll );
+     if( InitCnt.Use_Absolute_Values ){
+	  free( VelAll );
+	  free( DispAll );
+     }
 
      /* Destroy the data structures */
      DestroyDistMatrix( &M );
