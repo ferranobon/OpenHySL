@@ -91,6 +91,8 @@ void Init_MatrixVector( MatrixVector *const Mat, const int Rows, const int Cols 
  *
  */
 void Dense_to_CSR( const MatrixVector *const Mat, Sp_MatrixVector *const Sp_Mat, const int Operation );
+
+void MatrixVector_From_File_Sp( Sp_MatrixVector *const Mat, const char *Filename );
 #endif
 
 /**
