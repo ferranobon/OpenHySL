@@ -52,7 +52,7 @@ endif()
 if(DEBUG)
   # -D_POSIX_SOURCE is added in order to make gcc be POSIX compliant
   if( "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
-    set(CMAKE_C_FLAGS_DEBUG "-std=c99 -pedantic -Wall -W -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wbad-function-cast -Wundef -Wconversion -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wnested-externs -Wstrict-overflow=5 -fshort-enums -fno-common -g3 -D_POSIX_SOURCE -D_BSD_SOURCE")
+    set(CMAKE_C_FLAGS_DEBUG "-m64 -std=c99 -pedantic -Wall -W -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wbad-function-cast -Wundef -Wconversion -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wnested-externs -Wstrict-overflow=5 -fshort-enums -fno-common -g3 -D_POSIX_SOURCE -D_BSD_SOURCE")
   endif()
   if( "${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
     set(CMAKE_C_FLAGS_DEBUG "-std=c99 -pedantic -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wbad-function-cast -Wundef -Wconversion -Wshadow -Wpointer-arith -Wcast-qual -Wcast-align -Wwrite-strings -Wnested-externs -Wstrict-overflow=5 -fshort-enums -fno-common -g -D_POSIX_SOURCE -D_BSD_SOURCE")

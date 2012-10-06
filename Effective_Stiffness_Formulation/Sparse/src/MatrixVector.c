@@ -149,17 +149,107 @@ void MatrixVector_From_File_Sp2Dense( MatrixVector *const Mat, const char *Filen
 
 
      InFile = fopen( Filename, "r" );
-
      if( InFile != NULL ){
 	  while( !feof(InFile) ) {    /* Returns true once the end of the file has been reached */
-	       fscanf( InFile, "%i%c%i%c%f", &i, &d, &j, &d, &Value );
+	       fscanf( InFile, "%i%c%i%c%e", &i, &d, &j, &d, &Value );
+	       printf("%d\t%d\t%f\n", i, j, Value );
 	       Mat->Array[i*Mat->Cols + j] = Value;
 	  }
 	  /* The program has reached the end of the file */
 	  fclose( InFile );
      } else ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
 }
-	  
+
+#if _SPARSE_
+void MatrixVector_From_File_Sp( Sp_MatrixVector *const Mat, const char *Filename )
+{
+     FILE *InFile;  /* Input file */
+     int i, j;      /* Indexes of the position within the matrix of the readen value */
+     char d;        /* Dump character between two values */
+     float Value;   /* Value to be saved in the position (i,j) of the matrix */
+     int Position;  /* Counter for the Values and columns array */
+     int Pos_RI;    /* Counter for the RowIndex array */
+     int nnz;       /* Number of non-zero values */
+
+     float *tmp = NULL;
+     int *tmp_int = NULL;
+
+     InFile = fopen( Filename, "r" );
+
+     if( InFile != NULL ){
+	  Position = 0;
+	  Pos_RI = 0;
+	  nnz = 0;
+	  Mat->RowIndex[Pos_RI] = nnz;
+
+	  while( fscanf( InFile, "%i%c%i%c%e", &i, &d, &j, &d, &Value ) != EOF) {    /* Returns true once the end of the file has been reached */
+	       if ( j >= i ){    /* Consider only the upper part */
+		    nnz = nnz + 1;
+		    if ( nnz > Mat->Num_Nonzero ){
+			 /* Resize the matrix */
+			 tmp = (float *) calloc( (size_t) Mat->Num_Nonzero*2, sizeof(float) );
+			 if ( tmp == NULL ){
+			      PrintErrorAndExit( "Could not resize the matrix." );
+			 }
+			 memcpy( tmp, Mat->Values, (size_t) Mat->Num_Nonzero*sizeof(float) );
+			 free( Mat->Values );
+
+			 tmp_int = (int *) calloc( (size_t) Mat->Num_Nonzero*2, sizeof(int) );
+			 if ( tmp_int == NULL ){
+			      PrintErrorAndExit( "Could not resize the matrix." );
+			 }
+			 memcpy( tmp_int, Mat->Columns, (size_t) Mat->Num_Nonzero*sizeof(int) );
+			 free( Mat->Columns );
+
+			 Mat->Values = tmp;
+			 Mat->Columns = tmp_int;
+
+			 tmp = NULL; tmp_int = NULL;
+		    }
+		    Mat->Values[Position] = Value;
+		    Mat->Columns[Position] = j;
+		    Position = Position + 1;
+		    if ( i > Pos_RI ){
+			 while ( Pos_RI < i ){
+			      Pos_RI = Pos_RI + 1;
+			      if( nnz > 0 ){
+				   Mat->RowIndex[Pos_RI] = nnz - 1;
+			      } else {
+				   Mat->RowIndex[Pos_RI] = nnz;  /* If the first row does not contain a value different than 0 */
+			      }
+			 }
+		    }
+
+	       }        
+	  }
+
+	  /* Add the number of non-zero elements at the final position of the
+	   * RowIndex array */
+	  Pos_RI = Pos_RI + 1;
+	  Mat->RowIndex[Pos_RI] = nnz;
+
+	  /* Save memory */
+	  if( nnz < Mat->Num_Nonzero ){
+	       tmp = (float *) calloc( (size_t) nnz, sizeof(float) );
+	       memcpy( tmp, Mat->Values, (size_t) nnz*sizeof(float) );
+	       free( Mat->Values );
+
+	       tmp_int = (int *) calloc( (size_t) nnz, sizeof(int) );
+	       memcpy( tmp_int, Mat->Columns, (size_t) nnz*sizeof(int) );
+	       free( Mat->Columns );
+
+	       Mat->Values = tmp;
+	       Mat->Columns = tmp_int;
+
+	       tmp = NULL; tmp_int = NULL;
+	  }
+
+	  /* The program has reached the end of the file */
+	  fclose( InFile );
+
+     } else ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
+}
+#endif
 
 void Set2Value( MatrixVector *const Mat, const float Value )
 {
