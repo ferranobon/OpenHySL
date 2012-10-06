@@ -1,6 +1,5 @@
 *.[oa]
 *~
-*.txt
 *#
 build/
 GPATH
