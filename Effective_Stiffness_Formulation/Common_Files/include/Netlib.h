@@ -138,7 +138,7 @@ void ssymv_( char *UPLO, int *N, float *ALPHA, float *A, int *LDA, float *X, int
 void sgemv_( char *TRANS, int *M, int *N, float *ALPHA, float *A, int *LDA, float *X, int *INCX, float *BETA, float *Y, int *INCY );
 
 /* LAPACK routines */
-
+#if !_SPARSE_
 /**
  * \brief Copies all or part of a two-dimensional matrix A to another.
  *
@@ -236,7 +236,7 @@ void spotrf_( char *UPLO, int *N, float *A, int *LDA, int *INFO );
  * - \f$INFO < 0\f$: if \f$INFO = i\f$, the \f$(i,i)\f$ element of the factor U or L is zero, and the inverse could not be computed.
  */
 void spotri_( char *UPLO, int *N, float *A, int *LDA, int *INFO );
-
+#endif
 
 #if _MPI_
 

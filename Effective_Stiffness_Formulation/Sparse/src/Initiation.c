@@ -24,6 +24,7 @@
 #include "Conf_Parser.h"
 
 #if _SPARSE_
+#include "mkl.h"
 #include "mkl_pardiso.h"
 #endif
 
@@ -185,6 +186,60 @@ void CalculateMatrixC( const MatrixVector *const Mass, const MatrixVector *const
 
 }
 
+#if _SPARSE_
+void CalculateMatrixC_Sp( const Sp_MatrixVector *const Mass, const Sp_MatrixVector *const Stif, Sp_MatrixVector *const Damp, const RayleighConst *const Rayleigh )
+{
+     Sp_MatrixVector Temp;
+     int Length, i;
+     int incx, incy;
+     float alpha, beta;
+     char trans;
+     int job, sort, info;
+
+     alpha = Rayleigh->Alpha;
+     beta = Rayleigh->Beta;
+
+     Init_MatrixVector_Sp( &Temp, Mass->Rows, Mass->Cols, Mass->Num_Nonzero );
+
+     incx = 1; incy = 1;
+     Length = Temp.Num_Nonzero;
+     scopy_( &Length, Mass->Values, &incx, Temp.Values, &incy );
+
+#pragma omp parallel for
+     for (i = 0; i < Length; i++ ){
+	  Temp.Columns[i] = Mass->Columns[i];
+     }
+
+     /* Scal the Values array */
+     sscal_( &Length, &alpha, Temp.Values, &incx );
+
+     /* Copy the RowIndex array */
+     Length = Temp.Rows + 1;
+#pragma omp parallel for
+     for (i = 0; i < Length; i++ ){
+	  Temp.RowIndex[i] = Mass->RowIndex[i];
+     }
+
+     trans = 'N';  /* The operation C = Temp + beta*B is performed */
+     job = 0;      /* The routine computes the addition */
+     sort = 0;     /* The routine does not perform any reordering */
+     mkl_scsradd( &trans, &job, &sort, &Temp.Rows, &Temp.Cols, Temp.Values, Temp.Columns, Temp.RowIndex,
+		  &beta, Stif->Values, Stif->Columns, Stif->RowIndex,
+		  Damp->Values, Damp->Columns, Damp->RowIndex, &Damp->Num_Nonzero, &info );
+
+     /* Delete the previously allocated sparse matrix */
+     Destroy_MatrixVector_Sparse( &Temp );
+
+     if ( info > 0){
+	  PrintErrorAndExit( "Number of elements exceeded while calculating the Damping matrix" );
+     } else if ( info < 0 ){
+	  PrintErrorAndExit( "I do not understand" );
+     } else {
+	  printf( "Damping matrix successfully calculated\n" );
+     }
+}
+#endif
+
 void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *const Stif, const Scalars Const )
 {
 
@@ -264,7 +319,7 @@ void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector
      iparm[18] = -1;	/* Output: Mflops for LU factorization */
      iparm[19] = 0;	/* Output: Numbers of CG Iterations */
      iparm[27] = 1;     /* Input/output matrices are single precision */
-     iparm[34] = 1;	/* PARDISO use C-style indexing for ia and ja arrays */
+     iparm[34] = 0;	/* PARDISO use 1 based indexing for ia and ja arrays */
      maxfct = 1;	/* Maximum number of numerical factorizations. */
      mnum = 1;		/* Which factorization to use. */
      msglvl = 1;	/* Print statistical information in file */
@@ -328,6 +383,107 @@ void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector
      Destroy_MatrixVector( &IdentMatrix );
      Destroy_MatrixVector_Sparse( &Sp_TempMat );
 }
+
+void CalculateMatrixKeinv_Pardiso_Sparse( MatrixVector *const Keinv, const Sp_MatrixVector *const Mass, const Sp_MatrixVector *const Damp, const Sp_MatrixVector *const Stiff, const Scalars Const )
+{
+     unsigned short int i;
+     int iparm[64];
+     void *pt[64];
+     int maxfct, mnum, msglvl, error;
+     int mtype = -2;                   /* Real symmetric matrix */
+     int phase;
+     MatrixVector IdentMatrix;
+     Sp_MatrixVector Sp_TempMat;
+     float fdum;                       /* Dummy float */
+     int idum;                         /* Dummy integer */
+
+     Init_MatrixVector_Sp( &Sp_TempMat, Damp->Rows, Damp->Cols, Damp->Num_Nonzero );
+
+     Add3Mat_Sparse( &Sp_TempMat, &(*Stiff), &(*Mass), &(*Damp), Const );
+
+     /* Setup the Pardiso control parameters */
+     for (i = 0; i < 64; i++){
+	  iparm[i] = 0;
+     }
+     iparm[0] = 1;	/* No solver default */
+     iparm[1] = 2;	/* Fill-in reordering from METIS */
+     iparm[3] = 0;	/* No iterative-direct algorithm */
+     iparm[4] = 0;	/* No user fill-in reducing permutation */
+     iparm[5] = 0;	/* Write solution into x */
+     iparm[7] = 2;	/* Max numbers of iterative refinement steps */
+     iparm[9] = 13;	/* Perturb the pivot elements with 1E-13 */
+     iparm[10] = 1;	/* Use nonsymmetric permutation and scaling MPS */
+     iparm[12] = 1;	/* Maximum weighted matching algorithm is switched-off (default for symmetric). Try iparm[12] = 1 in case of inappropriate accuracy */
+     iparm[13] = 0;	/* Output: Number of perturbed pivots */
+     iparm[17] = -1;	/* Output: Number of nonzeros in the factor LU */
+     iparm[18] = -1;	/* Output: Mflops for LU factorization */
+     iparm[19] = 0;	/* Output: Numbers of CG Iterations */
+     iparm[27] = 1;     /* Input/output matrices are single precision */
+     iparm[34] = 0;	/* PARDISO use 1 based indexing for ia and ja arrays */
+     maxfct = 1;	/* Maximum number of numerical factorizations. */
+     mnum = 1;		/* Which factorization to use. */
+     msglvl = 1;	/* Print statistical information in file */
+     error = 0;		/* Initialize error flag */
+
+     /* -------------------------------------------------------------------- */
+     /* .. Initialize the internal solver memory pointer. This is only */
+     /* necessary for the FIRST call of the PARDISO solver. */
+     /* -------------------------------------------------------------------- */
+     for (i = 0; i < 64; i++)
+     {
+	  pt[i] = 0;
+     }
+     /* -------------------------------------------------------------------- */
+     /* .. Reordering and Symbolic Factorization. This step also allocates */
+     /* all memory that is necessary for the factorization. */
+     /* -------------------------------------------------------------------- */
+     phase = 11;
+     PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
+	      &Sp_TempMat.Rows, Sp_TempMat.Values, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &Keinv->Rows, iparm, &msglvl, &fdum, &fdum, &error);
+     if (error != 0)
+     {
+	  printf ("\nERROR during symbolic factorization: %d", error);
+	  exit (1);
+     }
+     printf ("\nReordering completed ... ");
+     printf ("\nNumber of nonzeros in factors = %d", iparm[17]);
+     printf ("\nNumber of factorization MFLOPS = %d", iparm[18]);
+/* -------------------------------------------------------------------- */
+/* .. Numerical factorization. */
+/* -------------------------------------------------------------------- */
+     phase = 22;
+     PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
+	      &Sp_TempMat.Rows, Sp_TempMat.Values, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &Keinv->Rows, iparm, &msglvl, &fdum, &fdum, &error);
+     if (error != 0)
+     {
+	  printf ("\nERROR during numerical factorization: %d", error);
+	  exit (2);
+     }
+     printf ("\nFactorization completed ... ");
+/* -------------------------------------------------------------------- */
+/* .. Back substitution and iterative refinement. */
+/* -------------------------------------------------------------------- */
+     phase = 33;
+     iparm[7] = 2;			/* Max numbers of iterative refinement steps. */
+
+     /* Set right hand side to be the identity matrix. */
+     IdentMatrix = Generate_IdentityMatrix( Keinv->Rows, Keinv->Cols );
+
+     PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
+	      &Sp_TempMat.Rows, Sp_TempMat.Values, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &Keinv->Rows, iparm, &msglvl, IdentMatrix.Array, Keinv->Array, &error);
+
+/* -------------------------------------------------------------------- */
+/* .. Termination and release of memory. */
+/* -------------------------------------------------------------------- */
+     phase = -1;			/* Release internal memory. */
+     PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
+	      &Sp_TempMat.Rows, &fdum, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &Keinv->Rows,
+	      iparm, &msglvl, &fdum, &fdum, &error);
+
+     Destroy_MatrixVector( &IdentMatrix );
+     Destroy_MatrixVector_Sparse( &Sp_TempMat );
+}
+
 
 #endif
 

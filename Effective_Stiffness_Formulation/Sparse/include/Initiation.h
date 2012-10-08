@@ -192,6 +192,8 @@ void Read_Coupling_Nodes( Coupling_Node *const CNodes, const char *Filename );
  */
 void CalculateMatrixC( const MatrixVector *const Mass, const MatrixVector *const Stif, MatrixVector *const Damp, const RayleighConst *const Rayleigh );
 
+void CalculateMatrixC_Sp( const Sp_MatrixVector *const Mass, const Sp_MatrixVector *const Stif, Sp_MatrixVector *const Damp, const RayleighConst *const Rayleigh );
+
 /**
  * \brief Construction of the inverse of the Effective Mass Matrix.
  *
@@ -218,6 +220,7 @@ void CalculateMatrixC( const MatrixVector *const Mass, const MatrixVector *const
 void CalculateMatrixKeinv( MatrixVector *const Meinv, const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *const Stif, const Scalars Const );
 
 void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *const Stiff, const Scalars Const );
+void CalculateMatrixKeinv_Pardiso_Sparse( MatrixVector *const Keinv, const Sp_MatrixVector *const Mass, const Sp_MatrixVector *const Damp, const Sp_MatrixVector *const Stiff, const Scalars Const );
 
 MatrixVector Generate_IdentityMatrix( int Rows, int Cols );
 

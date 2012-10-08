@@ -16,11 +16,12 @@
 #include <string.h>
 #include <assert.h>
 
+#include "Netlib.h"
 #include "ErrorHandling.h"
 #include "MatrixVector.h"
-#include "Netlib.h"
 
 #if _SPARSE_
+#include <mkl.h>
 #include <mkl_spblas.h>
 #endif
 
@@ -38,6 +39,33 @@ void Init_MatrixVector( MatrixVector *const Mat, const int Rows, const int Cols 
      }
 
      Mat->Array = (float *) calloc( (size_t) Mat->Rows*Mat->Cols, sizeof(float));
+}
+
+void Init_MatrixVector_Sp( Sp_MatrixVector *const Mat, const int Rows, const int Cols, const int nnz )
+{
+     if ( Rows >= 0 ){ 
+	  Mat->Rows = Rows;
+	  if ( Rows > 0 ){
+	       Mat->Cols = Cols;
+	  } else {
+	       Mat->Cols = 0;
+	  }
+     } else {
+	  PrintErrorAndExit( "The number of rows must be equal or greater than zero" );
+     }
+     
+     if ( nnz == 0 ){
+	  PrintErrorAndExit( "The number of non-zero elements must be greater that zero" );
+     } else {
+	  Mat->Num_Nonzero = nnz;
+     }
+     
+     /* Allocate the memory for the Values and Columns matrices */
+     Mat->Values = (float *) calloc( (size_t) Mat->Num_Nonzero, sizeof(float) );
+     Mat->Columns = (int *) calloc( (size_t) Mat->Num_Nonzero, sizeof(int) );
+
+     /* Allocate the RowIndex matrix. Length = Rows + 1 */
+     Mat->RowIndex = (int *) calloc( (size_t) Mat->Rows + 1, sizeof(int) );
 }
 
 #if _SPARSE_
@@ -68,7 +96,7 @@ void Dense_to_CSR( const MatrixVector *const Mat, Sp_MatrixVector *const Sp_Mat,
      /* MKL: Transform the dense matrix into a CSR-three array variation matrix */
      job[0] = 0; /* The matrix is converted to CSR format. */
      job[1] = 0; /* Zero-based indexing is used for the dense matrix. */
-     job[2] = 0; /* Zero-based indexing for the sparse matrix is used. */
+     job[2] = 1; /* One-based indexing for the sparse matrix is used. */
 
      if ( Operation == 0 ){ /* Symmetric matrix */
 	  job[3] = 1; /* Values will contain the upper triangular part of the dense matrix. */
@@ -179,13 +207,13 @@ void MatrixVector_From_File_Sp( Sp_MatrixVector *const Mat, const char *Filename
      if( InFile != NULL ){
 	  Position = 0;
 	  Pos_RI = 0;
-	  nnz = 0;
+	  nnz = 1;
 	  Mat->RowIndex[Pos_RI] = nnz;
 
 	  while( fscanf( InFile, "%i%c%i%c%e", &i, &d, &j, &d, &Value ) != EOF) {    /* Returns true once the end of the file has been reached */
 	       if ( j >= i ){    /* Consider only the upper part */
 		    nnz = nnz + 1;
-		    if ( nnz > Mat->Num_Nonzero ){
+		    if ( (nnz-1) > Mat->Num_Nonzero ){  /* One based index */
 			 /* Resize the matrix */
 			 tmp = (float *) calloc( (size_t) Mat->Num_Nonzero*2, sizeof(float) );
 			 if ( tmp == NULL ){
@@ -207,16 +235,12 @@ void MatrixVector_From_File_Sp( Sp_MatrixVector *const Mat, const char *Filename
 			 tmp = NULL; tmp_int = NULL;
 		    }
 		    Mat->Values[Position] = Value;
-		    Mat->Columns[Position] = j;
+		    Mat->Columns[Position] = j + 1;  /* One based index */
 		    Position = Position + 1;
 		    if ( i > Pos_RI ){
 			 while ( Pos_RI < i ){
 			      Pos_RI = Pos_RI + 1;
-			      if( nnz > 0 ){
-				   Mat->RowIndex[Pos_RI] = nnz - 1;
-			      } else {
-				   Mat->RowIndex[Pos_RI] = nnz;  /* If the first row does not contain a value different than 0 */
-			      }
+			      Mat->RowIndex[Pos_RI] = nnz - 1;
 			 }
 		    }
 
@@ -229,13 +253,14 @@ void MatrixVector_From_File_Sp( Sp_MatrixVector *const Mat, const char *Filename
 	  Mat->RowIndex[Pos_RI] = nnz;
 
 	  /* Save memory */
-	  if( nnz < Mat->Num_Nonzero ){
-	       tmp = (float *) calloc( (size_t) nnz, sizeof(float) );
-	       memcpy( tmp, Mat->Values, (size_t) nnz*sizeof(float) );
+	  if( (nnz - 1) < Mat->Num_Nonzero ){
+	       Mat->Num_Nonzero = nnz - 1;
+	       tmp = (float *) calloc( (size_t) Mat->Num_Nonzero, sizeof(float) );
+	       memcpy( tmp, Mat->Values, (size_t) Mat->Num_Nonzero*sizeof(float) );
 	       free( Mat->Values );
 
-	       tmp_int = (int *) calloc( (size_t) nnz, sizeof(int) );
-	       memcpy( tmp_int, Mat->Columns, (size_t) nnz*sizeof(int) );
+	       tmp_int = (int *) calloc( (size_t) Mat->Num_Nonzero, sizeof(int) );
+	       memcpy( tmp_int, Mat->Columns, (size_t) Mat->Num_Nonzero*sizeof(int) );
 	       free( Mat->Columns );
 
 	       Mat->Values = tmp;
@@ -335,6 +360,58 @@ void Add3Mat( MatrixVector *const MatY, const MatrixVector *const MatA, const Ma
 	  Length = (*MatY).Rows - i;
 	  saxpy_( &Length, &Alpha, &(*MatC).Array[i*(*MatC).Rows + i], &incx, &(*MatY).Array[i*(*MatY).Rows +i], &incy);
      }
+}
+
+void Add3Mat_Sparse( Sp_MatrixVector *const MatY, const Sp_MatrixVector *const MatA, const Sp_MatrixVector *const MatB, const Sp_MatrixVector *const MatC, const Scalars Const )
+{
+
+     Sp_MatrixVector Temp;
+     int Length, i;
+     int incx, incy;
+     float alpha, beta, gamma;
+     char trans;
+     int job, sort, info;
+
+     alpha = Const.Alpha;
+     beta = Const.Beta;
+     gamma = Const.Gamma;
+
+     Init_MatrixVector_Sp( &Temp, MatA->Rows, MatA->Cols, MatA->Num_Nonzero );
+
+     incx = 1; incy = 1;
+     Length = Temp.Num_Nonzero;
+     scopy_( &Length, MatA->Values, &incx, Temp.Values, &incy );
+
+#pragma omp parallel for
+     for (i = 0; i < Length; i++ ){
+	  Temp.Columns[i] = MatA->Columns[i];
+     }
+
+     /* Scal the Values array */
+     sscal_( &Length, &alpha, Temp.Values, &incx );
+
+     /* Copy the RowIndex array */
+     Length = Temp.Rows + 1;
+#pragma omp parallel for
+     for (i = 0; i < Length; i++ ){
+	  Temp.RowIndex[i] = MatA->RowIndex[i];
+     }
+
+     trans = 'N';  /* The operation C = Temp + beta*B is performed */
+     job = 0;      /* The routine computes the addition */
+     sort = 0;     /* The routine does not perform any reordering */
+     mkl_scsradd( &trans, &job, &sort, &Temp.Rows, &Temp.Cols, Temp.Values, Temp.Columns, Temp.RowIndex,
+		  &beta, MatB->Values, MatB->Columns, MatB->RowIndex,
+		  MatY->Values, MatY->Columns, MatY->RowIndex, &MatY->Num_Nonzero, &info );
+
+     /* Delete the previously allocated sparse matrix */
+     Destroy_MatrixVector_Sparse( &Temp );
+
+     mkl_scsradd( &trans, &job, &sort, &MatY->Rows, &MatY->Cols, MatY->Values, MatY->Columns, MatY->RowIndex,
+		  &gamma, MatC->Values, MatC->Columns, MatC->RowIndex,
+		  MatY->Values, MatY->Columns, MatY->RowIndex, &MatY->Num_Nonzero, &info );
+
+     
 }
 
 void MatrixVector_To_File( const MatrixVector *const Mat, const char *Filename )
