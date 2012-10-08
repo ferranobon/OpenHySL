@@ -73,6 +73,8 @@ typedef struct Scal {
  */
 void Init_MatrixVector( MatrixVector *const Mat, const int Rows, const int Cols );
 
+void Init_MatrixVector_Sp( Sp_MatrixVector *const Mat, const int Rows, const int Cols, const int nnz );
+
 #if _SPARSE_
 /**
  * \brief Converts a dense matrix into CSR-three array variation format.
@@ -228,6 +230,8 @@ void Modify_Element( MatrixVector *const Mat, const int RowIndex, const int ColI
  * \sa MatrixVector, Scalars.
  */
 void Add3Mat( MatrixVector *const MatY, const MatrixVector *const MatA, const MatrixVector *const MatB, const MatrixVector *const MatC, const Scalars Const );
+
+void Add3Mat_Sparse( Sp_MatrixVector *const MatY, const Sp_MatrixVector *const MatA, const Sp_MatrixVector *const MatB, const Sp_MatrixVector *const MatC, const Scalars Const );
 
 /**
  * \brief Writes a matrix or a vector to a file
