@@ -11,6 +11,7 @@
 #include <mpi.h>
 
 #include "PMatrixVector.h"
+#include "Initiation.h"
 
 void EffK_Calc_Effective_Force( PMatrixVector *const Mass, PMatrixVector *const Damp,
 				PMatrixVector *const Disp, PMatrixVector *const Vel,
@@ -21,7 +22,6 @@ void EffK_Calc_Effective_Force( PMatrixVector *const Mass, PMatrixVector *const 
 void EffK_ComputeU0( PMatrixVector *const Eff_Force, PMatrixVector *const In_Load,
 		     PMatrixVector *const Err_Force, const float PID_P, PMatrixVector *const Keinv,
 		     PMatrixVector *const Tempvec, PMatrixVector *const Disp0 );
-void CreateVectorXm( PMatrixVector *const VectorX, PMatrixVector *const VectorXm, const int PosCoupl, const int OrderC );
-void CreateVectorXc( MPI_Comm Comm, PMatrixVector *const VecX, float *VecXc, int PosCoupl, int OrderC );
-
+void CreateVectorXc( MPI_Comm Comm, PMatrixVector *const VecX, float *VecXc, const Coupling_Node *const CNodes );
+void CreateVectorXm( MPI_Comm Comm, PMatrixVector *const VectorX, PMatrixVector *const VectorXm, const Coupling_Node *const CNodes );
 #endif /* COMPUTEU0_H_ */

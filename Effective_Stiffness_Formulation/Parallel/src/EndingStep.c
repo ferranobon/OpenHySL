@@ -15,31 +15,50 @@
 
 #include "EndingStep.h"
 #include "PMatrixVector.h"
+#include "Initiation.h"
 #include "Netlib.h"
 
 void JoinNonCouplingPart( PMatrixVector *const VecXm, PMatrixVector *const Keinv_m, PMatrixVector *const fcprevsub,
-			  PMatrixVector *const Vec, int PosCouple, const int OrderC )
+			  PMatrixVector *const Vec, const Coupling_Node *const CNodes )
 {
 
-     static int ione = 1;
-     static float Alpha = 1.0, Beta = 0.0;
+     static int incx, incy, ione;
+     int icoup, Length;
+     float Alpha, Beta;
      static char trans = 'N';
-     static int Rows, Cols, TempSize, Position;
+     static int Rows, Cols;
+     static int PosX_Row, PosX_Col, PosXm_Row, PosXm_Col;
 
+     incx = 1; incy = 1;
+     ione = 1;
      Rows = Keinv_m->GlobalSize.Row;
      Cols = Keinv_m->GlobalSize.Col;
+     Alpha = 1.0f; Beta = 1.0f;
+     trans = 'N';
 
-     Position = PosCouple;
-     psgemv_( &trans, &Rows, &Cols, &Alpha, Keinv_m->Array, &ione, &ione, Keinv_m->Desc, fcprevsub->Array, &PosCouple, &ione, fcprevsub->Desc, &ione, &Beta, VecXm->Array, &ione, &ione, VecXm->Desc, &ione );
+     psgemv_( &trans, &Rows, &Cols, &Alpha, Keinv_m->Array, &ione, &ione, Keinv_m->Desc, fcprevsub->Array, &ione, &ione, fcprevsub->Desc, &incx, &Beta, VecXm->Array, &ione, &ione, VecXm->Desc, &incy );
 
-     /* Copy the first elements */
-     TempSize = PosCouple - 1;
-     pscopy_( &TempSize, VecXm->Array, &ione, &ione, VecXm->Desc, &ione, Vec->Array, &ione, &ione, Vec->Desc, &ione );
+     PosX_Col = 1;
+     PosXm_Col = 1;
+     
+     PosX_Row = 1;
+     PosXm_Row = 1;
+     for( icoup = 0; icoup < CNodes->Order; icoup++ ){
+	  Length = CNodes->Array[icoup] - PosX_Row;
+	  
+	  /* Copy the part of the vector between two positions */
+	  pscopy_( &Length, VecXm->Array, &PosXm_Row, &PosXm_Col, VecXm->Desc, &incx,
+		   Vec->Array, &PosX_Row, &PosX_Col, Vec->Desc, &incy );
+	  
+	  /* Update the values of the position in the vectors */
+	  PosX_Row = CNodes->Array[icoup] + 1; /* 1 based index */
+	  PosXm_Row = PosXm_Row + Length;
+	}
 
-     /* Join the part after the coupling position */
-     TempSize = Vec->GlobalSize.Row - ( PosCouple + OrderC - 1 );
-     Position = PosCouple + OrderC;
-     pscopy_( &TempSize, VecXm->Array, &PosCouple, &ione, VecXm->Desc, &ione, Vec->Array, &Position, &ione, Vec->Desc, &ione );
+	/* Copy the elements from the last position until the end of the vector */
+	Length = Vec->GlobalSize.Row - CNodes->Array[CNodes->Order-1];
+	pscopy_( &Length, VecXm->Array, &PosXm_Row, &PosXm_Col, VecXm->Desc, &incx,
+		 Vec->Array, &PosX_Row, &PosX_Col, Vec->Desc, &incy );
 
 }
 
@@ -76,7 +95,7 @@ void Compute_Velocity( PMatrixVector *const VelT, PMatrixVector *const AccT, PMa
      static float Alpha;
 
      /* BLAS: VelTdT = VelT */
-     pscopy_( &VelTdT->GlobalSize.Row, VelT->Array, &ione, &ione, VelT->Desc, &ione, VelTdT->Array, &ione, &ione, VelTdT->Desc, &ione );
+     pscopy_( &VelTdT->GlobalSize.Row, VelT->Array, &ione, &ione, VelT->Desc, &incx, VelTdT->Array, &ione, &ione, VelTdT->Desc, &incy );
      /* BLAS: VelTdT = VelT + a6*AccT = VelTdT + a6*AccT */
      Alpha = a6;
      psaxpy_( &VelTdT->GlobalSize.Row, &Alpha, AccT->Array, &ione, &ione, AccT->Desc, &incx, VelTdT->Array, &ione, &ione, VelTdT->Desc, &incy );

@@ -10,6 +10,7 @@
 
 #include "Netlib.h"
 #include "PMatrixVector.h"
+#include "Send_Receive_Data.h"
 
 /**
  * \brief Structure to handle the PID error compensator
@@ -55,6 +56,17 @@ typedef struct {
 } GridInfo;
 
 /**
+ * \brief Structure to store the coupling nodes.
+ * 
+ * This structure is used in order to store the coupling nodes that will be used
+ * during a test. The nodes are stored sequentially and in increasing order.
+ */
+typedef struct {
+     int *Array;  /*!< \brief Array containing the coupling nodes */
+     int Order;   /*!< \brief Number of coupling nodes */
+} Coupling_Node;
+
+/**
  * \brief Structure to wrap constants and filenames.
  *
  * This structure stores several constants that will be used in different parts of the substructure
@@ -72,13 +84,9 @@ typedef struct {
 
      int Order;               /*!< \brief Order of the matrices */
 
-     int OrderC;              /*!< \brief Number of coupling DOF */
-     int PosCouple;           /*!< \brief Position of the coupling DOF */
-
      int Nstep;               /*!< \brief Number of steps */
 
-     /* Information regarding the type of communication */
-     int Type_Protocol;           /*!< \brief Identifies the protocol to be used. 1 = Custom, 2 = NSEP, 3 = OpenFresco */
+     int Use_Absolute_Values; /*!< \brief Variable to control whether to use absolute values in the equation of motion or relative values. Affects how the input load is calculated */
 
      float Delta_t;          /*!< \brief Time increment \f$\Delta t\f$ */
 
@@ -102,18 +110,27 @@ typedef struct {
      float a7;               /*!< \brief \f$a_7 = \gamma_N\Delta t\f$ */
 
      /* Files where data are located */
-     const char* FileM;       /*!< \brief Stores the name of the file that contains the Mass Matrix */
-     const char* FileK;       /*!< \brief Stores the name of the file that contains the Stiffness Matrix */
-     const char* FileC;       /*!< \brief Stores the name of the file that contains the Damping Matrix */
-     const char* FileData;    /*!< \brief Stores the name of the file that contains displacement, velocity and acceleration */
+     char* FileM;       /*!< \brief Stores the name of the file that contains the Mass Matrix */
+     char* FileK;       /*!< \brief Stores the name of the file that contains the Stiffness Matrix */
+     char* FileC;       /*!< \brief Stores the name of the file that contains the Damping Matrix */
+     char* FileLVector; /*!< \brief Stores the name of the file that contains the vector used for the load. This vector usually contains 1 and 0 */
+     char* FileCNodes;  /*!< \brief Stores the name of the file that contains the vector of coupling nodes. */
+     char* FileData;    /*!< \brief Stores the name of the file that contains displacement, velocity and acceleration */
+     char* FileOutput;    /*!< \brief Name of the file to store the output values of the process */
+
+     /* Information regarding the type of communication */
+     Remote_Machine_Info Remote;
 } AlgConst;
 
 void InitConstants( AlgConst *const AConst, const int size );
 void BroadcastConfFile( AlgConst *const InitConst );
+void Delete_InitConstants( AlgConst *const InitConst );
+void Read_Coupling_Nodes( Coupling_Node *const CNodes, const char *Filename );
+void BroadCast_Coupling_Nodes( Coupling_Node *const CNodes );
 void CalculateMatrixC( PMatrixVector *const Mass, PMatrixVector *const Stif, PMatrixVector *const Damp, RayleighConst Rayleigh );
 void CalculateMatrixKeinv( PMatrixVector *const Keinv, PMatrixVector *const Mass, PMatrixVector *const Damp, PMatrixVector *const Stif, Scalars Const );
 void CalculateMatrixG( PMatrixVector *const Gain, PMatrixVector *const Keinv, float Const );
-void BuildMatrixXc( MPI_Comm Comm, PMatrixVector *const Mat, float *MatCouple, const int PosCpl, const int orderc );
-void BuildMatrixXcm( MPI_Comm Comm, PMatrixVector *const Mat, PMatrixVector *const VecXcm, const int PosCoupl, const int orderc );
+void BuildMatrixXc( MPI_Comm Comm, PMatrixVector *const Mat, float *MatCouple, const Coupling_Node *const CNodes );
+void BuildMatrixXcm( MPI_Comm Comm, PMatrixVector *const Mat, PMatrixVector *const VecXcm, const Coupling_Node *const CNodes );
 
 #endif /* INITIATION_H_ */

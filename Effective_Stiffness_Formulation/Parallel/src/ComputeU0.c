@@ -10,6 +10,7 @@
 #include "ComputeU0.h"
 #include "Netlib.h"
 #include "PMatrixVector.h"
+#include "Initiation.h"
 
 void EffK_Calc_Effective_Force( PMatrixVector *const Mass, PMatrixVector *const Damp,
 				PMatrixVector *const Disp, PMatrixVector *const Vel,
@@ -58,81 +59,107 @@ void EffK_ComputeU0( PMatrixVector *const Eff_Force, PMatrixVector *const In_Loa
 		     PMatrixVector *const Err_Force, const float PID_P, PMatrixVector *const Keinv,
 		     PMatrixVector *const Tempvec, PMatrixVector *const Disp0 )
 {
-     static int ione = 1;
-     static int incx = 1, incy = 1;
-     static float Alpha = 1.0, Beta = 0.0;
-     static char uplo = 'L';
+     int ione;
+     int incx, incy;
+     float Alpha, Beta;
+     char uplo;
+
+     ione = 1;
+     incx = 1; incy = 1;
+     Alpha = 1.0; Beta = 0.0;
+     uplo = 'L';
 
      /* PBLAS: tempvec = Eff_Force */
-     pscopy_( &Tempvec->GlobalSize.Row, Eff_Force->Array, &ione, &ione, Eff_Force->Desc, &ione, Tempvec->Array, &ione, &ione, Tempvec->Desc, &ione );
+     pscopy_( &Tempvec->GlobalSize.Row, Eff_Force->Array, &ione, &ione, Eff_Force->Desc, &incx,
+	      Tempvec->Array, &ione, &ione, Tempvec->Desc, &incy );
+
      /* PBLAS: tempvec = Eff_Force + LoadTdT = tempvec + LoadTdT */
-     psaxpy_( &Tempvec->GlobalSize.Row, &Alpha, In_Load->Array, &ione, &ione, In_Load->Desc, &incx, Tempvec->Array, &ione, &ione, Tempvec->Desc, &incy );
-     
-     /* PBLAS: tempvec = Eff_Force + LoadTdT + Err_Force = tempvec + Err_Force. The sign of Err_Force was already applied when calculating it. */
+     psaxpy_( &Tempvec->GlobalSize.Row, &Alpha, In_Load->Array, &ione, &ione, In_Load->Desc, &incx,
+	      Tempvec->Array, &ione, &ione, Tempvec->Desc, &incy );
+
+     /* BLAS: tempvec = Eff_Force + LoadTdT + Err_Force = tempvec + Err_Force. The sign of Err_Force was already applied when calculating it. */
      Alpha = PID_P;
-     psaxpy_( &Tempvec->GlobalSize.Row, &Alpha, Err_Force->Array, &ione, &ione, Err_Force->Desc, &incx, Tempvec->Array, &ione, &ione, Tempvec->Desc, &incy );
+     psaxpy_( &Tempvec->GlobalSize.Row, &Alpha, Err_Force->Array, &ione, &ione, Err_Force->Desc, &incx,
+	      Tempvec->Array,  &ione, &ione, Tempvec->Desc, &incy );
 
      /* BLAS: Disp0 = Keinv*(Eff_Force + LoadTdT + Err_Force) = Keinv*Tempvec */
      Alpha = 1.0;
-     pssymv_( &uplo, &Tempvec->GlobalSize.Row, &Alpha, Keinv->Array, &ione, &ione, Keinv->Desc, Tempvec->Array, &ione, &ione, Tempvec->Desc, &incx, &Beta, Disp0->Array, &ione, &ione, Disp0->Desc, &incy );
-
+     pssymv_( &uplo, &Tempvec->GlobalSize.Row, &Alpha, Keinv->Array, &ione, &ione, Keinv->Desc, 
+	      Tempvec->Array, &ione, &ione, Tempvec->Desc, &incx,
+	      &Beta, Disp0->Array, &ione, &ione, Disp0->Desc, &incy );
 }
 
-void CreateVectorXm( PMatrixVector *const VectorX, PMatrixVector *const VectorXm, const int PosCoupl, const int OrderC )
+void CreateVectorXm( MPI_Comm Comm, PMatrixVector *const VectorX, PMatrixVector *const VectorXm, const Coupling_Node *const CNodes )
 {
 
+	static int incx, incy;
+	static int Length;
+	static int PosX_Row, PosX_Col, PosXm_Row, PosXm_Col;
+	static int icoup;    /* Counter for the coupling nodes */
 
-	int ione = 1;
-	int length;
-	int posX, posXm;
-	char uplo = 'A';
+	incx = 1; incy = 1;
+	PosX_Col = 1;
+	PosXm_Col = 1;
 
-	/* Copy the vector locally */
-	length = PosCoupl - 1;
-	pslacpy_( &uplo, &length, &ione, (*VectorX).Array, &ione, &ione, (*VectorX).Desc, (*VectorXm).Array, &ione, &ione, (*VectorXm).Desc );
+	PosX_Row = 1;
+	PosXm_Row = 1;
+	for( icoup = 0; icoup < CNodes->Order; icoup++ ){
+	     Length = CNodes->Array[icoup] - PosX_Row;
 
-	length = (*VectorX).GlobalSize.Row - (PosCoupl + OrderC - 1);
-	posX = PosCoupl + OrderC;
-	posXm = PosCoupl;
+	     /* Copy the part of the vector between two positions */
+	     pscopy_( &Length, VectorX->Array, &PosX_Row, &PosX_Col, VectorX->Desc, &incx,
+		      VectorXm->Array, &PosXm_Row, &PosXm_Col, VectorXm->Desc, &incy );
 
-	pscopy_( &length, (*VectorX).Array, &posX, &ione, (*VectorX).Desc, &ione, (*VectorXm).Array, &posXm, &ione, (*VectorXm).Desc, &ione );
-
-}
-
-void CreateVectorXc( MPI_Comm Comm, PMatrixVector *const VecX, float *VecXc, int PosCoupl, int OrderC )
-{
-
-
-	int i;
-	int GRowIndex, GColIndex;
-
-	int nprow, npcol, myrow, mycol;
-	int LRowIndex, LColIndex;
-	int RowProcess, ColProcess;
-
-	int rank;
-	MPI_Status status;
-
-	MPI_Comm_rank( Comm, &rank );
-	Cblacs_gridinfo( (*VecX).Desc[1], &nprow, &npcol, &myrow, &mycol );
-
-	GColIndex = 1;
-	GRowIndex = PosCoupl;
-
-	for ( i = 0; i < OrderC; i++ ){
-		GRowIndex = GRowIndex + i;
-
-	    infog2l_( &GRowIndex, &GColIndex, (*VecX).Desc, &nprow, &npcol, &myrow, &mycol, &LRowIndex, &LColIndex, &RowProcess, &ColProcess );
-
-	    if ( Cblacs_pnum( (*VecX).Desc[1], RowProcess, ColProcess ) == 0 && myrow == RowProcess && mycol == ColProcess ){
-	    	VecXc[i] = (*VecX).Array[(LRowIndex - 1)*(*VecX).LocalSize.Col + (LColIndex - 1)];
-	    } else {
-	    	if ( myrow == RowProcess && mycol == ColProcess ){
-	    		MPI_Send( &(*VecX).Array[(LRowIndex - 1)*(*VecX).LocalSize.Col + (LColIndex - 1)], 1, MPI_FLOAT, 0, 2, Comm );
-	    	}
-	    	if ( rank == 0 ){
-	    		MPI_Recv( &VecXc[i], 1, MPI_FLOAT, Cblacs_pnum( (*VecX).Desc[1], RowProcess, ColProcess ), 2, Comm, &status );
-	    	}
-	    }
+	     /* Update the values of the position in the vectors */
+	     PosX_Row = CNodes->Array[icoup] + 1;
+	     PosXm_Row = PosXm_Row + Length;
 	}
+
+	/* Copy the elements from the last position until the end of the vector */
+	Length = VectorX->GlobalSize.Row - CNodes->Array[CNodes->Order-1];
+	pscopy_( &Length, VectorX->Array, &PosX_Row, &PosX_Col, VectorX->Desc, &incx,
+		 VectorXm->Array, &PosXm_Row, &PosXm_Col, VectorXm->Desc, &incy );
+}
+
+void CreateVectorXc( MPI_Comm Comm, PMatrixVector *const VecX, float *VecXc, const Coupling_Node *const CNodes )
+{
+     int icoup;
+     int nprow, npcol, myrow, mycol;
+     int rank;
+     int GRowIndex, GColIndex;
+     int LRowIndex, LColIndex;
+     int RowProcess, ColProcess;
+
+     MPI_Status status;
+
+     MPI_Comm_rank( Comm, &rank );
+
+     /* Get grid info */
+     Cblacs_gridinfo( (*VecX).Desc[1], &nprow, &npcol, &myrow, &mycol );
+     
+     GColIndex = 1;
+
+     for( icoup = 0; icoup < CNodes->Order; icoup++ ){
+
+	  GRowIndex = CNodes->Array[icoup];   /* 1 based */
+	  /* Given the global index of an element (GRowIndex, GColIndex) returns the local index of the element
+	     (LRowIndex, LColIndex) and the coordinates of the process (Row Process, ColProcess) */
+	  infog2l_( &GRowIndex, &GColIndex, (*VecX).Desc, &nprow, &npcol, &myrow, &mycol, &LRowIndex, &LColIndex,
+		    &RowProcess, &ColProcess );
+
+	  if ( Cblacs_pnum( (*VecX).Desc[1], RowProcess, ColProcess ) == 0 && myrow == RowProcess && mycol == ColProcess ){ 
+	       VecXc[icoup] = (*VecX).Array[(LRowIndex - 1)*(*VecX).LocalSize.Col + (LColIndex - 1)];
+		    
+	  } else {
+	       if ( myrow == RowProcess && mycol == ColProcess ){
+			 
+		    MPI_Send( &(*VecX).Array[(LRowIndex - 1)*(*VecX).LocalSize.Col + (LColIndex - 1)], 1, MPI_FLOAT, 0, 1, Comm );
+	       }
+	       
+	       if ( rank == 0 ){
+		    /* Store the diagonal elements */
+		    MPI_Recv( &VecXc[icoup], 1, MPI_FLOAT, Cblacs_pnum( (*VecX).Desc[1], RowProcess, ColProcess ), 1, Comm, &status );
+	       }
+	  }	  
+     }     
 }

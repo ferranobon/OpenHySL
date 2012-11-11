@@ -96,7 +96,7 @@ void Dense_to_CSR( const MatrixVector *const Mat, Sp_MatrixVector *const Sp_Mat,
      /* MKL: Transform the dense matrix into a CSR-three array variation matrix */
      job[0] = 0; /* The matrix is converted to CSR format. */
      job[1] = 0; /* Zero-based indexing is used for the dense matrix. */
-     job[2] = 1; /* One-based indexing for the sparse matrix is used. */
+     job[2] = 0; /* One-based indexing for the sparse matrix is used. */
 
      if ( Operation == 0 ){ /* Symmetric matrix */
 	  job[3] = 1; /* Values will contain the upper triangular part of the dense matrix. */

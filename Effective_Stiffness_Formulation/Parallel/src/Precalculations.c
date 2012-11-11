@@ -16,29 +16,52 @@
 #include "PMatrixVector.h"
 #include "Precalculations.h"
 
-void ReadDataEarthquake( float *displacement, float *velocity, float *acceleration, const int NumSteps, const char *Filename )
+void ReadDataEarthquake_AbsValues( float *Velocity, float *Displacement, const unsigned int NumSteps, const char *Filename )
 {
 
-	int i;					/* A counter */
-	float unnecessary;		/* Variable to store unnecessary data */
-	float temp1, temp2, temp3;
-	FILE *InFile;
+     unsigned int i;					/* A counter */
+     float unnecessary;		/* Variable to store unnecessary data */
+     float temp1, temp2, temp3;
+     FILE *InFile;
 
-	InFile = fopen( Filename, "r" );
+     InFile = fopen( Filename, "r" );
 
-	if ( InFile != NULL ){
-		for ( i = 0; i < NumSteps; i++ ){
-			/* The first column contains the number of steps (not required) */
-			fscanf( InFile, "%f %f %f %f", &unnecessary, &temp1, &temp2, &temp3 );
-			acceleration[i] = temp1/10.0;
-			velocity[i] = temp2/10.0;
-			displacement[i] = temp3/10.0;
-		}
-		/* Close File */
-		fclose( InFile );
-	} else {
-		ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
-	}
+     if ( InFile != NULL ){
+	  for ( i = 0; i < NumSteps; i++ ){
+	       fscanf( InFile, "%E %E %E %E", &unnecessary, &temp1, &temp2, &temp3 );
+	       Velocity[i] = temp2/1000.0f;
+	       Displacement[i] = temp3/1000.0f;
+	  }
+
+	  /* Close File */
+	  fclose( InFile );
+     } else {
+	  ErrorFileAndExit( "The earthquake data cannot be read because it was not possible to open ", Filename );
+     }
+}
+
+void ReadDataEarthquake_RelValues( float *Acceleration, const unsigned int NumSteps, const char *Filename )
+{
+
+     unsigned int i;					/* A counter */
+     float unnecessary;		/* Variable to store unnecessary data */
+     float temp1, temp2, temp3;
+     FILE *InFile;
+
+     InFile = fopen( Filename, "r" );
+
+
+     if ( InFile != NULL ){
+	  for ( i = 0; i < NumSteps; i++ ){
+	       fscanf( InFile, "%E %E %E %E", &unnecessary, &temp1, &temp2, &temp3 );
+	       Acceleration[i] = temp1/1000.0f;
+	  }
+
+	  /* Close File */
+	  fclose( InFile );
+     } else {
+	  ErrorFileAndExit( "The earthquake data cannot be read because it was not possible to open ", Filename );
+     }
 }
 
 void CopyDiagonalValues( MPI_Comm Comm, PMatrixVector *const Mat, PMatrixVector *const Vec )
@@ -81,31 +104,60 @@ void CopyDiagonalValues( MPI_Comm Comm, PMatrixVector *const Mat, PMatrixVector 
 	}
 
 }
-
-void Calc_Input_Load( PMatrixVector *const InLoad, PMatrixVector *const Stif, PMatrixVector *const Damp, PMatrixVector *const Mass, PMatrixVector *const DiagM, PMatrixVector *const D, PMatrixVector *const V, PMatrixVector *const A )
+void Calc_Input_Load_AbsValues( PMatrixVector *const InLoad, const PMatrixVector *const Stif, const PMatrixVector *const Damp, const PMatrixVector *const D, const PMatrixVector *const V )
 {
 
-  static int incx, incy;       /* Stride in the vectors for PBLAS library */
-  static int ione;             /* Integer variable of value 1 for PBLAS library */
-  static float Alpha, Beta;    /* Constants to use in the PBLAS library */
-  static char uplo;            /* Character to use in the PBLAS library */
+     static int incx, incy;     /* Stride in the vectors for PBLAS library */
+     static int ione;           /* Integer variable of value 1 for PBLAS library */
+     static float Alpha, Beta;  /* Constants to use in the PBLAS library */
+     static char uplo;          /* Character to use in the PBLAS library */
 
-  incx = 1; incy = 1;
-  Alpha = 1.0; Beta = 0.0;
-  uplo = 'L';     /* Character defining that the lower part of the symmetric matrix is referenced (see man ssymv) */
+     incx = 1; incy = 1;
+     Alpha = 1.0f; Beta = 0.0f;
+     uplo = 'L';
+     ione = 1;
 
-  pssymv_( &uplo, &(*InLoad).GlobalSize.Row, &Alpha, (*Stif).Array, &ione, &ione, (*Stif).Desc,
-	   (*D).Array, &ione, &ione, (*D).Desc, &incx, 
-	   &Beta, (*InLoad).Array, &ione, &ione, (*InLoad).Desc, &incy );
-  Beta = 1.0;
-  pssymv_( &uplo, &(*InLoad).GlobalSize.Row, &Alpha, (*Damp).Array, &ione, &ione, (*Damp).Desc,
-	   (*V).Array, &ione, &ione, (*V).Desc, &incx, 
-	   &Beta, (*InLoad).Array, &ione, &ione, (*InLoad).Desc, &incy );
-  pssymv_( &uplo, &(*InLoad).GlobalSize.Row, &Alpha, (*Mass).Array, &ione, &ione, (*Mass).Desc,
-	   (*A).Array, &ione, &ione, (*A).Desc, &incx, 
-	   &Beta, (*InLoad).Array, &ione, &ione, (*InLoad).Desc, &incy );
+     /* {r} is the load form vector */
+     /* li = K*{r}*ug */
+     pssymv_( &uplo, &InLoad->GlobalSize.Row, &Alpha, Stif->Array, &ione, &ione,
+	      Stif->Desc, D->Array, &ione, &ione, D->Desc, &incx, 
+	      &Beta, InLoad->Array, &ione, &ione, InLoad->Desc, &incy );
 
-  Alpha = -(*A).Array[0];
-  psaxpy_( &(*InLoad).GlobalSize.Row, &Alpha, (*DiagM).Array, &ione, &ione, (*DiagM).Desc, &incx, (*InLoad).Array, &ione, &ione, (*InLoad).Desc, &incy );
+     /* li = K*{r}*ug + C*{r}*vg = li + C*{r}*vg */
+     Beta = 1.0f;
+     pssymv_( &uplo, &InLoad->GlobalSize.Row, &Alpha, Damp->Array, &ione, &ione,
+	      Damp->Desc, V->Array, &ione, &ione, V->Desc, &incx, 
+	      &Beta, InLoad->Array, &ione, &ione, InLoad->Desc, &incy );
+}
 
+void Calc_Input_Load_RelValues( PMatrixVector *const InLoad, const PMatrixVector *const Mass, const PMatrixVector *const A )
+{
+     static int incx, incy;     /* Stride in the vectors for PBLAS library */
+     static int ione;           /* Integer variable of value 1 for PBLAS library */
+     static float Alpha, Beta;  /* Constants to use in the PBLAS library */
+     static char uplo;          /* Character to use in the PBLAS library */
+
+     incx = 1; incy = 1;
+     Alpha = 1.0f; Beta = 0.0f;
+     uplo = 'L';
+
+     pssymv_( &uplo, &InLoad->GlobalSize.Row, &Alpha, Mass->Array, &ione, &ione,
+	      Mass->Desc, A->Array, &ione, &ione, A->Desc, &incx, 
+	      &Beta, InLoad->Array, &ione, &ione, InLoad->Desc, &incy );
+}
+
+void Apply_LoadVectorForm( PMatrixVector *const Vector, const PMatrixVector *const LoadForm, const float Value )
+{
+     static int incx = 1;
+     static int incy = 1;
+     static int ione = 1;
+     static float Scalar;
+
+     Scalar = Value;
+
+
+     pscopy_( &Vector->GlobalSize.Row, LoadForm->Array, &ione, &ione, LoadForm->Desc,
+	      &ione, Vector->Array, &ione, &ione, Vector->Desc, &ione );
+     psscal_( &Vector->GlobalSize.Row, &Scalar, Vector->Array, &ione, &ione,
+	      Vector->Desc, &incx );
 }

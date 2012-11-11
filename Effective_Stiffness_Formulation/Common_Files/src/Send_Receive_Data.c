@@ -445,12 +445,19 @@ void Do_Substepping( float *const DispTdT0_c, float *const DispTdT, float *const
 	  Communicate_With_OpenFresco( DispTdT0_c, Recv, OrderC, 3 ); 
 	  break;
      }
-
+#if _MPI_
+     for ( i = 0; i < OrderC; i++ ){
+	  DispTdT[i] = Recv[i];
+	  fcprevsub[i] = Recv[OrderC + i];
+	  fc[i] = Recv[2*OrderC + i];
+     }
+#else
      for ( i = 0; i < OrderC; i++ ){
 	  DispTdT[Pos_Couple[i] - 1] = Recv[i];
 	  fcprevsub[i] = Recv[OrderC + i];
 	  fc[Pos_Couple[i] - 1] = Recv[2*OrderC + i];
      }
+#endif
 
      free( Recv );
 
