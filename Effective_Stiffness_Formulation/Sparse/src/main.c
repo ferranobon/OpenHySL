@@ -210,9 +210,9 @@ int main( int argc, char **argv )
      Constants.Alpha = 1.0f;
      Constants.Beta = InitCnt.a0;
      Constants.Gamma = InitCnt.a1;
-//    CalculateMatrixKeinv( &Keinv, &M, &C, &K, Constants );
+     CalculateMatrixKeinv( &Keinv, &M, &C, &K, Constants );
 
-     CalculateMatrixKeinv_Pardiso( &Keinv, &M, &C, &K, Constants );
+//     CalculateMatrixKeinv_Pardiso( &Keinv, &M, &C, &K, Constants );
 
      MatrixVector_To_File( &Keinv, "Keinv_PARDISO.txt" );
 

@@ -101,6 +101,7 @@ endif()
 if(USE_MPI)
   # Rules to build the programs related to the parallel version of the algorithm
   add_subdirectory(Parallel)
+  add_definitions(-D_MPI_)
 else(NOT USE_MPI)
   # Rules to build the programs related to the sequential version of the algorithm.
   add_subdirectory(Sequential)

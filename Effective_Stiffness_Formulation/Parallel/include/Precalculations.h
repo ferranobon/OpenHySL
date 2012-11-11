@@ -12,8 +12,11 @@
 
 #include "PMatrixVector.h"
 
-void ReadDataEarthquake( float *displacement, float *velocity, float *acceleration, const int NumSteps, const char *Filename );
+void ReadDataEarthquake_AbsValues( float *Velocity, float *Displacement, const unsigned int NumSteps, const char *Filename );
+void ReadDataEarthquake_RelValues( float *Acceleration, const unsigned int NumSteps, const char *Filename );
 void CopyDiagonalValues( MPI_Comm Comm, PMatrixVector *const Mat, PMatrixVector *const Vec );
-void Calc_Input_Load( PMatrixVector *const InLoad, PMatrixVector *const Stif, PMatrixVector *const Damp, PMatrixVector *const Mass, PMatrixVector *const DiagM, PMatrixVector *const D, PMatrixVector *const V, PMatrixVector *const A );
+void Calc_Input_Load_AbsValues( PMatrixVector *const InLoad, const PMatrixVector *const Stif, const PMatrixVector *const Damp, const PMatrixVector *const D, const PMatrixVector *const V );
+void Calc_Input_Load_RelValues( PMatrixVector *const InLoad, const PMatrixVector *const Mass, const PMatrixVector *const A );
+void Apply_LoadVectorForm( PMatrixVector *const Vector, const PMatrixVector *const LoadForm, const float Value );
 
 #endif /* PRECALCULATIONS_H_ */

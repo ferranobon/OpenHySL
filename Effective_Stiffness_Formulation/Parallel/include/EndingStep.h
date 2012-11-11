@@ -17,6 +17,7 @@
 #define ENDINGSTEP_H_
 
 #include "PMatrixVector.h"
+#include "Initiation.h"
 
 /**
  * \brief Joins the non-coupling of a vector.
@@ -42,8 +43,8 @@
  *
  * \sa MatrixVector.
  */
-void JoinNonCouplingPart( PMatrixVector *const VecXm, PMatrixVector *const Keinv_m, PMatrixVector *const fcprevsub, PMatrixVector *const Vec, const int PosCouple, const int OrderC );
-
+void JoinNonCouplingPart( PMatrixVector *const VecXm, PMatrixVector *const Keinv_m, PMatrixVector *const fcprevsub,
+			  PMatrixVector *const Vec, const Coupling_Node *const CNodes );
 void Compute_Acceleration( PMatrixVector *const DispTdT, PMatrixVector *const DispT, PMatrixVector *const VelT,
 			   PMatrixVector *const AccT, const float a0, const float a2, const float a3,
 			   PMatrixVector *const AccTdT );
