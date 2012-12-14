@@ -219,7 +219,7 @@ int main( int argc, char **argv )
      }
 
      Generate_LoadVectorForm( &LoadVectorForm, InitCnt.ExcitedDOF );
-     MatrixVector_To_File( &LoadVectorForm, "LVprov.txt" );
+
      /* Calculate damping matrix using Rayleigh. C = alpha*M + beta*K */
      if ( InitCnt.Use_Sparse && InitCnt.Read_Sparse ) {
 
@@ -391,15 +391,15 @@ int main( int argc, char **argv )
 	  }
 
 	  /* Output variables */
-	  TimeHistoryli[istep - 1] = LoadTdT.Array[0];
-	  TimeHistoryai1[istep - 1] = AccTdT.Array[0];
-	  TimeHistoryai[istep - 1] = AccT.Array[0];
-	  TimeHistoryvi1[istep - 1] = VelTdT.Array[0];
-	  TimeHistoryvi[istep - 1] = VelT.Array[0];
-	  TimeHistoryui1[istep - 1] = DispTdT.Array[0];
-	  TimeHistoryui[istep - 1] = DispT.Array[0];
-	  TimeHistoryfc[istep - 1] = fc.Array[0];
-	  TimeHistoryfu[istep - 1] = fu.Array[0];
+	  TimeHistoryli[istep - 1] = LoadTdT.Array[CNodes.Array[0]-1];
+	  TimeHistoryai1[istep - 1] = AccTdT.Array[CNodes.Array[0]-1];
+	  TimeHistoryai[istep - 1] = AccT.Array[CNodes.Array[0]-1];
+	  TimeHistoryvi1[istep - 1] = VelTdT.Array[CNodes.Array[0]-1];
+	  TimeHistoryvi[istep - 1] = VelT.Array[CNodes.Array[0]-1];
+	  TimeHistoryui1[istep - 1] = DispTdT.Array[CNodes.Array[0]-1];
+	  TimeHistoryui[istep - 1] = DispT.Array[CNodes.Array[0]-1];
+	  TimeHistoryfc[istep - 1] = fc.Array[CNodes.Array[0]-1];
+	  TimeHistoryfu[istep - 1] = fu.Array[CNodes.Array[0]-1];
 
 	  /* Backup vectors */
 	  scopy_( &LoadTdT1.Rows, LoadTdT1.Array, &incx, LoadTdT.Array, &incy ); /* li = li1 */
