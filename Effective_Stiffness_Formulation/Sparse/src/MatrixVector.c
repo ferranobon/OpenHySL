@@ -37,8 +37,11 @@ void Init_MatrixVector( MatrixVector *const Mat, const int Rows, const int Cols 
      } else {
 	  PrintErrorAndExit( "The number of rows must be equal or greater than zero" );
      }
-
+     Mat->Array = NULL;
      Mat->Array = (float *) calloc( (size_t) Mat->Rows*Mat->Cols, sizeof(float));
+     if ( Mat->Array == NULL ){
+	  PrintErrorAndExit( "Out of memory\n");
+     }
 }
 
 void Init_MatrixVector_Sp( Sp_MatrixVector *const Mat, const int Rows, const int Cols, const int nnz )
@@ -170,18 +173,28 @@ void MatrixVector_From_File( MatrixVector *const Mat, const char *Filename )
 
 void MatrixVector_From_File_Sp2Dense( MatrixVector *const Mat, const char *Filename )
 {
-     FILE *InFile;  /* Input file */
-     int i, j;      /* Indexes of the position within the matrix of the readen value */
-     char d;        /* Dump character between two values */
-     float Value;   /* Value to be saved in the position (i,j) of the matrix */
+     FILE *InFile;   /* Input file */
+     int i, j;       /* Indexes of the position within the matrix of the readen value */
+     char d;         /* Dump character between two values */
+     float Value;    /* Value to be saved in the position (i,j) of the matrix */
+     int Rows, Cols; /* Number of Rows and Columns */
+     int nnz;        /* Number of non-zero elements */
+     int innz;       /* Counter for the number of non-zero elements */
 
 
      InFile = fopen( Filename, "r" );
      if( InFile != NULL ){
-	  while( !feof(InFile) ) {    /* Returns true once the end of the file has been reached */
+	  fscanf( InFile, "%d %d %d", &Rows, &Cols, &nnz );
+
+	  if( Rows != Mat->Rows || Cols != Mat->Cols ){
+	       fprintf( stderr, "The size of the input matrix %dx%d does not match the defined one %dx%d.\n", Rows, Cols, Mat->Rows, Mat->Cols );
+	       exit( EXIT_FAILURE );
+	  }
+	  innz = 0;
+	  while( innz <= nnz ) {
 	       fscanf( InFile, "%i%c%i%c%e", &i, &d, &j, &d, &Value );
-	       printf("%d\t%d\t%f\n", i, j, Value );
 	       Mat->Array[i*Mat->Cols + j] = Value;
+	       innz = innz + 1;
 	  }
 	  /* The program has reached the end of the file */
 	  fclose( InFile );

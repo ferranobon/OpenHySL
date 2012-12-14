@@ -64,6 +64,8 @@ void InitConstants( AlgConst *const InitConst, const char *FileName )
 	  PrintErrorAndExit( "Invalid option for the order of the matrices" );
      }
 
+     InitConst->ExcitedDOF = Get_Excited_DOF( Config, "General:Excited_DOF" );
+
      /* Number of steps and Time step */
      (*InitConst).Nstep = (unsigned int) ConfFile_GetInt( Config, "General:Num_Steps" );
      if ( InitConst->Nstep <= 0 ){
@@ -104,7 +106,6 @@ void InitConstants( AlgConst *const InitConst, const char *FileName )
      (*InitConst).a7 = (*InitConst).Newmark.Gamma*(*InitConst).Delta_t;
 
      /* File Names */
-/*EFAST*/
      (*InitConst).FileM = strdup( ConfFile_GetString( Config, "FileNames:Mass_Matrix" ) );
      (*InitConst).FileK = strdup( ConfFile_GetString( Config, "FileNames:Stiffness_Matrix" ) );
      (*InitConst).FileC = strdup( ConfFile_GetString( Config, "FileNames:Damping_Matrix" ) );
@@ -118,9 +119,33 @@ void InitConstants( AlgConst *const InitConst, const char *FileName )
      ConfFile_Free( Config );
 }
 
+int* Get_Excited_DOF( const ConfFile *const Config, const char *Expression )
+{
+     unsigned int i, j;
+     int *DOF_Table;  
+     char *FullString;
+     char Temp[1];
+
+     DOF_Table = (int *) calloc( (size_t) 6, sizeof(int) );
+     FullString = strdup( ConfFile_GetString( Config, Expression ) );
+
+     i = 0; j = 0;
+     for( i = 0; i < strlen( FullString ); i++ ){
+	  if ( FullString[i] != ' ' ){
+	       strncpy( Temp, &FullString[i], (size_t) 1 );
+	       DOF_Table[j] = atoi( Temp );
+	       j = j + 1;
+	  }
+     }
+
+     free( FullString );
+     return DOF_Table;
+}
+
 void Delete_InitConstants( AlgConst *const InitConst )
 {
 
+     free( InitConst->ExcitedDOF );
      free( InitConst->FileM );
      free( InitConst->FileK );
      if( InitConst->FileC != NULL ){
@@ -199,6 +224,7 @@ void CalculateMatrixC( const MatrixVector *const Mass, const MatrixVector *const
 	  saxpy_( &Length, &beta, &(*Stif).Array[i*(*Stif).Rows + i], &incx, &(*Damp).Array[i*(*Damp).Rows +i], &incy);
      }
 
+     printf( "Damping matrix successfully calculated\n" );
 }
 
 #if _SPARSE_
@@ -260,7 +286,7 @@ void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const 
 
      char uplo;
      int lda, info, i;
-     double *TempMatDouble;
+     double *TempMatDouble = NULL;
 
      uplo = 'L';  /* The lower part of the matrix will be used; the upper part will strictly not be referenced */
      lda = Max( 1, (*Keinv).Rows );
@@ -270,12 +296,15 @@ void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const 
 
      TempMatDouble = (double *) calloc ( (size_t) (Keinv->Rows*Keinv->Rows), sizeof(double) );
 
+     if( TempMatDouble == NULL ){
+	  PrintErrorAndExit( "Out of memory" );
+     }
+
      for( i = 0; i < Keinv->Rows*Keinv->Rows; i++ ){
 	  TempMatDouble[i] = (double) Keinv->Array[i];
      }
 
      /* LAPACK: Compute the Cholesky factorization of the symmetric positive definite matrix Meinv */
-     //spotrf_( &uplo, &(*Keinv).Rows, (*Keinv).Array, &lda, &info );
      dpotrf_( &uplo, &(*Keinv).Rows, TempMatDouble, &lda, &info );
 
      if ( info == 0 ){
@@ -288,7 +317,6 @@ void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const 
      }
 
      /* LAPACK: Compute the inverse of Me using the Cholesky factorization computed by pdpotrf_( ) */
-     //spotri_( &uplo, &(*Keinv).Rows, (*Keinv).Array, &lda, &info );
      dpotri_( &uplo, &(*Keinv).Rows, TempMatDouble, &lda, &info );
 
      for( i = 0; i < Keinv->Rows*Keinv->Rows; i++ ){
@@ -567,6 +595,10 @@ MatrixVector Generate_IdentityMatrix( int Rows, int Cols )
      MatrixVector Identity;
      unsigned short int i;
 
+     if( Rows != Cols ){
+	  PrintErrorAndExit( "The number of rows and columns must be equal in order to generate an identity matrix" );
+     }
+
      Init_MatrixVector( &Identity, Rows, Cols );
      
      for( i = 0; i < Rows; i++ ){
@@ -596,7 +628,7 @@ void BuildMatrixXc( const MatrixVector *const Mat, float *MatCouple, const Coupl
      }
 }
 
-void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const VecXcm, const Coupling_Node *const CNodes )
+void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const MatXcm, const Coupling_Node *const CNodes )
 {
 
      int Length;
@@ -617,8 +649,8 @@ void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const VecXcm, 
      PosXcm = 0;
      Length = CNodes->Array[0] - 1;
      for ( jcoup = 0; jcoup < CNodes->Order; jcoup++ ){
-	  PosXcm = jcoup*VecXcm->Rows;
-	  scopy_( &Length, &Mat->Array[CNodes->Array[jcoup] - 1], &incx, &VecXcm->Array[PosXcm], &incy );
+	  PosXcm = jcoup*MatXcm->Rows;
+	  scopy_( &Length, &Mat->Array[CNodes->Array[jcoup] - 1], &incx, &MatXcm->Array[PosXcm], &incy );
      }
 
      /* Copy until the last coupling node */
@@ -628,9 +660,9 @@ void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const VecXcm, 
 	  Length = CNodes->Array[icoup] - CNodes->Array[icoup-1] - 1;
 	  for ( jcoup = icoup; jcoup < CNodes->Order; jcoup++ ){
 	 
-	       PosXcm = jcoup*VecXcm->Rows + Acumulated_Length;
+	       PosXcm = jcoup*MatXcm->Rows + Acumulated_Length;
 	       
-	       scopy_( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1) + (CNodes->Array[icoup-1])*Mat->Rows], &incx, &VecXcm->Array[PosXcm], &incy );
+	       scopy_( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1) + (CNodes->Array[icoup-1])*Mat->Rows], &incx, &MatXcm->Array[PosXcm], &incy );
 	  }
 	  Acumulated_Length = Acumulated_Length + Length;
      }
@@ -639,17 +671,32 @@ void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const VecXcm, 
      incx = 1;
      Length = Mat->Rows - CNodes->Array[CNodes->Order -1];
      for ( jcoup = CNodes->Order - 1; jcoup >= 0; jcoup = jcoup - 1 ){
-	  PosXcm = VecXcm->Rows*(jcoup+1) - Length;
-	  scopy_( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1)*Mat->Rows + (CNodes->Array[CNodes->Order-1])], &incx, &VecXcm->Array[PosXcm], &incy );
+	  PosXcm = MatXcm->Rows*(jcoup+1) - Length;
+	  scopy_( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1)*Mat->Rows + (CNodes->Array[CNodes->Order-1])], &incx, &MatXcm->Array[PosXcm], &incy );
      }
      Acumulated_Length = Length;
      incx = 1;
      for( icoup = CNodes->Order -2; icoup >= 0; icoup = icoup -1 ){
 	  Length = CNodes->Array[icoup + 1] - CNodes->Array[icoup] - 1;
 	  for( jcoup = icoup; jcoup >= 0; jcoup = jcoup - 1){
-	       PosXcm = (jcoup+1)*VecXcm->Rows - Acumulated_Length - Length;
-	       scopy_( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1)*Mat->Rows + (CNodes->Array[icoup])], &incx, &VecXcm->Array[PosXcm], &incy );
+	       PosXcm = (jcoup+1)*MatXcm->Rows - Acumulated_Length - Length;
+	       scopy_( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1)*Mat->Rows + (CNodes->Array[icoup])], &incx, &MatXcm->Array[PosXcm], &incy );
 	  }
 	  Acumulated_Length = Acumulated_Length + Length;
      }
 }
+
+void Generate_LoadVectorForm( MatrixVector *const LoadVector, int *DOF )
+{
+     int i, j;
+
+     i = 0;
+     while( i < LoadVector->Rows ){
+	  
+	  for ( j = 0; j < 6; j++ ){
+	       LoadVector->Array[i] = 1.0f*(float) DOF[j];
+	       i = i + 1;
+	  }
+     }
+}
+	       

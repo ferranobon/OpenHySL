@@ -20,24 +20,6 @@
 #include "MatrixVector.h"
 #include "Netlib.h"
 
-void Calculatefi( MatrixVector *const fi, const MatrixVector *const fc, const MatrixVector *const li, const MatrixVector *const Deltaf )
-{
-
-	static int incx, incy;
-	static float Alpha;
-
-	incx = 1; incy = 1;
-	Alpha = 1.0;
-
-	/* BLAS: fi = Deltaf */
-	scopy_( &(*fi).Rows, (*Deltaf).Array, &incx, (*fi).Array, &incy );
-
-	/* BLAS fi = fc + fi = fc + Deltaf */
-	saxpy_( &(*fi).Rows, &Alpha, (*fc).Array, &incx, (*fi).Array, &incy );
-	/* BLAS fi = li + fi = li + fc + Deltaf */
-	saxpy_( &(*fi).Rows, &Alpha, (*li).Array, &incx, (*fi).Array, &incy );
-}
-
 void EffK_Calc_Effective_Force( const MatrixVector *const Mass, const MatrixVector *const Damp,
 				const MatrixVector *const Disp, const MatrixVector *const Vel,
 				const MatrixVector *const Acc, MatrixVector *const Tempvec,
@@ -183,26 +165,5 @@ void EffK_Calc_Effective_Force_Sparse( const Sp_MatrixVector *const Mass, const 
      Alpha = 1.0; Beta = 1.0;
      mkl_scsrmv( &trans, &Tempvec->Rows, &Tempvec->Rows, &Alpha, matdescra, Damp->Values, Damp->Columns, Damp->RowIndex, &Damp->RowIndex[1], Tempvec->Array, &Beta, Eff_Force->Array );
      
-}
-
-void EffK_ComputeU0_Sparse( const MatrixVector *const Eff_Force, const MatrixVector *const In_Load,
-		     const MatrixVector *const Err_Force, const float PID_P, const Sp_MatrixVector *const Keinv, MatrixVector *const Tempvec, MatrixVector *const Disp0 )
-{
-     static int incx = 1, incy = 1;
-     static float Alpha = 1.0, Beta = 0.0;
-     static char trans = 'N';
-     static char matdescra[6] = {'S', 'U', 'N', 'F'};
-
-     /* BLAS: tempvec = Eff_Force */
-     scopy_( &Tempvec->Rows, Eff_Force->Array, &incx, Tempvec->Array, &incy );
-     /* BLAS: tempvec = Eff_Force + LoadTdT = tempvec + LoadTdT */
-     saxpy_( &Tempvec->Rows, &Alpha, In_Load->Array, &incx, Tempvec->Array, &incy );
-     
-     /* BLAS: tempvec = Eff_Force + LoadTdT + Err_Force = tempvec + Err_Force. The sign of Err_Force was already applied when calculating it. */
-     Alpha = PID_P;
-     saxpy_( &Tempvec->Rows, &Alpha, Err_Force->Array, &incx, Tempvec->Array, &incy );
-     /* BLAS: Disp0 = Keinv*(Eff_Force + LoadTdT + Err_Force) = Keinv*Tempvec */
-     Alpha = 1.0;
-     mkl_scsrmv( &trans, &Tempvec->Rows, &Tempvec->Rows, &Alpha, matdescra, Keinv->Values, Keinv->Columns, Keinv->RowIndex, &Keinv->RowIndex[1], Tempvec->Array, &Beta, Disp0->Array );
 }
 #endif

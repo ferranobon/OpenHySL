@@ -138,11 +138,12 @@ int main( int argc, char **argv )
 
      /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will
       * be used during the test */
-     AccAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
      if( InitCnt.Use_Absolute_Values ){
+	  AccAll = NULL;
 	  VelAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
 	  DispAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
      } else {
+	  AccAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
 	  VelAll = NULL;
 	  DispAll = NULL;
      }
@@ -159,7 +160,7 @@ int main( int argc, char **argv )
      TimeHistoryfu = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
 
      /* Initialise the matrices and vectors that will be used in the Time Integration process */
-     if( (!InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (InitCnt.Use_Sparse && !InitCnt.Read_Sparse) ){
+     if( (!InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (!InitCnt.Use_Sparse && InitCnt.Read_Sparse) ){
 	  Init_MatrixVector( &M, InitCnt.Order, InitCnt.Order );
 	  Init_MatrixVector( &K, InitCnt.Order, InitCnt.Order );
      }
@@ -217,15 +218,14 @@ int main( int argc, char **argv )
 	  assert( InitCnt.Read_Sparse && !InitCnt.Use_Sparse );
      }
 
-     MatrixVector_From_File( &LoadVectorForm, InitCnt.FileLVector );
-
+     Generate_LoadVectorForm( &LoadVectorForm, InitCnt.ExcitedDOF );
+     MatrixVector_To_File( &LoadVectorForm, "LVprov.txt" );
      /* Calculate damping matrix using Rayleigh. C = alpha*M + beta*K */
      if ( InitCnt.Use_Sparse && InitCnt.Read_Sparse ) {
 
 #if _SPARSE_
 	  Init_MatrixVector_Sp( &Sp_C, InitCnt.Order, InitCnt.Order, Sp_K.Num_Nonzero );
 	  CalculateMatrixC_Sp( &Sp_M, &Sp_K, &Sp_C, &InitCnt.Rayleigh );
-	  MatrixVector_To_File_Sparse( &Sp_C, "SpC.txt" );
 #endif
      } else {
 	  Init_MatrixVector( &C, InitCnt.Order, InitCnt.Order );
@@ -239,17 +239,14 @@ int main( int argc, char **argv )
 
      if( !InitCnt.Use_Pardiso ){
 	  CalculateMatrixKeinv( &Keinv, &M, &C, &K, Constants );
-	  MatrixVector_To_File( &Keinv, "Keinv.txt" );
      } else if ( InitCnt.Use_Pardiso && !InitCnt.Read_Sparse ){
 #if _SPARSE_
 	  CalculateMatrixKeinv_Pardiso( &Keinv, &M, &C, &K, Constants );
-	  MatrixVector_To_File( &Keinv, "Keinv_PARDISO.txt" );
 #endif
      } else if ( InitCnt.Use_Pardiso && InitCnt.Use_Sparse && InitCnt.Read_Sparse ){
 #if _SPARSE_
 	  CalculateMatrixKeinv_Pardiso_Sparse( &Keinv, &Sp_M, &Sp_C, &Sp_K,
 					       Constants );
-	  MatrixVector_To_File( &Keinv, "Keinv_PARDISO_Sp.txt" );
 #endif
      }
      BuildMatrixXc( &Keinv, Keinv_c.Array, &CNodes );
@@ -275,7 +272,7 @@ int main( int argc, char **argv )
 
      /* Read the earthquake data from a file */
      if( InitCnt.Use_Absolute_Values ){
-	  ReadDataEarthquake_AbsValues( AccAll, VelAll, DispAll, InitCnt.Nstep, InitCnt.FileData );
+	  ReadDataEarthquake_AbsValues( VelAll, DispAll, InitCnt.Nstep, InitCnt.FileData );
      } else {
 	  ReadDataEarthquake_RelValues( AccAll, InitCnt.Nstep, InitCnt.FileData );
      }
@@ -394,15 +391,15 @@ int main( int argc, char **argv )
 	  }
 
 	  /* Output variables */
-	  TimeHistoryli[istep - 1] = LoadTdT.Array[30];
-	  TimeHistoryai1[istep - 1] = AccTdT.Array[30];
-	  TimeHistoryai[istep - 1] = AccT.Array[30];
-	  TimeHistoryvi1[istep - 1] = VelTdT.Array[30];
-	  TimeHistoryvi[istep - 1] = VelT.Array[30];
-	  TimeHistoryui1[istep - 1] = DispTdT.Array[30];
-	  TimeHistoryui[istep - 1] = DispT.Array[30];
-	  TimeHistoryfc[istep - 1] = fc.Array[30];
-	  TimeHistoryfu[istep - 1] = fu.Array[30];
+	  TimeHistoryli[istep - 1] = LoadTdT.Array[0];
+	  TimeHistoryai1[istep - 1] = AccTdT.Array[0];
+	  TimeHistoryai[istep - 1] = AccT.Array[0];
+	  TimeHistoryvi1[istep - 1] = VelTdT.Array[0];
+	  TimeHistoryvi[istep - 1] = VelT.Array[0];
+	  TimeHistoryui1[istep - 1] = DispTdT.Array[0];
+	  TimeHistoryui[istep - 1] = DispT.Array[0];
+	  TimeHistoryfc[istep - 1] = fc.Array[0];
+	  TimeHistoryfu[istep - 1] = fu.Array[0];
 
 	  /* Backup vectors */
 	  scopy_( &LoadTdT1.Rows, LoadTdT1.Array, &incx, LoadTdT.Array, &incy ); /* li = li1 */
@@ -448,10 +445,11 @@ int main( int argc, char **argv )
      free( TimeHistoryfu );
 
      /* Free the memory */
-     free( AccAll );
      if( InitCnt.Use_Absolute_Values ){
 	  free( VelAll );
 	  free( DispAll );
+     } else {
+	  free( AccAll );
      }
 
      /* Free the coupling nodes memory */
