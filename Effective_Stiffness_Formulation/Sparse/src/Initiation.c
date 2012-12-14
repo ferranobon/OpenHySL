@@ -109,7 +109,6 @@ void InitConstants( AlgConst *const InitConst, const char *FileName )
      (*InitConst).FileM = strdup( ConfFile_GetString( Config, "FileNames:Mass_Matrix" ) );
      (*InitConst).FileK = strdup( ConfFile_GetString( Config, "FileNames:Stiffness_Matrix" ) );
      (*InitConst).FileC = strdup( ConfFile_GetString( Config, "FileNames:Damping_Matrix" ) );
-     (*InitConst).FileLVector = strdup( ConfFile_GetString( Config, "FileNames:FileLVector" ) );
      (*InitConst).FileCNodes = strdup( ConfFile_GetString( Config, "FileNames:Coupling_Nodes" ) );
      (*InitConst).FileData = strdup( ConfFile_GetString( Config, "FileNames:Ground_Motion" ) );
      (*InitConst).FileOutput = strdup( ConfFile_GetString( Config, "FileNames:OutputFile" ) );
@@ -151,7 +150,6 @@ void Delete_InitConstants( AlgConst *const InitConst )
      if( InitConst->FileC != NULL ){
 	  free( InitConst->FileC );
      }
-     free( InitConst->FileLVector );
      free( InitConst->FileCNodes );
      free( InitConst->FileData );
      free( InitConst->FileOutput );

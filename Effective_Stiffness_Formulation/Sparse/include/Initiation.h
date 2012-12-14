@@ -119,7 +119,6 @@ typedef struct {
      char* FileM;            /*!< \brief Stores the name of the file that contains the Mass Matrix */
      char* FileK;            /*!< \brief Stores the name of the file that contains the Stiffness Matrix */
      char* FileC;            /*!< \brief Stores the name of the file that contains the Damping Matrix */
-     char* FileLVector;      /*!< \brief Stores the name of the file that contains the vector used for the load. This vector usually contains 1 and 0 */
      char* FileCNodes;       /*!< \brief Stores the name of the file that contains the vector of coupling nodes. */
      char* FileData;         /*!< \brief Stores the name of the file that contains displacement, velocity and acceleration */
      char* FileOutput;       /*!< \brief Name of the file to store the output values of the process */
