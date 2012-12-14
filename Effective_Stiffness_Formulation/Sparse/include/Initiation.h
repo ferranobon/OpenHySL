@@ -86,6 +86,10 @@ typedef struct {
      unsigned int Nstep;      /*!< \brief Number of steps */
 
      int Use_Absolute_Values; /*!< \brief Variable to control whether to use absolute values in the equation of motion or relative values. Affects how the input load is calculated */
+     int Read_Sparse;
+     int Use_Sparse;
+     int Use_Pardiso;
+
      float Delta_t;           /*!< \brief Time increment \f$\Delta t\f$ */
 
      RayleighConst Rayleigh;  /*!< \brief Stores Rayleigh Constants alpha (\c Rayleigh.Alpha or \f$\alpha_R\f$) and beta (\c Rayleigh.Beta or \f$\beta_R\f$) */

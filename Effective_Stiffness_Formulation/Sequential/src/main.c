@@ -135,6 +135,9 @@ int main( int argc, char **argv )
      if( InitCnt.Use_Absolute_Values ){
 	  VelAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
 	  DispAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
+	  if( DispAll == NULL || VelAll == NULL ){
+	       PrintErrorAndExit( "Out of memory" );
+	  }
      } else {
 	  VelAll = NULL;
 	  DispAll = NULL;
@@ -193,8 +196,14 @@ int main( int argc, char **argv )
      Init_MatrixVector( &Acc, InitCnt.Order, 1 );
 
      /* Read the matrices from a file */
-     MatrixVector_From_File( &M, InitCnt.FileM );
-     MatrixVector_From_File( &K, InitCnt.FileK );
+     if ( !InitCnt.Read_Sparse ){
+	  MatrixVector_From_File( &M, InitCnt.FileM );
+	  MatrixVector_From_File( &K, InitCnt.FileK );
+     } else { 
+	  MatrixVector_From_File_Sp2Dense( &M, InitCnt.FileM );
+	  MatrixVector_From_File_Sp2Dense( &K, InitCnt.FileK );
+     }
+
      MatrixVector_From_File( &LoadVectorForm, InitCnt.FileLVector );
 
      /* Calculate damping matrix using Rayleigh. C = alpha*M + beta*K */

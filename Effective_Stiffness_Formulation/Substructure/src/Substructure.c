@@ -236,6 +236,7 @@ void Simulate_UHYDE_1D( const float u0c, const float DeltaT, UHYDE_Sim *const Nu
      } else if ( Num->qyield < fabsf(Num->q) || Num->q*v > 0.0f ){
 	  hq = (Num->qplastic - Num->q)/(Num->qplastic - Num->qyield);
      } else {
+	  printf("qyield %e, abs(q) %e, q*v %e\n", Num->qyield, fabsf(Num->q), Num->q*v );
 	  assert( 0 );
      }
 

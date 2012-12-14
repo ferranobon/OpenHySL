@@ -32,6 +32,7 @@ void Set2Value( PMatrixVector *const Mat, const float Value );
 void ModifyElement( PMatrixVector *const Mat, int GRowIndex, int GColIndex, const float Value, const char *Operation );
 void PAdd3Mat( PMatrixVector *const MatY, PMatrixVector *const MatA, PMatrixVector *const MatB, PMatrixVector *const MatC, Scalars Const );
 void DistMatrixFromFile( PMatrixVector *const Mat, const char *Filename );
+void DistMatrixFromFile_Sp2Dense( PMatrixVector *const Mat, const char *Filename );
 void DistMatrixToFile( PMatrixVector *const Mat, const char *Filename );
 void DestroyDistMatrix( PMatrixVector *const Mat );
 int Max ( const int a, const int b );

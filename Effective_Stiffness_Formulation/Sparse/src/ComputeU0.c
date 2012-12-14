@@ -131,12 +131,12 @@ void CreateVectorXm( const MatrixVector *const VectorX, MatrixVector *const Vect
 
 void CreateVectorXc( const MatrixVector *const VecX, float *VecXc, const Coupling_Node *const CNodes )
 {
-	static int icoup;    /* Counter for the coupling nodes */
+     static int icoup;    /* Counter for the coupling nodes */
 
 #pragma omp parallel for
-	for( icoup = 0; icoup < CNodes->Order; icoup++ ){
-	     VecXc[icoup] = VecX->Array[CNodes->Array[icoup] - 1];
-	}
+     for( icoup = 0; icoup < CNodes->Order; icoup++ ){
+	  VecXc[icoup] = VecX->Array[CNodes->Array[icoup] - 1];
+     }
 }
 
 #if _SPARSE_
@@ -150,7 +150,7 @@ void EffK_Calc_Effective_Force_Sparse( const Sp_MatrixVector *const Mass, const 
 
      static int incx = 1, incy = 1;
      static char trans = 'N';
-     static char matdescra[6] = {'S', 'U', 'N', 'C'};
+     static char matdescra[6] = {'S', 'U', 'N', 'F'};
      static float Alpha, Beta;
 
      /* BLAS: tempvec = Disp */
@@ -191,7 +191,7 @@ void EffK_ComputeU0_Sparse( const MatrixVector *const Eff_Force, const MatrixVec
      static int incx = 1, incy = 1;
      static float Alpha = 1.0, Beta = 0.0;
      static char trans = 'N';
-     static char matdescra[6] = {'S', 'U', 'N', 'C'};
+     static char matdescra[6] = {'S', 'U', 'N', 'F'};
 
      /* BLAS: tempvec = Eff_Force */
      scopy_( &Tempvec->Rows, Eff_Force->Array, &incx, Tempvec->Array, &incy );

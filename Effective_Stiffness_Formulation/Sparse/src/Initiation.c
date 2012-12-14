@@ -43,6 +43,21 @@ void InitConstants( AlgConst *const InitConst, const char *FileName )
 	  PrintErrorAndExit( "Invalid option for Use_Absolute_Values" );
      }
 
+     InitConst->Read_Sparse = ConfFile_GetInt( Config, "General:Read_Sparse" );
+     if ( InitConst->Read_Sparse != 0 && InitConst->Read_Sparse != 1 ){
+	  PrintErrorAndExit( "Invalid option for Read_Sparse" );
+     }
+
+     InitConst->Use_Sparse = ConfFile_GetInt( Config, "General:Use_Sparse" );
+     if ( InitConst->Use_Sparse != 0 && InitConst->Use_Sparse != 1 ){
+	  PrintErrorAndExit( "Invalid option for Use_Sparse" );
+     }
+
+     InitConst->Use_Pardiso = ConfFile_GetInt( Config, "General:Use_Pardiso" );
+     if ( InitConst->Use_Pardiso != 0 && InitConst->Use_Pardiso != 1 ){
+	  PrintErrorAndExit( "Invalid option for Use_Pardiso" );
+     }
+
      /* Order of the matrices */
      (*InitConst).Order = ConfFile_GetInt( Config, "General:Order" );
      if ( InitConst->Order <= 0 ){
@@ -244,7 +259,8 @@ void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const 
 {
 
      char uplo;
-     int lda, info;
+     int lda, info, i;
+     double *TempMatDouble;
 
      uplo = 'L';  /* The lower part of the matrix will be used; the upper part will strictly not be referenced */
      lda = Max( 1, (*Keinv).Rows );
@@ -252,8 +268,15 @@ void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const 
      /* Perform Meinv = [M + gamma*Delta_t*C + beta*Delta_t^2*K] */
      Add3Mat( &(*Keinv), &(*Stif), &(*Mass), &(*Damp), Const );
 
+     TempMatDouble = (double *) calloc ( (size_t) (Keinv->Rows*Keinv->Rows), sizeof(double) );
+
+     for( i = 0; i < Keinv->Rows*Keinv->Rows; i++ ){
+	  TempMatDouble[i] = (double) Keinv->Array[i];
+     }
+
      /* LAPACK: Compute the Cholesky factorization of the symmetric positive definite matrix Meinv */
-     spotrf_( &uplo, &(*Keinv).Rows, (*Keinv).Array, &lda, &info );
+     //spotrf_( &uplo, &(*Keinv).Rows, (*Keinv).Array, &lda, &info );
+     dpotrf_( &uplo, &(*Keinv).Rows, TempMatDouble, &lda, &info );
 
      if ( info == 0 ){
 	  printf( "Cholesky factorization successfully completed.\n" );
@@ -265,7 +288,12 @@ void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const 
      }
 
      /* LAPACK: Compute the inverse of Me using the Cholesky factorization computed by pdpotrf_( ) */
-     spotri_( &uplo, &(*Keinv).Rows, (*Keinv).Array, &lda, &info );
+     //spotri_( &uplo, &(*Keinv).Rows, (*Keinv).Array, &lda, &info );
+     dpotri_( &uplo, &(*Keinv).Rows, TempMatDouble, &lda, &info );
+
+     for( i = 0; i < Keinv->Rows*Keinv->Rows; i++ ){
+	  Keinv->Array[i] = (float) TempMatDouble[i];
+     }
 
      if ( info == 0 ){
 	  printf( "Matrix Inversion successfully completed.\n" );
@@ -277,21 +305,25 @@ void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const 
 	  exit( EXIT_FAILURE );
      }
 
+     free( TempMatDouble );
+
 }
 
 #if _SPARSE_
 void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *const Stiff, const Scalars Const )
 {
-     unsigned short int i;
+     unsigned int i;
      int iparm[64];
      void *pt[64];
      int maxfct, mnum, msglvl, error;
-     int mtype = -2;                   /* Real symmetric matrix */
+     int mtype = 2;                   /* Real symmetric matrix */
      int phase;
-     MatrixVector IdentMatrix;
+     double *IdentMatrix;
+     double *TempMatDouble;
+     double *TempValues;
      MatrixVector TempMat;
      Sp_MatrixVector Sp_TempMat;
-     float fdum;                       /* Dummy float */
+     double fdum;                       /* Dummy float */
      int idum;                         /* Dummy integer */
 
      Init_MatrixVector( &TempMat, Keinv->Rows, Keinv->Cols );
@@ -299,6 +331,7 @@ void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector
      Add3Mat( &TempMat, &(*Stiff), &(*Mass), &(*Damp), Const );
 
      Dense_to_CSR( &TempMat, &Sp_TempMat, 0 );  /* Transform into CSR format */
+     MatrixVector_To_File_Sparse( &Sp_TempMat, "TempMatDns.txt" );
      Destroy_MatrixVector( &TempMat );                /* Destroy the dense matrix */
 
      /* Setup the Pardiso control parameters */
@@ -313,13 +346,14 @@ void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector
      iparm[7] = 2;	/* Max numbers of iterative refinement steps */
      iparm[9] = 13;	/* Perturb the pivot elements with 1E-13 */
      iparm[10] = 1;	/* Use nonsymmetric permutation and scaling MPS */
+     iparm[11] = 2;
      iparm[12] = 1;	/* Maximum weighted matching algorithm is switched-off (default for symmetric). Try iparm[12] = 1 in case of inappropriate accuracy */
      iparm[13] = 0;	/* Output: Number of perturbed pivots */
      iparm[17] = -1;	/* Output: Number of nonzeros in the factor LU */
      iparm[18] = -1;	/* Output: Mflops for LU factorization */
      iparm[19] = 0;	/* Output: Numbers of CG Iterations */
-     iparm[27] = 1;     /* Input/output matrices are single precision */
-     iparm[34] = 0;	/* PARDISO use 1 based indexing for ia and ja arrays */
+     iparm[27] = 0;     /* Input/output matrices are single precision */
+     iparm[34] = 0;	/* PARDISO uses 1 based indexing for ia and ja arrays */
      maxfct = 1;	/* Maximum number of numerical factorizations. */
      mnum = 1;		/* Which factorization to use. */
      msglvl = 1;	/* Print statistical information in file */
@@ -338,8 +372,12 @@ void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector
      /* all memory that is necessary for the factorization. */
      /* -------------------------------------------------------------------- */
      phase = 11;
+     TempValues = (double *) calloc( (size_t) Sp_TempMat.Num_Nonzero, sizeof(double) );
+     for( i = 0; i < Sp_TempMat.Num_Nonzero; i++ ){
+	  TempValues[i] = (double) Sp_TempMat.Values[i];
+     }
      PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
-	      &Sp_TempMat.Rows, Sp_TempMat.Values, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &Keinv->Rows, iparm, &msglvl, &fdum, &fdum, &error);
+	      &Sp_TempMat.Rows, TempValues, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &Keinv->Rows, iparm, &msglvl, &fdum, &fdum, &error);
      if (error != 0)
      {
 	  printf ("\nERROR during symbolic factorization: %d", error);
@@ -352,8 +390,9 @@ void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector
 /* .. Numerical factorization. */
 /* -------------------------------------------------------------------- */
      phase = 22;
+     
      PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
-	      &Sp_TempMat.Rows, Sp_TempMat.Values, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &Keinv->Rows, iparm, &msglvl, &fdum, &fdum, &error);
+	      &Sp_TempMat.Rows, TempValues, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &Keinv->Rows, iparm, &msglvl, &fdum, &fdum, &error);
      if (error != 0)
      {
 	  printf ("\nERROR during numerical factorization: %d", error);
@@ -364,13 +403,25 @@ void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector
 /* .. Back substitution and iterative refinement. */
 /* -------------------------------------------------------------------- */
      phase = 33;
-     iparm[7] = 2;			/* Max numbers of iterative refinement steps. */
+     iparm[7] = 10;			/* Max numbers of iterative refinement steps. */
 
      /* Set right hand side to be the identity matrix. */
-     IdentMatrix = Generate_IdentityMatrix( Keinv->Rows, Keinv->Cols );
+     TempMatDouble = (double *) calloc ( (size_t) (Keinv->Rows*Keinv->Rows), sizeof(double) );
+     IdentMatrix = (double *) calloc ( (size_t) (Keinv->Rows*Keinv->Rows), sizeof(double) );
+     
+
+     for ( i = 0; i < Keinv->Cols; i++ ){
+	  IdentMatrix[i + i*Keinv->Cols] = 1.0;
+     }
+     
+     //IdentMatrix = Generate_IdentityMatrix( Keinv->Rows, Keinv->Cols );
 
      PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
-	      &Sp_TempMat.Rows, Sp_TempMat.Values, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &Keinv->Rows, iparm, &msglvl, IdentMatrix.Array, Keinv->Array, &error);
+	      &Sp_TempMat.Rows, TempValues, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &Keinv->Rows, iparm, &msglvl, IdentMatrix, TempMatDouble, &error);
+
+     for( i = 0; i < Keinv->Rows*Keinv->Rows; i++ ){
+	  Keinv->Array[i] = (float) TempMatDouble[i];
+     }
 
 /* -------------------------------------------------------------------- */
 /* .. Termination and release of memory. */
@@ -380,26 +431,31 @@ void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector
 	      &Sp_TempMat.Rows, &fdum, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &Keinv->Rows,
 	      iparm, &msglvl, &fdum, &fdum, &error);
 
-     Destroy_MatrixVector( &IdentMatrix );
+     free( IdentMatrix );
+     free( TempMatDouble );
+     free( TempValues );
      Destroy_MatrixVector_Sparse( &Sp_TempMat );
 }
 
 void CalculateMatrixKeinv_Pardiso_Sparse( MatrixVector *const Keinv, const Sp_MatrixVector *const Mass, const Sp_MatrixVector *const Damp, const Sp_MatrixVector *const Stiff, const Scalars Const )
 {
-     unsigned short int i;
+     unsigned int i;
      int iparm[64];
      void *pt[64];
      int maxfct, mnum, msglvl, error;
-     int mtype = -2;                   /* Real symmetric matrix */
+     int mtype = 2;                   /* Real symmetric matrix */
      int phase;
-     MatrixVector IdentMatrix;
+     double *IdentMatrix;
+     double *TempMatDouble;
+     double *TempValues;
      Sp_MatrixVector Sp_TempMat;
-     float fdum;                       /* Dummy float */
+     double fdum;                       /* Dummy float */
      int idum;                         /* Dummy integer */
 
      Init_MatrixVector_Sp( &Sp_TempMat, Damp->Rows, Damp->Cols, Damp->Num_Nonzero );
 
      Add3Mat_Sparse( &Sp_TempMat, &(*Stiff), &(*Mass), &(*Damp), Const );
+     MatrixVector_To_File_Sparse( &Sp_TempMat, "TempMatSp.txt" );
 
      /* Setup the Pardiso control parameters */
      for (i = 0; i < 64; i++){
@@ -413,12 +469,13 @@ void CalculateMatrixKeinv_Pardiso_Sparse( MatrixVector *const Keinv, const Sp_Ma
      iparm[7] = 2;	/* Max numbers of iterative refinement steps */
      iparm[9] = 13;	/* Perturb the pivot elements with 1E-13 */
      iparm[10] = 1;	/* Use nonsymmetric permutation and scaling MPS */
+     iparm[11] = 2;
      iparm[12] = 1;	/* Maximum weighted matching algorithm is switched-off (default for symmetric). Try iparm[12] = 1 in case of inappropriate accuracy */
      iparm[13] = 0;	/* Output: Number of perturbed pivots */
      iparm[17] = -1;	/* Output: Number of nonzeros in the factor LU */
      iparm[18] = -1;	/* Output: Mflops for LU factorization */
      iparm[19] = 0;	/* Output: Numbers of CG Iterations */
-     iparm[27] = 1;     /* Input/output matrices are single precision */
+     iparm[27] = 0;     /* Input/output matrices are single precision */
      iparm[34] = 0;	/* PARDISO use 1 based indexing for ia and ja arrays */
      maxfct = 1;	/* Maximum number of numerical factorizations. */
      mnum = 1;		/* Which factorization to use. */
@@ -437,9 +494,13 @@ void CalculateMatrixKeinv_Pardiso_Sparse( MatrixVector *const Keinv, const Sp_Ma
      /* .. Reordering and Symbolic Factorization. This step also allocates */
      /* all memory that is necessary for the factorization. */
      /* -------------------------------------------------------------------- */
+     TempValues = (double *) calloc( (size_t) Sp_TempMat.Num_Nonzero, sizeof(double) );
+     for( i = 0; i < Sp_TempMat.Num_Nonzero; i++ ){
+	  TempValues[i] = (double) Sp_TempMat.Values[i];
+     }
      phase = 11;
      PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
-	      &Sp_TempMat.Rows, Sp_TempMat.Values, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &Keinv->Rows, iparm, &msglvl, &fdum, &fdum, &error);
+	      &Sp_TempMat.Rows, TempValues, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &Keinv->Rows, iparm, &msglvl, &fdum, &fdum, &error);
      if (error != 0)
      {
 	  printf ("\nERROR during symbolic factorization: %d", error);
@@ -453,7 +514,7 @@ void CalculateMatrixKeinv_Pardiso_Sparse( MatrixVector *const Keinv, const Sp_Ma
 /* -------------------------------------------------------------------- */
      phase = 22;
      PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
-	      &Sp_TempMat.Rows, Sp_TempMat.Values, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &Keinv->Rows, iparm, &msglvl, &fdum, &fdum, &error);
+	      &Sp_TempMat.Rows, TempValues, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &Keinv->Rows, iparm, &msglvl, &fdum, &fdum, &error);
      if (error != 0)
      {
 	  printf ("\nERROR during numerical factorization: %d", error);
@@ -464,13 +525,25 @@ void CalculateMatrixKeinv_Pardiso_Sparse( MatrixVector *const Keinv, const Sp_Ma
 /* .. Back substitution and iterative refinement. */
 /* -------------------------------------------------------------------- */
      phase = 33;
-     iparm[7] = 2;			/* Max numbers of iterative refinement steps. */
+     iparm[7] = 10;			/* Max numbers of iterative refinement steps. */
 
      /* Set right hand side to be the identity matrix. */
-     IdentMatrix = Generate_IdentityMatrix( Keinv->Rows, Keinv->Cols );
+     TempMatDouble = (double *) calloc ( (size_t) (Keinv->Rows*Keinv->Rows), sizeof(double) );
+     IdentMatrix = (double *) calloc ( (size_t) (Keinv->Rows*Keinv->Rows), sizeof(double) );
+     
+
+     for ( i = 0; i < Keinv->Cols; i++ ){
+	  IdentMatrix[i + i*Keinv->Cols] = 1.0;
+     }
+     //IdentMatrix = Generate_IdentityMatrix( Keinv->Rows, Keinv->Cols );
 
      PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
-	      &Sp_TempMat.Rows, Sp_TempMat.Values, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &Keinv->Rows, iparm, &msglvl, IdentMatrix.Array, Keinv->Array, &error);
+	      &Sp_TempMat.Rows, TempValues, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &Keinv->Rows, iparm, &msglvl, IdentMatrix, TempMatDouble, &error);
+
+     for( i = 0; i < Keinv->Rows*Keinv->Rows; i++ ){
+	  printf("%d %d %d\n", Keinv->Rows*Keinv->Cols, Keinv->Rows, i );
+	  Keinv->Array[i] = (float) TempMatDouble[i];
+     }
 
 /* -------------------------------------------------------------------- */
 /* .. Termination and release of memory. */
@@ -480,7 +553,9 @@ void CalculateMatrixKeinv_Pardiso_Sparse( MatrixVector *const Keinv, const Sp_Ma
 	      &Sp_TempMat.Rows, &fdum, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &Keinv->Rows,
 	      iparm, &msglvl, &fdum, &fdum, &error);
 
-     Destroy_MatrixVector( &IdentMatrix );
+     free( IdentMatrix );
+     free( TempMatDouble );
+     free( TempValues );
      Destroy_MatrixVector_Sparse( &Sp_TempMat );
 }
 
