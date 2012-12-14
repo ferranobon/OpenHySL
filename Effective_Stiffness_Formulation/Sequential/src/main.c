@@ -300,15 +300,15 @@ int main( int argc, char **argv )
 	  Compute_Force_Error( &M, &C, &K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &fu );
 
 	  /* Output variables */
-	  TimeHistoryli[istep - 1] = LoadTdT.Array[30];
-	  TimeHistoryai1[istep - 1] = AccTdT.Array[30];
-	  TimeHistoryai[istep - 1] = AccT.Array[30];
-	  TimeHistoryvi1[istep - 1] = VelTdT.Array[30];
-	  TimeHistoryvi[istep - 1] = VelT.Array[30];
-	  TimeHistoryui1[istep - 1] = DispTdT.Array[30];
-	  TimeHistoryui[istep - 1] = DispT.Array[30];
-	  TimeHistoryfc[istep - 1] = fc.Array[30];
-	  TimeHistoryfu[istep - 1] = fu.Array[30];
+	  TimeHistoryli[istep - 1] = LoadTdT.Array[0];
+	  TimeHistoryai1[istep - 1] = AccTdT.Array[0];
+	  TimeHistoryai[istep - 1] = AccT.Array[0];
+	  TimeHistoryvi1[istep - 1] = VelTdT.Array[0];
+	  TimeHistoryvi[istep - 1] = VelT.Array[0];
+	  TimeHistoryui1[istep - 1] = DispTdT.Array[0];
+	  TimeHistoryui[istep - 1] = DispT.Array[0];
+	  TimeHistoryfc[istep - 1] = fc.Array[0];
+	  TimeHistoryfu[istep - 1] = fu.Array[0];
 
 	  /* Backup vectors */
 	  scopy_( &LoadTdT1.Rows, LoadTdT1.Array, &incx, LoadTdT.Array, &incy ); /* li = li1 */

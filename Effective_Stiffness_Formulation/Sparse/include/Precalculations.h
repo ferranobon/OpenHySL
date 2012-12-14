@@ -15,35 +15,60 @@
 #define PRECALCULATIONS_H_
 
 /**
- * \brief Reads the data of an earthquake from a file.
+ * \brief Reads the velocity and displacement of an earthquake from a file.
  *
  * The data from an earthquake is readen from the specified file and its components are stored in different variables, namely:
- * displacement, velocity and acceleration for further use. If the specified file does not exist, an appropriate error is displayed
+ * displacement and velocity. If the specified file does not exist, an appropriate error is displayed
  * and the program exists with \c EXIT_FAILURE.
  *
  * \pre
  * - The input text file should be in ASCII format and it must contain no header and four columns in the following order:
- * 	-# It can contain anything, since it will not be stored, it is recommended that it has the step number to detect any possible
+ *     -# It can contain anything, since it will not be stored, it is recommended that it has the step number to detect any possible
  * errors (see the next precondition).
- * 	-# Acceleration in \f$[m/s^2]\f$.
- *	-# Velocity in \f$[m/s]\f$.
- * 	-# Displacement in \f$[m]\f$.
+ *     -# Acceleration in \f$[m/s^2]\f$.
+ *     -# Velocity in \f$[m/s]\f$.
+ *     -# Displacement in \f$[m]\f$.
  * - Note also that the number of steps in the file should be equal to the number of steps defined in InitConstants(). No check
  * is performed.
  * - The arrays must be properly initialised and its length should be \f$l = Number~of~Steps\f$.
  *
- * \param[out] Acceleration Array that will store the second column of the data file, that is, the acceleration of the recorded earthquake.
- * \param[out] Velocity Array that will store the third column of the data file, that is, the velocity of the recorded earthquake..
- * \param[out] Displacement Array that will store the fourth column of the data file, that is, the displacement of the recorded earthquake..
+ * \param[out] Velocity Array that will store the third column of the data file, that is, the velocity of the recorded earthquake.
+ * \param[out] Displacement Array that will store the fourth column of the data file, that is, the displacement of the recorded earthquake.
  * \param[in] NumSteps The number of steps in which the earthquake is divided.
  * \param[in] Filename The name of the file where the earthquake is recorded.
  *
  * \post
- * - \c Acceleration, \c Velocity and \c Displacement will store the acceleration, velocity and displacement of the recorded earthquake.
+ * - \c Velocity and \c Displacement will store the velocity and displacement of the recorded earthquake.
  * \sa InitConstants()
  */
-void ReadDataEarthquake_AbsValues( float *Acceleration, float *Velocity, float *Displacement, const unsigned int NumSteps, const char *Filename );
+void ReadDataEarthquake_AbsValues( float *Velocity, float *Displacement, const unsigned int NumSteps, const char *Filename );
 
+/**
+ * \brief Reads the accelerations of an earthquake from a file.
+ *
+ * The acceleration record from an earthquake is readen from the specified file. If it does not exist, an appropriate
+ * error is displayed and the program exists with \c EXIT_FAILURE.
+ *
+ * \pre
+ * - The input text file should be in ASCII format and it must contain no header and four columns in the following order:
+ *      -# It can contain anything, since it will not be stored, it is recommended that it has the step number to detect any possible
+ * errors (see the next precondition).
+ *      -# Acceleration in \f$[m/s^2]\f$.
+ *      -# Velocity in \f$[m/s]\f$.
+ *      -# Displacement in \f$[m]\f$.
+ * - Note also that the number of steps in the file should be equal to the number of steps defined in InitConstants(). No check
+ * is performed.
+ * - The arrays must be properly initialised and its length should be \f$l = Number~of~Steps\f$.
+ *
+ * \param[out] Acceleration Array that will store the second column of the data file, that is, the acceleration.
+
+ * \param[in] NumSteps The number of steps in which the earthquake is divided.
+ * \param[in] Filename The name of the file where the earthquake is recorded.
+ *
+ * \post
+ * - \c Acceleration will store the velocity and displacement of the recorded earthquake.
+ * \sa InitConstants()
+ */
 void ReadDataEarthquake_RelValues( float *Acceleration, const unsigned int NumSteps, const char *Filename );
 
 /**
@@ -67,13 +92,12 @@ void ReadDataEarthquake_RelValues( float *Acceleration, const unsigned int NumSt
 void CopyDiagonalValues( const MatrixVector *const Mat, MatrixVector *const Vec );
 
 /**
- * \brief Calculates the input load.
+ * \brief Calculates the input load as an absolute value.
  *
  * This routine calculates the input load that is required at the beginning of each step, that is
- * \f$ \{l_{i+1}\} = \{ld_g\} + \{ld_v\} + \{ld_a\} -[M]\cdot [I]\cdot \{Acceleration_i\}\f$, where:
+ * \f$ \{l_{i+1}\} = \{ld_g\} + \{ld_v\}\f$, where:
  * - \f$\{ld_g\} = [M]\cdot{Displacement_i}\f$ is the load caused by the ground motion,
  * - \f$\{ld_v\} = [C]\cdot{Velocity_i}\f$ is the load caused by ground velocity,
- * - \f$\{ld_a\} = [C]\cdot{Acceleration_i}\f$ is the load caused by ground acceleration and
  * - \e i denotes the step.
  * It makes use of the level 2 BLAS routine dsymv_().
  *
@@ -83,24 +107,53 @@ void CopyDiagonalValues( const MatrixVector *const Mat, MatrixVector *const Vec 
  * general storage format.
  * - The number of rows of the vectors must be indicative of their length.
  * - The size of the elements must be coeherent, since it will not be checked in the routine: the number of rows of the
- * vectors (\c InLoad, \c DiagM, \c D, \c V and \c A) must be \f$NumRows_{Vec} = NumRows_{Mat}\f$.
+ * vectors (\c InLoad, \c D and \c V) must be \f$NumRows_{Vec} = NumRows_{Mat}\f$.
  *
- * \param[in,out] InLoad Will contain the input load at the exit of the function. As an input, only the size of the vector
- * is referenced, not its elements.
+ * \param[in,out] InLoad Will contain the input load as an absolute value at the exit of the function. As an input,
+ * only the size of the vector is referenced, not its elements.
+ *
+ * \param[out] InLoad On output it contains the input load \f$ \{l_{i+1}\} = \{ld_g\} + \{ld_v\}\f$.
  * \param[in] Stif The Stiffness matrix.
  * \param[in] Damp The Viscous Damping matrix.
  * \param[in] D Vector containing the ground motion of the earthquake at a certain step.
  * \param[in] V Vector containing the ground velocity of the earthquake at a certain step.
  *
- * \post \c InLoad has the value of \f$ \{l_{i+1}\} = \{ld_g\} + \{ld_v\} + \{ld_a\} -[M]\cdot [I]\cdot\{Acceleration_i\}\f$.
+ * \post \c InLoad has the value of \f$ \{l_{i+1}\} = \{ld_g\} + \{ld_v\}\f$.
  *
  * \sa MatrixVector.
  */
 void Calc_Input_Load_AbsValues( MatrixVector *const InLoad, const MatrixVector *const Stif, const MatrixVector *const Damp, const MatrixVector *const D, const MatrixVector *const V );
 
-void Apply_LoadVectorForm ( MatrixVector *const Vector, const MatrixVector *const LoadForm, const float Value );
-
+/**
+ * \brief Calculates the input load as a relative value.
+ *
+ * This routine calculates the input load that is required at the beginning of each step, that is
+ * \f$ \{l_{i+1}\} = \{ld_a\}\f$, where:
+ * - \f$\{ld_a\} = [M]\cdot{Acceleration_i}\f$ is the load caused by the ground acceleration,
+ * - \e i denotes the step.
+ * It makes use of the level 2 BLAS routine dsymv_().
+ *
+ * \pre
+ * - All elements of type MatrixVector must be properly initialised through the Init_MatrixVector() routine.
+ * - In the case of matrices, they are supposed to be symmetrical and they must contain at least the upper elements in
+ * general storage format.
+ * - The number of rows of the vectors must be indicative of their length.
+ * - The size of the elements must be coeherent, since it will not be checked in the routine: the number of rows of the
+ * vectors (\c InLoad and \c A) must be \f$NumRows_{Vec} = NumRows_{Mat}\f$.
+ *
+ * \param[in,out] InLoad Will contain the input load as a relative value at the exit of the function. As an input,
+ * only the size of the vector is referenced, not its elements.
+ * \param[out] InLoad On output it contains the input load \f$ \{l_{i+1}\} = \{ld_g\} + \{ld_v\}\f$.
+ * \param[in] Mass The Mass matrix.
+ * \param[in] A Vector containing the ground acceleration of the earthquake at a certain step.
+ *
+ * \post \c InLoad has the value of \f$ \{l_{i+1}\} = \{ld_a\}\f$.
+ *
+ * \sa MatrixVector.
+ */
 void Calc_Input_Load_RelValues( MatrixVector *const InLoad, const MatrixVector *const Mass, const MatrixVector *const A );
+
+void Apply_LoadVectorForm ( MatrixVector *const Vector, const MatrixVector *const LoadForm, const float Value );
 
 #if _SPARSE_
 void Calc_Input_Load_AbsValues_Sparse( MatrixVector *const InLoad, const Sp_MatrixVector *const Stif, const Sp_MatrixVector *const Damp, const MatrixVector *const D, const MatrixVector *const V );

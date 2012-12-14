@@ -1,6 +1,8 @@
 *.[oa]
 *~
 *#
+.bin
+.bin.info
 build/
 GPATH
 GRTAGS

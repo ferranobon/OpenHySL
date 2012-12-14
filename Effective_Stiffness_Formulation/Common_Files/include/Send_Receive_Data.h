@@ -38,11 +38,12 @@ typedef struct {
      int Type;             /*!< Type of Server to connect: OpenFresco, PNSE or Custom */
 } Remote_Machine_Info;
 
-#define PROTOCOL_ADWIN  0
-#define PROTOCOL_TCP    1
-#define PROTOCOL_UDP    2
-#define PROTOCOL_NSEP   3
-#define PROTOCOL_OF     4
+#define NO_PROTOCOL     0
+#define PROTOCOL_ADWIN  1
+#define PROTOCOL_TCP    2
+#define PROTOCOL_UDP    3
+#define PROTOCOL_NSEP   4
+#define PROTOCOL_OF     5
 
 /**
  * \brief Gets the information to establish the TCP/IP connection.
