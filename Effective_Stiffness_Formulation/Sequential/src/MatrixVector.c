@@ -32,8 +32,11 @@ void Init_MatrixVector( MatrixVector *const Mat, const int Rows, const int Cols 
      } else {
 	  PrintErrorAndExit( "The number of rows must be equal or greater than zero" );
      }
-
+     Mat->Array == NULL;
      Mat->Array = (float *) calloc( (size_t) Mat->Rows*Mat->Cols, sizeof(float));
+     if( Mat->Array == NULL ){
+	  PrintErrorAndExit( "Out of memory: the matrix could not be initialised" );
+     }
 }
 
 
@@ -51,7 +54,9 @@ void MatrixVector_From_File( MatrixVector *const Mat, const char *Filename )
 	       fscanf(InFile,"%f", &Mat->Array[i]);
 	  }
 	  fclose( InFile );
-     } else ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
+     } else {
+	  ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
+     }
 
 
 }
@@ -73,7 +78,9 @@ void MatrixVector_From_File_Sp2Dense( MatrixVector *const Mat, const char *Filen
 	  }
 	  /* The program has reached the end of the file */
 	  fclose( InFile );
-     } else ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
+     } else{
+	  ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
+     }
 }
 	  
 
@@ -180,7 +187,9 @@ void MatrixVector_To_File( const MatrixVector *const Mat, const char *Filename )
 	       fprintf( OutFile, "\n" );
 	  }
 	  fclose( OutFile );
-     } else ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
+     } else {
+	  ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
+     }
 }
 
 void Destroy_MatrixVector( MatrixVector *const Mat)

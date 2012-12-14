@@ -135,6 +135,9 @@ int main( int argc, char **argv )
      if( InitCnt.Use_Absolute_Values ){
 	  VelAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
 	  DispAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
+	  if( DispAll == NULL || VelAll == NULL ){
+	       PrintErrorAndExit( "Out of memory" );
+	  }
      } else {
 	  VelAll = NULL;
 	  DispAll = NULL;
@@ -193,8 +196,14 @@ int main( int argc, char **argv )
      Init_MatrixVector( &Acc, InitCnt.Order, 1 );
 
      /* Read the matrices from a file */
-     MatrixVector_From_File( &M, InitCnt.FileM );
-     MatrixVector_From_File( &K, InitCnt.FileK );
+     if ( !InitCnt.Read_Sparse ){
+	  MatrixVector_From_File( &M, InitCnt.FileM );
+	  MatrixVector_From_File( &K, InitCnt.FileK );
+     } else { 
+	  MatrixVector_From_File_Sp2Dense( &M, InitCnt.FileM );
+	  MatrixVector_From_File_Sp2Dense( &K, InitCnt.FileK );
+     }
+
      MatrixVector_From_File( &LoadVectorForm, InitCnt.FileLVector );
 
      /* Calculate damping matrix using Rayleigh. C = alpha*M + beta*K */
@@ -291,15 +300,15 @@ int main( int argc, char **argv )
 	  Compute_Force_Error( &M, &C, &K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &fu );
 
 	  /* Output variables */
-	  TimeHistoryli[istep - 1] = LoadTdT.Array[30];
-	  TimeHistoryai1[istep - 1] = AccTdT.Array[30];
-	  TimeHistoryai[istep - 1] = AccT.Array[30];
-	  TimeHistoryvi1[istep - 1] = VelTdT.Array[30];
-	  TimeHistoryvi[istep - 1] = VelT.Array[30];
-	  TimeHistoryui1[istep - 1] = DispTdT.Array[30];
-	  TimeHistoryui[istep - 1] = DispT.Array[30];
-	  TimeHistoryfc[istep - 1] = fc.Array[30];
-	  TimeHistoryfu[istep - 1] = fu.Array[30];
+	  TimeHistoryli[istep - 1] = LoadTdT.Array[0];
+	  TimeHistoryai1[istep - 1] = AccTdT.Array[0];
+	  TimeHistoryai[istep - 1] = AccT.Array[0];
+	  TimeHistoryvi1[istep - 1] = VelTdT.Array[0];
+	  TimeHistoryvi[istep - 1] = VelT.Array[0];
+	  TimeHistoryui1[istep - 1] = DispTdT.Array[0];
+	  TimeHistoryui[istep - 1] = DispT.Array[0];
+	  TimeHistoryfc[istep - 1] = fc.Array[0];
+	  TimeHistoryfu[istep - 1] = fu.Array[0];
 
 	  /* Backup vectors */
 	  scopy_( &LoadTdT1.Rows, LoadTdT1.Array, &incx, LoadTdT.Array, &incy ); /* li = li1 */

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+#include <assert.h>
 
 #include "MatrixVector.h"
 #include "Initiation.h"
@@ -137,11 +138,12 @@ int main( int argc, char **argv )
 
      /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will
       * be used during the test */
-     AccAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
      if( InitCnt.Use_Absolute_Values ){
+	  AccAll = NULL;
 	  VelAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
 	  DispAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
      } else {
+	  AccAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
 	  VelAll = NULL;
 	  DispAll = NULL;
      }
@@ -158,9 +160,11 @@ int main( int argc, char **argv )
      TimeHistoryfu = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
 
      /* Initialise the matrices and vectors that will be used in the Time Integration process */
-     Init_MatrixVector( &M, InitCnt.Order, InitCnt.Order );
-     Init_MatrixVector( &K, InitCnt.Order, InitCnt.Order );
-     Init_MatrixVector( &C, InitCnt.Order, InitCnt.Order );
+     if( (!InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (!InitCnt.Use_Sparse && InitCnt.Read_Sparse) ){
+	  Init_MatrixVector( &M, InitCnt.Order, InitCnt.Order );
+	  Init_MatrixVector( &K, InitCnt.Order, InitCnt.Order );
+     }
+
      Init_MatrixVector( &Keinv, InitCnt.Order, InitCnt.Order );
  
      Init_MatrixVector( &Keinv_c, CNodes.Order, CNodes.Order );
@@ -199,36 +203,69 @@ int main( int argc, char **argv )
      Init_MatrixVector( &Acc, InitCnt.Order, 1 );
 
      /* Read the matrices from a file */
-     MatrixVector_From_File( &M, InitCnt.FileM );
-     MatrixVector_From_File( &K, InitCnt.FileK );
-     MatrixVector_From_File( &LoadVectorForm, InitCnt.FileLVector );
+     if( !InitCnt.Read_Sparse ){
+	  MatrixVector_From_File( &M, InitCnt.FileM );
+	  MatrixVector_From_File( &K, InitCnt.FileK );
+     } else if ( InitCnt.Read_Sparse && !InitCnt.Use_Sparse ){
+	  MatrixVector_From_File_Sp2Dense( &M, InitCnt.FileM );
+	  MatrixVector_From_File_Sp2Dense( &K, InitCnt.FileK );
+     } else if ( InitCnt.Read_Sparse && InitCnt.Use_Sparse ){
+#if _SPARSE_
+	  MatrixVector_From_File_Sp( &Sp_M, InitCnt.FileM );
+	  MatrixVector_From_File_Sp( &Sp_K, InitCnt.FileK );
+#endif
+     } else {
+	  assert( InitCnt.Read_Sparse && !InitCnt.Use_Sparse );
+     }
 
+     Generate_LoadVectorForm( &LoadVectorForm, InitCnt.ExcitedDOF );
+     MatrixVector_To_File( &LoadVectorForm, "LVprov.txt" );
      /* Calculate damping matrix using Rayleigh. C = alpha*M + beta*K */
-     CalculateMatrixC( &M, &K, &C, &InitCnt.Rayleigh );
+     if ( InitCnt.Use_Sparse && InitCnt.Read_Sparse ) {
+
+#if _SPARSE_
+	  Init_MatrixVector_Sp( &Sp_C, InitCnt.Order, InitCnt.Order, Sp_K.Num_Nonzero );
+	  CalculateMatrixC_Sp( &Sp_M, &Sp_K, &Sp_C, &InitCnt.Rayleigh );
+#endif
+     } else {
+	  Init_MatrixVector( &C, InitCnt.Order, InitCnt.Order );
+	  CalculateMatrixC( &M, &K, &C, &InitCnt.Rayleigh );
+     }
 
      /* Calculate Matrix Keinv = [K + a0*M + a1*C]^(-1) */
      Constants.Alpha = 1.0f;
      Constants.Beta = InitCnt.a0;
      Constants.Gamma = InitCnt.a1;
-     CalculateMatrixKeinv( &Keinv, &M, &C, &K, Constants );
 
-//     CalculateMatrixKeinv_Pardiso( &Keinv, &M, &C, &K, Constants );
+     if( !InitCnt.Use_Pardiso ){
+	  CalculateMatrixKeinv( &Keinv, &M, &C, &K, Constants );
+     } else if ( InitCnt.Use_Pardiso && !InitCnt.Read_Sparse ){
+#if _SPARSE_
+	  CalculateMatrixKeinv_Pardiso( &Keinv, &M, &C, &K, Constants );
 
-     MatrixVector_To_File( &Keinv, "Keinv_PARDISO.txt" );
-
+#endif
+     } else if ( InitCnt.Use_Pardiso && InitCnt.Use_Sparse && InitCnt.Read_Sparse ){
+#if _SPARSE_
+	  CalculateMatrixKeinv_Pardiso_Sparse( &Keinv, &Sp_M, &Sp_C, &Sp_K,
+					       Constants );
+#endif
+     }
      BuildMatrixXc( &Keinv, Keinv_c.Array, &CNodes );
      BuildMatrixXcm( &Keinv, &Keinv_m, &CNodes );
   
 #if _SPARSE_
      /* Transform the matrices into CSR format */
-     Dense_to_CSR( &M, &Sp_M, 0 );            /* Transform into CSR format */
-     Destroy_MatrixVector( &M );        /* Destroy the dense matrix */
-     
-     Dense_to_CSR( &K, &Sp_K, 0 );            /* Transform into CSR format */
-     Destroy_MatrixVector( &K );        /* Destroy the dense matrix */
+     if( !InitCnt.Read_Sparse && InitCnt.Use_Sparse ){
+	  Dense_to_CSR( &M, &Sp_M, 0 );            /* Transform into CSR format */
+	  Destroy_MatrixVector( &M );        /* Destroy the dense matrix */
+	  
+	  Dense_to_CSR( &K, &Sp_K, 0 );            /* Transform into CSR format */
+	  Destroy_MatrixVector( &K );        /* Destroy the dense matrix */
 
-     Dense_to_CSR( &C, &Sp_C, 0 );            /* Transform into CSR format */
-     Destroy_MatrixVector( &C );        /* Destroy the dense matrix */
+	  Dense_to_CSR( &C, &Sp_C, 0 );            /* Transform into CSR format */
+	  Destroy_MatrixVector( &C );        /* Destroy the dense matrix */
+	  MatrixVector_To_File_Sparse( &Sp_C, "SpC_MKL.txt" );
+     }
 #endif
 
      /* Send the coupling part of the effective matrix */
@@ -236,7 +273,7 @@ int main( int argc, char **argv )
 
      /* Read the earthquake data from a file */
      if( InitCnt.Use_Absolute_Values ){
-	  ReadDataEarthquake_AbsValues( AccAll, VelAll, DispAll, InitCnt.Nstep, InitCnt.FileData );
+	  ReadDataEarthquake_AbsValues( VelAll, DispAll, InitCnt.Nstep, InitCnt.FileData );
      } else {
 	  ReadDataEarthquake_RelValues( AccAll, InitCnt.Nstep, InitCnt.FileData );
      }
@@ -257,18 +294,23 @@ int main( int argc, char **argv )
 	  Apply_LoadVectorForm( &Disp, &LoadVectorForm, DispAll[istep - 1] );
 
 	  Apply_LoadVectorForm( &Vel, &LoadVectorForm, VelAll[istep - 1] );
+
+	  if( !InitCnt.Use_Sparse ){
+	       Calc_Input_Load_AbsValues( &LoadTdT, &K, &C, &Disp, &Vel );
+	  } else {
 #if _SPARSE_
-	  Calc_Input_Load_AbsValues_Sparse( &LoadTdT, &Sp_K, &Sp_C, &Disp, &Vel );
-#else
-	  Calc_Input_Load_AbsValues( &LoadTdT, &K, &C, &Disp, &Vel );
+	       Calc_Input_Load_AbsValues_Sparse( &LoadTdT, &Sp_K, &Sp_C, &Disp, &Vel );
 #endif
+	  }
      } else {
 	  Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep - 1] );
+	  if( !InitCnt.Use_Sparse ){
+	       Calc_Input_Load_RelValues( &LoadTdT, &M, &Acc );
+	  } else {
 #if _SPARSE_
 	  Calc_Input_Load_RelValues_Sparse( &LoadTdT, &Sp_M, &Acc );
-#else
-	  Calc_Input_Load_RelValues( &LoadTdT, &M, &Acc );
 #endif
+	  }
      }
 
      incx = 1; incy = 1;
@@ -277,15 +319,19 @@ int main( int argc, char **argv )
 
 	  /* Calculate the effective force vector
 	     Fe = M*(a0*u + a2*v + a3*a) + C*(a1*u + a4*v + a5*a) */
+	  if( !InitCnt.Use_Sparse ){
+	       EffK_Calc_Effective_Force( &M, &C, &DispT, &VelT, &AccT, &tempvec,
+					  InitCnt.a0, InitCnt.a1, InitCnt.a2,
+					  InitCnt.a3, InitCnt.a4, InitCnt.a5,
+					  &EffT );
+	  } else {
 #if _SPARSE_
-	  EffK_Calc_Effective_Force_Sparse( &Sp_M, &Sp_C, &DispT, &VelT, &AccT, &tempvec,
-					    InitCnt.a0, InitCnt.a1, InitCnt.a2, InitCnt.a3, InitCnt.a4, InitCnt.a5,
-					    &EffT );
-#else
-	  EffK_Calc_Effective_Force( &M, &C, &DispT, &VelT, &AccT, &tempvec,
-				     InitCnt.a0, InitCnt.a1, InitCnt.a2, InitCnt.a3, InitCnt.a4, InitCnt.a5,
-				     &EffT );
+	       EffK_Calc_Effective_Force_Sparse( &Sp_M, &Sp_C, &DispT, &VelT, &AccT,
+						 &tempvec, InitCnt.a0, InitCnt.a1,
+						 InitCnt.a2, InitCnt.a3, InitCnt.a4,
+						 InitCnt.a5, &EffT );
 #endif
+	  }
 
 	  /* Compute the new Displacement u0 */
 	  EffK_ComputeU0( &EffT, &LoadTdT, &fu, InitCnt.PID.P, &Keinv, &tempvec, &DispTdT0 );
@@ -304,18 +350,24 @@ int main( int argc, char **argv )
 	       if( InitCnt.Use_Absolute_Values ){
 		    Apply_LoadVectorForm( &Disp, &LoadVectorForm, DispAll[istep] );
 		    Apply_LoadVectorForm( &Vel, &LoadVectorForm, VelAll[istep] );
+
+		    if( !InitCnt.Use_Sparse ){
+			 Calc_Input_Load_AbsValues( &LoadTdT1, &K, &C, &Disp, &Vel );
+		    } else {
 #if _SPARSE_
-		    Calc_Input_Load_AbsValues_Sparse( &LoadTdT1, &Sp_K, &Sp_C, &Disp, &Vel );
-#else
-		    Calc_Input_Load_AbsValues( &LoadTdT1, &K, &C, &Disp, &Vel );
+			 Calc_Input_Load_AbsValues_Sparse( &LoadTdT1, &Sp_K, &Sp_C, &Disp, &Vel );
 #endif
+		    }
 	       } else {
 		    Apply_LoadVectorForm( &Acc, &LoadVectorForm, AccAll[istep] );
+
+		    if( !InitCnt.Use_Sparse ){
+			 Calc_Input_Load_RelValues( &LoadTdT1, &M, &Acc );
+		    } else {
 #if _SPARSE_
-		    Calc_Input_Load_RelValues_Sparse( &LoadTdT1, &Sp_M, &Acc );
-#else
-		    Calc_Input_Load_RelValues( &LoadTdT1, &M, &Acc );
+			 Calc_Input_Load_RelValues_Sparse( &LoadTdT1, &Sp_M, &Acc );
 #endif
+		    }
 	       }
 	  }
 
@@ -331,22 +383,24 @@ int main( int argc, char **argv )
 
 	  /* Error Compensation. fu = LoatTdT + fc -(Mass*AccTdT + Damp*VelTdT + Stiff*DispTdT) */
 
+	  if( !InitCnt.Use_Sparse ){
+	       Compute_Force_Error( &M, &C, &K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &fu );
+	  } else {
 #if _SPARSE_
-	  Compute_Force_Error_Sparse( &Sp_M, &Sp_C, &Sp_K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &fu );
-#else
-	  Compute_Force_Error( &M, &C, &K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &fu );
+	       Compute_Force_Error_Sparse( &Sp_M, &Sp_C, &Sp_K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &fu );
 #endif
+	  }
 
 	  /* Output variables */
-	  TimeHistoryli[istep - 1] = LoadTdT.Array[30];
-	  TimeHistoryai1[istep - 1] = AccTdT.Array[30];
-	  TimeHistoryai[istep - 1] = AccT.Array[30];
-	  TimeHistoryvi1[istep - 1] = VelTdT.Array[30];
-	  TimeHistoryvi[istep - 1] = VelT.Array[30];
-	  TimeHistoryui1[istep - 1] = DispTdT.Array[30];
-	  TimeHistoryui[istep - 1] = DispT.Array[30];
-	  TimeHistoryfc[istep - 1] = fc.Array[30];
-	  TimeHistoryfu[istep - 1] = fu.Array[30];
+	  TimeHistoryli[istep - 1] = LoadTdT.Array[0];
+	  TimeHistoryai1[istep - 1] = AccTdT.Array[0];
+	  TimeHistoryai[istep - 1] = AccT.Array[0];
+	  TimeHistoryvi1[istep - 1] = VelTdT.Array[0];
+	  TimeHistoryvi[istep - 1] = VelT.Array[0];
+	  TimeHistoryui1[istep - 1] = DispTdT.Array[0];
+	  TimeHistoryui[istep - 1] = DispT.Array[0];
+	  TimeHistoryfc[istep - 1] = fc.Array[0];
+	  TimeHistoryfu[istep - 1] = fu.Array[0];
 
 	  /* Backup vectors */
 	  scopy_( &LoadTdT1.Rows, LoadTdT1.Array, &incx, LoadTdT.Array, &incy ); /* li = li1 */
@@ -355,6 +409,8 @@ int main( int argc, char **argv )
 	  scopy_( &AccTdT.Rows, AccTdT.Array, &incx, AccT.Array, &incy ); /* ai = ai1 */
 	  istep = istep + 1;
      }
+
+     printf( "The stepping process has finished\n" );
 
      /* Write the header file */
      clock = time( NULL );
@@ -390,25 +446,31 @@ int main( int argc, char **argv )
      free( TimeHistoryfu );
 
      /* Free the memory */
-     free( AccAll );
      if( InitCnt.Use_Absolute_Values ){
 	  free( VelAll );
 	  free( DispAll );
+     } else {
+	  free( AccAll );
      }
 
      /* Free the coupling nodes memory */
      free( CNodes.Array );
 
-#if _SPARSE_
-     Destroy_MatrixVector_Sparse( &Sp_M );
-     Destroy_MatrixVector_Sparse( &Sp_C );
-     Destroy_MatrixVector_Sparse( &Sp_K );
-#else
      /* Destroy the data structures */
-     Destroy_MatrixVector( &M );
-     Destroy_MatrixVector( &C );
-     Destroy_MatrixVector( &K );
+     if( !InitCnt.Use_Sparse && !InitCnt.Read_Sparse ){
+	  Destroy_MatrixVector( &M );
+	  Destroy_MatrixVector( &K );
+	  Destroy_MatrixVector( &C );
+     } else if ( InitCnt.Use_Sparse ){
+#if _SPARSE_
+	  Destroy_MatrixVector_Sparse( &Sp_M );
+	  Destroy_MatrixVector_Sparse( &Sp_C );
+	  Destroy_MatrixVector_Sparse( &Sp_K );
 #endif
+     }
+	  
+
+
 
      Destroy_MatrixVector( &Keinv );
      Destroy_MatrixVector( &Keinv_c );

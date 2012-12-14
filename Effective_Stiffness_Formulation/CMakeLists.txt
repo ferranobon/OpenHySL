@@ -122,7 +122,7 @@ Find_Package(Doxygen)
 if (DOXYGEN_FOUND)
 
   set(SOURCE_DOXYGEN_PATH ${CMAKE_BINARY_DIR}/..)
-  set(SOURCE_DOXYGEN "${SOURCE_DOXYGEN_PATH}/Common_Files ${SOURCE_DOXYGEN_PATH}/Substructure ${SOURCE_DOXYGEN_PATH}/Sequential")
+  set(SOURCE_DOXYGEN "${SOURCE_DOXYGEN_PATH}/Common_Files ${SOURCE_DOXYGEN_PATH}/Substructure ${SOURCE_DOXYGEN_PATH}/Sparse")
 
   configure_file( ${CMAKE_BINARY_DIR}/../Documentation/SAlgorithm.doxyfile ${CMAKE_BINARY_DIR}/Doxyfile @ONLY)
 

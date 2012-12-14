@@ -114,7 +114,7 @@ int main( int argc, char **argv )
      icontxt = bhandle;
 
      /* BLACS: Initialise the process grid */
-     Cblacs_gridinit( &icontxt, (const char *)"Row", InitCnt.ProcessGrid.Rows, InitCnt.ProcessGrid.Cols );
+     Cblacs_gridinit( &icontxt, (char *) "Row", InitCnt.ProcessGrid.Rows, InitCnt.ProcessGrid.Cols );
      Cblacs_gridinfo( icontxt, &nprow, &npcol, &myrow, &mycol );
 
      CreateDistMatrix( icontxt, &M, InitCnt.Order, InitCnt.Order,
@@ -181,7 +181,7 @@ int main( int argc, char **argv )
      if ( rank == 0 ){
 	  Keinv_c = (float *) calloc( (size_t) CNodes.Order*(size_t) CNodes.Order, sizeof(float) );
 	  DispTdT0_c = (float *) calloc( (size_t) CNodes.Order, sizeof(float) );
-	  Recv = (float *) calloc( (size_t) 3*CNodes.Order, sizeof(float) );
+	  Recv = (float *) calloc( (size_t) (3*CNodes.Order), sizeof(float) );
      } else {
 	  Keinv_c = NULL;
 	  DispTdT0_c = NULL;
@@ -403,7 +403,7 @@ int main( int argc, char **argv )
      if ( rank == 0 ){
 	  printf( "Time Integration process finished successfully in %f ms\n", TimeElapsedEnd - TimeElapsed );
 	  /* Close the Connection */
-	  Close_Connection( &Socket, InitCnt.Remote.Type, (unsigned int) CNodes.Order, InitCnt.Nstep, 4 );
+	  Close_Connection( &Socket, InitCnt.Remote.Type, (unsigned int) CNodes.Order, (unsigned int ) InitCnt.Nstep, 4 );
      }
 
      if( InitCnt.Use_Absolute_Values ){

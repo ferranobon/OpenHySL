@@ -37,8 +37,11 @@ void Init_MatrixVector( MatrixVector *const Mat, const int Rows, const int Cols 
      } else {
 	  PrintErrorAndExit( "The number of rows must be equal or greater than zero" );
      }
-
+     Mat->Array = NULL;
      Mat->Array = (float *) calloc( (size_t) Mat->Rows*Mat->Cols, sizeof(float));
+     if ( Mat->Array == NULL ){
+	  PrintErrorAndExit( "Out of memory\n");
+     }
 }
 
 void Init_MatrixVector_Sp( Sp_MatrixVector *const Mat, const int Rows, const int Cols, const int nnz )
@@ -96,7 +99,7 @@ void Dense_to_CSR( const MatrixVector *const Mat, Sp_MatrixVector *const Sp_Mat,
      /* MKL: Transform the dense matrix into a CSR-three array variation matrix */
      job[0] = 0; /* The matrix is converted to CSR format. */
      job[1] = 0; /* Zero-based indexing is used for the dense matrix. */
-     job[2] = 0; /* One-based indexing for the sparse matrix is used. */
+     job[2] = 1; /* One-based indexing for the sparse matrix is used. */
 
      if ( Operation == 0 ){ /* Symmetric matrix */
 	  job[3] = 1; /* Values will contain the upper triangular part of the dense matrix. */
@@ -170,18 +173,28 @@ void MatrixVector_From_File( MatrixVector *const Mat, const char *Filename )
 
 void MatrixVector_From_File_Sp2Dense( MatrixVector *const Mat, const char *Filename )
 {
-     FILE *InFile;  /* Input file */
-     int i, j;      /* Indexes of the position within the matrix of the readen value */
-     char d;        /* Dump character between two values */
-     float Value;   /* Value to be saved in the position (i,j) of the matrix */
+     FILE *InFile;   /* Input file */
+     int i, j;       /* Indexes of the position within the matrix of the readen value */
+     char d;         /* Dump character between two values */
+     float Value;    /* Value to be saved in the position (i,j) of the matrix */
+     int Rows, Cols; /* Number of Rows and Columns */
+     int nnz;        /* Number of non-zero elements */
+     int innz;       /* Counter for the number of non-zero elements */
 
 
      InFile = fopen( Filename, "r" );
      if( InFile != NULL ){
-	  while( !feof(InFile) ) {    /* Returns true once the end of the file has been reached */
+	  fscanf( InFile, "%d %d %d", &Rows, &Cols, &nnz );
+
+	  if( Rows != Mat->Rows || Cols != Mat->Cols ){
+	       fprintf( stderr, "The size of the input matrix %dx%d does not match the defined one %dx%d.\n", Rows, Cols, Mat->Rows, Mat->Cols );
+	       exit( EXIT_FAILURE );
+	  }
+	  innz = 0;
+	  while( innz <= nnz ) {
 	       fscanf( InFile, "%i%c%i%c%e", &i, &d, &j, &d, &Value );
-	       printf("%d\t%d\t%f\n", i, j, Value );
 	       Mat->Array[i*Mat->Cols + j] = Value;
+	       innz = innz + 1;
 	  }
 	  /* The program has reached the end of the file */
 	  fclose( InFile );
@@ -197,50 +210,33 @@ void MatrixVector_From_File_Sp( Sp_MatrixVector *const Mat, const char *Filename
      float Value;   /* Value to be saved in the position (i,j) of the matrix */
      int Position;  /* Counter for the Values and columns array */
      int Pos_RI;    /* Counter for the RowIndex array */
-     int nnz;       /* Number of non-zero values */
-
-     float *tmp = NULL;
-     int *tmp_int = NULL;
+     int innz;      /* Counter for the number of non-zeros */
+     int Rows, Cols, nnz;       /* Number of rows, columns and non-zero elements */
 
      InFile = fopen( Filename, "r" );
 
      if( InFile != NULL ){
+	  /* Read the number of rows, columns and non-zero elements */
+	  fscanf( InFile, "%d %d %d", &Rows, &Cols, &nnz );
+
+	  Init_MatrixVector_Sp( Mat, Rows, Cols, nnz );
 	  Position = 0;
 	  Pos_RI = 0;
-	  nnz = 1;
-	  Mat->RowIndex[Pos_RI] = nnz;
+	  innz = 1;
+	  Mat->RowIndex[Pos_RI] = innz;
 
-	  while( fscanf( InFile, "%i%c%i%c%e", &i, &d, &j, &d, &Value ) != EOF) {    /* Returns true once the end of the file has been reached */
+	  while( innz <= Mat->Num_Nonzero ) { 
+	       fscanf( InFile, "%i%c%i%c%e", &i, &d, &j, &d, &Value );
 	       if ( j >= i ){    /* Consider only the upper part */
-		    nnz = nnz + 1;
-		    if ( (nnz-1) > Mat->Num_Nonzero ){  /* One based index */
-			 /* Resize the matrix */
-			 tmp = (float *) calloc( (size_t) Mat->Num_Nonzero*2, sizeof(float) );
-			 if ( tmp == NULL ){
-			      PrintErrorAndExit( "Could not resize the matrix." );
-			 }
-			 memcpy( tmp, Mat->Values, (size_t) Mat->Num_Nonzero*sizeof(float) );
-			 free( Mat->Values );
+		    innz = innz + 1;
 
-			 tmp_int = (int *) calloc( (size_t) Mat->Num_Nonzero*2, sizeof(int) );
-			 if ( tmp_int == NULL ){
-			      PrintErrorAndExit( "Could not resize the matrix." );
-			 }
-			 memcpy( tmp_int, Mat->Columns, (size_t) Mat->Num_Nonzero*sizeof(int) );
-			 free( Mat->Columns );
-
-			 Mat->Values = tmp;
-			 Mat->Columns = tmp_int;
-
-			 tmp = NULL; tmp_int = NULL;
-		    }
 		    Mat->Values[Position] = Value;
 		    Mat->Columns[Position] = j + 1;  /* One based index */
 		    Position = Position + 1;
 		    if ( i > Pos_RI ){
 			 while ( Pos_RI < i ){
 			      Pos_RI = Pos_RI + 1;
-			      Mat->RowIndex[Pos_RI] = nnz - 1;
+			      Mat->RowIndex[Pos_RI] = innz - 1;
 			 }
 		    }
 
@@ -250,23 +246,9 @@ void MatrixVector_From_File_Sp( Sp_MatrixVector *const Mat, const char *Filename
 	  /* Add the number of non-zero elements at the final position of the
 	   * RowIndex array */
 	  Pos_RI = Pos_RI + 1;
-	  Mat->RowIndex[Pos_RI] = nnz;
-
-	  /* Save memory */
-	  if( (nnz - 1) < Mat->Num_Nonzero ){
-	       Mat->Num_Nonzero = nnz - 1;
-	       tmp = (float *) calloc( (size_t) Mat->Num_Nonzero, sizeof(float) );
-	       memcpy( tmp, Mat->Values, (size_t) Mat->Num_Nonzero*sizeof(float) );
-	       free( Mat->Values );
-
-	       tmp_int = (int *) calloc( (size_t) Mat->Num_Nonzero, sizeof(int) );
-	       memcpy( tmp_int, Mat->Columns, (size_t) Mat->Num_Nonzero*sizeof(int) );
-	       free( Mat->Columns );
-
-	       Mat->Values = tmp;
-	       Mat->Columns = tmp_int;
-
-	       tmp = NULL; tmp_int = NULL;
+	  while( Pos_RI <= Rows ){
+	       Mat->RowIndex[Pos_RI] = innz;
+	       Pos_RI = Pos_RI + 1;
 	  }
 
 	  /* The program has reached the end of the file */

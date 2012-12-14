@@ -257,6 +257,5 @@ void ConfFile_Free( ConfFile *const CFile )
 
      free( CFile->Keys );
      free( CFile->Values );
-     CFile->NumEntries = 0;
-     CFile->Length = 0;
+     free( CFile );
 }
