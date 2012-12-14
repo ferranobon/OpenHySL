@@ -45,6 +45,10 @@ void GetServerInformation( Remote_Machine_Info *const Server, const ConfFile *co
      Type = strdup( ConfFile_GetString( CFile, "Network:Protocol" ) );
      Server->Type = Get_Type_Protocol( Type );
 
+     if( Server->Type == -1 ){
+	  PrintErrorDetailAndExit( "Unrecognised protocol type", Type );
+     }
+
      /* Server IP address */
      Server->IP = strdup( ConfFile_GetString( CFile, "Network:IP_Address" ) );
 
@@ -85,6 +89,8 @@ int Get_Type_Protocol( const char *Type )
 {
 
      if ( !strcmp( Type, "None" ) ){
+	  return NO_PROTOCOL;
+     } else if ( !strcmp( Type, "ADwin" ) ){
 	  return PROTOCOL_ADWIN;
      } else if ( !strcmp( Type, "TCPCustom" ) ){
 	  return PROTOCOL_TCP;
@@ -333,6 +339,8 @@ void Send_Effective_Matrix( float *const Eff_Mat, const unsigned int OrderC, int
      printf("Server.Type = %d REMOTE %d\n", Server.Type, PROTOCOL_TCP );
      switch( Server.Type ){
 
+     case NO_PROTOCOL:
+	  break;
 #if ADWIN_
      case PROTOCOL_ADWIN:
 	  printf( "Running without TCP communication.\n" );
@@ -414,6 +422,8 @@ void Do_Substepping( float *const DispTdT0_c, float *const DispTdT, float *const
      Recv = (float *) calloc( (size_t) 3*OrderC, sizeof(float) );
 
      switch ( Protocol_Type ){
+     case NO_PROTOCOL:
+	  break;
 #if ADWIN_
      case PROTOCOL_ADWIN:
 	  /* Tell ADwin to perform the substepping process */
@@ -504,6 +514,8 @@ void Close_Connection( int *Socket, const int Protocol_Type, const unsigned int 
      Send = (float *) calloc( (size_t) OrderC, sizeof(float) );
 
      switch ( Protocol_Type ){
+     case NO_PROTOCOL:
+	  break;
 #if ADWIN_
      case PROTOCOL_ADWIN:
 	  /* Connect directly to ADwin */

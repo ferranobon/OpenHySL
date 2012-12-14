@@ -136,7 +136,7 @@ void JoinNonCouplingPart_Sparse( MatrixVector *const VecXm, const Sp_MatrixVecto
 	static int Rows, Cols;
 	static int lda;
 	static int Length, PosX, PosXm;
-	static char matdescra[6] = {'G', 'U', 'N', 'C'};
+	static char matdescra[6] = {'G', 'U', 'N', 'F'};
 
 	incx = 1; incy = 1;
 	trans = 'N';
@@ -169,7 +169,7 @@ void Compute_Force_Error_Sparse( const Sp_MatrixVector *const Mass, const Sp_Mat
      static int incx = 1, incy = 1;
      static float Alpha, Beta;
      static char trans = 'N';
-     static char matdescra[6] = {'S', 'U', 'N', 'C'};
+     static char matdescra[6] = {'S', 'U', 'N', 'F'};
 
 
 

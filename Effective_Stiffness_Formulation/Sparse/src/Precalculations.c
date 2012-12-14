@@ -23,7 +23,7 @@
 #include "Netlib.h"  /* BLAS and LAPACK prototypes. */
 #include "Precalculations.h"
 
-void ReadDataEarthquake_AbsValues( float *Acceleration, float *Velocity, float *Displacement, const unsigned int NumSteps, const char *Filename )
+void ReadDataEarthquake_AbsValues( float *Velocity, float *Displacement, const unsigned int NumSteps, const char *Filename )
 {
 
      unsigned int i;					/* A counter */
@@ -36,7 +36,6 @@ void ReadDataEarthquake_AbsValues( float *Acceleration, float *Velocity, float *
      if ( InFile != NULL ){
 	  for ( i = 0; i < NumSteps; i++ ){
 	       fscanf( InFile, "%E %E %E %E", &unnecessary, &temp1, &temp2, &temp3 );
-	       Acceleration[i] = temp1/1000.0f;
 	       Velocity[i] = temp2/1000.0f;
 	       Displacement[i] = temp3/1000.0f;
 	  }
@@ -133,7 +132,7 @@ void Calc_Input_Load_AbsValues_Sparse( MatrixVector *const InLoad, const Sp_Matr
 
      static float Alpha, Beta;    /* Constants to use in the BLAS library */
      static char trans = 'N';
-     static char matdescra[6] = {'s', 'u', 'n', 'c'};
+     static char matdescra[6] = {'S', 'U', 'N', 'F'};
 
      Alpha = 1.0f; Beta = 0.0f;
 
@@ -148,7 +147,7 @@ void Calc_Input_Load_RelValues_Sparse( MatrixVector *const InLoad, const Sp_Matr
 
      static float Alpha, Beta;    /* Constants to use in the BLAS library */
      static char trans = 'N';
-     static char matdescra[6] = {'s', 'u', 'n', 'c'};
+     static char matdescra[6] = {'S', 'U', 'N', 'F'};
 
      Alpha = 1.0; Beta = 0.0;
 

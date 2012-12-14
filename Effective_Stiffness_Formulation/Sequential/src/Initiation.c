@@ -37,6 +37,12 @@ void InitConstants( AlgConst *const InitConst, const char *FileName )
 	  PrintErrorAndExit( "Invalid option for Use_Absolute_Values" );
      }
 
+     /* Read matrix in sparse format? */
+     (*InitConst).Read_Sparse = ConfFile_GetInt( Config, "General:Read_Sparse" );
+     if ( InitConst->Read_Sparse != 0 && InitConst->Read_Sparse != 1 ){
+	  PrintErrorAndExit( "Invalid option for Use_Absolute_Values" );
+     }
+
      /* Order of the matrices */
      (*InitConst).Order = ConfFile_GetInt( Config, "General:Order" );
      if ( InitConst->Order <= 0 ){
@@ -126,6 +132,9 @@ void Read_Coupling_Nodes( Coupling_Node *const CNodes, const char *Filename )
 	  
 	  /* Allocate the necessary memory */
 	  CNodes->Array = (int *) calloc( (size_t) CNodes->Order, sizeof(int) );
+	  if( CNodes->Array == NULL ){
+	       PrintErrorAndExit( "Out of memory: Could not allocate the memory for the coupling nodes" );
+	  }
 	  
 	  /* Read the contents of the file */
 	  for( i = 0; i < CNodes->Order; i++ ){
