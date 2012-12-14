@@ -43,7 +43,7 @@ void CreateDistMatrix( int icntxt, PMatrixVector *const Mat, const int NumRows, 
 	}
 
 	/* Allocate memory for the local array */
-	Mat->Array = (float *) calloc( (size_t) Mat->LocalSize.Row*Mat->LocalSize.Col, sizeof(float) );
+	Mat->Array = (float *) calloc( (size_t) (Mat->LocalSize.Row*Mat->LocalSize.Col), sizeof(float) );
 	counter = counter + 1;
 }
 
@@ -134,7 +134,7 @@ void DistMatrixFromFile( PMatrixVector *const Mat, const char *Filename )
      
      char trans = 'N';
      int izero = 0, ione = 1;
-     float done = 1.0, dzero = 0.0;
+     float done = 1.0f, dzero = 0.0f;
      int lld, info;
      
      float *LocalMatrix;
@@ -154,7 +154,7 @@ void DistMatrixFromFile( PMatrixVector *const Mat, const char *Filename )
      }
      
      if ( myrow == 0 && mycol == 0 ){
-	  LocalMatrix = calloc( Mat->GlobalSize.Row*Mat->GlobalSize.Col, sizeof(float) );
+	  LocalMatrix = calloc( (size_t) (Mat->GlobalSize.Row*Mat->GlobalSize.Col), sizeof(float) );
 	  InFile = fopen( Filename, "r" );
 	  
 	  if ( InFile != NULL ){
@@ -178,6 +178,63 @@ void DistMatrixFromFile( PMatrixVector *const Mat, const char *Filename )
      }
      
 }
+
+void DistMatrixFromFile_Sp2Dense( PMatrixVector *const Mat, const char *Filename )
+{
+
+     int i, j;				/* Counters */
+     char d;
+     float Value;
+     int myrow, mycol;		/* Grid variables */
+     int nprow, npcol;
+     
+     char trans = 'N';
+     int izero = 0, ione = 1;
+     float done = 1.0f, dzero = 0.0f;
+     int lld, info;
+     
+     float *LocalMatrix;
+     int descLocal[9];
+     
+     FILE *InFile;
+     
+     
+     Cblacs_gridinfo( Mat->Desc[1], &nprow, &npcol, &myrow, &mycol );
+     
+     lld = Mat->GlobalSize.Row; //Max(1, numroc_( &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &myrow, &izero, &nprow ) );
+     
+     descinit_( descLocal, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &izero, &izero, &Mat->Desc[1], &lld, &info );
+     
+     if ( info < 0 ){
+	  LAPACKPErrorAndExit( "descinit: The ", -info, "-th argument had an illegal value" );
+     }
+     
+     if ( myrow == 0 && mycol == 0 ){
+	  LocalMatrix = calloc( (size_t) (Mat->GlobalSize.Row*Mat->GlobalSize.Col), sizeof(float) );
+	  InFile = fopen( Filename, "r" );
+	  
+	  if( InFile != NULL ){
+	       while( !feof(InFile) ) {    /* Returns true once the end of the file has been reached */
+		    fscanf( InFile, "%i%c%i%c%f", &i, &d, &j, &d, &Value );
+		    Mat->Array[i*Mat->GlobalSize.Col + j] = Value;
+	       }
+	       /* The program has reached the end of the file */
+	       fclose( InFile );
+	  } else {
+	       ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
+	  }
+     } else {
+	  LocalMatrix = NULL;
+     }
+     
+     psgeadd_( &trans, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &done, LocalMatrix, &ione, &ione, descLocal, &dzero, Mat->Array, &ione, &ione, Mat->Desc );
+     
+     if ( myrow == 0 && mycol == 0 ){
+	  free( LocalMatrix );
+     }
+     
+}
+
 /*
 void DistVectorFromFile( PMatrixVector *const Mat, const char *Filename )
 {
@@ -201,7 +258,7 @@ void DistMatrixToFile( PMatrixVector *const Mat, const char *Filename )
 
 	char trans = 'N';
 	int izero = 0, ione = 1;
-	float done = 1.0, dzero = 0.0;
+	float done = 1.0f, dzero = 0.0f;
 	int lld, info;
 
 	float *LocalMatrix;
@@ -222,7 +279,7 @@ void DistMatrixToFile( PMatrixVector *const Mat, const char *Filename )
 	}
 
 	if ( myrow == 0 && mycol == 0 ){
-		LocalMatrix = calloc( Mat->GlobalSize.Row*Mat->GlobalSize.Col, sizeof(float) );
+	     LocalMatrix = calloc( (size_t) (Mat->GlobalSize.Row*Mat->GlobalSize.Col), sizeof(float) );
 	} else {
 		LocalMatrix = NULL;
 	}

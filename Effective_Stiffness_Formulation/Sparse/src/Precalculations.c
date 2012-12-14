@@ -133,7 +133,7 @@ void Calc_Input_Load_AbsValues_Sparse( MatrixVector *const InLoad, const Sp_Matr
 
      static float Alpha, Beta;    /* Constants to use in the BLAS library */
      static char trans = 'N';
-     static char matdescra[6] = {'s', 'u', 'n', 'c'};
+     static char matdescra[6] = {'S', 'U', 'N', 'F'};
 
      Alpha = 1.0f; Beta = 0.0f;
 
@@ -148,7 +148,7 @@ void Calc_Input_Load_RelValues_Sparse( MatrixVector *const InLoad, const Sp_Matr
 
      static float Alpha, Beta;    /* Constants to use in the BLAS library */
      static char trans = 'N';
-     static char matdescra[6] = {'s', 'u', 'n', 'c'};
+     static char matdescra[6] = {'S', 'U', 'N', 'F'};
 
      Alpha = 1.0; Beta = 0.0;
 
