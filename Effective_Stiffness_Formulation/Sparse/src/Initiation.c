@@ -33,7 +33,7 @@ void InitConstants( AlgConst *const InitConst, const char *FileName )
 
      ConfFile *Config;
      
-     Config = ConfFile_Create( 50 );
+     Config = ConfFile_Create( 70 );
 
      ConfFile_ReadFile( Config, FileName );
 
@@ -114,7 +114,7 @@ void InitConstants( AlgConst *const InitConst, const char *FileName )
      (*InitConst).FileOutput = strdup( ConfFile_GetString( Config, "FileNames:OutputFile" ) );
 
      /* Get the communication protocol to be used */
-     GetServerInformation( &InitConst->Remote, Config );
+     GetNetworkInformation( &InitConst->Remote, Config );
      ConfFile_Free( Config );
 }
 
@@ -160,7 +160,7 @@ void Delete_InitConstants( AlgConst *const InitConst )
      free( InitConst->FileData );
      free( InitConst->FileOutput );
 
-     Delete_ServerInformation( &InitConst->Remote );
+     Delete_NetworkInformation( &InitConst->Remote );
 }
 
 void Read_Coupling_Nodes( Coupling_Node *const CNodes, const char *Filename )
