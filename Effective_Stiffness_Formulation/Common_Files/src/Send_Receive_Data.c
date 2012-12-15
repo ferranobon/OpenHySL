@@ -37,7 +37,7 @@
 #include "RoutinesADwin.h"             /* Communicate with ADwin */
 #endif
 
-void GetServerInformation( Remote_Machine_Info *const Server, const ConfFile *const CFile )
+void GetNetworkInformation( Remote_Machine_Info *const Server, const ConfFile *const CFile )
 {
      char *Type;
 
@@ -71,7 +71,7 @@ void GetServerInformation( Remote_Machine_Info *const Server, const ConfFile *co
      free( Type );
 }
 
-void Delete_ServerInformation( Remote_Machine_Info *const Server )
+void Delete_NetworkInformation( Remote_Machine_Info *const Server )
 {
      free( Server->IP );
      free( Server->Port );

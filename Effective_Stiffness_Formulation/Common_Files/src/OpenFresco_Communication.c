@@ -60,7 +60,7 @@ int Communicate_With_OpenFresco( const float *const Data_To_Send, float *const D
 	  /* Setup the connection */
 	  Config = ConfFile_Create( 5 );
 	  ConfFile_ReadFile( Config, "ConfFile.conf" );
-	  GetServerInformation( &RMachine, Config );
+	  GetNetworkInformation( &RMachine, Config );
 	  /* Free the configuration File */
 	  ConfFile_Free( Config );
 	  printf("Trying to connect to OpenFresco Server at %s through port %s\n", RMachine.IP, RMachine.Port );
@@ -94,7 +94,7 @@ int Communicate_With_OpenFresco( const float *const Data_To_Send, float *const D
 	  nleft = 11;
 	  senddata( &SocketID, &DataTypeSize, gMsg, &nleft, &ierr );
 	  ConfFile_Free( Config );
-	  Delete_ServerInformation( &RMachine );
+	  Delete_NetworkInformation( &RMachine );
 
      } else if ( WhatToDo == 3 ) {
 	  /* Send Trial response to the experimental site */

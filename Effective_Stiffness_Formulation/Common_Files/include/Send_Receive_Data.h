@@ -68,7 +68,7 @@ typedef struct {
  *
  * \sa Remote_Machine_Info.
  */
-void GetServerInformation( Remote_Machine_Info *const Server, const ConfFile *const CFile );
+void GetNetworkInformation( Remote_Machine_Info *const Server, const ConfFile *const CFile );
 
 /**
  * \brief Frees the memory allocated during GetServerInformation.
@@ -79,7 +79,7 @@ void GetServerInformation( Remote_Machine_Info *const Server, const ConfFile *co
  * \param[out] Server Struct storing the IP address, port and login information.
  *
  */
-void Delete_ServerInformation( Remote_Machine_Info *const Server );
+void Delete_NetworkInformation( Remote_Machine_Info *const Server );
 
 /**
  * \brief Identify the communication protocol to be used

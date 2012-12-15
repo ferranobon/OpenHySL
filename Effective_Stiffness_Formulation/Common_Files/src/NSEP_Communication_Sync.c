@@ -51,7 +51,7 @@ void Communicate_With_PNSE( const int WhatToDo, float Time,
 	  /* Get the information regarding the PNSE server, Account Name and Password */
      	  Config = ConfFile_Create( 5 );
 	  ConfFile_ReadFile( Config, "ConfFile.conf" );
-	  GetServerInformation( &Server, Config );
+	  GetNetworkInformation( &Server, Config );
 	  /* Free the configuration File */
 	  ConfFile_Free( Config );
 
@@ -80,7 +80,7 @@ void Communicate_With_PNSE( const int WhatToDo, float Time,
 	       PrintErrorAndExit( "CGM: send() sent a different number of bytes than expected. Exiting." );
 	  }
 	  ConfFile_Free( Config );
-	  Delete_ServerInformation( &Server );
+	  Delete_NetworkInformation( &Server );
 	  
      } else if ( WhatToDo == 1 ) { /* Send the displacement to the server */
 
