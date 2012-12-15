@@ -125,11 +125,17 @@ int* Get_Excited_DOF( const ConfFile *const Config, const char *Expression )
      char *FullString;
      char Temp[1];
 
-     DOF_Table = (int *) calloc( (size_t) 6, sizeof(int) );
      FullString = strdup( ConfFile_GetString( Config, Expression ) );
 
-     i = 0; j = 0;
-     for( i = 0; i < strlen( FullString ); i++ ){
+     /* The first position contains the number of degrees of Freedom per node present in the
+      * structure */
+     strncpy( Temp, &FullString[0], (size_t) 1 );
+
+     DOF_Table = (int *) calloc( (size_t) (atoi(Temp)+1), sizeof(int) );
+     DOF_Table[0] = atoi( Temp );
+
+     j = 1;
+     for( i = 1; i < strlen( FullString ); i++ ){
 	  if ( FullString[i] != ' ' ){
 	       strncpy( Temp, &FullString[i], (size_t) 1 );
 	       DOF_Table[j] = atoi( Temp );
@@ -691,7 +697,7 @@ void Generate_LoadVectorForm( MatrixVector *const LoadVector, int *DOF )
      i = 0;
      while( i < LoadVector->Rows ){
 	  
-	  for ( j = 0; j < 6; j++ ){
+	  for ( j = 1; j < DOF[0]; j++ ){
 	       LoadVector->Array[i] = 1.0f*(float) DOF[j];
 	       i = i + 1;
 	  }
