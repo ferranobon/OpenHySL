@@ -21,6 +21,6 @@ target_link_libraries(SAlgorithm ${MATH_LIBS} ${ADWIN_LIBS} -lm)
 
 if( BUILD_REALTIME )
   add_definitions(-DREAL_TIME_)
-  add_executable(SAlgorithm-rt ${SPARSE_SALGORITHM_SRCS} ${COMMON_SRCS})
+  add_executable(SAlgorithm-rt ${COMMON_SRCS} ${SPARSE_SALGORITHM_SRCS} )
   target_link_libraries(SAlgorithm ${MATH_LIBS} ${ADWIN_LIBS} -lm)
 endif()

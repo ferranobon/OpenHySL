@@ -118,21 +118,20 @@ void InitConstants( AlgConst *const InitConst, const char *FileName )
      GetNetworkInformation( &InitConst->Remote, Config );
 
      /* Read the information regarding the numerical sub-structures */
-     if( InitConst->Remote.Type == NO_PROTOCOL ){
 
-	  /* Number of substructures */
-	  (*InitConst).OrderSub = ConfFile_GetInt( Config, "Substructure:Order" );
-	  if ( InitConst->OrderSub < 0 ){
-	       PrintErrorAndExit( "Invalid option for the number of sub-structuresr of the matrices" );
-	  }
-	  
-	  /* Number of substructures */
-	  InitConst->NSubstep = (unsigned int) ConfFile_GetInt( Config, "Substructure:Num_Substeps" );
-	  if ( InitConst->NSubstep < 0 ){
-	       PrintErrorAndExit( "Invalid option for the order of the matrices" );
-	  }
-	  InitConst->DeltaT_Sub = InitConst->Delta_t/(float) InitConst->NSubstep;
+     /* Number of substructures */
+     (*InitConst).OrderSub = ConfFile_GetInt( Config, "Substructure:Order" );
+     if ( InitConst->OrderSub < 0 ){
+	  PrintErrorAndExit( "Invalid option for the number of sub-structuresr of the matrices" );
      }
+     
+     /* Number of substructures */
+     InitConst->NSubstep = (unsigned int) ConfFile_GetInt( Config, "Substructure:Num_Substeps" );
+     if ( InitConst->NSubstep < 0 ){
+	  PrintErrorAndExit( "Invalid option for the order of the matrices" );
+     }
+     InitConst->DeltaT_Sub = InitConst->Delta_t/(float) InitConst->NSubstep;
+
      ConfFile_Free( Config );
 }
 
@@ -181,7 +180,7 @@ void Delete_InitConstants( AlgConst *const InitConst )
      Delete_NetworkInformation( &InitConst->Remote );
 }
 
-void Read_Coupling_Nodes( Coupling_Node *const CNodes, const int OrderSub, const char *Filename )
+void Read_Coupling_Nodes( Coupling_Node *const CNodes, const int OrderSub, const float DeltaTSub, const char *Filename )
 {
      FILE *InFile;
      int i, j;
@@ -201,38 +200,57 @@ void Read_Coupling_Nodes( Coupling_Node *const CNodes, const int OrderSub, const
 	  
 	  /* Allocate the necessary memory */
 	  CNodes->Array = (int *) calloc( (size_t) CNodes->Order, sizeof(int) );
-	  CNodes->TypeSub = (int *) calloc( (size_t) CNodes->Order, sizeof(int) );
 	  CNodes->Sub = (Substructure *) malloc( (size_t) CNodes->Order*sizeof(Substructure) );
-
+	  CNodes->u0c0 = (float *) calloc( (size_t) CNodes->Order, sizeof(float) );
 	  /* Read the contents of the file */
 	  for( i = 0; i < CNodes->Order; i++ ){
-	       fscanf( InFile, "%i %i %i", &CNodes->Array[i], &CNodes->TypeSub[i], &itemp );
+	       fscanf( InFile, "%i %i", &CNodes->Array[i], &CNodes->Sub[i].Type );
 	       
-	       switch (CNodes->TypeSub[i]) {
-	       case USE_FILE:
+	       switch (CNodes->Sub[i].Type) {
+	       case USE_ADWIN:
 		    break;
 	       case USE_EXACT:
+		    fscanf( InFile, "%i", &itemp );
+		    if ( itemp != UHYDE_NUMPARAM_INIT ){
+			 fprintf( stderr, "Wrong number of parameters for the substructue number %i of type TMD.\n", i );
+			 fprintf( stderr, "The number of init parameters should be %i\n", EXACT_NUMPARAM_INIT );
+			 exit( EXIT_FAILURE );
+		    } else {
+			 printf( "Simulating the sub-structure in the coupling node %d as an exact integration method.\n", CNodes->Array[i] );
+			 CNodes->Sub[i].SimStruct = (void *) malloc( (size_t) 1*sizeof(TMD_Sim));
+			 CNodes->Sub[i].fCalc = &ExactSolution_SDOF;
+			 ftemp = (float *) calloc( (size_t) EXACT_NUMPARAM_INIT, sizeof( float ) );
+			 for( j = 0; j < EXACT_NUMPARAM_INIT; j++ ){
+			      fscanf( InFile, "%f", &ftemp[j] );
+			 }
+			 
+			 ExactSolution_Init( ftemp[0], ftemp[1], ftemp[2], DeltaTSub, (TMD_Sim *) CNodes->Sub[i].SimStruct );
+			 free( ftemp );
+		    }
 		    break;
 	       case USE_UHYDE:
+		    fscanf( InFile, "%i", &itemp );
 		    if ( itemp != UHYDE_NUMPARAM_INIT ){
 			 fprintf( stderr, "Wrong number of parameters for the substructue number %i of type UHYDE.\n", i );
 			 fprintf( stderr, "The number of init parameters should be %i\n", UHYDE_NUMPARAM_INIT );
 			 exit( EXIT_FAILURE );
 		    } else {
-			 CNodes->Sub[i].Type = (void *) malloc( (size_t) 1*sizeof(UHYDE_Sim));
+			 printf( "Simulating the sub-structure in the coupling node %d as a UHYDE-fbr device.\n", CNodes->Array[i] );
+			 CNodes->Sub[i].SimStruct = (void *) malloc( (size_t) 1*sizeof(UHYDE_Sim));
 			 CNodes->Sub[i].fCalc = &Simulate_UHYDE_1D;
 			 ftemp = (float *) calloc( (size_t) UHYDE_NUMPARAM_INIT, sizeof( float ) );
 			 for( j = 0; j < UHYDE_NUMPARAM_INIT; j++ ){
 			      fscanf( InFile, "%f", &ftemp[j] );
 			 }
 			 
-			 Simulate_UHYDE_1D_Init( ftemp[0], ftemp[1], ftemp[2], (UHYDE_Sim *) CNodes->Sub[i].Type );
+			 Simulate_UHYDE_1D_Init( ftemp[0], ftemp[1], ftemp[2], (UHYDE_Sim *) CNodes->Sub[i].SimStruct );
+			 free( ftemp );
 		    }
+		    break;
+	       case USE_MEASURED:
 		    break;
 	       }
 	  }
-	 
-
 	  /* Close the file */
 	  fclose( InFile );
      } else ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );

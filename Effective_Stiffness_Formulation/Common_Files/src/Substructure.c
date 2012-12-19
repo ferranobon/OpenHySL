@@ -60,6 +60,57 @@ void Simulate_Substructure_Measured_Values( const char *FileName, const float *c
 	  /* Read the new value of fc */
 	  fscanf( Fc_File, "%f", &fc[0] );
      }
+     u0c0 = u0c[0];
+}
+
+void Simulate_Substructures( Coupling_Node *const CNodes, float *Keinv, float *const u0c, float *const uc, float *const fcprev, float *const fc, const unsigned int NSubstep, const float DeltaT_Sub )
+{
+
+     unsigned int i, Substep;
+     float ramp0, ramp;
+     int incx = 1, incy = 1;
+     float One;
+     int Length;
+     char uplo = 'L';
+     TMD_Sim *TMD;
+     UHYDE_Sim *UHYDE;  
+
+     Length = (int) CNodes->Order;
+     One = 1.0f;
+
+     for ( Substep = 1; Substep <= NSubstep; Substep++ ){
+
+	  /* Backup data so that fcprev contains always the last coupling force */
+	  scopy_( &Length, fc, &incx, fcprev, &incy );
+	       
+	  ramp = (float) Substep / (float) NSubstep;
+
+	  ramp0 = 1.0f - ramp;   
+
+	  if ( CNodes->Order > 1 ){
+	       scopy_( &Length, CNodes->u0c0, &incx, uc, &incy );
+	       sscal_( &Length, &ramp0, uc, &incx );
+	       saxpy_( &Length, &ramp, u0c, &incx, uc, &incy );
+	       ssymv_( &uplo, &Length, &One, Keinv, &Length, fc, &incx, &One, uc, &incy ); 
+	  } else {
+	       uc[0] = ramp0*CNodes->u0c0[0] + ramp*u0c[0] + Keinv[0]*fc[0];
+	  }
+	  
+	  /* Compute the new fc */
+	  for( i = 0; i < CNodes->Order; i ++ ){
+	       if( CNodes->Sub[i].Type == USE_EXACT ){
+		    TMD = (TMD_Sim *) CNodes->Sub[i].SimStruct;
+		    ExactSolution_SDOF( u0c[i], DeltaT_Sub, &TMD[i], &fc[i] );
+	       } else if ( CNodes->Sub[i].Type == USE_UHYDE ){
+		    UHYDE = (UHYDE_Sim *) CNodes->Sub[i].SimStruct;
+		    Simulate_UHYDE_1D( u0c[i], DeltaT_Sub, &UHYDE[i], &fc[i] );
+	       } else assert( CNodes->Sub[i].Type < USE_EXACT || CNodes->Sub[i].Type > USE_UHYDE );
+	  }
+	  
+     }
+
+     /* Backup u0c */
+     scopy_( &Length, u0c, &incx, CNodes->u0c0, &incy );
 }
 
 void Simulate_Substructure( void *const Num, const int Mode, float *const Keinv, float *const u0c0, float *const u0c, float *const uc, float *const fcprev, float *const fc, const unsigned int OrderC, const unsigned int NSub, const float DeltaT_Sub )
@@ -79,11 +130,10 @@ void Simulate_Substructure( void *const Num, const int Mode, float *const Keinv,
 
      for ( Substep = 1; Substep <= NSub; Substep++ ){
 
-	  for ( i = 0; i < OrderC; i++ ){
-	       /* Backup data so that fcprev contains always the last coupling force */
-	       scopy_( &Length, fc, &incx, fcprev, &incy );
-	  }
 
+	  /* Backup data so that fcprev contains always the last coupling force */
+	  scopy_( &Length, fc, &incx, fcprev, &incy );
+	  
 	  ramp = (float) Substep / (float) NSub;
 
 	  ramp0 = 1.0f - ramp;   
@@ -147,7 +197,7 @@ void ExactSolution_Init( const float Mass, const float Damp, const float Stiff, 
 
 	  /* Calculate the damping ratio */
 	  xi = Damp/(2*Mass*omega);
-	  
+
 	  /* Check the value of xi */
 	  if ( xi >= 0.0 && xi < 1.0f ){
 	       /* Calculate the damping vibration frequency */
