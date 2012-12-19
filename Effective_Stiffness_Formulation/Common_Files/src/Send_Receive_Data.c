@@ -26,6 +26,7 @@
 #include <unistd.h>
 #endif
 
+#include "Substructure.h"
 #include "Send_Receive_Data.h"         /* Definition of struct Remote_Machine_Info. */
 #include "ErrorHandling.h"             /* Headers for Error Handling functions. */
 #include "OpenFresco_Communication.h"  /* OpenFresco header files */
@@ -412,66 +413,68 @@ void Send_Effective_Matrix( float *const Eff_Mat, const unsigned int OrderC, int
      free( Recv );
 }
 
-void Do_Substepping( float *const DispTdT0_c, float *const DispTdT, float *const fcprevsub, float *const fc, const int Protocol_Type, const float Time, const int Socket, const unsigned int OrderC, const unsigned int *Pos_Couple )
+void Do_Substepping( float *const Keinv, float *const DispTdT0_c, float *const DispTdT, float *const fcprevsub, float *const fc, const int Protocol_Type, const float Time, const int Socket, Coupling_Node *const CNodes, const int NSubstep, const float DeltaT_Sub )
 {
-
 
      unsigned int i;
      float *Recv = NULL;
 
-     Recv = (float *) calloc( (size_t) 3*OrderC, sizeof(float) );
+     Recv = (float *) calloc( (size_t) 3*CNodes->Order, sizeof(float) );
 
      switch ( Protocol_Type ){
      case NO_PROTOCOL:
+	  Simulate_Substructures( CNodes, Keinv, DispTdT0_c, &Recv[0], &Recv[CNodes->Order], &Recv[2*CNodes->Order], NSubstep, DeltaT_Sub );
+
 	  break;
 #if ADWIN_
      case PROTOCOL_ADWIN:
 	  /* Tell ADwin to perform the substepping process */
-	  ADWIN_Substep( DispTdT0_c, &Recv[0], &Recv[1], &Recv[2], OrderC );
+	  ADWIN_Substep( DispTdT0_c, &Recv[0], &Recv[1], &Recv[2], CNodes->Order );
 	  break;
 #endif
      case PROTOCOL_TCP:
 	  /* Using TCP communication protocol */
-	  Send_Data( DispTdT0_c, OrderC, Socket );
+	  Send_Data( DispTdT0_c, CNodes->Order, Socket );
 
-	  Receive_Data( Recv, 3*OrderC, Socket );
+	  Receive_Data( Recv, 3*CNodes->Order, Socket );
 	  break;
      case PROTOCOL_UDP:
 	  /* Using UDP communication protocol */
 
-	  Send_Data( DispTdT0_c, OrderC, Socket );
-	  if ( recv( Socket, Recv, sizeof(float)*3*OrderC,0) != (int) sizeof(float)*3*OrderC ){    /* sizeof returns an unsigned integer ? */
+	  Send_Data( DispTdT0_c, CNodes->Order, Socket );
+	  if ( recv( Socket, Recv, sizeof(float)*3*CNodes->Order,0) != (int) sizeof(float)*3*CNodes->Order ){    /* sizeof returns an unsigned integer ? */
 	       PrintErrorAndExit( "recv() failed in connected UDP mode" );
 	  }
 	  break;
      case PROTOCOL_NSEP:
 	  /* Using NSEP Protocol */
-	  Communicate_With_PNSE( 1, Time, DispTdT0_c, Recv, OrderC );
+	  Communicate_With_PNSE( 1, Time, DispTdT0_c, Recv, CNodes->Order );
 	  /* Receive the force from the PNSE server. WhatToDo = 2 */
-	  Communicate_With_PNSE( 2, Time, DispTdT0_c, Recv, 3*OrderC );
+	  Communicate_With_PNSE( 2, Time, DispTdT0_c, Recv, 3*CNodes->Order );
 	  break;
      case PROTOCOL_OF:
 	  /* Using OpenFresco */
-	  Communicate_With_OpenFresco( DispTdT0_c, Recv, OrderC, 3 ); 
+	  Communicate_With_OpenFresco( DispTdT0_c, Recv, CNodes->Order, 3 ); 
 	  break;
      }
 #if _MPI_
-     for ( i = 0; i < OrderC; i++ ){
+     for ( i = 0; i < CNodes->Order; i++ ){
 	  DispTdT[i] = Recv[i];
-	  fcprevsub[i] = Recv[OrderC + i];
-	  fc[i] = Recv[2*OrderC + i];
+	  fcprevsub[i] = Recv[CNodes->Order + i];
+	  fc[i] = Recv[2*CNodes->Order + i];
      }
 #else
-     for ( i = 0; i < OrderC; i++ ){
-	  DispTdT[Pos_Couple[i] - 1] = Recv[i];
-	  fcprevsub[i] = Recv[OrderC + i];
-	  fc[Pos_Couple[i] - 1] = Recv[2*OrderC + i];
+     for ( i = 0; i < CNodes->Order; i++ ){
+	  DispTdT[CNodes->Array[i] - 1] = Recv[i];
+	  fcprevsub[i] = Recv[CNodes->Order + i];
+	  fc[CNodes->Array[i] - 1] = Recv[2*CNodes->Order + i];
      }
 #endif
 
      free( Recv );
 
 }
+
 /*
 void Send_Data( const int Socket, const int Data_Type_Size, char* const To_Send, const int Data_Length )
 {

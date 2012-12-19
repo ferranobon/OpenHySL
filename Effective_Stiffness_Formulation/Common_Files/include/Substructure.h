@@ -1,19 +1,33 @@
 #ifndef SUBSTRUCTURE_H
 #define SUBSTRUCTURE_H
 
-#define USE_ADWIN    0    /* Run using ADwin */
-//#define USE_EXACT    1    
-//#define USE_UHYDE    2    /* Simulate the substructure using the exact solution */
-#define USE_MEASURED 3    /* Simulate the substructure using measured values */
-
-#define USE_FILE  0
+#define USE_ADWIN 0    /* Run using ADwin */
 #define USE_EXACT 1    /* Simulate the substructure using the exact solution */
 #define USE_UHYDE 2    /* Simulate the substructure using the UHYDE-fbr device */
+#define USE_MEASURED 3    /* Simulate the substructure using measured values */
 
 #define UHYDE_NUMPARAM_INIT 3
-#define UHYDE_NUMPARAM 5
-#define EXACT_NUMPARAM_INIT 4
-#define EXACT_NUMPARAM 11
+#define EXACT_NUMPARAM_INIT 3
+
+typedef struct {
+     void *SimStruct;
+     int Type;
+     float (*fInit)( int, float*, ... );
+     void (*fCalc)( const float, const float, void *const, float *const );
+} Substructure;
+
+/**
+ * \brief Structure to store the coupling nodes.
+ * 
+ * This structure is used in order to store the coupling nodes that will be used
+ * during a test. The nodes are stored sequentially and in increasing order.
+ */
+typedef struct {
+     int *Array;  /*!< \brief Array containing the coupling nodes */
+     int Order;   /*!< \brief Number of coupling nodes */
+     float *u0c0;
+     Substructure *Sub;
+} Coupling_Node;
 
 typedef struct{
      unsigned int Order_Couple;   /* Order of the coupling nodes. */
@@ -45,6 +59,8 @@ typedef struct{
 void Init_Constants_Substructure( ConstSub *const Constants, const char *Filename );
 
 void Simulate_Substructure_Measured_Values( const char *FileName, const float *const Keinv, const float *const u0c, float *const uc, float *const fcprev, float *const fc, const unsigned int OrderC, const unsigned int NSub );
+
+void Simulate_Substructures( Coupling_Node *const CNodes, float *Keinv, float *const u0c, float *const uc, float *const fcprev, float *const fc, const unsigned int NSubstep, const float DeltaT_Sub );
 
 void Simulate_Substructure( void *const Num, const int Mode, float *const Keinv, float *const u0c0, float *const u0c, float *const uc, float *const fcprev, float *const fc, const unsigned int OrderC, const unsigned int NSub, const float Deltat_Sub );
 

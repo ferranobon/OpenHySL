@@ -17,6 +17,7 @@
 #include "MatrixVector.h"
 #include "Conf_Parser.h"
 #include "Send_Receive_Data.h"
+#include "Substructure.h"
 
 /**
  * \brief Structure to handle the PID error compensator.
@@ -55,25 +56,6 @@ typedef struct {
      float Gamma; /*!< \brief First constant.*/
      float Beta;  /*!< \brief Second constant.*/
 } NewmarkConst;
-
-typedef struct {
-     void *Type;
-     float (*fInit)( int, float*, ... );
-     void (*fCalc)( const float, const float, void *const, float *const );
-} Substructure;
-
-/**
- * \brief Structure to store the coupling nodes.
- * 
- * This structure is used in order to store the coupling nodes that will be used
- * during a test. The nodes are stored sequentially and in increasing order.
- */
-typedef struct {
-     int *Array;  /*!< \brief Array containing the coupling nodes */
-     int Order;   /*!< \brief Number of coupling nodes */
-     int *TypeSub;
-     Substructure *Sub;
-} Coupling_Node;
 
 /**
  * \brief Structure to wrap constants and filenames.
@@ -189,7 +171,7 @@ void Delete_InitConstants( AlgConst *const InitConst );
  *
  * \post CNodes must contain a list of the coupling nodes in increasing row order and the number of them.
  */
-void Read_Coupling_Nodes( Coupling_Node *const CNodes, const int OrderSub, const char *Filename );
+void Read_Coupling_Nodes( Coupling_Node *const CNodes, const int OrderSub, const float DeltaTSub, const char *Filename );
 
 /**
  * \brief Construction of Proportional Viscous Damping Matrix using Rayleigh Damping.

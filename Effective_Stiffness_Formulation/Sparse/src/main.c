@@ -134,7 +134,7 @@ int main( int argc, char **argv )
      InitConstants( &InitCnt, "ConfFile.conf" );
 
      /* Read the coupling nodes from a file */
-     Read_Coupling_Nodes( &CNodes, InitCnt.OrderSub, InitCnt.FileCNodes );
+     Read_Coupling_Nodes( &CNodes, InitCnt.OrderSub, InitCnt.DeltaT_Sub, InitCnt.FileCNodes );
 
      /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will
       * be used during the test */
@@ -267,7 +267,7 @@ int main( int argc, char **argv )
      }
 #endif
 
-     /* Send the coupling part of the effective matrix */
+     /* Send the coupling part of the effective matrix if we are performing a distributed test */
      Send_Effective_Matrix( Keinv_c.Array, (unsigned int) CNodes.Order, &Socket, InitCnt.Remote );
 
      /* Read the earthquake data from a file */
@@ -307,7 +307,7 @@ int main( int argc, char **argv )
 	       Calc_Input_Load_RelValues( &LoadTdT, &M, &Acc );
 	  } else {
 #if _SPARSE_
-	  Calc_Input_Load_RelValues_Sparse( &LoadTdT, &Sp_M, &Acc );
+	       Calc_Input_Load_RelValues_Sparse( &LoadTdT, &Sp_M, &Acc );
 #endif
 	  }
      }
@@ -340,8 +340,8 @@ int main( int argc, char **argv )
 	  CreateVectorXc( &DispTdT0, DispTdT0_c.Array, &CNodes );
 
 	  /* Perform substepping */
-	  Do_Substepping( DispTdT0_c.Array, DispTdT.Array, fcprevsub.Array, fc.Array, InitCnt.Remote.Type,
-			  InitCnt.Delta_t*(float) istep, Socket, (unsigned int) CNodes.Order, (unsigned int *) CNodes.Array  );
+	  Do_Substepping( Keinv_c.Array, DispTdT0_c.Array, DispTdT.Array, fcprevsub.Array, fc.Array, InitCnt.Remote.Type,
+			  InitCnt.Delta_t*(float) istep, Socket, &CNodes, InitCnt.NSubstep, InitCnt.DeltaT_Sub  );
 
 	  if ( istep < InitCnt.Nstep ){
 	       /* Calculate the input load for the next step during the
@@ -427,8 +427,9 @@ int main( int argc, char **argv )
      fclose( OutputFile );
 
      /* Close the Connection */
-     Close_Connection( &Socket, InitCnt.Remote.Type, (unsigned int) CNodes.Order, InitCnt.Nstep, 4 );
-
+     if( InitCnt.Remote.Type != NO_PROTOCOL ){
+	  Close_Connection( &Socket, InitCnt.Remote.Type, (unsigned int) CNodes.Order, InitCnt.Nstep, 4 );
+     }
      /* Free initiation values */
      Delete_InitConstants( &InitCnt );
      
@@ -454,7 +455,7 @@ int main( int argc, char **argv )
 
      /* Free the coupling nodes memory */
      free( CNodes.Array );
-     free( CNodes.TypeSub );
+     free( CNodes.u0c0 );
 
      /* Destroy the data structures */
      if( !InitCnt.Use_Sparse && !InitCnt.Read_Sparse ){
