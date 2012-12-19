@@ -2,9 +2,18 @@
 #define SUBSTRUCTURE_H
 
 #define USE_ADWIN    0    /* Run using ADwin */
-#define USE_EXACT    1    /* Simulate the substructure using the exact solution */
-#define USE_UHYDE    2    /* Simulate the substructure using the exact solution */
+//#define USE_EXACT    1    
+//#define USE_UHYDE    2    /* Simulate the substructure using the exact solution */
 #define USE_MEASURED 3    /* Simulate the substructure using measured values */
+
+#define USE_FILE  0
+#define USE_EXACT 1    /* Simulate the substructure using the exact solution */
+#define USE_UHYDE 2    /* Simulate the substructure using the UHYDE-fbr device */
+
+#define UHYDE_NUMPARAM_INIT 3
+#define UHYDE_NUMPARAM 5
+#define EXACT_NUMPARAM_INIT 4
+#define EXACT_NUMPARAM 11
 
 typedef struct{
      unsigned int Order_Couple;   /* Order of the coupling nodes. */

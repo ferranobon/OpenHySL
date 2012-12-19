@@ -134,7 +134,7 @@ int main( int argc, char **argv )
      InitConstants( &InitCnt, "ConfFile.conf" );
 
      /* Read the coupling nodes from a file */
-     Read_Coupling_Nodes( &CNodes, InitCnt.FileCNodes );
+     Read_Coupling_Nodes( &CNodes, InitCnt.OrderSub, InitCnt.FileCNodes );
 
      /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will
       * be used during the test */
@@ -454,6 +454,7 @@ int main( int argc, char **argv )
 
      /* Free the coupling nodes memory */
      free( CNodes.Array );
+     free( CNodes.TypeSub );
 
      /* Destroy the data structures */
      if( !InitCnt.Use_Sparse && !InitCnt.Read_Sparse ){
