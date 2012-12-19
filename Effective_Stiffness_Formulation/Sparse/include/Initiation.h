@@ -56,6 +56,12 @@ typedef struct {
      float Beta;  /*!< \brief Second constant.*/
 } NewmarkConst;
 
+typedef struct {
+     void *Type;
+     float (*fInit)( int, float*, ... );
+     void (*fCalc)( const float, const float, void *const, float *const );
+} Substructure;
+
 /**
  * \brief Structure to store the coupling nodes.
  * 
@@ -65,6 +71,8 @@ typedef struct {
 typedef struct {
      int *Array;  /*!< \brief Array containing the coupling nodes */
      int Order;   /*!< \brief Number of coupling nodes */
+     int *TypeSub;
+     Substructure *Sub;
 } Coupling_Node;
 
 /**
@@ -81,8 +89,10 @@ typedef struct {
 typedef struct {
 
      int Order;               /*!< \brief Order of the matrices */
+     int OrderSub;   /*!< \brief Number of substructures */
 
      unsigned int Nstep;      /*!< \brief Number of steps */
+     unsigned int NSubstep;   /*!< \brief Number of sub-steps */
 
      int Use_Absolute_Values; /*!< \brief Variable to control whether to use absolute values in the equation of motion or relative values. Affects how the input load is calculated */
 
@@ -95,6 +105,7 @@ typedef struct {
      int *ExcitedDOF;
 
      float Delta_t;           /*!< \brief Time increment \f$\Delta t\f$ */
+     float DeltaT_Sub;        /*!< \brief Time increment for the sub-stepping process */
 
      RayleighConst Rayleigh;  /*!< \brief Stores Rayleigh Constants alpha (\c Rayleigh.Alpha or \f$\alpha_R\f$) and beta (\c Rayleigh.Beta or \f$\beta_R\f$) */
      NewmarkConst Newmark;    /*!< \brief Stores Newmark Constants gamma (\c Newmark.Gamma or \f$\gamma_N\f$) and (\c Newmark.Beta or \f$\beta_N\f$) */
@@ -178,7 +189,7 @@ void Delete_InitConstants( AlgConst *const InitConst );
  *
  * \post CNodes must contain a list of the coupling nodes in increasing row order and the number of them.
  */
-void Read_Coupling_Nodes( Coupling_Node *const CNodes, const char *Filename );
+void Read_Coupling_Nodes( Coupling_Node *const CNodes, const int OrderSub, const char *Filename );
 
 /**
  * \brief Construction of Proportional Viscous Damping Matrix using Rayleigh Damping.

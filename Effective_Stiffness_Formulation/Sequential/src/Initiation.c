@@ -89,7 +89,6 @@ void InitConstants( AlgConst *const InitConst, const char *FileName )
      (*InitConst).a7 = (*InitConst).Newmark.Gamma*(*InitConst).Delta_t;
 
      /* File Names */
-/*EFAST*/
      (*InitConst).FileM = strdup( ConfFile_GetString( Config, "FileNames:Mass_Matrix" ) );
      (*InitConst).FileK = strdup( ConfFile_GetString( Config, "FileNames:Stiffness_Matrix" ) );
      (*InitConst).FileC = strdup( ConfFile_GetString( Config, "FileNames:Damping_Matrix" ) );
