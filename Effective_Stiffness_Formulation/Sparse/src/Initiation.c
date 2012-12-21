@@ -127,9 +127,7 @@ void InitConstants( AlgConst *const InitConst, const char *FileName )
      
      /* Number of substructures */
      InitConst->NSubstep = (unsigned int) ConfFile_GetInt( Config, "Substructure:Num_Substeps" );
-     if ( InitConst->NSubstep < 0 ){
-	  PrintErrorAndExit( "Invalid option for the order of the matrices" );
-     }
+
      InitConst->DeltaT_Sub = InitConst->Delta_t/(float) InitConst->NSubstep;
 
      ConfFile_Free( Config );
@@ -218,8 +216,8 @@ void Read_Coupling_Nodes( Coupling_Node *const CNodes, const int OrderSub, const
 		    } else {
 			 printf( "Simulating the sub-structure in the coupling node %d as an exact integration method.\n", CNodes->Array[i] );
 			 CNodes->Sub[i].SimStruct = (void *) malloc( (size_t) 1*sizeof(TMD_Sim));
-			 CNodes->Sub[i].fCalc = &ExactSolution_SDOF;
 			 ftemp = (float *) calloc( (size_t) EXACT_NUMPARAM_INIT, sizeof( float ) );
+
 			 for( j = 0; j < EXACT_NUMPARAM_INIT; j++ ){
 			      fscanf( InFile, "%f", &ftemp[j] );
 			 }
@@ -237,8 +235,8 @@ void Read_Coupling_Nodes( Coupling_Node *const CNodes, const int OrderSub, const
 		    } else {
 			 printf( "Simulating the sub-structure in the coupling node %d as a UHYDE-fbr device.\n", CNodes->Array[i] );
 			 CNodes->Sub[i].SimStruct = (void *) malloc( (size_t) 1*sizeof(UHYDE_Sim));
-			 CNodes->Sub[i].fCalc = &Simulate_UHYDE_1D;
 			 ftemp = (float *) calloc( (size_t) UHYDE_NUMPARAM_INIT, sizeof( float ) );
+
 			 for( j = 0; j < UHYDE_NUMPARAM_INIT; j++ ){
 			      fscanf( InFile, "%f", &ftemp[j] );
 			 }
@@ -413,7 +411,7 @@ void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const 
 #if _SPARSE_
 void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *const Stiff, const Scalars Const )
 {
-     unsigned int i;
+     int i;
      int iparm[64];
      void *pt[64];
      int maxfct, mnum, msglvl, error;
@@ -540,7 +538,7 @@ void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector
 
 void CalculateMatrixKeinv_Pardiso_Sparse( MatrixVector *const Keinv, const Sp_MatrixVector *const Mass, const Sp_MatrixVector *const Damp, const Sp_MatrixVector *const Stiff, const Scalars Const )
 {
-     unsigned int i;
+     int i;
      int iparm[64];
      void *pt[64];
      int maxfct, mnum, msglvl, error;

@@ -126,41 +126,6 @@ void Compute_Force_Error( const MatrixVector *const Mass, const MatrixVector *co
 
 #if _SPARSE_
 
-void JoinNonCouplingPart_Sparse( MatrixVector *const VecXm, const Sp_MatrixVector *const Keinv_m, const MatrixVector *const fcprevsub,
-			  MatrixVector *const Vec, const Coupling_Node *const CNodes )
-{
-	static int icoup;    /* Counter for the coupling nodes */
-	static int incx, incy;
-	static float Alpha, Beta;
-	static char trans;
-	static int Rows, Cols;
-	static int lda;
-	static int Length, PosX, PosXm;
-	static char matdescra[6] = {'G', 'U', 'N', 'F'};
-
-	incx = 1; incy = 1;
-	trans = 'N';
-	Alpha = 1.0; Beta = 1.0;
-	Rows = Keinv_m->Rows;
-	Cols = Keinv_m->Cols;
-	lda = Max( 1, Keinv_m->Rows);
-
-	mkl_scsrmv( &trans, &Rows, &Cols, &Alpha, matdescra, Keinv_m->Values, Keinv_m->Columns, Keinv_m->RowIndex, &Keinv_m->RowIndex[1], &fcprevsub->Array,&Beta, VecXm->Array );
-
-	PosX = 0; PosXm = 0;
-	for ( icoup = 0; icoup < CNodes->Order; icoup++ ){
-	     Length = CNodes->Array[icoup] - PosX -1;
-	     scopy_( &Length, &VecXm->Array[PosXm], &incx, &Vec->Array[PosX], &incy );
-	     PosX = CNodes->Array[icoup];
-	     PosXm = PosXm + Length;
-	}
-
-	/* Add the elements between the final coupling node and the final element
-	 * in the vector */
-	Length = Vec->Rows - CNodes->Array[CNodes->Order -1];
-	scopy_( &Length, &VecXm->Array[PosXm], &incx, &Vec->Array[PosX], &incy );	
-}
-
 void Compute_Force_Error_Sparse( const Sp_MatrixVector *const Mass, const Sp_MatrixVector *const Damp, const Sp_MatrixVector *Stiff,
 			  const MatrixVector *const AccTdT, const MatrixVector *const VelTdT, const MatrixVector *const DispTdT,
 			  const MatrixVector *const fc, const MatrixVector *const LoadTdT, MatrixVector *const fu )
