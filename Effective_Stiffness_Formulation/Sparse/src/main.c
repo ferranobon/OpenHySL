@@ -211,7 +211,6 @@ int main( int argc, char **argv )
      } else if ( InitCnt.Read_Sparse && InitCnt.Use_Sparse ){
 #if _SPARSE_
 	  MatrixVector_From_File_Sp( &Sp_M, InitCnt.FileM );
-	  MatrixVector_To_File_Sparse( &Sp_M, "SpM1.txt" );
 	  MatrixVector_From_File_Sp( &Sp_K, InitCnt.FileK );
 #endif
      } else {
