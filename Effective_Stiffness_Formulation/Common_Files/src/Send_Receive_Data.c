@@ -416,10 +416,10 @@ void Send_Effective_Matrix( float *const Eff_Mat, const unsigned int OrderC, int
 void Do_Substepping( float *const Keinv, float *const DispTdT0_c, float *const DispTdT, float *const fcprevsub, float *const fc, const int Protocol_Type, const float Time, const int Socket, Coupling_Node *const CNodes, const int NSubstep, const float DeltaT_Sub )
 {
 
-     unsigned int i;
+     int i;
      float *Recv = NULL;
 
-     Recv = (float *) calloc( (size_t) 3*CNodes->Order, sizeof(float) );
+     Recv = (float *) calloc( (size_t) 3*(size_t)CNodes->Order, sizeof(float) );
 
      switch ( Protocol_Type ){
      case NO_PROTOCOL:
@@ -442,7 +442,7 @@ void Do_Substepping( float *const Keinv, float *const DispTdT0_c, float *const D
 	  /* Using UDP communication protocol */
 
 	  Send_Data( DispTdT0_c, CNodes->Order, Socket );
-	  if ( recv( Socket, Recv, sizeof(float)*3*CNodes->Order,0) != (int) sizeof(float)*3*CNodes->Order ){    /* sizeof returns an unsigned integer ? */
+	  if ( recv( Socket, Recv, sizeof(float)*3*(size_t) CNodes->Order,0) != (int) sizeof(float)*3*CNodes->Order ){    /* sizeof returns an unsigned integer ? */
 	       PrintErrorAndExit( "recv() failed in connected UDP mode" );
 	  }
 	  break;

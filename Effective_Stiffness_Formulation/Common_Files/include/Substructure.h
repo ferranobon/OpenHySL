@@ -12,8 +12,6 @@
 typedef struct {
      void *SimStruct;
      int Type;
-     float (*fInit)( int, float*, ... );
-     void (*fCalc)( const float, const float, void *const, float *const );
 } Substructure;
 
 /**

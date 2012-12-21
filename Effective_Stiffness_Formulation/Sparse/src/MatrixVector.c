@@ -38,7 +38,7 @@ void Init_MatrixVector( MatrixVector *const Mat, const int Rows, const int Cols 
 	  PrintErrorAndExit( "The number of rows must be equal or greater than zero" );
      }
      Mat->Array = NULL;
-     Mat->Array = (float *) calloc( (size_t) Mat->Rows*Mat->Cols, sizeof(float));
+     Mat->Array = (float *) calloc( (size_t) Mat->Rows*(size_t) Mat->Cols, sizeof(float));
      if ( Mat->Array == NULL ){
 	  PrintErrorAndExit( "Out of memory\n");
      }
@@ -90,11 +90,11 @@ void Dense_to_CSR( const MatrixVector *const Mat, Sp_MatrixVector *const Sp_Mat,
      } else assert( Operation < 0 || Operation > 1 );
 
      /* Allocate the necessary space for the Value and Columns arrays */
-     Sp_Mat->Values = (float *) calloc( Sp_Mat->Num_Nonzero, sizeof(float) );
-     Sp_Mat->Columns = (int *) calloc( Sp_Mat->Num_Nonzero, sizeof(int) );
+     Sp_Mat->Values = (float *) calloc( (size_t) Sp_Mat->Num_Nonzero, sizeof(float) );
+     Sp_Mat->Columns = (int *) calloc( (size_t) Sp_Mat->Num_Nonzero, sizeof(int) );
 
      /* Allocate memory for the RowIndex array */
-     Sp_Mat->RowIndex = (int *) calloc( Mat->Rows + 1, sizeof( int ) );
+     Sp_Mat->RowIndex = (int *) calloc( (size_t) Mat->Rows + 1, sizeof( int ) );
 
      /* MKL: Transform the dense matrix into a CSR-three array variation matrix */
      job[0] = 0; /* The matrix is converted to CSR format. */
