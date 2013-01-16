@@ -14,6 +14,30 @@
 #define ERRORHANDLING_H_
 
 /**
+ * \brief Prints a success message.
+ *
+ * The desired success message is printed to stdout in the form:
+ *
+ * [ OK ] Message
+ *
+ * \param[in] SuccessMessage The desired success message to display.
+ *
+ */
+void PrintSuccess( const char *SuccessMessage );
+
+/**
+ * \brief Prints an informative message.
+ *
+ * The desired informative message is printed to stdout in the form:
+ *
+ * [ OK ] Message
+ *
+ * \param[in] InfoMessage The desired informative message to display.
+ *
+ */
+void PrintInfo ( const char *InfoMessage );
+
+/**
  * \brief Prints the error message and exits the program.
  *
  * The desired error message is printed using the standard error output stderr. Afterwards the return signal

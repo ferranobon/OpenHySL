@@ -295,7 +295,7 @@ void CalculateMatrixC( const MatrixVector *const Mass, const MatrixVector *const
 	  saxpy_( &Length, &beta, &(*Stif).Array[i*(*Stif).Rows + i], &incx, &(*Damp).Array[i*(*Damp).Rows +i], &incy);
      }
 
-     printf( "Damping matrix successfully calculated\n" );
+     PrintSuccess( "Damping matrix successfully calculated.\n" );
 }
 
 #if _SPARSE_
@@ -347,7 +347,7 @@ void CalculateMatrixC_Sp( const Sp_MatrixVector *const Mass, const Sp_MatrixVect
      } else if ( info < 0 ){
 	  PrintErrorAndExit( "I do not understand" );
      } else {
-	  printf( "Damping matrix successfully calculated\n" );
+	  PrintSuccess( "Damping matrix successfully calculated.\n" );
      }
 }
 #endif
@@ -379,7 +379,7 @@ void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const 
      dpotrf_( &uplo, &(*Keinv).Rows, TempMatDouble, &lda, &info );
 
      if ( info == 0 ){
-	  printf( "Cholesky factorization successfully completed.\n" );
+	  PrintSuccess( "Cholesky factorization successfully completed.\n" );
      }
      else if (info < 0){
 	  LAPACKPErrorAndExit( "Cholesky factorization: the ", -info, "th argument has an illegal value." );
@@ -395,7 +395,7 @@ void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const 
      }
 
      if ( info == 0 ){
-	  printf( "Matrix Inversion successfully completed.\n" );
+	  PrintSuccess( "Matrix Inversion successfully completed.\n" );
      } else if (info < 0){
 	  LAPACKPErrorAndExit( "Matrix Inversion: the ", -info, "th argument has an illegal value." );
      } else if (info > 0){
@@ -482,7 +482,7 @@ void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector
 	  printf ("\nERROR during symbolic factorization: %d", error);
 	  exit (1);
      }
-     printf ("\nReordering completed ... ");
+     PrintSuccess( "\nReordering completed ... " );
      printf ("\nNumber of nonzeros in factors = %d", iparm[17]);
      printf ("\nNumber of factorization MFLOPS = %d", iparm[18]);
 /* -------------------------------------------------------------------- */
@@ -497,7 +497,7 @@ void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector
 	  printf ("\nERROR during numerical factorization: %d", error);
 	  exit (2);
      }
-     printf ("\nFactorization completed ... ");
+     PrintSuccess ( "\nFactorization completed ... " );
 /* -------------------------------------------------------------------- */
 /* .. Back substitution and iterative refinement. */
 /* -------------------------------------------------------------------- */
@@ -534,6 +534,8 @@ void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector
      free( TempMatDouble );
      free( TempValues );
      Destroy_MatrixVector_Sparse( &Sp_TempMat );
+
+     PrintSuccess( "Matrix Inversion successfully completed.\n" );
 }
 
 void CalculateMatrixKeinv_Pardiso_Sparse( MatrixVector *const Keinv, const Sp_MatrixVector *const Mass, const Sp_MatrixVector *const Damp, const Sp_MatrixVector *const Stiff, const Scalars Const )
@@ -605,7 +607,7 @@ void CalculateMatrixKeinv_Pardiso_Sparse( MatrixVector *const Keinv, const Sp_Ma
 	  printf ("\nERROR during symbolic factorization: %d", error);
 	  exit (1);
      }
-     printf ("\nReordering completed ... ");
+     PrintSuccess ("\nReordering completed ... ");
      printf ("\nNumber of nonzeros in factors = %d", iparm[17]);
      printf ("\nNumber of factorization MFLOPS = %d", iparm[18]);
 /* -------------------------------------------------------------------- */
@@ -619,7 +621,7 @@ void CalculateMatrixKeinv_Pardiso_Sparse( MatrixVector *const Keinv, const Sp_Ma
 	  printf ("\nERROR during numerical factorization: %d", error);
 	  exit (2);
      }
-     printf ("\nFactorization completed ... ");
+     PrintSuccess ("\nFactorization completed ... ");
 /* -------------------------------------------------------------------- */
 /* .. Back substitution and iterative refinement. */
 /* -------------------------------------------------------------------- */
@@ -656,6 +658,8 @@ void CalculateMatrixKeinv_Pardiso_Sparse( MatrixVector *const Keinv, const Sp_Ma
      free( TempMatDouble );
      free( TempValues );
      Destroy_MatrixVector_Sparse( &Sp_TempMat );
+
+     PrintSuccess( "Matrix Inversion successfully completed" );
 }
 
 
