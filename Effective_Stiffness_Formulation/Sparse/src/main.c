@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <getopt.h>  /* For getopt_long() */
 #include <math.h>
 #include <time.h>
 #include <assert.h>
@@ -21,6 +22,8 @@
 #define SOMESIZE (150*1024*1024) // 150MB
 #endif
 
+void Print_Help( const char *Program_Name );
+
 int main( int argc, char **argv )
 {
      
@@ -28,7 +31,9 @@ int main( int argc, char **argv )
      FILE *OutputFile;
 
      unsigned int i, istep;		/* Counters */
+
      AlgConst InitCnt;
+     const char *ConfFile;
 
      /* NETLIB Variables */
      int incx, incy;
@@ -66,6 +71,14 @@ int main( int argc, char **argv )
 
      /* TCP socket connection Variables */
      int Socket;
+
+     /* Options */
+     int Selected_Option;
+     struct option long_options[] = {
+	  {"help", no_argument, 0, 'h'},
+	  {"config-file", required_argument, 0, 'c'},
+	  {0, 0, 0, 0}
+     };
 
 #if _SPARSE_
      /* Sparse matrices */
@@ -128,6 +141,41 @@ int main( int argc, char **argv )
      //<do your RT-thing>
 #endif
 
+     /* Print Information */
+     printf( "\n\n" );
+     printf( "************************************************************\n" );
+     printf( "*                                                          *\n" );
+     printf( "*  This is Dorka's substructure algorithm as programed by  *\n" );
+     printf( "* Ferran Obón Santacana. Version alpha 0.9 'Heaven's Door' *\n" );
+     printf( "*                                                          *\n" );
+     printf( "************************************************************\n\n" );
+     /* Set de default value for the configuration file */
+     ConfFile = "ConfFile.conf";
+
+     /* This is only used if there are no arguments */
+     if( argc == 1 ){
+	  PrintInfo( "Assuming the configuration file to be: ConfFile.conf\n" );
+
+     }
+
+     while ((Selected_Option = getopt_long( argc, argv, "c:h", long_options, NULL )) != -1 ){
+	  switch( Selected_Option ){
+	  case 'c':
+	       ConfFile = optarg;
+	  case 'h':
+	       Print_Help( argv[0] );
+	       return EXIT_FAILURE;
+	       break;
+	  case '?':
+	       /* Long options already prints an error message telling that there is an unrecognised option */
+	       Print_Help( argv[0] );
+	       return EXIT_FAILURE;
+	  case ':':
+	       /* Long options already prints an error message telling that the option requieres an argument */
+	       Print_Help( argv[0] );
+	       return EXIT_FAILURE;
+	  }
+     }
 
      /* Constants definitions. */
      InitConstants( &InitCnt, "ConfFile.conf" );
@@ -255,13 +303,13 @@ int main( int argc, char **argv )
      /* Transform the matrices into CSR format */
      if( !InitCnt.Read_Sparse && InitCnt.Use_Sparse ){
 	  Dense_to_CSR( &M, &Sp_M, 0 );            /* Transform into CSR format */
-	  Destroy_MatrixVector( &M );        /* Destroy the dense matrix */
+	  Destroy_MatrixVector( &M );              /* Destroy the dense matrix */
 	  
 	  Dense_to_CSR( &K, &Sp_K, 0 );            /* Transform into CSR format */
-	  Destroy_MatrixVector( &K );        /* Destroy the dense matrix */
+	  Destroy_MatrixVector( &K );              /* Destroy the dense matrix */
 
 	  Dense_to_CSR( &C, &Sp_C, 0 );            /* Transform into CSR format */
-	  Destroy_MatrixVector( &C );        /* Destroy the dense matrix */
+	  Destroy_MatrixVector( &C );              /* Destroy the dense matrix */
 	  MatrixVector_To_File_Sparse( &Sp_C, "SpC_MKL.txt" );
      }
 #endif
@@ -312,7 +360,7 @@ int main( int argc, char **argv )
      }
 
      incx = 1; incy = 1;
-     printf( "Starting stepping process\n" );
+     PrintInfo( "Starting stepping process.\n" );
      while ( istep <= InitCnt.Nstep ){
 
 	  /* Calculate the effective force vector
@@ -408,7 +456,7 @@ int main( int argc, char **argv )
 	  istep = istep + 1;
      }
 
-     printf( "The stepping process has finished\n" );
+     PrintSuccess( "The stepping process has finished" );
 
      /* Write the header file */
      clock = time( NULL );
@@ -509,4 +557,13 @@ int main( int argc, char **argv )
      Destroy_MatrixVector( &Acc );
 
      return 0;
+}
+
+void Print_Help( const char *Program_Name )
+{
+
+     fprintf( stderr, "Usage: %s [-h] -c <ConfFile", Program_Name );
+     fprintf( stderr,
+	      "  -h  --help           This help text.\n"
+	      "  -c  --config-file    The name of the configuration file. Default value: ConfFile.conf\n" );
 }
