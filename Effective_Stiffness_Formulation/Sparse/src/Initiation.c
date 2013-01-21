@@ -23,6 +23,10 @@
 #include "Send_Receive_Data.h"
 #include "Conf_Parser.h"
 #include "Substructure.h"
+#include "Colors.h"
+
+/* Matrix market format */
+#include "mmio.h"
 
 #if _SPARSE_
 #include "mkl.h"
@@ -59,13 +63,22 @@ void InitConstants( AlgConst *const InitConst, const char *FileName )
 	  PrintErrorAndExit( "Invalid option for Use_Pardiso" );
      }
 
+     InitConst->Read_LVector = ConfFile_GetInt( Config, "General:Read_LVector" );
+     if ( InitConst->Read_LVector != 0 && InitConst->Read_LVector != 1 ){
+	  PrintErrorAndExit( "Invalid option for Read_LVector" );
+     }
+
      /* Order of the matrices */
      (*InitConst).Order = ConfFile_GetInt( Config, "General:Order" );
      if ( InitConst->Order <= 0 ){
 	  PrintErrorAndExit( "Invalid option for the order of the matrices" );
      }
 
-     InitConst->ExcitedDOF = Get_Excited_DOF( Config, "General:Excited_DOF" );
+     if( !InitConst->Read_LVector ){
+	  InitConst->ExcitedDOF = Get_Excited_DOF( Config, "General:Excited_DOF" );
+     } else {
+	  InitConst->ExcitedDOF = NULL;
+     }
 
      /* Number of steps and Time step */
      (*InitConst).Nstep = (unsigned int) ConfFile_GetInt( Config, "General:Num_Steps" );
@@ -110,6 +123,12 @@ void InitConstants( AlgConst *const InitConst, const char *FileName )
      (*InitConst).FileM = strdup( ConfFile_GetString( Config, "FileNames:Mass_Matrix" ) );
      (*InitConst).FileK = strdup( ConfFile_GetString( Config, "FileNames:Stiffness_Matrix" ) );
      (*InitConst).FileC = strdup( ConfFile_GetString( Config, "FileNames:Damping_Matrix" ) );
+     if( InitConst->Read_LVector ){
+	  (*InitConst).FileLV = strdup( ConfFile_GetString( Config, "FileNames:Load_Vector" ) );
+
+     } else {
+	  InitConst->FileLV = NULL;
+     }
      (*InitConst).FileCNodes = strdup( ConfFile_GetString( Config, "FileNames:Coupling_Nodes" ) );
      (*InitConst).FileData = strdup( ConfFile_GetString( Config, "FileNames:Ground_Motion" ) );
      (*InitConst).FileOutput = strdup( ConfFile_GetString( Config, "FileNames:OutputFile" ) );
@@ -165,11 +184,17 @@ int* Get_Excited_DOF( const ConfFile *const Config, const char *Expression )
 void Delete_InitConstants( AlgConst *const InitConst )
 {
 
-     free( InitConst->ExcitedDOF );
+     if( InitConst->ExcitedDOF != NULL ){
+	  free( InitConst->ExcitedDOF );
+     }
      free( InitConst->FileM );
      free( InitConst->FileK );
+
      if( InitConst->FileC != NULL ){
 	  free( InitConst->FileC );
+     }
+     if( InitConst->FileLV != NULL ){
+	  free( InitConst->FileLV );
      }
      free( InitConst->FileCNodes );
      free( InitConst->FileData );
@@ -774,4 +799,3 @@ void Generate_LoadVectorForm( MatrixVector *const LoadVector, int *DOF )
 	  }
      }
 }
-	       

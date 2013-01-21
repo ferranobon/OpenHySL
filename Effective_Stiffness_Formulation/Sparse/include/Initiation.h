@@ -84,6 +84,7 @@ typedef struct {
 				Calc_Input_Load_RelValues_Sparse() and EffK_Calc_Effective_Force_Sparse(). */
      int Use_Pardiso;         /*!< \brief Uses PARDISO solver instead of LAPACK to compute the matrix inversion. It is only available throught the MKL libraries.
 				\sa CaclulateMatrixKeinv_Pardiso() and CalculateMatrixKeinv_Pardiso_Sparse(). */
+     int Read_LVector;        /*!< \brief Read the load vector instead of generating it. */
      int *ExcitedDOF;
 
      float Delta_t;           /*!< \brief Time increment \f$\Delta t\f$ */
@@ -112,6 +113,7 @@ typedef struct {
      char* FileM;            /*!< \brief Stores the name of the file that contains the Mass Matrix */
      char* FileK;            /*!< \brief Stores the name of the file that contains the Stiffness Matrix */
      char* FileC;            /*!< \brief Stores the name of the file that contains the Damping Matrix */
+     char* FileLV;            /*!< \brief Stores the name of the file that contains the Load Vector */
      char* FileCNodes;       /*!< \brief Stores the name of the file that contains the vector of coupling nodes. */
      char* FileData;         /*!< \brief Stores the name of the file that contains displacement, velocity and acceleration */
      char* FileOutput;       /*!< \brief Name of the file to store the output values of the process */

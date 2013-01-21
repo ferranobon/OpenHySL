@@ -19,6 +19,10 @@
 #include "Netlib.h"
 #include "ErrorHandling.h"
 #include "MatrixVector.h"
+#include "Colors.h"
+
+/* MatrixMarket format */
+#include "mmio.h"
 
 #if _SPARSE_
 #include <mkl.h>
@@ -173,32 +177,59 @@ void MatrixVector_From_File( MatrixVector *const Mat, const char *Filename )
 
 void MatrixVector_From_File_Sp2Dense( MatrixVector *const Mat, const char *Filename )
 {
-     FILE *InFile;   /* Input file */
-     int i, j;       /* Indexes of the position within the matrix of the readen value */
-     char d;         /* Dump character between two values */
-     float Value;    /* Value to be saved in the position (i,j) of the matrix */
-     int Rows, Cols; /* Number of Rows and Columns */
-     int nnz;        /* Number of non-zero elements */
-     int innz;       /* Counter for the number of non-zero elements */
+     FILE *InFile;          /* Input file */
+     MM_typecode matcode;   /* MatrixMarket: type of the matrix (symmetric, dense, complex, ...)  */
+     int return_code;       /* MatrixMarket: return code for the functions */
+     int i, j;              /* Indexes of the position within the matrix of the readen value */
+     float Value;           /* Value to be saved in the position (i,j) of the matrix */
+     int Rows, Cols;        /* Number of Rows and Columns */
+     int nnz;               /* Number of non-zero elements */
+     int innz;              /* Counter for the number of non-zero elements */
 
-
+     /* Open the file */
      InFile = fopen( Filename, "r" );
-     if( InFile != NULL ){
-	  fscanf( InFile, "%d %d %d", &Rows, &Cols, &nnz );
+     if ( InFile == NULL) {
+	  ErrorFileAndExit( "Could not read the Load Vector Form. Failed to open: ",
+			    Filename );
+     }
 
-	  if( Rows != Mat->Rows || Cols != Mat->Cols ){
-	       fprintf( stderr, "The size of the input matrix %dx%d does not match the defined one %dx%d.\n", Rows, Cols, Mat->Rows, Mat->Cols );
-	       exit( EXIT_FAILURE );
-	  }
-	  innz = 0;
-	  while( innz <= nnz ) {
-	       fscanf( InFile, "%i%c%i%c%e", &i, &d, &j, &d, &Value );
-	       Mat->Array[i*Mat->Cols + j] = Value;
-	       innz = innz + 1;
-	  }
-	  /* The program has reached the end of the file */
-	  fclose( InFile );
-     } else ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
+     /* Read the banner and identify which type of matrix is in the file */
+     if( mm_read_banner( InFile, &matcode ) != 0 ){
+	  ErrorFileAndExit( "Could not process Market Matrix banner in ", Filename );
+     }
+     
+     /* Only sparse matrices are accepted */
+     if ( !mm_is_sparse(matcode) ){
+	  fprintf( stderr, "[ " RED "ERROR" RESET " ] The Load vector form should be of");
+	  fprintf( stderr, "  type sparse or dense for this application to work\n" );
+	  fprintf( stderr, "[ " RED "ERROR" RESET " ] Market Market type: [%s]\n",
+		   mm_typecode_to_str(matcode));
+	  exit( EXIT_FAILURE );
+     }
+     
+     /* Get the sizes */
+     if ( (return_code = mm_read_mtx_crd_size( InFile, &Rows, &Cols, &nnz)) !=0){
+	  exit( EXIT_FAILURE );
+     }
+
+     /* Check if the dimensions of the matrices are the same */
+     if ( Rows != Mat->Rows || Cols != Mat->Cols ){
+	  fprintf( stderr, "[ " RED "ERROR" RESET " ] The sizes of the load vector (%d, %d)", Rows, Cols ); 
+	  fprintf( stderr, "do not match with the specified ones in the configuration file (%d, %d).n",
+		   Mat->Rows, Mat->Cols );
+	  exit( EXIT_FAILURE );
+     }
+
+     /* Read the values. The MatrixMarket format imposes that the file should contain only the
+      * lower part of the matrix in 1-based index. Since C and FORTRAN use row-major and column-major
+      * ordering respectively, the matrices will be stored as upper part in the C so that when
+      * calling the FORTRAN routines from BLAS they access the lower part of the matrix without
+      * requiring transposing it.
+      */
+     for( innz = 0; innz < nnz; innz++ ){
+	  fscanf( InFile, "%d %d %f", &i, &j, &Value );
+	  Mat->Array[(j-1)*Mat->Cols + (i-1)] = Value;
+     }
 }
 
 #if _SPARSE_

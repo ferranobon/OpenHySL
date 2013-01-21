@@ -265,7 +265,11 @@ int main( int argc, char **argv )
 	  assert( InitCnt.Read_Sparse && !InitCnt.Use_Sparse );
      }
 
-     Generate_LoadVectorForm( &LoadVectorForm, InitCnt.ExcitedDOF );
+     if ( !InitCnt.Read_LVector ){
+	  Generate_LoadVectorForm( &LoadVectorForm, InitCnt.ExcitedDOF );
+     }  else {
+	  MatrixVector_From_File_Sp2Dense( &LoadVectorForm, InitCnt.FileLV );
+     }
 
      /* Calculate damping matrix using Rayleigh. C = alpha*M + beta*K */
      if ( InitCnt.Use_Sparse && InitCnt.Read_Sparse ) {
@@ -456,7 +460,7 @@ int main( int argc, char **argv )
 	  istep = istep + 1;
      }
 
-     PrintSuccess( "The stepping process has finished" );
+     PrintSuccess( "The stepping process has finished\n" );
 
      /* Write the header file */
      clock = time( NULL );
@@ -477,9 +481,10 @@ int main( int argc, char **argv )
      if( InitCnt.Remote.Type != NO_PROTOCOL ){
 	  Close_Connection( &Socket, InitCnt.Remote.Type, (unsigned int) CNodes.Order, InitCnt.Nstep, 4 );
      }
+
      /* Free initiation values */
      Delete_InitConstants( &InitCnt );
-     
+
      /* Free the memory stored in TimeHistory variables */
      free( TimeHistoryli );
      free( TimeHistoryvi1 );
