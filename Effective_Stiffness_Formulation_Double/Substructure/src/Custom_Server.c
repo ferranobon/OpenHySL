@@ -31,17 +31,17 @@ int main( int argc, char **argv )
 
      ConstSub Cnst;
 
-     double *Gc;
-     double *u0c0, *u0c, *uc;
-     double *fcprev, *fc;
-     double *Send;
+     float *Gc;
+     float *u0c0, *u0c, *uc;
+     float *fcprev, *fc;
+     float *Send;
 
      TMD_Sim *Num_TMD;
      UHYDE_Sim *Num_UHYDE;
 
 
      /* Array where the data from ADwin will be stored */
-     double *ADWIN_DATA = NULL;
+     float *ADWIN_DATA = NULL;
 
      /* Variables to deal with arguments */
      int Mode, Selected_Option;
@@ -125,15 +125,15 @@ int main( int argc, char **argv )
      Init_Constants_Substructure( &Cnst, "ConfFile.conf" );
 
      /* Dynamically allocate memory */
-     Gc = (double *) calloc( (size_t) Cnst.Order_Couple*Cnst.Order_Couple, sizeof( double ) );
-     u0c0 = (double *) calloc( (size_t) Cnst.Order_Couple, sizeof( double ) );
-     u0c = (double *) calloc( (size_t) Cnst.Order_Couple, sizeof( double ) );
-     uc = (double *) calloc( (size_t) Cnst.Order_Couple, sizeof( double ) );
+     Gc = (float *) calloc( (size_t) Cnst.Order_Couple*Cnst.Order_Couple, sizeof( float ) );
+     u0c0 = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
+     u0c = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
+     uc = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
 
-     fcprev = (double *) calloc( (size_t) Cnst.Order_Couple, sizeof( double ) );
-     fc = (double *) calloc( (size_t) Cnst.Order_Couple, sizeof( double ) );
+     fcprev = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
+     fc = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
 
-     Send = (double *) calloc( (size_t) 3*Cnst.Order_Couple, sizeof( double ) );
+     Send = (float *) calloc( (size_t) 3*Cnst.Order_Couple, sizeof( float ) );
 
      /* Receive matrix Gc */
      Length = Cnst.Order_Couple*Cnst.Order_Couple;
@@ -149,7 +149,7 @@ int main( int argc, char **argv )
 
      } else {
 	  Client_AddrLen = sizeof(Client_Addr);
-	  if ( recvfrom( Server_Socket, Gc, Length*sizeof(double), 0, (struct sockaddr *) &Client_Addr, &Client_AddrLen) < 0 ){
+	  if ( recvfrom( Server_Socket, Gc, Length*sizeof(float), 0, (struct sockaddr *) &Client_Addr, &Client_AddrLen) < 0 ){
 	       PrintErrorAndExit("Recvfrom failed" );
 	  }
      }
@@ -159,7 +159,7 @@ int main( int argc, char **argv )
 	  /* Run with ADwin */
 	  ADWIN_SetGc( Gc, Cnst.Order_Couple*Cnst.Order_Couple );
 	  printf( "Using ADwin to perform the sub-stepping process.\n" );
-	  ADWIN_DATA = (double *) calloc( (size_t) Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( double ) );
+	  ADWIN_DATA = (float *) calloc( (size_t) Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
 #else
 	  fprintf(stderr, "The program was not compiled with ADwin support.\n");
 	  exit( EXIT_FAILURE );
@@ -192,7 +192,7 @@ int main( int argc, char **argv )
 	       Receive_Data( u0c, Length, Client_Socket );
 	  } else {
 	       Client_AddrLen = sizeof(Client_Addr);
-	       if ( recvfrom( Server_Socket, u0c, Length*sizeof(double), 0, (struct sockaddr *) &Client_Addr, &Client_AddrLen) < 0 ){
+	       if ( recvfrom( Server_Socket, u0c, Length*sizeof(float), 0, (struct sockaddr *) &Client_Addr, &Client_AddrLen) < 0 ){
 		    PrintErrorAndExit("recvfrom() failed" );
 	       }
 	  }
@@ -235,7 +235,7 @@ int main( int argc, char **argv )
 	       if( Socket_Type == PROTOCOL_TCP ){
 		    Send_Data( Send, Length, Client_Socket );
 	       } else{
-		    if( sendto( Server_Socket, Send, Length*sizeof(double), 0, (struct sockaddr *) &Client_Addr, sizeof(Client_Addr) ) != (int) sizeof(double)*Length ){  /* Sizeof() returns unsigned int */
+		    if( sendto( Server_Socket, Send, Length*sizeof(float), 0, (struct sockaddr *) &Client_Addr, sizeof(Client_Addr) ) != (int) sizeof(float)*Length ){  /* Sizeof() returns unsigned int */
 			 PrintErrorAndExit("sendto() failed or send a different ammount of data");
 		    }
 	       }

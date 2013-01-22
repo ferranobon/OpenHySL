@@ -27,15 +27,15 @@ int main ( int argc, char **argv )
 
      ConstSub Cnst;
 
-     double *Gc;
-     double *u0c0, *u0c, *uc;
+     float *Gc;
+     float *u0c0, *u0c, *uc;
 
-     double *fcprev, *fc;
-     double *Send, *Recv;
+     float *fcprev, *fc;
+     float *Send, *Recv;
 
 #if ADWIN_
      /* Array where the data from ADwin will be stored */
-     double *ADWIN_DATA;
+     float *ADWIN_DATA;
 #endif
 
      TMD_Sim *Num_TMD;
@@ -89,17 +89,17 @@ int main ( int argc, char **argv )
      Init_Constants_Substructure( &Cnst, "ConfFile.conf" );
 
      /* Dynamically allocate memory */
-     Gc = (double *) calloc( (size_t) Cnst.Order_Couple*Cnst.Order_Couple, sizeof( double ) );
+     Gc = (float *) calloc( (size_t) Cnst.Order_Couple*Cnst.Order_Couple, sizeof( float ) );
  
-     u0c0 = (double *) calloc( (size_t) Cnst.Order_Couple, sizeof( double ) );
-     u0c = (double *) calloc( (size_t) Cnst.Order_Couple, sizeof( double ) );
-     uc = (double *) calloc( (size_t) Cnst.Order_Couple, sizeof( double ) );
+     u0c0 = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
+     u0c = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
+     uc = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
 
-     fcprev = (double *) calloc( (size_t) Cnst.Order_Couple, sizeof( double ) );
-     fc = (double *) calloc( (size_t) Cnst.Order_Couple, sizeof( double ) );
+     fcprev = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
+     fc = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
 
-     Send = (double *) calloc( (size_t) 3*Cnst.Order_Couple, sizeof( double ) );
-     Recv = (double *) calloc( (size_t) Cnst.Order_Couple, sizeof( double ) );
+     Send = (float *) calloc( (size_t) 3*Cnst.Order_Couple, sizeof( float ) );
+     Recv = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
 
      /* Using NSEP */
      /* Open the Socket */
@@ -121,7 +121,7 @@ int main ( int argc, char **argv )
 	  /* Run with ADwin */
 	  ADWIN_SetGc( Gc, Cnst.Order_Couple*Cnst.Order_Couple );
 	  printf( "Using ADwin to perform the sub-stepping process.\n" );
-	  ADWIN_DATA = (double *) calloc( (size_t) Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( double ) );
+	  ADWIN_DATA = (float *) calloc( (size_t) Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
 #else
 	  fprintf(stderr, "The program was not compiled with ADwin support.\n");
 	  exit( EXIT_FAILURE );

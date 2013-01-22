@@ -70,7 +70,6 @@ void Compute_Force_Error( const MatrixVector *const Mass, const MatrixVector *co
 			  const MatrixVector *const fc, const MatrixVector *const LoadTdT, MatrixVector *const fu );
 
 #if _SPARSE_
-void JoinNonCouplingPart_Sparse( MatrixVector *const VecXm, const Sp_MatrixVector *const Keinv_m, const MatrixVector *const fcprevsub, MatrixVector *const Vec, const Coupling_Node *const CNodes );
 
 void Compute_Force_Error_Sparse( const Sp_MatrixVector *const Mass, const Sp_MatrixVector *const Damp, const Sp_MatrixVector *Stiff,
 			  const MatrixVector *const AccTdT, const MatrixVector *const VelTdT, const MatrixVector *const DispTdT,

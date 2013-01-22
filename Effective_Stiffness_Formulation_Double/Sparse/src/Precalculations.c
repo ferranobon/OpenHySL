@@ -23,7 +23,7 @@
 #include "Netlib.h"  /* BLAS and LAPACK prototypes. */
 #include "Precalculations.h"
 
-void ReadDataEarthquake_AbsValues( double *Acceleration, double *Velocity, double *Displacement, const unsigned int NumSteps, const char *Filename )
+void ReadDataEarthquake_AbsValues( double *Velocity, double *Displacement, const unsigned int NumSteps, const char *Filename )
 {
 
      unsigned int i;					/* A counter */
@@ -35,8 +35,7 @@ void ReadDataEarthquake_AbsValues( double *Acceleration, double *Velocity, doubl
 
      if ( InFile != NULL ){
 	  for ( i = 0; i < NumSteps; i++ ){
-	       fscanf( InFile, "%E %E %E %E", &unnecessary, &temp1, &temp2, &temp3 );
-	       Acceleration[i] = temp1/1000.0;
+	       fscanf( InFile, "%lE %lE %lE %lE", &unnecessary, &temp1, &temp2, &temp3 );
 	       Velocity[i] = temp2/1000.0;
 	       Displacement[i] = temp3/1000.0;
 	  }
@@ -61,7 +60,7 @@ void ReadDataEarthquake_RelValues( double *Acceleration, const unsigned int NumS
 
      if ( InFile != NULL ){
 	  for ( i = 0; i < NumSteps; i++ ){
-	       fscanf( InFile, "%E %E %E %E", &unnecessary, &temp1, &temp2, &temp3 );
+	       fscanf( InFile, "%lE %lE %lE %lE", &unnecessary, &temp1, &temp2, &temp3 );
 	       Acceleration[i] = temp1/1000.0;
 	  }
 

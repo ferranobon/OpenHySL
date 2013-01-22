@@ -22,6 +22,11 @@
 #include "Netlib.h"
 #include "Send_Receive_Data.h"
 #include "Conf_Parser.h"
+#include "Substructure.h"
+#include "Colors.h"
+
+/* Matrix market format */
+#include "mmio.h"
 
 #if _SPARSE_
 #include "mkl.h"
@@ -33,7 +38,7 @@ void InitConstants( AlgConst *const InitConst, const char *FileName )
 
      ConfFile *Config;
      
-     Config = ConfFile_Create( 50 );
+     Config = ConfFile_Create( 70 );
 
      ConfFile_ReadFile( Config, FileName );
 
@@ -58,10 +63,21 @@ void InitConstants( AlgConst *const InitConst, const char *FileName )
 	  PrintErrorAndExit( "Invalid option for Use_Pardiso" );
      }
 
+     InitConst->Read_LVector = ConfFile_GetInt( Config, "General:Read_LVector" );
+     if ( InitConst->Read_LVector != 0 && InitConst->Read_LVector != 1 ){
+	  PrintErrorAndExit( "Invalid option for Read_LVector" );
+     }
+
      /* Order of the matrices */
      (*InitConst).Order = ConfFile_GetInt( Config, "General:Order" );
      if ( InitConst->Order <= 0 ){
 	  PrintErrorAndExit( "Invalid option for the order of the matrices" );
+     }
+
+     if( !InitConst->Read_LVector ){
+	  InitConst->ExcitedDOF = Get_Excited_DOF( Config, "General:Excited_DOF" );
+     } else {
+	  InitConst->ExcitedDOF = NULL;
      }
 
      /* Number of steps and Time step */
@@ -71,7 +87,7 @@ void InitConstants( AlgConst *const InitConst, const char *FileName )
      }
 
      (*InitConst).Delta_t = ConfFile_GetDouble( Config, "General:Delta" );
-     if ( InitConst->Delta_t <= 0.0f ){
+     if ( InitConst->Delta_t <= 0.0 ){
 	  PrintErrorAndExit( "Invalid time step" );
      }
 
@@ -90,69 +106,174 @@ void InitConstants( AlgConst *const InitConst, const char *FileName )
 
      /* Several constants to multiply the vectors */
      (*InitConst).Const1 = (*InitConst).Newmark.Beta*(*InitConst).Delta_t*(*InitConst).Delta_t;
-     (*InitConst).Const2 = (0.5f - 2.0f*(*InitConst).Newmark.Beta + (*InitConst).Newmark.Gamma)*(*InitConst).Delta_t*(*InitConst).Delta_t;
-     (*InitConst).Const3 = (0.5f + (*InitConst).Newmark.Beta - (*InitConst).Newmark.Gamma)*(*InitConst).Delta_t*(*InitConst).Delta_t;
+     (*InitConst).Const2 = (0.5 - 2.0*(*InitConst).Newmark.Beta + (*InitConst).Newmark.Gamma)*(*InitConst).Delta_t*(*InitConst).Delta_t;
+     (*InitConst).Const3 = (0.5 + (*InitConst).Newmark.Beta - (*InitConst).Newmark.Gamma)*(*InitConst).Delta_t*(*InitConst).Delta_t;
 
      /* Constants for Ending Step */
-     (*InitConst).a0 = 1.0f/((*InitConst).Newmark.Beta*(*InitConst).Delta_t*(*InitConst).Delta_t);
+     (*InitConst).a0 = 1.0/((*InitConst).Newmark.Beta*(*InitConst).Delta_t*(*InitConst).Delta_t);
      (*InitConst).a1 = (*InitConst).Newmark.Gamma/((*InitConst).Newmark.Beta*(*InitConst).Delta_t);
-     (*InitConst).a2 = 1.0f/((*InitConst).Newmark.Beta*(*InitConst).Delta_t);
-     (*InitConst).a3 = 1.0f/(2.0f*(*InitConst).Newmark.Beta) - 1.0;
+     (*InitConst).a2 = 1.0/((*InitConst).Newmark.Beta*(*InitConst).Delta_t);
+     (*InitConst).a3 = 1.0/(2.0*(*InitConst).Newmark.Beta) - 1.0;
      (*InitConst).a4 = (*InitConst).Newmark.Gamma/(*InitConst).Newmark.Beta - 1.0;
-     (*InitConst).a5 = ((*InitConst).Delta_t/2.0f)*((*InitConst).Newmark.Gamma/(*InitConst).Newmark.Beta - 2.0f);
-     (*InitConst).a6 = (1.0f - (*InitConst).Newmark.Gamma)*(*InitConst).Delta_t;
+     (*InitConst).a5 = ((*InitConst).Delta_t/2.0)*((*InitConst).Newmark.Gamma/(*InitConst).Newmark.Beta - 2.0);
+     (*InitConst).a6 = (1.0 - (*InitConst).Newmark.Gamma)*(*InitConst).Delta_t;
      (*InitConst).a7 = (*InitConst).Newmark.Gamma*(*InitConst).Delta_t;
 
      /* File Names */
-/*EFAST*/
      (*InitConst).FileM = strdup( ConfFile_GetString( Config, "FileNames:Mass_Matrix" ) );
      (*InitConst).FileK = strdup( ConfFile_GetString( Config, "FileNames:Stiffness_Matrix" ) );
      (*InitConst).FileC = strdup( ConfFile_GetString( Config, "FileNames:Damping_Matrix" ) );
-     (*InitConst).FileLVector = strdup( ConfFile_GetString( Config, "FileNames:FileLVector" ) );
+     if( InitConst->Read_LVector ){
+	  (*InitConst).FileLV = strdup( ConfFile_GetString( Config, "FileNames:Load_Vector" ) );
+
+     } else {
+	  InitConst->FileLV = NULL;
+     }
      (*InitConst).FileCNodes = strdup( ConfFile_GetString( Config, "FileNames:Coupling_Nodes" ) );
      (*InitConst).FileData = strdup( ConfFile_GetString( Config, "FileNames:Ground_Motion" ) );
      (*InitConst).FileOutput = strdup( ConfFile_GetString( Config, "FileNames:OutputFile" ) );
 
      /* Get the communication protocol to be used */
-     GetServerInformation( &InitConst->Remote, Config );
+     GetNetworkInformation( &InitConst->Remote, Config );
+
+     /* Read the information regarding the numerical sub-structures */
+
+     /* Number of substructures */
+     (*InitConst).OrderSub = ConfFile_GetInt( Config, "Substructure:Order" );
+     if ( InitConst->OrderSub < 0 ){
+	  PrintErrorAndExit( "Invalid option for the number of sub-structuresr of the matrices" );
+     }
+     
+     /* Number of substructures */
+     InitConst->NSubstep = (unsigned int) ConfFile_GetInt( Config, "Substructure:Num_Substeps" );
+
+     InitConst->DeltaT_Sub = InitConst->Delta_t/(double) InitConst->NSubstep;
+
      ConfFile_Free( Config );
+}
+
+int* Get_Excited_DOF( const ConfFile *const Config, const char *Expression )
+{
+     unsigned int i, j;
+     int *DOF_Table;  
+     char *FullString;
+     char Temp[1];
+
+     FullString = strdup( ConfFile_GetString( Config, Expression ) );
+
+     /* The first position contains the number of degrees of Freedom per node present in the
+      * structure */
+     strncpy( Temp, &FullString[0], (size_t) 1 );
+
+     DOF_Table = (int *) calloc( (size_t) (atoi(Temp)+1), sizeof(int) );
+     DOF_Table[0] = atoi( Temp );
+
+     j = 1;
+     for( i = 1; i < strlen( FullString ); i++ ){
+	  if ( FullString[i] != ' ' ){
+	       strncpy( Temp, &FullString[i], (size_t) 1 );
+	       DOF_Table[j] = atoi( Temp );
+	       j = j + 1;
+	  }
+     }
+
+     free( FullString );
+     return DOF_Table;
 }
 
 void Delete_InitConstants( AlgConst *const InitConst )
 {
 
+     if( InitConst->ExcitedDOF != NULL ){
+	  free( InitConst->ExcitedDOF );
+     }
      free( InitConst->FileM );
      free( InitConst->FileK );
+
      if( InitConst->FileC != NULL ){
 	  free( InitConst->FileC );
      }
-     free( InitConst->FileLVector );
+     if( InitConst->FileLV != NULL ){
+	  free( InitConst->FileLV );
+     }
      free( InitConst->FileCNodes );
      free( InitConst->FileData );
      free( InitConst->FileOutput );
 
-     Delete_ServerInformation( &InitConst->Remote );
+     Delete_NetworkInformation( &InitConst->Remote );
 }
 
-void Read_Coupling_Nodes( Coupling_Node *const CNodes, const char *Filename )
+void Read_Coupling_Nodes( Coupling_Node *const CNodes, const int OrderSub, const double DeltaTSub, const char *Filename )
 {
      FILE *InFile;
-     int i;
-     
+     int i, j;
+     int itemp;
+     double *ftemp;
+
      InFile = fopen( Filename, "r" );
 
      if ( InFile != NULL ){
 	  /* The first value should be the number of Coupling nodes */
 	  fscanf( InFile, "%i", &CNodes->Order );
+
+	  if( CNodes->Order != OrderSub ){
+	       fclose( InFile );
+	       PrintErrorAndExit( "Invalid Number of Substructures" );
+	  }
 	  
 	  /* Allocate the necessary memory */
 	  CNodes->Array = (int *) calloc( (size_t) CNodes->Order, sizeof(int) );
-	  
+	  CNodes->Sub = (Substructure *) malloc( (size_t) CNodes->Order*sizeof(Substructure) );
+	  CNodes->u0c0 = (double *) calloc( (size_t) CNodes->Order, sizeof(double) );
 	  /* Read the contents of the file */
 	  for( i = 0; i < CNodes->Order; i++ ){
-	       fscanf( InFile, "%i", &CNodes->Array[i] );
-	  }
+	       fscanf( InFile, "%i %i", &CNodes->Array[i], &CNodes->Sub[i].Type );
+	       
+	       switch (CNodes->Sub[i].Type) {
+	       case USE_ADWIN:
+		    break;
+	       case USE_EXACT:
+		    fscanf( InFile, "%i", &itemp );
+		    if ( itemp != UHYDE_NUMPARAM_INIT ){
+			 fprintf( stderr, "Wrong number of parameters for the substructue number %i of type TMD.\n", i );
+			 fprintf( stderr, "The number of init parameters should be %i\n", EXACT_NUMPARAM_INIT );
+			 exit( EXIT_FAILURE );
+		    } else {
+			 printf( "Simulating the sub-structure in the coupling node %d as an exact integration method.\n", CNodes->Array[i] );
+			 CNodes->Sub[i].SimStruct = (void *) malloc( (size_t) 1*sizeof(TMD_Sim));
+			 ftemp = (double *) calloc( (size_t) EXACT_NUMPARAM_INIT, sizeof( double ) );
 
+			 for( j = 0; j < EXACT_NUMPARAM_INIT; j++ ){
+			      fscanf( InFile, "%lf", &ftemp[j] );
+			 }
+			 
+			 ExactSolution_Init( ftemp[0], ftemp[1], ftemp[2], DeltaTSub, (TMD_Sim *) CNodes->Sub[i].SimStruct );
+			 free( ftemp );
+		    }
+		    break;
+	       case USE_UHYDE:
+		    fscanf( InFile, "%i", &itemp );
+		    if ( itemp != UHYDE_NUMPARAM_INIT ){
+			 fprintf( stderr, "Wrong number of parameters for the substructue number %i of type UHYDE.\n", i );
+			 fprintf( stderr, "The number of init parameters should be %i\n", UHYDE_NUMPARAM_INIT );
+			 exit( EXIT_FAILURE );
+		    } else {
+			 printf( "Simulating the sub-structure in the coupling node %d as a UHYDE-fbr device.\n", CNodes->Array[i] );
+			 CNodes->Sub[i].SimStruct = (void *) malloc( (size_t) 1*sizeof(UHYDE_Sim));
+			 ftemp = (double *) calloc( (size_t) UHYDE_NUMPARAM_INIT, sizeof( double ) );
+
+			 for( j = 0; j < UHYDE_NUMPARAM_INIT; j++ ){
+			      fscanf( InFile, "%lf", &ftemp[j] );
+			 }
+			 
+			 Simulate_UHYDE_1D_Init( ftemp[0], ftemp[1], ftemp[2], (UHYDE_Sim *) CNodes->Sub[i].SimStruct );
+			 free( ftemp );
+		    }
+		    break;
+	       case USE_MEASURED:
+		    break;
+	       }
+	  }
 	  /* Close the file */
 	  fclose( InFile );
      } else ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
@@ -199,6 +320,7 @@ void CalculateMatrixC( const MatrixVector *const Mass, const MatrixVector *const
 	  daxpy_( &Length, &beta, &(*Stif).Array[i*(*Stif).Rows + i], &incx, &(*Damp).Array[i*(*Damp).Rows +i], &incy);
      }
 
+     PrintSuccess( "Damping matrix successfully calculated.\n" );
 }
 
 #if _SPARSE_
@@ -250,7 +372,7 @@ void CalculateMatrixC_Sp( const Sp_MatrixVector *const Mass, const Sp_MatrixVect
      } else if ( info < 0 ){
 	  PrintErrorAndExit( "I do not understand" );
      } else {
-	  printf( "Damping matrix successfully calculated\n" );
+	  PrintSuccess( "Damping matrix successfully calculated.\n" );
      }
 }
 #endif
@@ -259,7 +381,7 @@ void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const 
 {
 
      char uplo;
-     int lda, info, i;
+     int lda, info;
 
      uplo = 'L';  /* The lower part of the matrix will be used; the upper part will strictly not be referenced */
      lda = Max( 1, (*Keinv).Rows );
@@ -271,7 +393,7 @@ void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const 
      dpotrf_( &uplo, &(*Keinv).Rows, Keinv->Array, &lda, &info );
 
      if ( info == 0 ){
-	  printf( "Cholesky factorization successfully completed.\n" );
+	  PrintSuccess( "Cholesky factorization successfully completed.\n" );
      }
      else if (info < 0){
 	  LAPACKPErrorAndExit( "Cholesky factorization: the ", -info, "th argument has an illegal value." );
@@ -283,7 +405,7 @@ void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const 
      dpotri_( &uplo, &(*Keinv).Rows, Keinv->Array, &lda, &info );
 
      if ( info == 0 ){
-	  printf( "Matrix Inversion successfully completed.\n" );
+	  PrintSuccess( "Matrix Inversion successfully completed.\n" );
      } else if (info < 0){
 	  LAPACKPErrorAndExit( "Matrix Inversion: the ", -info, "th argument has an illegal value." );
      } else if (info > 0){
@@ -296,7 +418,7 @@ void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const 
 #if _SPARSE_
 void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *const Stiff, const Scalars Const )
 {
-     unsigned int i;
+     int i;
      int iparm[64];
      void *pt[64];
      int maxfct, mnum, msglvl, error;
@@ -334,7 +456,7 @@ void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector
      iparm[17] = -1;	/* Output: Number of nonzeros in the factor LU */
      iparm[18] = -1;	/* Output: Mflops for LU factorization */
      iparm[19] = 0;	/* Output: Numbers of CG Iterations */
-     iparm[27] = 0;     /* Input/output matrices are single precision */
+     iparm[27] = 0;     /* Input/output matrices are double precision */
      iparm[34] = 0;	/* PARDISO uses 1 based indexing for ia and ja arrays */
      maxfct = 1;	/* Maximum number of numerical factorizations. */
      mnum = 1;		/* Which factorization to use. */
@@ -361,7 +483,7 @@ void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector
 	  printf ("\nERROR during symbolic factorization: %d", error);
 	  exit (1);
      }
-     printf ("\nReordering completed ... ");
+     PrintSuccess( "\nReordering completed ... " );
      printf ("\nNumber of nonzeros in factors = %d", iparm[17]);
      printf ("\nNumber of factorization MFLOPS = %d", iparm[18]);
 /* -------------------------------------------------------------------- */
@@ -376,15 +498,14 @@ void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector
 	  printf ("\nERROR during numerical factorization: %d", error);
 	  exit (2);
      }
-     printf ("\nFactorization completed ... ");
+     PrintSuccess ( "\nFactorization completed ... " );
 /* -------------------------------------------------------------------- */
 /* .. Back substitution and iterative refinement. */
 /* -------------------------------------------------------------------- */
      phase = 33;
      iparm[7] = 10;			/* Max numbers of iterative refinement steps. */
 
-     /* Set right hand side to be the identity matrix. */
-     
+     /* Set right hand side to be the identity matrix. */     
      IdentMatrix = Generate_IdentityMatrix( Keinv->Rows, Keinv->Cols );
 
      PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
@@ -400,11 +521,13 @@ void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector
 
      Destroy_MatrixVector( &IdentMatrix );
      Destroy_MatrixVector_Sparse( &Sp_TempMat );
+
+     PrintSuccess( "Matrix Inversion successfully completed.\n" );
 }
 
 void CalculateMatrixKeinv_Pardiso_Sparse( MatrixVector *const Keinv, const Sp_MatrixVector *const Mass, const Sp_MatrixVector *const Damp, const Sp_MatrixVector *const Stiff, const Scalars Const )
 {
-     unsigned int i;
+     int i;
      int iparm[64];
      void *pt[64];
      int maxfct, mnum, msglvl, error;
@@ -465,7 +588,7 @@ void CalculateMatrixKeinv_Pardiso_Sparse( MatrixVector *const Keinv, const Sp_Ma
 	  printf ("\nERROR during symbolic factorization: %d", error);
 	  exit (1);
      }
-     printf ("\nReordering completed ... ");
+     PrintSuccess ("\nReordering completed ... ");
      printf ("\nNumber of nonzeros in factors = %d", iparm[17]);
      printf ("\nNumber of factorization MFLOPS = %d", iparm[18]);
 /* -------------------------------------------------------------------- */
@@ -479,7 +602,7 @@ void CalculateMatrixKeinv_Pardiso_Sparse( MatrixVector *const Keinv, const Sp_Ma
 	  printf ("\nERROR during numerical factorization: %d", error);
 	  exit (2);
      }
-     printf ("\nFactorization completed ... ");
+     PrintSuccess ("\nFactorization completed ... ");
 /* -------------------------------------------------------------------- */
 /* .. Back substitution and iterative refinement. */
 /* -------------------------------------------------------------------- */
@@ -502,6 +625,8 @@ void CalculateMatrixKeinv_Pardiso_Sparse( MatrixVector *const Keinv, const Sp_Ma
 
      Destroy_MatrixVector( &IdentMatrix );
      Destroy_MatrixVector_Sparse( &Sp_TempMat );
+
+     PrintSuccess( "Matrix Inversion successfully completed" );
 }
 
 
@@ -511,6 +636,10 @@ MatrixVector Generate_IdentityMatrix( int Rows, int Cols )
 {
      MatrixVector Identity;
      unsigned short int i;
+
+     if( Rows != Cols ){
+	  PrintErrorAndExit( "The number of rows and columns must be equal in order to generate an identity matrix" );
+     }
 
      Init_MatrixVector( &Identity, Rows, Cols );
      
@@ -541,7 +670,7 @@ void BuildMatrixXc( const MatrixVector *const Mat, double *MatCouple, const Coup
      }
 }
 
-void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const VecXcm, const Coupling_Node *const CNodes )
+void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const MatXcm, const Coupling_Node *const CNodes )
 {
 
      int Length;
@@ -562,8 +691,8 @@ void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const VecXcm, 
      PosXcm = 0;
      Length = CNodes->Array[0] - 1;
      for ( jcoup = 0; jcoup < CNodes->Order; jcoup++ ){
-	  PosXcm = jcoup*VecXcm->Rows;
-	  dcopy_( &Length, &Mat->Array[CNodes->Array[jcoup] - 1], &incx, &VecXcm->Array[PosXcm], &incy );
+	  PosXcm = jcoup*MatXcm->Rows;
+	  dcopy_( &Length, &Mat->Array[CNodes->Array[jcoup] - 1], &incx, &MatXcm->Array[PosXcm], &incy );
      }
 
      /* Copy until the last coupling node */
@@ -573,9 +702,9 @@ void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const VecXcm, 
 	  Length = CNodes->Array[icoup] - CNodes->Array[icoup-1] - 1;
 	  for ( jcoup = icoup; jcoup < CNodes->Order; jcoup++ ){
 	 
-	       PosXcm = jcoup*VecXcm->Rows + Acumulated_Length;
+	       PosXcm = jcoup*MatXcm->Rows + Acumulated_Length;
 	       
-	       dcopy_( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1) + (CNodes->Array[icoup-1])*Mat->Rows], &incx, &VecXcm->Array[PosXcm], &incy );
+	       dcopy_( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1) + (CNodes->Array[icoup-1])*Mat->Rows], &incx, &MatXcm->Array[PosXcm], &incy );
 	  }
 	  Acumulated_Length = Acumulated_Length + Length;
      }
@@ -584,17 +713,31 @@ void BuildMatrixXcm( const MatrixVector *const Mat, MatrixVector *const VecXcm, 
      incx = 1;
      Length = Mat->Rows - CNodes->Array[CNodes->Order -1];
      for ( jcoup = CNodes->Order - 1; jcoup >= 0; jcoup = jcoup - 1 ){
-	  PosXcm = VecXcm->Rows*(jcoup+1) - Length;
-	  dcopy_( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1)*Mat->Rows + (CNodes->Array[CNodes->Order-1])], &incx, &VecXcm->Array[PosXcm], &incy );
+	  PosXcm = MatXcm->Rows*(jcoup+1) - Length;
+	  dcopy_( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1)*Mat->Rows + (CNodes->Array[CNodes->Order-1])], &incx, &MatXcm->Array[PosXcm], &incy );
      }
      Acumulated_Length = Length;
      incx = 1;
      for( icoup = CNodes->Order -2; icoup >= 0; icoup = icoup -1 ){
 	  Length = CNodes->Array[icoup + 1] - CNodes->Array[icoup] - 1;
 	  for( jcoup = icoup; jcoup >= 0; jcoup = jcoup - 1){
-	       PosXcm = (jcoup+1)*VecXcm->Rows - Acumulated_Length - Length;
-	       dcopy_( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1)*Mat->Rows + (CNodes->Array[icoup])], &incx, &VecXcm->Array[PosXcm], &incy );
+	       PosXcm = (jcoup+1)*MatXcm->Rows - Acumulated_Length - Length;
+	       dcopy_( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1)*Mat->Rows + (CNodes->Array[icoup])], &incx, &MatXcm->Array[PosXcm], &incy );
 	  }
 	  Acumulated_Length = Acumulated_Length + Length;
+     }
+}
+
+void Generate_LoadVectorForm( MatrixVector *const LoadVector, int *DOF )
+{
+     int i, j;
+
+     i = 0;
+     while( i < LoadVector->Rows ){
+	  
+	  for ( j = 1; j < DOF[0]; j++ ){
+	       LoadVector->Array[i] = 1.0*(double) DOF[j];
+	       i = i + 1;
+	  }
      }
 }

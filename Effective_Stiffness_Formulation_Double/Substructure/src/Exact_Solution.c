@@ -7,21 +7,21 @@
 #include "ErrorHandling.h"
 #include "Exact_Solution.h"
 
-void Compute_EigenValues_EigenVectors ( const int Num_DOF, double *const MatrixA, double *const MatrixB, double *const Eigen_Values, double *const Eigen_Vectors )
+void Compute_EigenValues_EigenVectors ( const int Num_DOF, float *const MatrixA, float *const MatrixB, float *const Eigen_Values, float *const Eigen_Vectors )
 {
      int i, j;   /* Counters */
      int one = 1, Size;
      int lda, ldb, info;
      int lwork; /* Dimension of the array work */
-     double *work, *TempMat, temp;
+     float *work, *TempMat, temp;
 
      Size = Num_DOF;
      lwork = 3*Size - 1;
      lda = max (1, Size);
      ldb = lda;
 
-     TempMat = (double*) malloc(Num_DOF*Num_DOF*sizeof (double) );
-     work = (double*) malloc( lwork*sizeof (double) );
+     TempMat = (float*) malloc(Num_DOF*Num_DOF*sizeof (float) );
+     work = (float*) malloc( lwork*sizeof (float) );
 
      /* DSYGV_:On Entry Eigen_Vectors must contain the Matrix A */
      Size = Num_DOF * Num_DOF;
@@ -53,7 +53,7 @@ void Compute_EigenValues_EigenVectors ( const int Num_DOF, double *const MatrixA
      free( work );
 }
 
-void Compute_Damp_Matrix( const double a0, const double a1, const int Num_DOF, const double *const Mass, const double *const Stiff, double *const Damp )
+void Compute_Damp_Matrix( const float a0, const float a1, const int Num_DOF, const float *const Mass, const float *const Stiff, float *const Damp )
 {
 
      int i;  /* A counter */
@@ -64,10 +64,10 @@ void Compute_Damp_Matrix( const double a0, const double a1, const int Num_DOF, c
      }
 }
 
-void Compute_Damping_Ratios_and_Matrix ( const double a0, const double a1, const int Num_DOF, const double *const Eigen_Values, double *const Damping_Ratios )
+void Compute_Damping_Ratios_and_Matrix ( const float a0, const float a1, const int Num_DOF, const float *const Eigen_Values, float *const Damping_Ratios )
 {
      int i; /* A counter */
-     double omega;
+     float omega;
      
      for ( i = 0; i < Num_DOF; i++ ){
 	  omega = sqrt( Eigen_Values[i] );
@@ -75,24 +75,24 @@ void Compute_Damping_Ratios_and_Matrix ( const double a0, const double a1, const
      }
 }
 
-void ExactSolution_Init( const int Num_DOF, const double a0, const double a1, const char* MassFile, const char *StiffFile, TMD_Sim *const Num )
+void ExactSolution_Init( const int Num_DOF, const float a0, const float a1, const char* MassFile, const char *StiffFile, TMD_Sim *const Num )
 {
      fopen *InFile_Mass, *InFile_Stiff;
-     double Eigen_Values;
+     float Eigen_Values;
 
      /* Init the variables */
-     Num->Mass = (double *) calloc( Num_DOF*Num_DOF, sizeof(double) );
-     Num->Stiff = (double *) calloc( Num_DOF*Num_DOF, sizeof(double) );
-     Num->Damp = (double *) calloc( Num_DOF*Num_DOF, sizeof(double) );
-     Num->Eigen_Vectors = (double *) calloc( Num_DOF, sizeof(double) );
+     Num->Mass = (float *) calloc( Num_DOF*Num_DOF, sizeof(float) );
+     Num->Stiff = (float *) calloc( Num_DOF*Num_DOF, sizeof(float) );
+     Num->Damp = (float *) calloc( Num_DOF*Num_DOF, sizeof(float) );
+     Num->Eigen_Vectors = (float *) calloc( Num_DOF, sizeof(float) );
 
-     Num->Damping_Ratios = (double *) calloc( Num_DOF, sizeof(double) );
+     Num->Damping_Ratios = (float *) calloc( Num_DOF, sizeof(float) );
 
-     Num->Omega = (double *) calloc( Num_DOF, sizeof(double) );
+     Num->Omega = (float *) calloc( Num_DOF, sizeof(float) );
 
-     Num->Disp0 = (double *) calloc( Num_DOF, sizeof(double) );
+     Num->Disp0 = (float *) calloc( Num_DOF, sizeof(float) );
  
-     Eigen_Values = (double *) calloc( Num_DOF, sizeof(double) );
+     Eigen_Values = (float *) calloc( Num_DOF, sizeof(float) );
 
      /* Read the matrices from a text file */
      InFile_Mass = fopen( MassFile, "r" );
@@ -137,7 +137,7 @@ void ExactSolution_Init( const int Num_DOF, const double a0, const double a1, co
      free( Eigen_Values );
 }
 
-void Exact_Solution ( const double *const u0c, const double DeltaT, const int Num_DOF, double *const fc )
+void Exact_Solution ( const float *const u0c, const float DeltaT, const int Num_DOF, float *const fc )
 {
 
      int i; /* Counter */
@@ -147,15 +147,15 @@ void Exact_Solution ( const double *const u0c, const double DeltaT, const int Nu
      static int incx = 1, incy = 1;     /* Stride in the vectors */
      static char uplo = 'L';
      static char trans;
-     static double Alpha, Beta;
+     static float Alpha, Beta;
 
-     double om2, om, omp, zeta=0;
-     double expo, sino, coso;
-     double x_part, x_hom, a, b;    
+     float om2, om, omp, zeta=0;
+     float expo, sino, coso;
+     float x_part, x_hom, a, b;    
 
-     double *Init_Disp, *Init_Vel, *Force;
-     double *End_Disp, *End_Vel, *End_Acc;
-     double *Modal_Force, *Modal_Disp, *Modal_Vel, *temp;
+     float *Init_Disp, *Init_Vel, *Force;
+     float *End_Disp, *End_Vel, *End_Acc;
+     float *Modal_Force, *Modal_Disp, *Modal_Vel, *temp;
 
      /* Calculate new velocity. v = (u0c - Disp0)/Delta_T */
      Size = Num_DOF;
@@ -166,16 +166,16 @@ void Exact_Solution ( const double *const u0c, const double DeltaT, const int Nu
      sscal_( &Size, &Alpha, Num->Init_Vel, &incx );
 
 
-     Init_Disp = (double *) calloc( Num_DOF, sizeof (double) );
-     Init_Vel = (double *) calloc( Num_DOF, sizeof (double) );
-     Force = (double *) calloc( Num_DOF, sizeof (double) );
+     Init_Disp = (float *) calloc( Num_DOF, sizeof (float) );
+     Init_Vel = (float *) calloc( Num_DOF, sizeof (float) );
+     Force = (float *) calloc( Num_DOF, sizeof (float) );
 
-     Modal_Force = (double *) calloc( Num_DOF, sizeof (double) );
-     Modal_Disp = (double *) calloc( Num_DOF, sizeof (double) );
-     Modal_Vel = (double *) calloc( Num_DOF, sizeof (double) );
+     Modal_Force = (float *) calloc( Num_DOF, sizeof (float) );
+     Modal_Disp = (float *) calloc( Num_DOF, sizeof (float) );
+     Modal_Vel = (float *) calloc( Num_DOF, sizeof (float) );
 
 
-     temp = (double *) calloc( Num_DOF, sizeof (double) );
+     temp = (float *) calloc( Num_DOF, sizeof (float) );
 
      /* Compute new input force. Force = M*u0c + C*Init_Vel */
      Size = Num_DOF; Alpha = 1.0; Beta = 0.0;
@@ -240,9 +240,9 @@ void Exact_Solution ( const double *const u0c, const double DeltaT, const int Nu
 	  }
      }
 
-     End_Disp = (double *) calloc( Num_DOF, sizeof (double) );
-     End_Vel = (double *) calloc( Num_DOF, sizeof (double) );
-     End_Acc = (double *) calloc( Num_DOF, sizeof (double) );
+     End_Disp = (float *) calloc( Num_DOF, sizeof (float) );
+     End_Vel = (float *) calloc( Num_DOF, sizeof (float) );
+     End_Acc = (float *) calloc( Num_DOF, sizeof (float) );
 
      /* Transform into physical coordinates */
      Multiply_Matrix_Vector( Num_DOF, Num_DOF, "N", 1.0, Eigen_Vectors, Modal_Disp, 0.0, End_Disp );

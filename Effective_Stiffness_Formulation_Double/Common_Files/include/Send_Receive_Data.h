@@ -21,6 +21,7 @@
 #endif
 
 #include "Conf_Parser.h"  /* For ConfFile struct */
+#include "Substructure.h"
 
 #define MAXPENDING   5    /* Maximum outstanding connection requests */
 
@@ -38,11 +39,12 @@ typedef struct {
      int Type;             /*!< Type of Server to connect: OpenFresco, PNSE or Custom */
 } Remote_Machine_Info;
 
-#define PROTOCOL_ADWIN  0
-#define PROTOCOL_TCP    1
-#define PROTOCOL_UDP    2
-#define PROTOCOL_NSEP   3
-#define PROTOCOL_OF     4
+#define NO_PROTOCOL     0
+#define PROTOCOL_ADWIN  1
+#define PROTOCOL_TCP    2
+#define PROTOCOL_UDP    3
+#define PROTOCOL_NSEP   4
+#define PROTOCOL_OF     5
 
 /**
  * \brief Gets the information to establish the TCP/IP connection.
@@ -67,7 +69,7 @@ typedef struct {
  *
  * \sa Remote_Machine_Info.
  */
-void GetServerInformation( Remote_Machine_Info *const Server, const ConfFile *const CFile );
+void GetNetworkInformation( Remote_Machine_Info *const Server, const ConfFile *const CFile );
 
 /**
  * \brief Frees the memory allocated during GetServerInformation.
@@ -78,7 +80,7 @@ void GetServerInformation( Remote_Machine_Info *const Server, const ConfFile *co
  * \param[out] Server Struct storing the IP address, port and login information.
  *
  */
-void Delete_ServerInformation( Remote_Machine_Info *const Server );
+void Delete_NetworkInformation( Remote_Machine_Info *const Server );
 
 /**
  * \brief Identify the communication protocol to be used
@@ -144,7 +146,8 @@ void Receive_Data( double *const Data, const unsigned int Data_Length, const int
 
 void Send_Effective_Matrix( double *const Eff_Mat, const unsigned int OrderC, int *const Socket, const Remote_Machine_Info Server );
 
-void Do_Substepping( double *const DispTdT0_c, double *const DispTdT, double *const fcprevsub, double *const fc, const int Protocol_Type, const double Time, const int Socket, const unsigned int OrderC, const unsigned int *Pos_Couple );
+void Do_Substepping( double *const Keinv, double *const DispTdT0_c, double *const DispTdT, double *const fcprevsub, double *const fc, const int Protocol_Type, const double Time, const int Socket, Coupling_Node *const CNodes, const int NSubstep, const double DeltaT_Sub );
+
 void Close_Connection( int *Socket, const int Protocol_Type, const unsigned int OrderC, const unsigned int Num_Steps, const unsigned int Num_Sub );
 
 void Close_Socket( int *Socket );
