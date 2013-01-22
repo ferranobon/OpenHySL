@@ -19,35 +19,38 @@
 #include "Initiation.h"
 
 /**
- * \brief Calculate force vector.
+ * \brief Calculates the effective force vector \f$\overrightarrow{f_{eff}}\f$ according to the formulation using the effective stiffness matrix.
+ * 
+ * The effective force vector is calculated according to the formulation using the effective stiffness matrix in page 53 (\cite Dorka_1998). It is used to compute the implicit
+ * part of the displacement vector.
  *
- * The force vector is calculated according to \f$f_i = l_i + f_c + \Delta_f\f$, where:
- * - \f$f_i\f$ is the force vector.
- * - \f$l_i\f$ is the input load.
- * - \f$\Delta_f\f$ is the force due to the PID error compensator.
- * - \f$i\f$ denotes the step.
+ * \f[\overrightarrow{f_{eff}} = \mathcal{M}(a_0\vec{u} + a_2\vec{\dot{u}} + a_3\vec{\ddot{u}}) + \mathcal{C}(a_1\vec{u} + a_4\vec{\dot{u}} + a_5\vec{\ddot{u}})\f]
+ *
+ * This routine assumes that the matrices are symmetrical and in general storage. Only the upper part will be referenced (lower part in FORTRAN).
  *
  * \pre
- * - All elements of type MatrixVector must be properly initialised through the Init_MatrixVector() routine.
- * - The size of the vectors must be coeherent, since it will not be checked in the routine.
- * - The number of rows of the vector \f$f_i\f$ must be indicative of its length.
+ * - All elements of type \c MatrixVector must be properly initialised through the Init_MatrixVector() routine.
+ * - The size of the vectors and matrices must be coeherent, since it will not be checked in the routine.
  *
- * \param[in, out] fi The force vector at step \e i. As an input, only the size of the vector is referenced, not its elements.
- * \param[in] fc The coupling force at step \e i.
- * \param[in] li The input load at step \e i.
- * \param[in] Deltaf The force due to the PID error compensator.
+ * \param[in] Mass is the Mass matrix \f$\mathcal{M}\f$.
+ * \param[in] Damp is the Viscous Damping matrix \f$\mathcal{C}\f$.
+ * \param[in] Disp The displacement vector \f$\vec{u}\f$.
+ * \param[in] Vel is the velocity vector \f$\dot{\vec{u}}\f$.
+ * \param[in] Acc is the acceleration vector \f$\ddot{\vec{u}}\f$.
+ * \param[in,out] Tempvec is a temporal vector that helps in the calculations. This is included in order to avoid allocating and deallocating memory each step. On input
+ * only the number of rows is used
+ * \param[in] a0 A constant of value \f$a_0 = \frac{1}{\beta_N\Delta t^2}\f$.
+ * \param[in] a1 A constant of value \f$a_1 = \frac{\gamma_N}{\beta_N\Delta t}\f$.
+ * \param[in] a2 A constant of value \f$a_2 = \frac{1}{\beta_N\Delta t}\f$.
+ * \param[in] a3 A constant of value \f$a_3 = \frac{1}{2\beta_N\Delta t} - 1\f$.
+ * \param[in] a4 A constant of value \f$a_4 = \frac{\gamma_N}{\beta_N} - 1\f$.
+ * \param[in] a5 A constant of value \f$a_5 = \Delta_t\biggl(\frac{\gamma_N}{2\beta_N} - 1\biggr)\f$.
+ * \param[out] Eff_Force is the effective force vector \f$\overrightarrow{f_{eff}}\f$.
  *
  * \post
- * - \f$f_i\f$ is the result of the operation \f$f_i = l_i + f_c + \Delta_f\f$.
+ * - \c Eff_Force is the result of the operation \f$\overrightarrow{f_{eff}} = \mathcal{M}(a_0\vec{u} + a_2\vec{\dot{u}} + a_3\vec{\ddot{u}}) + \mathcal{C}(a_1\vec{u} + a_4\vec{\dot{u}} + a_5\vec{\ddot{u}})\f$.
  *
- * \sa MatrixVector.
- */
-void Calculatefi( MatrixVector *const fi, const MatrixVector *const fc, const MatrixVector *const li, const MatrixVector *const Deltaf );
-
-/** 
- * \brief Calculates the new effective force vector \f$F_{eff}\f$ according to the formulation using the effective stiffness matrix.
- *
- * Calculates the effective force vector following the formulation using the effective stiffness matrix in page 53 of iimplicit part of the new displacement vector is calculated \cite Dorka_2001
+ * \sa MatrixVector and AlgConst.
  */
 void EffK_Calc_Effective_Force( const MatrixVector *const Mass, const MatrixVector *const Damp,
 				const MatrixVector *const Disp, const MatrixVector *const Vel,
@@ -55,7 +58,32 @@ void EffK_Calc_Effective_Force( const MatrixVector *const Mass, const MatrixVect
 				const double a0, const double a1, const double a2,
 				const double a3, const double a4, const double a5,
 			       MatrixVector *const Eff_Force );
-
+/**
+ * \brief Calculates the implicit displacement according to the formulation using the effective stiffness matrix.
+ *
+ * The displacement is computed according to the formulation using the effective stiffness matrix in page 53 of (\cite Dorka_1998). This is the implicit displacement.
+ * 
+ * \f[\overrightarrow{u_0} = \mathcal{K}^{-1}_e(\overrightarrow{f_{eff}} + \overrightarrow{l_i} + \overrightarrow{f(e)})\f]
+ * 
+ * \pre
+ * - All elements of type \c MatrixVector must be properly initialised through the Init_MatrixVector() routine.
+ * - \c Keinv must be a symmetrical matrix in general storage. Only the upper part will be referenced (lower part in FORTRAN).
+ * - The size of the vectors and matrices must be coherent, since it will not be checked in the routine.
+ * 
+ * \param[in] Eff_Force the effective force vector \f$\overrightarrow{f_{eff}}\f$.
+ * \param[in] In_Load the input load vector \f$\overrightarrow{l_i}\f$.
+ * \param[in] Err_Force the error force vector coming from the PID controller \f$\overrightarrow{f(e)}\f$.
+ * \param[in] PID_P the proportional part of the PID controller.
+ * \param[in] Keinv the inverted effective stiffness matrix \f$\mathcal{K}^{1}_e\f$.
+ * \param[in,out] Tempvec is a temporal vector that helps in the calculations. This is included in order to avoid allocating and deallocating memory each step. On input
+ * only the number of rows is used.
+ * \param[out] Disp0 is new implicit displacement \f$\overrightarrow{u_0}\f$.
+ *
+ * \post
+ * - \c Disp0 is the result of the operation \f$\overrightarrow{u_0} = \mathcal{K}^{-1}_e(\overrightarrow{f_{eff}} + \overrightarrow{l_i} + \overrightarrow{f(e)})\f$.
+ *
+ * \sa MatrixVector and EffK_Calc_Effective_Force().
+ */
 void EffK_ComputeU0( const MatrixVector *const Eff_Force, const MatrixVector *const In_Load,
 		     const MatrixVector *const Err_Force, const double PID_P, const MatrixVector *const Keinv,
 		     MatrixVector *const Tempvec, MatrixVector *const Disp0 );
@@ -63,7 +91,7 @@ void EffK_ComputeU0( const MatrixVector *const Eff_Force, const MatrixVector *co
 /**
  * \brief Copies the non-coupling part a vector.
  *
- * The non-coupling part a vector (\f$Order - OrderC\f$) is copied. This routine makes use of the level 1 BLAS dcopy_().
+ * The non-coupling part a vector (\f$Order - Order_C\f$) is copied. This routine makes use of the level 1 BLAS dcopy_().
  *
  * \pre
  * - The global vector (length \f$Order\f$) must be properly initialised through the Init_MatrixVector() routine.
@@ -86,38 +114,71 @@ void EffK_ComputeU0( const MatrixVector *const Eff_Force, const MatrixVector *co
 void CreateVectorXm( const MatrixVector *const VectorX, MatrixVector *const VectorXm, const Coupling_Node *const CNodes );
 
 /**
- * \brief Copies the coupling part a vector.
+ * \brief Copies the coupling nodes of a vector.
  *
- * The coupling part a vector (\f$OrderC\f$) is copied. This routine makes use of the level 1 BLAS dcopy_().
+ * The coupling positions of a vector are copied. This routine makes use of the level 1 BLAS dcopy_().
  *
  * \pre
  * - The global vector (length \f$Order\f$) must be properly initialised through the Init_MatrixVector() routine.
- * - The number of rows of the vectors must be indicative of their length.
- * - The coupling vector must be of length \f$OrderC\f$ and properly initialised.
+ * - \f$Order > Order_C\f$.
+ * - The coupling vector must be at least of length \f$Order_C\f$ and properly initialised.
  * - The coupling nodes are assumed to be consecutive (the first node is assumed to be PosCouple).
- * - \e Order is the number of rows of the input vector.
- * - \e OrderC is the number of coupling degrees of freedom.
+ * - The coupling nodes are assumed to be in increasing order of rows and in one based index.
  *
  * \param[in] VecX The global vector.
  * \param[out] VecXc The vector that will contain the coupling elements of \c VectorX.
- * \param[in] CNodes Structure containing the coupling nodes.
+ * \param[in] CNodes Structure containing the coupling nodes in increasing order of rows.
  *
  * \post
- * - \c VectorXc contains only the coupling nodes of \c Vec.
+ * - \c VectorXc is a vector of length \$Order_C$ and contains only the coupling elements of \c Vec.
  *
  * \sa MatrixVector.
  */
 void CreateVectorXc( const MatrixVector *const VecX, double *VecXc, const Coupling_Node *const CNodes );
 
+/**
+ * \brief Calculates the effective force vector \f$\overrightarrow{f_{eff}}\f$ according to the formulation using the effective stiffness matrix. This is the sparse version
+ * of the routine and it requires Intel's MKL library.
+ * 
+ * The effective force vector is calculated according to the formilation using the effective stiffness matrix in page 53 (\cite Dorka_1998). It is used to compute the implicit
+ * part of the displacement vector .
+ *
+ * \f[\overrightarrow{f_{eff}} = \mathcal{M}(a_0\vec{u} + a_2\vec{\dot{u}} + a_3\vec{\ddot{u}}) + \mathcal{C}(a_1\vec{u} + a_4\vec{\dot{u}} + a_5\vec{\ddot{u}})\f]
+ *
+ * The mass and viscous damping matrices are assumed to be in Intel's MKL CSR-\em three \em array \em variation format and only the upper part (lower part in FORTRAN) is
+ * referenced. This routine therefore requires the program to be linked to the Intel's MKL library.
+ *
+ * \pre
+ * - All vectors must be properly initialised through the Init_MatrixVector() routine.
+ * - The mass and stiffness matrices must be in Intel's MKL CSR-\em three \em array \em variation format in one based index. Only the upper part (lower part in FORTRAN)
+ *   is referenced.
+ * - The size of the vectors and matrices must be coeherent, since it will not be checked in the routine.
+ *
+ * \param[in] Mass is the Mass matrix \f$\mathcal{M}\f$.
+ * \param[in] Damp is the Viscous Damping matrix \f$\mathcal{C}\f$.
+ * \param[in] Disp The displacement vector \f$\vec{u}\f$.
+ * \param[in] Vel is the velocity vector \f$\dot{\vec{u}}\f$.
+ * \param[in] Acc is the acceleration vector \f$\ddot{\vec{u}}\f$.
+ * \param[in,out] Tempvec is a temporal vector that helps in the calculations. This is included in order to avoid allocating and deallocating memory each step. On input
+ * only the number of rows is used
+ * \param[in] a0 A constant of value \f$a_0 = \frac{1}{\beta_N\Delta t^2}\f$.
+ * \param[in] a1 A constant of value \f$a_1 = \frac{\gamma_N}{\beta_N\Delta t}\f$.
+ * \param[in] a2 A constant of value \f$a_2 = \frac{1}{\beta_N\Delta t}\f$.
+ * \param[in] a3 A constant of value \f$a_3 = \frac{1}{2\beta_N\Delta t} - 1\f$.
+ * \param[in] a4 A constant of value \f$a_4 = \frac{\gamma_N}{\beta_N} - 1\f$.
+ * \param[in] a5 A constant of value \f$a_5 = \Delta_t\biggl(\frac{\gamma_N}{2\beta_N} - 1\biggr)\f$.
+ * \param[out] Eff_Force is the effective force vector \f$\overrightarrow{f_{eff}}\f$.
+ *
+ * \post
+ * - \c Eff_Force is the result of the operation \f$\overrightarrow{f_{eff}} = \mathcal{M}(a_0\vec{u} + a_2\vec{\dot{u}} + a_3\vec{\ddot{u}}) + \mathcal{C}(a_1\vec{u} + a_4\vec{\dot{u}} + a_5\vec{\ddot{u}})\f$.
+ *
+ * \sa MatrixVector and AlgConst.
+ */
 void EffK_Calc_Effective_Force_Sparse( const Sp_MatrixVector *const Mass, const Sp_MatrixVector *const Damp,
 				const MatrixVector *const Disp, const MatrixVector *const Vel,
 				const MatrixVector *const Acc, MatrixVector *const Tempvec,
 				const double a0, const double a1, const double a2,
 				const double a3, const double a4, const double a5,
 				       MatrixVector *const Eff_Force );
-
-void EffK_ComputeU0_Sparse( const MatrixVector *const Eff_Force, const MatrixVector *const In_Load,
-			    const MatrixVector *const Err_Force, const double PID_P, const Sp_MatrixVector *const Keinv, MatrixVector *const Tempvec, MatrixVector *const Disp0 );
-
 
 #endif /* COMPUTEU0_H_ */

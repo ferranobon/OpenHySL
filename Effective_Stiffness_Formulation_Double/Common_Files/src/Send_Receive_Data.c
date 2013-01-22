@@ -26,6 +26,7 @@
 #include <unistd.h>
 #endif
 
+#include "Substructure.h"
 #include "Send_Receive_Data.h"         /* Definition of struct Remote_Machine_Info. */
 #include "ErrorHandling.h"             /* Headers for Error Handling functions. */
 #include "OpenFresco_Communication.h"  /* OpenFresco header files */
@@ -37,13 +38,17 @@
 #include "RoutinesADwin.h"             /* Communicate with ADwin */
 #endif
 
-void GetServerInformation( Remote_Machine_Info *const Server, const ConfFile *const CFile )
+void GetNetworkInformation( Remote_Machine_Info *const Server, const ConfFile *const CFile )
 {
      char *Type;
 
      /* See the type of client */	     
      Type = strdup( ConfFile_GetString( CFile, "Network:Protocol" ) );
      Server->Type = Get_Type_Protocol( Type );
+
+     if( Server->Type == -1 ){
+	  PrintErrorDetailAndExit( "Unrecognised protocol type", Type );
+     }
 
      /* Server IP address */
      Server->IP = strdup( ConfFile_GetString( CFile, "Network:IP_Address" ) );
@@ -67,7 +72,7 @@ void GetServerInformation( Remote_Machine_Info *const Server, const ConfFile *co
      free( Type );
 }
 
-void Delete_ServerInformation( Remote_Machine_Info *const Server )
+void Delete_NetworkInformation( Remote_Machine_Info *const Server )
 {
      free( Server->IP );
      free( Server->Port );
@@ -85,6 +90,8 @@ int Get_Type_Protocol( const char *Type )
 {
 
      if ( !strcmp( Type, "None" ) ){
+	  return NO_PROTOCOL;
+     } else if ( !strcmp( Type, "ADwin" ) ){
 	  return PROTOCOL_ADWIN;
      } else if ( !strcmp( Type, "TCPCustom" ) ){
 	  return PROTOCOL_TCP;
@@ -333,6 +340,8 @@ void Send_Effective_Matrix( double *const Eff_Mat, const unsigned int OrderC, in
      printf("Server.Type = %d REMOTE %d\n", Server.Type, PROTOCOL_TCP );
      switch( Server.Type ){
 
+     case NO_PROTOCOL:
+	  break;
 #if ADWIN_
      case PROTOCOL_ADWIN:
 	  printf( "Running without TCP communication.\n" );
@@ -404,64 +413,68 @@ void Send_Effective_Matrix( double *const Eff_Mat, const unsigned int OrderC, in
      free( Recv );
 }
 
-void Do_Substepping( double *const DispTdT0_c, double *const DispTdT, double *const fcprevsub, double *const fc, const int Protocol_Type, const double Time, const int Socket, const unsigned int OrderC, const unsigned int *Pos_Couple )
+void Do_Substepping( double *const Keinv, double *const DispTdT0_c, double *const DispTdT, double *const fcprevsub, double *const fc, const int Protocol_Type, const double Time, const int Socket, Coupling_Node *const CNodes, const int NSubstep, const double DeltaT_Sub )
 {
 
-
-     unsigned int i;
+     int i;
      double *Recv = NULL;
 
-     Recv = (double *) calloc( (size_t) 3*OrderC, sizeof(double) );
+     Recv = (double *) calloc( (size_t) 3*(size_t)CNodes->Order, sizeof(double) );
 
      switch ( Protocol_Type ){
+     case NO_PROTOCOL:
+	  Simulate_Substructures( CNodes, Keinv, DispTdT0_c, &Recv[0], &Recv[CNodes->Order], &Recv[2*CNodes->Order], NSubstep, DeltaT_Sub );
+
+	  break;
 #if ADWIN_
      case PROTOCOL_ADWIN:
 	  /* Tell ADwin to perform the substepping process */
-	  ADWIN_Substep( DispTdT0_c, &Recv[0], &Recv[1], &Recv[2], OrderC );
+	  ADWIN_Substep( DispTdT0_c, &Recv[0], &Recv[1], &Recv[2], CNodes->Order );
 	  break;
 #endif
      case PROTOCOL_TCP:
 	  /* Using TCP communication protocol */
-	  Send_Data( DispTdT0_c, OrderC, Socket );
+	  Send_Data( DispTdT0_c, CNodes->Order, Socket );
 
-	  Receive_Data( Recv, 3*OrderC, Socket );
+	  Receive_Data( Recv, 3*CNodes->Order, Socket );
 	  break;
      case PROTOCOL_UDP:
 	  /* Using UDP communication protocol */
 
-	  Send_Data( DispTdT0_c, OrderC, Socket );
-	  if ( recv( Socket, Recv, sizeof(double)*3*OrderC,0) != (int) sizeof(double)*3*OrderC ){    /* sizeof returns an unsigned integer ? */
+	  Send_Data( DispTdT0_c, CNodes->Order, Socket );
+	  if ( recv( Socket, Recv, sizeof(double)*3*(size_t) CNodes->Order,0) != (int) sizeof(double)*3*CNodes->Order ){    /* sizeof returns an unsigned integer ? */
 	       PrintErrorAndExit( "recv() failed in connected UDP mode" );
 	  }
 	  break;
      case PROTOCOL_NSEP:
 	  /* Using NSEP Protocol */
-	  Communicate_With_PNSE( 1, Time, DispTdT0_c, Recv, OrderC );
+	  Communicate_With_PNSE( 1, Time, DispTdT0_c, Recv, CNodes->Order );
 	  /* Receive the force from the PNSE server. WhatToDo = 2 */
-	  Communicate_With_PNSE( 2, Time, DispTdT0_c, Recv, 3*OrderC );
+	  Communicate_With_PNSE( 2, Time, DispTdT0_c, Recv, 3*CNodes->Order );
 	  break;
      case PROTOCOL_OF:
 	  /* Using OpenFresco */
-	  Communicate_With_OpenFresco( DispTdT0_c, Recv, OrderC, 3 ); 
+	  Communicate_With_OpenFresco( DispTdT0_c, Recv, CNodes->Order, 3 ); 
 	  break;
      }
 #if _MPI_
-     for ( i = 0; i < OrderC; i++ ){
+     for ( i = 0; i < CNodes->Order; i++ ){
 	  DispTdT[i] = Recv[i];
-	  fcprevsub[i] = Recv[OrderC + i];
-	  fc[i] = Recv[2*OrderC + i];
+	  fcprevsub[i] = Recv[CNodes->Order + i];
+	  fc[i] = Recv[2*CNodes->Order + i];
      }
 #else
-     for ( i = 0; i < OrderC; i++ ){
-	  DispTdT[Pos_Couple[i] - 1] = Recv[i];
-	  fcprevsub[i] = Recv[OrderC + i];
-	  fc[Pos_Couple[i] - 1] = Recv[2*OrderC + i];
+     for ( i = 0; i < CNodes->Order; i++ ){
+	  DispTdT[CNodes->Array[i] - 1] = Recv[i];
+	  fcprevsub[i] = Recv[CNodes->Order + i];
+	  fc[CNodes->Array[i] - 1] = Recv[2*CNodes->Order + i];
      }
 #endif
 
      free( Recv );
 
 }
+
 /*
 void Send_Data( const int Socket, const int Data_Type_Size, char* const To_Send, const int Data_Length )
 {
@@ -504,6 +517,8 @@ void Close_Connection( int *Socket, const int Protocol_Type, const unsigned int 
      Send = (double *) calloc( (size_t) OrderC, sizeof(double) );
 
      switch ( Protocol_Type ){
+     case NO_PROTOCOL:
+	  break;
 #if ADWIN_
      case PROTOCOL_ADWIN:
 	  /* Connect directly to ADwin */

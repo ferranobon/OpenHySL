@@ -31,9 +31,9 @@ int main ( int argc, char **argv )
 
      ConstSub Cnst;
 
-     double *Gc;
-     double *u0c0, *u0c, *uc;
-     double *fcprev, *fc;
+     float *Gc;
+     float *u0c0, *u0c, *uc;
+     float *fcprev, *fc;
      double *Send, *Recv;
 
      TMD_Sim *Num_TMD;
@@ -41,7 +41,7 @@ int main ( int argc, char **argv )
 
 #if ADWIN_
      /* Array where the data from ADwin will be stored */
-     double *ADWIN_DATA;
+     float *ADWIN_DATA;
 #endif
 
      /* Variables to deal with arguments */
@@ -118,14 +118,14 @@ int main ( int argc, char **argv )
      /* Initialise the constants of the substructure */
      Init_Constants_Substructure( &Cnst, "ConfFile.conf" );
 
-     Gc = (double *) calloc( (size_t) Cnst.Order_Couple*Cnst.Order_Couple, sizeof( double ) );
+     Gc = (float *) calloc( (size_t) Cnst.Order_Couple*Cnst.Order_Couple, sizeof( float ) );
 
-     u0c0 = (double *) calloc( (size_t) Cnst.Order_Couple, sizeof( double ) );
-     u0c = (double *) calloc( (size_t) Cnst.Order_Couple, sizeof( double ) );
-     uc = (double *) calloc( (size_t) Cnst.Order_Couple, sizeof( double ) );
+     u0c0 = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
+     u0c = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
+     uc = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
 
-     fcprev = (double *) calloc( (size_t) Cnst.Order_Couple, sizeof( double ) );
-     fc = (double *) calloc( (size_t) Cnst.Order_Couple, sizeof( double ) );
+     fcprev = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
+     fc = (float *) calloc( (size_t) Cnst.Order_Couple, sizeof( float ) );
 
      /* The size of the data to be exchanged is given by the last element of iData */
      Length = iData[10];
@@ -138,7 +138,7 @@ int main ( int argc, char **argv )
 #if ADWIN_
 	  /* Run with ADwin */
 	  printf( "Using ADwin to perform the sub-stepping process.\n" );
-	  ADWIN_DATA = (double *) calloc( (size_t) Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( double ) );
+	  ADWIN_DATA = (float *) calloc( (size_t) Cnst.Num_Sub*Cnst.Num_Steps*NUM_CHANNELS, sizeof( float ) );
 #else 
 	  fprintf(stderr, "The program was not compiled with ADwin support.\n");
 	  exit( EXIT_FAILURE );
@@ -177,7 +177,7 @@ int main ( int argc, char **argv )
 	       /* Check if what has been received are the control values */
 	       for ( i = 0; i < Cnst.Order_Couple; i++ ){
 		    printf("Received control values values\n");
-		    u0c[i] = (double) Recv[1+i];
+		    u0c[i] = (float) Recv[1+i];
 	       }
 
 	       /* Perform the substepping process */
@@ -221,7 +221,7 @@ int main ( int argc, char **argv )
 		    Receive_G_Matrix = 0;   /* The gain matrix will be received no more */
 		    for ( i = 0; i < Cnst.Order_Couple*Cnst.Order_Couple; i++ ){
 			 printf("Received control values values\n");
-			 Gc[i] = (double) Recv[1+i];
+			 Gc[i] = (float) Recv[1+i];
 			 printf("Gc %e\n", Gc[0] );
 		    }
 		    if ( Mode == USE_ADWIN ){
@@ -234,7 +234,7 @@ int main ( int argc, char **argv )
 		    /* Check if what has been received are the control values */
 		    for ( i = 0; i < Cnst.Order_Couple; i++ ){
 			 printf("Received control values values\n");
-			 u0c[i] = (double) Recv[1+i];
+			 u0c[i] = (float) Recv[1+i];
 		    }
 	       
 

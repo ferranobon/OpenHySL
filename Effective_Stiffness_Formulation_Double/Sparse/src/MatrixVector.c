@@ -19,6 +19,10 @@
 #include "Netlib.h"
 #include "ErrorHandling.h"
 #include "MatrixVector.h"
+#include "Colors.h"
+
+/* MatrixMarket format */
+#include "mmio.h"
 
 #if _SPARSE_
 #include <mkl.h>
@@ -37,8 +41,11 @@ void Init_MatrixVector( MatrixVector *const Mat, const int Rows, const int Cols 
      } else {
 	  PrintErrorAndExit( "The number of rows must be equal or greater than zero" );
      }
-
-     Mat->Array = (double *) calloc( (size_t) Mat->Rows*Mat->Cols, sizeof(double));
+     Mat->Array = NULL;
+     Mat->Array = (double *) calloc( (size_t) Mat->Rows*(size_t) Mat->Cols, sizeof(double));
+     if ( Mat->Array == NULL ){
+	  PrintErrorAndExit( "Out of memory\n");
+     }
 }
 
 void Init_MatrixVector_Sp( Sp_MatrixVector *const Mat, const int Rows, const int Cols, const int nnz )
@@ -87,11 +94,11 @@ void Dense_to_CSR( const MatrixVector *const Mat, Sp_MatrixVector *const Sp_Mat,
      } else assert( Operation < 0 || Operation > 1 );
 
      /* Allocate the necessary space for the Value and Columns arrays */
-     Sp_Mat->Values = (double *) calloc( Sp_Mat->Num_Nonzero, sizeof(double) );
-     Sp_Mat->Columns = (int *) calloc( Sp_Mat->Num_Nonzero, sizeof(int) );
+     Sp_Mat->Values = (double *) calloc( (size_t) Sp_Mat->Num_Nonzero, sizeof(double) );
+     Sp_Mat->Columns = (int *) calloc( (size_t) Sp_Mat->Num_Nonzero, sizeof(int) );
 
      /* Allocate memory for the RowIndex array */
-     Sp_Mat->RowIndex = (int *) calloc( Mat->Rows + 1, sizeof( int ) );
+     Sp_Mat->RowIndex = (int *) calloc( (size_t) Mat->Rows + 1, sizeof( int ) );
 
      /* MKL: Transform the dense matrix into a CSR-three array variation matrix */
      job[0] = 0; /* The matrix is converted to CSR format. */
@@ -160,7 +167,7 @@ void MatrixVector_From_File( MatrixVector *const Mat, const char *Filename )
 
 	  int i;
 	  for ( i = 0; i < Mat->Rows*Mat->Cols; i++ ){
-	       fscanf(InFile,"%f", &Mat->Array[i]);
+	       fscanf(InFile,"%lf", &Mat->Array[i]);
 	  }
 	  fclose( InFile );
      } else ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
@@ -170,22 +177,59 @@ void MatrixVector_From_File( MatrixVector *const Mat, const char *Filename )
 
 void MatrixVector_From_File_Sp2Dense( MatrixVector *const Mat, const char *Filename )
 {
-     FILE *InFile;  /* Input file */
-     int i, j;      /* Indexes of the position within the matrix of the readen value */
-     char d;        /* Dump character between two values */
-     double Value;   /* Value to be saved in the position (i,j) of the matrix */
+     FILE *InFile;          /* Input file */
+     MM_typecode matcode;   /* MatrixMarket: type of the matrix (symmetric, dense, complex, ...)  */
+     int return_code;       /* MatrixMarket: return code for the functions */
+     int i, j;              /* Indexes of the position within the matrix of the readen value */
+     double Value;           /* Value to be saved in the position (i,j) of the matrix */
+     int Rows, Cols;        /* Number of Rows and Columns */
+     int nnz;               /* Number of non-zero elements */
+     int innz;              /* Counter for the number of non-zero elements */
 
-
+     /* Open the file */
      InFile = fopen( Filename, "r" );
-     if( InFile != NULL ){
-	  while( !feof(InFile) ) {    /* Returns true once the end of the file has been reached */
-	       fscanf( InFile, "%i%c%i%c%e", &i, &d, &j, &d, &Value );
-	       printf("%d\t%d\t%f\n", i, j, Value );
-	       Mat->Array[i*Mat->Cols + j] = Value;
-	  }
-	  /* The program has reached the end of the file */
-	  fclose( InFile );
-     } else ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
+     if ( InFile == NULL) {
+	  ErrorFileAndExit( "Could not read the Load Vector Form. Failed to open: ",
+			    Filename );
+     }
+
+     /* Read the banner and identify which type of matrix is in the file */
+     if( mm_read_banner( InFile, &matcode ) != 0 ){
+	  ErrorFileAndExit( "Could not process Market Matrix banner in ", Filename );
+     }
+     
+     /* Only sparse matrices are accepted */
+     if ( !mm_is_sparse(matcode) ){
+	  fprintf( stderr, "[ " RED "ERROR" RESET " ] The Load vector form should be of");
+	  fprintf( stderr, "  type sparse or dense for this application to work\n" );
+	  fprintf( stderr, "[ " RED "ERROR" RESET " ] Market Market type: [%s]\n",
+		   mm_typecode_to_str(matcode));
+	  exit( EXIT_FAILURE );
+     }
+     
+     /* Get the sizes */
+     if ( (return_code = mm_read_mtx_crd_size( InFile, &Rows, &Cols, &nnz)) !=0){
+	  exit( EXIT_FAILURE );
+     }
+
+     /* Check if the dimensions of the matrices are the same */
+     if ( Rows != Mat->Rows || Cols != Mat->Cols ){
+	  fprintf( stderr, "[ " RED "ERROR" RESET " ] The sizes of the load vector (%d, %d)", Rows, Cols ); 
+	  fprintf( stderr, "do not match with the specified ones in the configuration file (%d, %d).n",
+		   Mat->Rows, Mat->Cols );
+	  exit( EXIT_FAILURE );
+     }
+
+     /* Read the values. The MatrixMarket format imposes that the file should contain only the
+      * lower part of the matrix in 1-based index. Since C and FORTRAN use row-major and column-major
+      * ordering respectively, the matrices will be stored as upper part in the C so that when
+      * calling the FORTRAN routines from BLAS they access the lower part of the matrix without
+      * requiring transposing it.
+      */
+     for( innz = 0; innz < nnz; innz++ ){
+	  fscanf( InFile, "%d %d %lf", &i, &j, &Value );
+	  Mat->Array[(j-1)*Mat->Cols + (i-1)] = Value;
+     }
 }
 
 #if _SPARSE_
@@ -213,7 +257,7 @@ void MatrixVector_From_File_Sp( Sp_MatrixVector *const Mat, const char *Filename
 	  Mat->RowIndex[Pos_RI] = innz;
 
 	  while( innz <= Mat->Num_Nonzero ) { 
-	       fscanf( InFile, "%i%c%i%c%e", &i, &d, &j, &d, &Value );
+	       fscanf( InFile, "%i%c%i%c%le", &i, &d, &j, &d, &Value );
 	       if ( j >= i ){    /* Consider only the upper part */
 		    innz = innz + 1;
 
@@ -395,7 +439,7 @@ void MatrixVector_To_File( const MatrixVector *const Mat, const char *Filename )
 	  int j;
 	  for ( i = 0; i < Mat->Rows; i++){
 	       for( j = 0; j < Mat->Cols; j++ ){
-		    fprintf(OutFile,"%e\t", Mat->Array[i + j*Mat->Rows]);
+		    fprintf(OutFile,"%le\t", Mat->Array[i + j*Mat->Rows]);
 	       }
 	       fprintf( OutFile, "\n" );
 	  }
@@ -415,7 +459,7 @@ void MatrixVector_To_File_Sparse( const Sp_MatrixVector *const Sp_Mat, const cha
 	  
 	  fprintf( OutFile, "Values: Nonzero elements.\n" );
 	  for ( i = 0; i < Sp_Mat->Num_Nonzero; i++ ){
-	       fprintf( OutFile, "%f\t", Sp_Mat->Values[i] );
+	       fprintf( OutFile, "%lf\t", Sp_Mat->Values[i] );
 	  }
 	  fprintf( OutFile, "\n" );
 

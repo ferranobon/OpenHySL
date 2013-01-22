@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <getopt.h>  /* For getopt_long() */
 #include <math.h>
 #include <time.h>
 #include <assert.h>
@@ -21,6 +22,8 @@
 #define SOMESIZE (150*1024*1024) // 150MB
 #endif
 
+void Print_Help( const char *Program_Name );
+
 int main( int argc, char **argv )
 {
      
@@ -28,15 +31,17 @@ int main( int argc, char **argv )
      FILE *OutputFile;
 
      unsigned int i, istep;		/* Counters */
+
      AlgConst InitCnt;
+     const char *FileConf;
 
      /* NETLIB Variables */
      int incx, incy;
      Scalars Constants;
      
-     float *AccAll, *VelAll, *DispAll;
+     double *AccAll, *VelAll, *DispAll;
      /* Variables to store the result we desire, so that no disk i/o is done during the test */
-     float *TimeHistoryli, *TimeHistoryai1, *TimeHistoryvi1, *TimeHistoryui1, *TimeHistoryai, *TimeHistoryvi, *TimeHistoryui, *TimeHistoryfc, *TimeHistoryfu;  
+     double *TimeHistoryli, *TimeHistoryai1, *TimeHistoryvi1, *TimeHistoryui1, *TimeHistoryai, *TimeHistoryvi, *TimeHistoryui, *TimeHistoryfc, *TimeHistoryfu;  
 
      MatrixVector M, C, K;               /* Mass, Damping and Stiffness matrices */
      MatrixVector Keinv;
@@ -67,10 +72,17 @@ int main( int argc, char **argv )
      /* TCP socket connection Variables */
      int Socket;
 
+     /* Options */
+     int Selected_Option;
+     struct option long_options[] = {
+	  {"help", no_argument, 0, 'h'},
+	  {"config-file", required_argument, 0, 'c'},
+	  {0, 0, 0, 0}
+     };
+
 #if _SPARSE_
      /* Sparse matrices */
      Sp_MatrixVector Sp_M, Sp_C, Sp_K;     /* Sparse representation of the M, C and K matrices */
-     Sp_MatrixVector Sp_Keinv, Sp_Keinv_m; /* Sparse representation of Keinv and Keinv_m matrices */
 #endif
 
 #if REAL_TIME_
@@ -129,37 +141,73 @@ int main( int argc, char **argv )
      //<do your RT-thing>
 #endif
 
+     /* Print Information */
+     printf( "\n\n" );
+     printf( "************************************************************\n" );
+     printf( "*                                                          *\n" );
+     printf( "*  This is Dorka's substructure algorithm as programed by  *\n" );
+     printf( "* Ferran Obón Santacana. Version alpha 0.9 'Heaven's Door' *\n" );
+     printf( "*                                                          *\n" );
+     printf( "************************************************************\n\n" );
+     /* Set de default value for the configuration file */
+     FileConf = "ConfFile.conf";
+
+     /* This is only used if there are no arguments */
+     if( argc == 1 ){
+	  PrintInfo( "Assuming the configuration file to be: ConfFile.conf\n" );
+
+     }
+
+     while ((Selected_Option = getopt_long( argc, argv, "c:h", long_options, NULL )) != -1 ){
+	  switch( Selected_Option ){
+	  case 'c':
+	       FileConf = optarg;
+	  case 'h':
+	       Print_Help( argv[0] );
+	       return EXIT_FAILURE;
+	       break;
+	  case '?':
+	       /* Long options already prints an error message telling that there is an unrecognised option */
+	       Print_Help( argv[0] );
+	       return EXIT_FAILURE;
+	  case ':':
+	       /* Long options already prints an error message telling that the option requieres an argument */
+	       Print_Help( argv[0] );
+	       return EXIT_FAILURE;
+	  }
+     }
 
      /* Constants definitions. */
-     InitConstants( &InitCnt, "ConfFile.conf" );
+     InitConstants( &InitCnt, FileConf );
 
      /* Read the coupling nodes from a file */
-     Read_Coupling_Nodes( &CNodes, InitCnt.FileCNodes );
+     Read_Coupling_Nodes( &CNodes, InitCnt.OrderSub, InitCnt.DeltaT_Sub, InitCnt.FileCNodes );
 
      /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will
       * be used during the test */
-     AccAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
      if( InitCnt.Use_Absolute_Values ){
-	  VelAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
-	  DispAll = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
+	  AccAll = NULL;
+	  VelAll = (double *) calloc( (size_t) InitCnt.Nstep, sizeof(double) );
+	  DispAll = (double *) calloc( (size_t) InitCnt.Nstep, sizeof(double) );
      } else {
+	  AccAll = (double *) calloc( (size_t) InitCnt.Nstep, sizeof(double) );
 	  VelAll = NULL;
 	  DispAll = NULL;
      }
 
      /* Allocate the memory for the variables to store. The results will be saved each step */
-     TimeHistoryli = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
-     TimeHistoryui1 = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
-     TimeHistoryvi1 = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
-     TimeHistoryai1 = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
-     TimeHistoryui = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
-     TimeHistoryvi = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
-     TimeHistoryai = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
-     TimeHistoryfc = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
-     TimeHistoryfu = (float *) calloc( (size_t) InitCnt.Nstep, sizeof(float) );
+     TimeHistoryli = (double *) calloc( (size_t) InitCnt.Nstep, sizeof(double) );
+     TimeHistoryui1 = (double *) calloc( (size_t) InitCnt.Nstep, sizeof(double) );
+     TimeHistoryvi1 = (double *) calloc( (size_t) InitCnt.Nstep, sizeof(double) );
+     TimeHistoryai1 = (double *) calloc( (size_t) InitCnt.Nstep, sizeof(double) );
+     TimeHistoryui = (double *) calloc( (size_t) InitCnt.Nstep, sizeof(double) );
+     TimeHistoryvi = (double *) calloc( (size_t) InitCnt.Nstep, sizeof(double) );
+     TimeHistoryai = (double *) calloc( (size_t) InitCnt.Nstep, sizeof(double) );
+     TimeHistoryfc = (double *) calloc( (size_t) InitCnt.Nstep, sizeof(double) );
+     TimeHistoryfu = (double *) calloc( (size_t) InitCnt.Nstep, sizeof(double) );
 
      /* Initialise the matrices and vectors that will be used in the Time Integration process */
-     if( (!InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (InitCnt.Use_Sparse && !InitCnt.Read_Sparse) ){
+     if( (!InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (!InitCnt.Use_Sparse && InitCnt.Read_Sparse) ){
 	  Init_MatrixVector( &M, InitCnt.Order, InitCnt.Order );
 	  Init_MatrixVector( &K, InitCnt.Order, InitCnt.Order );
      }
@@ -217,7 +265,11 @@ int main( int argc, char **argv )
 	  assert( InitCnt.Read_Sparse && !InitCnt.Use_Sparse );
      }
 
-     MatrixVector_From_File( &LoadVectorForm, InitCnt.FileLVector );
+     if ( !InitCnt.Read_LVector ){
+	  Generate_LoadVectorForm( &LoadVectorForm, InitCnt.ExcitedDOF );
+     }  else {
+	  MatrixVector_From_File_Sp2Dense( &LoadVectorForm, InitCnt.FileLV );
+     }
 
      /* Calculate damping matrix using Rayleigh. C = alpha*M + beta*K */
      if ( InitCnt.Use_Sparse && InitCnt.Read_Sparse ) {
@@ -225,7 +277,6 @@ int main( int argc, char **argv )
 #if _SPARSE_
 	  Init_MatrixVector_Sp( &Sp_C, InitCnt.Order, InitCnt.Order, Sp_K.Num_Nonzero );
 	  CalculateMatrixC_Sp( &Sp_M, &Sp_K, &Sp_C, &InitCnt.Rayleigh );
-	  MatrixVector_To_File_Sparse( &Sp_C, "SpC.txt" );
 #endif
      } else {
 	  Init_MatrixVector( &C, InitCnt.Order, InitCnt.Order );
@@ -233,23 +284,20 @@ int main( int argc, char **argv )
      }
 
      /* Calculate Matrix Keinv = [K + a0*M + a1*C]^(-1) */
-     Constants.Alpha = 1.0f;
+     Constants.Alpha = 1.0;
      Constants.Beta = InitCnt.a0;
      Constants.Gamma = InitCnt.a1;
 
      if( !InitCnt.Use_Pardiso ){
 	  CalculateMatrixKeinv( &Keinv, &M, &C, &K, Constants );
-	  MatrixVector_To_File( &Keinv, "Keinv.txt" );
      } else if ( InitCnt.Use_Pardiso && !InitCnt.Read_Sparse ){
 #if _SPARSE_
 	  CalculateMatrixKeinv_Pardiso( &Keinv, &M, &C, &K, Constants );
-	  MatrixVector_To_File( &Keinv, "Keinv_PARDISO.txt" );
 #endif
      } else if ( InitCnt.Use_Pardiso && InitCnt.Use_Sparse && InitCnt.Read_Sparse ){
 #if _SPARSE_
 	  CalculateMatrixKeinv_Pardiso_Sparse( &Keinv, &Sp_M, &Sp_C, &Sp_K,
 					       Constants );
-	  MatrixVector_To_File( &Keinv, "Keinv_PARDISO_Sp.txt" );
 #endif
      }
      BuildMatrixXc( &Keinv, Keinv_c.Array, &CNodes );
@@ -259,23 +307,23 @@ int main( int argc, char **argv )
      /* Transform the matrices into CSR format */
      if( !InitCnt.Read_Sparse && InitCnt.Use_Sparse ){
 	  Dense_to_CSR( &M, &Sp_M, 0 );            /* Transform into CSR format */
-	  Destroy_MatrixVector( &M );        /* Destroy the dense matrix */
+	  Destroy_MatrixVector( &M );              /* Destroy the dense matrix */
 	  
 	  Dense_to_CSR( &K, &Sp_K, 0 );            /* Transform into CSR format */
-	  Destroy_MatrixVector( &K );        /* Destroy the dense matrix */
+	  Destroy_MatrixVector( &K );              /* Destroy the dense matrix */
 
 	  Dense_to_CSR( &C, &Sp_C, 0 );            /* Transform into CSR format */
-	  Destroy_MatrixVector( &C );        /* Destroy the dense matrix */
+	  Destroy_MatrixVector( &C );              /* Destroy the dense matrix */
 	  MatrixVector_To_File_Sparse( &Sp_C, "SpC_MKL.txt" );
      }
 #endif
 
-     /* Send the coupling part of the effective matrix */
+     /* Send the coupling part of the effective matrix if we are performing a distributed test */
      Send_Effective_Matrix( Keinv_c.Array, (unsigned int) CNodes.Order, &Socket, InitCnt.Remote );
 
      /* Read the earthquake data from a file */
      if( InitCnt.Use_Absolute_Values ){
-	  ReadDataEarthquake_AbsValues( AccAll, VelAll, DispAll, InitCnt.Nstep, InitCnt.FileData );
+	  ReadDataEarthquake_AbsValues( VelAll, DispAll, InitCnt.Nstep, InitCnt.FileData );
      } else {
 	  ReadDataEarthquake_RelValues( AccAll, InitCnt.Nstep, InitCnt.FileData );
      }
@@ -310,13 +358,13 @@ int main( int argc, char **argv )
 	       Calc_Input_Load_RelValues( &LoadTdT, &M, &Acc );
 	  } else {
 #if _SPARSE_
-	  Calc_Input_Load_RelValues_Sparse( &LoadTdT, &Sp_M, &Acc );
+	       Calc_Input_Load_RelValues_Sparse( &LoadTdT, &Sp_M, &Acc );
 #endif
 	  }
      }
 
      incx = 1; incy = 1;
-     printf( "Starting stepping process\n" );
+     PrintInfo( "Starting stepping process.\n" );
      while ( istep <= InitCnt.Nstep ){
 
 	  /* Calculate the effective force vector
@@ -343,8 +391,8 @@ int main( int argc, char **argv )
 	  CreateVectorXc( &DispTdT0, DispTdT0_c.Array, &CNodes );
 
 	  /* Perform substepping */
-	  Do_Substepping( DispTdT0_c.Array, DispTdT.Array, fcprevsub.Array, fc.Array, InitCnt.Remote.Type,
-			  InitCnt.Delta_t*(float) istep, Socket, (unsigned int) CNodes.Order, (unsigned int *) CNodes.Array  );
+	  Do_Substepping( Keinv_c.Array, DispTdT0_c.Array, DispTdT.Array, fcprevsub.Array, fc.Array, InitCnt.Remote.Type,
+			  InitCnt.Delta_t*(double) istep, Socket, &CNodes, InitCnt.NSubstep, InitCnt.DeltaT_Sub  );
 
 	  if ( istep < InitCnt.Nstep ){
 	       /* Calculate the input load for the next step during the
@@ -394,47 +442,49 @@ int main( int argc, char **argv )
 	  }
 
 	  /* Output variables */
-	  TimeHistoryli[istep - 1] = LoadTdT.Array[30];
-	  TimeHistoryai1[istep - 1] = AccTdT.Array[30];
-	  TimeHistoryai[istep - 1] = AccT.Array[30];
-	  TimeHistoryvi1[istep - 1] = VelTdT.Array[30];
-	  TimeHistoryvi[istep - 1] = VelT.Array[30];
-	  TimeHistoryui1[istep - 1] = DispTdT.Array[30];
-	  TimeHistoryui[istep - 1] = DispT.Array[30];
-	  TimeHistoryfc[istep - 1] = fc.Array[30];
-	  TimeHistoryfu[istep - 1] = fu.Array[30];
+	  TimeHistoryli[istep - 1] = LoadTdT.Array[CNodes.Array[0]-1];
+	  TimeHistoryai1[istep - 1] = AccTdT.Array[CNodes.Array[0]-1];
+	  TimeHistoryai[istep - 1] = AccT.Array[CNodes.Array[0]-1];
+	  TimeHistoryvi1[istep - 1] = VelTdT.Array[CNodes.Array[0]-1];
+	  TimeHistoryvi[istep - 1] = VelT.Array[CNodes.Array[0]-1];
+	  TimeHistoryui1[istep - 1] = DispTdT.Array[CNodes.Array[0]-1];
+	  TimeHistoryui[istep - 1] = DispT.Array[CNodes.Array[0]-1];
+	  TimeHistoryfc[istep - 1] = fc.Array[CNodes.Array[0]-1];
+	  TimeHistoryfu[istep - 1] = fu.Array[CNodes.Array[0]-1];
 
 	  /* Backup vectors */
-	  scopy_( &LoadTdT1.Rows, LoadTdT1.Array, &incx, LoadTdT.Array, &incy ); /* li = li1 */
-	  scopy_( &DispTdT.Rows, DispTdT.Array, &incx, DispT.Array, &incy ); /* ui = ui1 */
-	  scopy_( &VelTdT.Rows, VelTdT.Array, &incx, VelT.Array, &incy ); /* vi = vi1 */
-	  scopy_( &AccTdT.Rows, AccTdT.Array, &incx, AccT.Array, &incy ); /* ai = ai1 */
+	  dcopy_( &LoadTdT1.Rows, LoadTdT1.Array, &incx, LoadTdT.Array, &incy ); /* li = li1 */
+	  dcopy_( &DispTdT.Rows, DispTdT.Array, &incx, DispT.Array, &incy ); /* ui = ui1 */
+	  dcopy_( &VelTdT.Rows, VelTdT.Array, &incx, VelT.Array, &incy ); /* vi = vi1 */
+	  dcopy_( &AccTdT.Rows, AccTdT.Array, &incx, AccT.Array, &incy ); /* ai = ai1 */
 	  istep = istep + 1;
      }
 
-     printf( "The stepping process has finished\n" );
+     PrintSuccess( "The stepping process has finished\n" );
 
      /* Write the header file */
      clock = time( NULL );
      fprintf( OutputFile, "Test ended at %s", ctime( &clock ) );
      fprintf( OutputFile, "Number of DOF: %d, ", InitCnt.Order );
-     fprintf( OutputFile, "Number of Steps: %d, Time step: %f, Number of substeps: %d, P (PID): %f\n", InitCnt.Nstep, InitCnt.Delta_t, 4, InitCnt.PID.P );
+     fprintf( OutputFile, "Number of Steps: %d, Time step: %lf, Number of substeps: %d, P (PID): %lf\n", InitCnt.Nstep, InitCnt.Delta_t, 4, InitCnt.PID.P );
      fprintf( OutputFile, "li\t ai1(m/s^2)\t ai(m/s^2)\t vi1 (m/s)\t vi (m/s)\t ui1 (m)\t ui (m)\t fc (N)\t fu(N)\n" );
 
      /* Save the results into a file */
      for ( i = 0; i < InitCnt.Nstep; i++ ){
-	  fprintf( OutputFile, "%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\t%E\n", TimeHistoryli[i], TimeHistoryai1[i], TimeHistoryai[i], TimeHistoryvi1[i], TimeHistoryvi[i], TimeHistoryui1[i], TimeHistoryui[i], TimeHistoryfc[i], TimeHistoryfu[i] );
+	  fprintf( OutputFile, "%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t%lE\n", TimeHistoryli[i], TimeHistoryai1[i], TimeHistoryai[i], TimeHistoryvi1[i], TimeHistoryvi[i], TimeHistoryui1[i], TimeHistoryui[i], TimeHistoryfc[i], TimeHistoryfu[i] );
      }
 
      /* Close the output file */
      fclose( OutputFile );
 
      /* Close the Connection */
-     Close_Connection( &Socket, InitCnt.Remote.Type, (unsigned int) CNodes.Order, InitCnt.Nstep, 4 );
+     if( InitCnt.Remote.Type != NO_PROTOCOL ){
+	  Close_Connection( &Socket, InitCnt.Remote.Type, (unsigned int) CNodes.Order, InitCnt.Nstep, 4 );
+     }
 
      /* Free initiation values */
      Delete_InitConstants( &InitCnt );
-     
+
      /* Free the memory stored in TimeHistory variables */
      free( TimeHistoryli );
      free( TimeHistoryvi1 );
@@ -448,14 +498,16 @@ int main( int argc, char **argv )
      free( TimeHistoryfu );
 
      /* Free the memory */
-     free( AccAll );
      if( InitCnt.Use_Absolute_Values ){
 	  free( VelAll );
 	  free( DispAll );
+     } else {
+	  free( AccAll );
      }
 
      /* Free the coupling nodes memory */
      free( CNodes.Array );
+     free( CNodes.u0c0 );
 
      /* Destroy the data structures */
      if( !InitCnt.Use_Sparse && !InitCnt.Read_Sparse ){
@@ -510,4 +562,13 @@ int main( int argc, char **argv )
      Destroy_MatrixVector( &Acc );
 
      return 0;
+}
+
+void Print_Help( const char *Program_Name )
+{
+
+     fprintf( stderr, "Usage: %s [-h] -c <ConfFile", Program_Name );
+     fprintf( stderr,
+	      "  -h  --help           This help text.\n"
+	      "  -c  --config-file    The name of the configuration file. Default value: ConfFile.conf\n" );
 }
