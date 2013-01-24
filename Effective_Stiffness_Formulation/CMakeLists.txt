@@ -71,7 +71,7 @@ if(DEBUG)
 endif()
 
 if(RELEASE)
-  set(CMAKE_C_FLAGS_RELEASE "-march=native -O2")
+  set(CMAKE_C_FLAGS_RELEASE "-march=native -O2 -D_POSIX_SOURCE -D_BSD_SOURCE")
   # Add profiling flags.
   if(PROFILING)
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -pg")
