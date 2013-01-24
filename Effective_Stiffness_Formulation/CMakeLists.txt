@@ -79,6 +79,9 @@ if(RELEASE)
   list(APPEND COMPILE_FLAGS ${CMAKE_C_FLAGS_RELEASE})
 endif()
 
+# Check for HDF5
+Find_Package(HDF5)
+
 # Check for different implementations of BLAS and LAPACK and tag them as required.
 include("CMakeCustomFiles/CMakeMathLibs.cmake")
 set(CMAKE_REQUIRED_LIBRARIES ${MATH_LIBS})
