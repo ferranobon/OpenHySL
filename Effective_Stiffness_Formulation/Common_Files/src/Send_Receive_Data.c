@@ -507,12 +507,10 @@ void Receive_Data_TCP( const int Socket, const int Data_Type_Size, char *const T
 }
 */
 
-void Close_Connection( int *Socket, const int Protocol_Type, const unsigned int OrderC, const unsigned int Num_Steps, const unsigned int Num_Sub )
+void Close_Connection( int *Socket, const int hdf5_file, const int Protocol_Type, const unsigned int OrderC, const unsigned int Num_Steps, const unsigned int Num_Sub )
 {
 
      double *Send = NULL;
-
-     double *ADWIN_DATA = NULL;
 
      Send = (double *) calloc( (size_t) OrderC, sizeof(double) );
 
@@ -522,9 +520,7 @@ void Close_Connection( int *Socket, const int Protocol_Type, const unsigned int 
 #if ADWIN_
      case PROTOCOL_ADWIN:
 	  /* Connect directly to ADwin */
-	  ADWIN_DATA = (double *) calloc( (size_t) Num_Sub*Num_Steps*NUM_CHANNELS, sizeof( double ) );
-	  GetDataADwin( Num_Steps, Num_Sub, ADWIN_DATA );
-	  free( ADWIN_DATA );
+	  SaveDataADwin( hdf5_file, Num_Steps, Num_Sub );
 	  break;
 #endif
      case PROTOCOL_TCP:

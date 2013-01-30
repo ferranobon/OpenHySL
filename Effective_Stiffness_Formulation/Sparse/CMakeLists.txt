@@ -17,7 +17,7 @@ file(GLOB SPARSE_SALGORITHM_SRCS src/*.c)
 
 # Rules for building the main part of the algorithm
 add_executable(SAlgorithm ${SPARSE_SALGORITHM_SRCS} ${COMMON_SRCS})
-target_link_libraries(SAlgorithm ${MATH_LIBS} ${ADWIN_LIBS} -lm)
+target_link_libraries(SAlgorithm ${MATH_LIBS} ${ADWIN_LIBS} -lm -lhdf5 -lhdf5_hl)
 
 if( BUILD_REALTIME )
   add_definitions(-DREAL_TIME_)

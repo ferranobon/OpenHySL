@@ -3,6 +3,7 @@
 #include <getopt.h>  /* For getopt_long() */
 #include <math.h>
 #include <time.h>
+#include <sys/time.h>
 #include <assert.h>
 
 #include "MatrixVector.h"
@@ -13,6 +14,8 @@
 #include "ComputeU0.h"
 #include "EndingStep.h"
 #include "Send_Receive_Data.h"
+
+#include "HDF5_Operations.h"
 
 #if REAL_TIME_
 #include <sched.h>    /* For sched_setscheduler( ) */
@@ -28,9 +31,9 @@ int main( int argc, char **argv )
 {
      
      /* Output file */
-     FILE *OutputFile;
+     int hdf5_file;
 
-     unsigned int i, istep;		/* Counters */
+     unsigned int istep;		/* Counters */
 
      AlgConst InitCnt;
      const char *FileConf;
@@ -40,8 +43,6 @@ int main( int argc, char **argv )
      Scalars Constants;
      
      double *AccAll, *VelAll, *DispAll;
-     /* Variables to store the result we desire, so that no disk i/o is done during the test */
-     double *TimeHistoryli, *TimeHistoryai1, *TimeHistoryvi1, *TimeHistoryui1, *TimeHistoryai, *TimeHistoryvi, *TimeHistoryui, *TimeHistoryfc, *TimeHistoryfu;  
 
      MatrixVector M, C, K;               /* Mass, Damping and Stiffness matrices */
      MatrixVector Keinv;
@@ -67,7 +68,7 @@ int main( int argc, char **argv )
 
      Coupling_Node CNodes;
 
-     time_t clock;
+     HDF5_time_t Time;
 
      /* TCP socket connection Variables */
      int Socket;
@@ -195,17 +196,6 @@ int main( int argc, char **argv )
 	  DispAll = NULL;
      }
 
-     /* Allocate the memory for the variables to store. The results will be saved each step */
-     TimeHistoryli = (double *) calloc( (size_t) InitCnt.Nstep, sizeof(double) );
-     TimeHistoryui1 = (double *) calloc( (size_t) InitCnt.Nstep, sizeof(double) );
-     TimeHistoryvi1 = (double *) calloc( (size_t) InitCnt.Nstep, sizeof(double) );
-     TimeHistoryai1 = (double *) calloc( (size_t) InitCnt.Nstep, sizeof(double) );
-     TimeHistoryui = (double *) calloc( (size_t) InitCnt.Nstep, sizeof(double) );
-     TimeHistoryvi = (double *) calloc( (size_t) InitCnt.Nstep, sizeof(double) );
-     TimeHistoryai = (double *) calloc( (size_t) InitCnt.Nstep, sizeof(double) );
-     TimeHistoryfc = (double *) calloc( (size_t) InitCnt.Nstep, sizeof(double) );
-     TimeHistoryfu = (double *) calloc( (size_t) InitCnt.Nstep, sizeof(double) );
-
      /* Initialise the matrices and vectors that will be used in the Time Integration process */
      if( (!InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (!InitCnt.Use_Sparse && InitCnt.Read_Sparse) ){
 	  Init_MatrixVector( &M, InitCnt.Order, InitCnt.Order );
@@ -329,13 +319,14 @@ int main( int argc, char **argv )
      }
 
      /* Open Output file. If the file cannot be opened, the program will exit, since the results cannot be stored. */
-     OutputFile = fopen( InitCnt.FileOutput, "w" );
-     if ( OutputFile == NULL ){
-	  PrintErrorAndExit( "Cannot proceed because the file Out.txt could not be opened" );
-     } else {
-	  clock = time (NULL);	  
-	  fprintf( OutputFile, "Test started at %s", ctime( &clock ) );
-     }
+     
+     hdf5_file = HDF5_CreateFile( InitCnt.FileOutput );
+     HDF5_CreateGroup_Parameters( hdf5_file, &InitCnt, &CNodes );
+     HDF5_CreateGroup_TimeIntegration( hdf5_file, &InitCnt );
+
+     Time.Date_start = time( NULL );
+     Time.Date_time = strdup( ctime( &Time.Date_start) );
+     gettimeofday( &Time.start, NULL );        
 
      /* Calculate the input load */
      istep = 1;
@@ -441,16 +432,8 @@ int main( int argc, char **argv )
 #endif
 	  }
 
-	  /* Output variables */
-	  TimeHistoryli[istep - 1] = LoadTdT.Array[CNodes.Array[0]-1];
-	  TimeHistoryai1[istep - 1] = AccTdT.Array[CNodes.Array[0]-1];
-	  TimeHistoryai[istep - 1] = AccT.Array[CNodes.Array[0]-1];
-	  TimeHistoryvi1[istep - 1] = VelTdT.Array[CNodes.Array[0]-1];
-	  TimeHistoryvi[istep - 1] = VelT.Array[CNodes.Array[0]-1];
-	  TimeHistoryui1[istep - 1] = DispTdT.Array[CNodes.Array[0]-1];
-	  TimeHistoryui[istep - 1] = DispT.Array[CNodes.Array[0]-1];
-	  TimeHistoryfc[istep - 1] = fc.Array[CNodes.Array[0]-1];
-	  TimeHistoryfu[istep - 1] = fu.Array[CNodes.Array[0]-1];
+	  /* Save the result in a HDF5 file format */
+	  HDF5_Store_TimeHistoryData( hdf5_file, &AccTdT, &VelTdT, &DispTdT, &LoadTdT, &fc, &fu, (int) istep, &InitCnt );
 
 	  /* Backup vectors */
 	  dcopy_( &LoadTdT1.Rows, LoadTdT1.Array, &incx, LoadTdT.Array, &incy ); /* li = li1 */
@@ -460,42 +443,22 @@ int main( int argc, char **argv )
 	  istep = istep + 1;
      }
 
-     PrintSuccess( "The stepping process has finished\n" );
+     gettimeofday( &Time.end, NULL );
+     Time.Elapsed_time = (double) (Time.end.tv_sec - Time.start.tv_sec)*1000.0;
+     Time.Elapsed_time += (double) (Time.end.tv_usec - Time.start.tv_usec)/1000.0;
+     HDF5_StoreTime( hdf5_file, &Time );
+     printf( "The stepping process has finished in %lf ms\n", Time.Elapsed_time );
 
-     /* Write the header file */
-     clock = time( NULL );
-     fprintf( OutputFile, "Test ended at %s", ctime( &clock ) );
-     fprintf( OutputFile, "Number of DOF: %d, ", InitCnt.Order );
-     fprintf( OutputFile, "Number of Steps: %d, Time step: %lf, Number of substeps: %d, P (PID): %lf\n", InitCnt.Nstep, InitCnt.Delta_t, 4, InitCnt.PID.P );
-     fprintf( OutputFile, "li\t ai1(m/s^2)\t ai(m/s^2)\t vi1 (m/s)\t vi (m/s)\t ui1 (m)\t ui (m)\t fc (N)\t fu(N)\n" );
-
-     /* Save the results into a file */
-     for ( i = 0; i < InitCnt.Nstep; i++ ){
-	  fprintf( OutputFile, "%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t%lE\n", TimeHistoryli[i], TimeHistoryai1[i], TimeHistoryai[i], TimeHistoryvi1[i], TimeHistoryvi[i], TimeHistoryui1[i], TimeHistoryui[i], TimeHistoryfc[i], TimeHistoryfu[i] );
-     }
-
-     /* Close the output file */
-     fclose( OutputFile );
 
      /* Close the Connection */
      if( InitCnt.Remote.Type != NO_PROTOCOL ){
-	  Close_Connection( &Socket, InitCnt.Remote.Type, (unsigned int) CNodes.Order, InitCnt.Nstep, 4 );
+	  Close_Connection( &Socket, hdf5_file, InitCnt.Remote.Type, (unsigned int) CNodes.Order, InitCnt.Nstep, 4 );
      }
+
+     HDF5_CloseFile( hdf5_file );
 
      /* Free initiation values */
      Delete_InitConstants( &InitCnt );
-
-     /* Free the memory stored in TimeHistory variables */
-     free( TimeHistoryli );
-     free( TimeHistoryvi1 );
-     free( TimeHistoryai1 );
-     free( TimeHistoryui );
-     free( TimeHistoryvi );
-     free( TimeHistoryai );
-
-     free( TimeHistoryui1 );
-     free( TimeHistoryfc );
-     free( TimeHistoryfu );
 
      /* Free the memory */
      if( InitCnt.Use_Absolute_Values ){
@@ -506,11 +469,13 @@ int main( int argc, char **argv )
      }
 
      /* Free the coupling nodes memory */
-     free( CNodes.Array );
-     free( CNodes.u0c0 );
+     Delete_CouplingNodes( &CNodes );
+
+     /* Free Time string */
+     free( Time.Date_time );
 
      /* Destroy the data structures */
-     if( !InitCnt.Use_Sparse && !InitCnt.Read_Sparse ){
+     if( (!InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (!InitCnt.Use_Sparse && InitCnt.Read_Sparse) ){
 	  Destroy_MatrixVector( &M );
 	  Destroy_MatrixVector( &K );
 	  Destroy_MatrixVector( &C );
@@ -522,13 +487,9 @@ int main( int argc, char **argv )
 #endif
      }
 	  
-
-
-
      Destroy_MatrixVector( &Keinv );
      Destroy_MatrixVector( &Keinv_c );
      Destroy_MatrixVector( &Keinv_m );
-
 
      Destroy_MatrixVector( &tempvec );
 

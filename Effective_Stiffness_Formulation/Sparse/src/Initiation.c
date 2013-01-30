@@ -209,6 +209,8 @@ void Read_Coupling_Nodes( Coupling_Node *const CNodes, const int OrderSub, const
      int i, j;
      int itemp;
      double *ftemp;
+     char *ctemp;
+     EXP_Sub *Experimental;
 
      InFile = fopen( Filename, "r" );
 
@@ -231,6 +233,16 @@ void Read_Coupling_Nodes( Coupling_Node *const CNodes, const int OrderSub, const
 	       
 	       switch (CNodes->Sub[i].Type) {
 	       case USE_ADWIN:
+		    CNodes->Sub[i].SimStruct = (void *) malloc( sizeof(EXP_Sub) );
+		    Experimental = CNodes->Sub[i].SimStruct;
+		    /* Dynamic string input. Reads everything between " " */
+		    fgets( Experimental->Description, MAX_DESCRIPTION, InFile );
+
+		    if( Experimental->Description[strlen(Experimental->Description) - 1] != '\n' && !feof(InFile) ){
+			 fprintf( stderr, "The desciption of the substructure %i, was too long. Maximum 80 characters\n", i + 1 );
+			 exit( EXIT_FAILURE );
+		    }
+
 		    break;
 	       case USE_EXACT:
 		    fscanf( InFile, "%i", &itemp );
@@ -240,7 +252,8 @@ void Read_Coupling_Nodes( Coupling_Node *const CNodes, const int OrderSub, const
 			 exit( EXIT_FAILURE );
 		    } else {
 			 printf( "Simulating the sub-structure in the coupling node %d as an exact integration method.\n", CNodes->Array[i] );
-			 CNodes->Sub[i].SimStruct = (void *) malloc( (size_t) 1*sizeof(TMD_Sim));
+			 CNodes->Sub[i].SimStruct = (void *) malloc( sizeof(TMD_Sim) );
+			 ftemp = NULL;
 			 ftemp = (double *) calloc( (size_t) EXACT_NUMPARAM_INIT, sizeof( double ) );
 
 			 for( j = 0; j < EXACT_NUMPARAM_INIT; j++ ){
@@ -259,7 +272,8 @@ void Read_Coupling_Nodes( Coupling_Node *const CNodes, const int OrderSub, const
 			 exit( EXIT_FAILURE );
 		    } else {
 			 printf( "Simulating the sub-structure in the coupling node %d as a UHYDE-fbr device.\n", CNodes->Array[i] );
-			 CNodes->Sub[i].SimStruct = (void *) malloc( (size_t) 1*sizeof(UHYDE_Sim));
+			 CNodes->Sub[i].SimStruct = (void *) malloc( sizeof(UHYDE_Sim) );
+			 ftemp = NULL;
 			 ftemp = (double *) calloc( (size_t) UHYDE_NUMPARAM_INIT, sizeof( double ) );
 
 			 for( j = 0; j < UHYDE_NUMPARAM_INIT; j++ ){
@@ -271,13 +285,34 @@ void Read_Coupling_Nodes( Coupling_Node *const CNodes, const int OrderSub, const
 		    }
 		    break;
 	       case USE_MEASURED:
-		    break;
+		    CNodes->Sub[i].SimStruct = (void *) malloc( sizeof(EXP_Sub) );
+		    Experimental = CNodes->Sub[i].SimStruct;
+		    /* Dynamic string input. Reads everything between " " */
+		    fgets( Experimental->Description, MAX_DESCRIPTION, InFile );
+
+		    if( Experimental->Description[strlen(Experimental->Description) - 1] != '\n' && !feof(InFile) ){
+			 fprintf( stderr, "The desciption of the substructure %i, was too long. Maximum 80 characters\n", i + 1 );
+			 exit( EXIT_FAILURE );
+		    }
 	       }
 	  }
 	  /* Close the file */
 	  fclose( InFile );
      } else ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
 
+}
+
+void Delete_CouplingNodes( Coupling_Node *CNodes )
+{
+     int i;
+
+     for( i = 0; i < CNodes->Order; i++ ){
+	  free( CNodes->Sub[i].SimStruct );
+     }
+
+     free( CNodes->Sub );
+     free( CNodes->Array );
+     free( CNodes->u0c0 );
 }
 
 void CalculateMatrixC( const MatrixVector *const Mass, const MatrixVector *const Stif, MatrixVector *const Damp, const RayleighConst *const Rayleigh )

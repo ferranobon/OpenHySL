@@ -100,10 +100,10 @@ void Simulate_Substructures( Coupling_Node *const CNodes, double *Keinv, double 
 	  for( i = 0; i < CNodes->Order; i ++ ){
 	       if( CNodes->Sub[i].Type == USE_EXACT ){
 		    TMD = (TMD_Sim *) CNodes->Sub[i].SimStruct;
-		    ExactSolution_SDOF( u0c[i], DeltaT_Sub, &TMD[i], &fc[i] );
+		    ExactSolution_SDOF( u0c[i], DeltaT_Sub, TMD, &fc[i] );
 	       } else if ( CNodes->Sub[i].Type == USE_UHYDE ){
 		    UHYDE = (UHYDE_Sim *) CNodes->Sub[i].SimStruct;
-		    Simulate_UHYDE_1D( u0c[i], DeltaT_Sub, &UHYDE[i], &fc[i] );
+		    Simulate_UHYDE_1D( u0c[i], DeltaT_Sub, UHYDE, &fc[i] );
 	       } else assert( CNodes->Sub[i].Type < USE_EXACT || CNodes->Sub[i].Type > USE_UHYDE );
 	  }
 	  

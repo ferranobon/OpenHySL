@@ -148,7 +148,7 @@ void Send_Effective_Matrix( double *const Eff_Mat, const unsigned int OrderC, in
 
 void Do_Substepping( double *const Keinv, double *const DispTdT0_c, double *const DispTdT, double *const fcprevsub, double *const fc, const int Protocol_Type, const double Time, const int Socket, Coupling_Node *const CNodes, const int NSubstep, const double DeltaT_Sub );
 
-void Close_Connection( int *Socket, const int Protocol_Type, const unsigned int OrderC, const unsigned int Num_Steps, const unsigned int Num_Sub );
+void Close_Connection( int *Socket, const int hdf5_file, const int Protocol_Type, const unsigned int OrderC, const unsigned int Num_Steps, const unsigned int Num_Sub );
 
 void Close_Socket( int *Socket );
 
