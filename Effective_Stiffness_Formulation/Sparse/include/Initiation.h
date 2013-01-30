@@ -175,6 +175,8 @@ void Delete_InitConstants( AlgConst *const InitConst );
  */
 void Read_Coupling_Nodes( Coupling_Node *const CNodes, const int OrderSub, const double DeltaTSub, const char *Filename );
 
+void Delete_CouplingNodes( Coupling_Node *CNodes );
+
 /**
  * \brief Construction of Proportional Viscous Damping Matrix using Rayleigh Damping.
  *

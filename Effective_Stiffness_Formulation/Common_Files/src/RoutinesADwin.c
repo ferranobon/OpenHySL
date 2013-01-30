@@ -9,6 +9,7 @@
 
 #include "RoutinesADwin.h"
 #include "ErrorHandling.h"
+#include "HDF5_Operations.h"
 
 
 int BootADWIN( const int Device_Number, const char *Boot_Path  )
@@ -171,25 +172,16 @@ void ADWIN_Substep( const double *const u0c, double *const uc, double *const fcp
      free( ReceiveADwin );
 }
 
-void GetDataADwin( const unsigned int Num_Steps, const unsigned int Num_Sub, double *const Data )
+void SaveDataADwin( const int hdf5_file, const unsigned int Num_Steps, const unsigned int Num_Sub )
 {
-
-     FILE *OutFile;
      unsigned int i,j, Length;
+     double *Data;
 
      Length = Num_Sub*Num_Steps*NUM_CHANNELS;
+     Data = (double *) calloc( (size_t) Length, sizeof( double ) );
      GetData_Double( 97, Data, 1, (int32_t) Length );
-     OutFile = fopen( "Data.txt", "w");
   
-     /* Print the header file */
-     fprintf( OutFile, "substep\tdctr1\tdctr2\tdmeas1\tdmeas2\taccctrl1\taccctrl2\tameas1\tameas2\taccTMDy\taccTMDx\tAccFrame\tFcY1\tFcY2\tfc\tdTMDx\tdTMDy\tPress_pctrl\tPress_pmeas\tuc\tTime do substep\ttime substep\ttimesynPC\ttime_from_sub1_to_newPCdata\n" );
+     HDF5_StoreADwinData( hdf5_file, Data, Length );
 
-     for (i = 0; i < Num_Sub*Num_Steps; i++ ){
-	  for ( j = 0; j < NUM_CHANNELS; j++ ){
-	       fprintf(OutFile, "%.10le\t", Data[i*NUM_CHANNELS+j] );
-	  }
-	  fprintf(OutFile,"\n");
-     }
-
-     fclose(OutFile);
+     free( Data );
 }

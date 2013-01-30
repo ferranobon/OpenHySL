@@ -87,6 +87,6 @@ void ADWIN_Substep( const double *const u0c, double *const uc, double *const fcp
  * - Number of columns equal to \c NUM_CHANNELS.
  * - Number of rows equal to \f$N_{step}\cdot N_{substep}\f$.
  */
-void GetDataADwin( const unsigned int Num_Steps, const unsigned int Num_Sub, double *const Data );
+void SaveDataADwin( const int hdf5_file, const unsigned int Num_Steps, const unsigned int Num_Sub );
 
 #endif /* ROUTINESADWIN_HPP */

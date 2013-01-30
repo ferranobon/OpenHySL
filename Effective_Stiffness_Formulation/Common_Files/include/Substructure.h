@@ -1,13 +1,16 @@
 #ifndef SUBSTRUCTURE_H
 #define SUBSTRUCTURE_H
 
-#define USE_ADWIN 0    /* Run using ADwin */
-#define USE_EXACT 1    /* Simulate the substructure using the exact solution */
-#define USE_UHYDE 2    /* Simulate the substructure using the UHYDE-fbr device */
-#define USE_MEASURED 3    /* Simulate the substructure using measured values */
+#define NUM_TYPE_SUB  3  /* Number of recognized sub-structure types */
+#define USE_ADWIN 0      /* Run using ADwin */
+#define USE_EXACT 1      /* Simulate the substructure using the exact solution */
+#define USE_UHYDE 2      /* Simulate the substructure using the UHYDE-fbr device */
+#define USE_MEASURED 3   /* Simulate the substructure using measured values */
 
 #define UHYDE_NUMPARAM_INIT 3
 #define EXACT_NUMPARAM_INIT 3
+
+#define MAX_DESCRIPTION 80
 
 typedef struct {
      void *SimStruct;
@@ -36,6 +39,10 @@ typedef struct{
 } ConstSub;
 
 typedef struct{
+     char Description[MAX_DESCRIPTION];
+} EXP_Sub;
+
+typedef struct{
      double Mass, Damp, Stiff;
      double Disp0, Vel0;
      double Disp, Vel;
@@ -44,6 +51,7 @@ typedef struct{
      double v0c;          /* Velocity at the coupling node */
 
      double A,B,C,D,E,F,G,H;  /* Several constants */
+     char Description[MAX_DESCRIPTION];
 } TMD_Sim;
 
 typedef struct{
@@ -52,6 +60,7 @@ typedef struct{
      double qyield;           /* Yield displacement */
      double qplastic;         /* Plastic displacement */
      double k;                /* Initial stiffness */
+     char Description[MAX_DESCRIPTION];
 } UHYDE_Sim;
 
 void Init_Constants_Substructure( ConstSub *const Constants, const char *Filename );
