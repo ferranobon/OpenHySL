@@ -138,6 +138,34 @@ void Dense_to_CSR( const MatrixVector *const Mat, Sp_MatrixVector *const Sp_Mat,
 	  printf("ERROROORRRR\n");
      }
 }
+
+void CSR_to_Dense( const Sp_MatrixVector *const Sp_Mat, MatrixVector *const Mat, const int Operation )
+{
+     int job[6], lda;  /* Variables required by mkl_sdnscsr_( ). lda = leading dimension of
+			 * the matrix lda = max(1,Num_Rows). */
+     int info;
+
+
+     /* MKL: Transform the dense matrix into a CSR-three array variation matrix */
+     job[0] = 1; /* The matrix is converted to dense format. */
+     job[1] = 0; /* Zero-based indexing is used for the dense matrix. */
+     job[2] = 1; /* One-based indexing for the sparse matrix is used. */
+
+     if ( Operation == 0 ){ /* Symmetric matrix */
+	  job[3] = 1; /* Values will contain the upper triangular part of the dense matrix. */
+     } else if ( Operation == 1 ){ /* General matrix */
+	  job[3] = 2; /* All the elements of the dense matrix will be considered */
+     }
+
+     job[4] = Sp_Mat->Num_Nonzero; /* Maximum number of non-zero elements allowed. */
+     job[5] = 1; /* Values, Columns and RowIndex arrays are generated. */
+     lda = Max( 1, Sp_Mat->Rows );
+     mkl_ddnscsr( job, &Sp_Mat->Rows, &Sp_Mat->Cols, Mat->Array, &lda, Sp_Mat->Values, Sp_Mat->Columns, Sp_Mat->RowIndex, &info );
+
+     if (info != 0 ){
+	  printf("ERROROORRRR\n");
+     }
+}
 #endif
 
 int Count_Nonzero_Elements_SY( const double *const Sym_Matrix, const int Rows )

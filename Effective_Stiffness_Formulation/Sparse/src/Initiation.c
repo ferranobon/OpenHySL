@@ -58,11 +58,6 @@ void InitConstants( AlgConst *const InitConst, const char *FileName )
 	  PrintErrorAndExit( "Invalid option for Use_Sparse" );
      }
 
-     InitConst->Use_Pardiso = ConfFile_GetInt( Config, "General:Use_Pardiso" );
-     if ( InitConst->Use_Pardiso != 0 && InitConst->Use_Pardiso != 1 ){
-	  PrintErrorAndExit( "Invalid option for Use_Pardiso" );
-     }
-
      InitConst->Read_LVector = ConfFile_GetInt( Config, "General:Read_LVector" );
      if ( InitConst->Read_LVector != 0 && InitConst->Read_LVector != 1 ){
 	  PrintErrorAndExit( "Invalid option for Read_LVector" );
@@ -451,8 +446,52 @@ void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const 
 }
 
 #if _SPARSE_
+
+void CalculateMatrixKeinv_Sparse( MatrixVector *const Keinv, const Sp_MatrixVector *const Mass, const Sp_MatrixVector *const Damp, const Sp_MatrixVector *const Stiff, const Scalars Const )
+{
+
+     char uplo;
+     int lda, info;
+     Sp_MatrixVector Sp_TempMat;
+
+     Init_MatrixVector_Sp( &Sp_TempMat, Damp->Rows, Damp->Cols, Damp->Num_Nonzero );
+     Add3Mat_Sparse( &Sp_TempMat, &(*Stiff), &(*Mass), &(*Damp), Const );
+
+     CSR_to_Dense( &Sp_TempMat, Keinv, 0 );
+     Destroy_MatrixVector_Sparse( &Sp_TempMat );
+
+     uplo = 'L';  /* The lower part of the matrix will be used; the upper part will strictly not be referenced */
+     lda = Max( 1, (*Keinv).Rows );
+
+     /* LAPACK: Compute the Cholesky factorization of the symmetric positive definite matrix Meinv */
+     dpotrf_( &uplo, &(*Keinv).Rows, Keinv->Array, &lda, &info );
+
+     if ( info == 0 ){
+	  PrintSuccess( "Cholesky factorization successfully completed.\n" );
+     }
+     else if (info < 0){
+	  LAPACKPErrorAndExit( "Cholesky factorization: the ", -info, "th argument has an illegal value." );
+     } else if (info > 0){
+	  LAPACKPErrorAndExit("Cholesky factorization: the leading minor of order ", info, " is not positive definite, and the factorization could not be completed." );
+     }
+
+     /* LAPACK: Compute the inverse of Me using the Cholesky factorization computed by pdpotrf_( ) */
+     dpotri_( &uplo, &(*Keinv).Rows, Keinv->Array, &lda, &info );
+
+     if ( info == 0 ){
+	  PrintSuccess( "Matrix Inversion successfully completed.\n" );
+     } else if (info < 0){
+	  LAPACKPErrorAndExit( "Matrix Inversion: the ", -info, "th argument has an illegal value." );
+     } else if (info > 0){
+	  fprintf( stderr, "Matrix Inversion: the (%d,%d) element of the factor U or L is zero, and the inverse could not be computed.\n", info, info );
+	  fprintf( stderr, "Exiting program.\n" );
+	  exit( EXIT_FAILURE );
+     }
+}
+
 void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *const Stiff, const Scalars Const )
 {
+
      int i;
      int iparm[64];
      void *pt[64];
@@ -575,7 +614,6 @@ void CalculateMatrixKeinv_Pardiso_Sparse( MatrixVector *const Keinv, const Sp_Ma
      Init_MatrixVector_Sp( &Sp_TempMat, Damp->Rows, Damp->Cols, Damp->Num_Nonzero );
 
      Add3Mat_Sparse( &Sp_TempMat, &(*Stiff), &(*Mass), &(*Damp), Const );
-     MatrixVector_To_File_Sparse( &Sp_TempMat, "TempMatSp.txt" );
 
      /* Setup the Pardiso control parameters */
      for (i = 0; i < 64; i++){
@@ -595,7 +633,7 @@ void CalculateMatrixKeinv_Pardiso_Sparse( MatrixVector *const Keinv, const Sp_Ma
      iparm[17] = -1;	/* Output: Number of nonzeros in the factor LU */
      iparm[18] = -1;	/* Output: Mflops for LU factorization */
      iparm[19] = 0;	/* Output: Numbers of CG Iterations */
-     iparm[27] = 0;     /* Input/output matrices are single precision */
+     iparm[27] = 0;     /* Input/output matrices are double precision */
      iparm[34] = 0;	/* PARDISO use 1 based indexing for ia and ja arrays */
      maxfct = 1;	/* Maximum number of numerical factorizations. */
      mnum = 1;		/* Which factorization to use. */
@@ -615,8 +653,10 @@ void CalculateMatrixKeinv_Pardiso_Sparse( MatrixVector *const Keinv, const Sp_Ma
      /* all memory that is necessary for the factorization. */
      /* -------------------------------------------------------------------- */
      phase = 11;
+
      PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
 	      &Sp_TempMat.Rows, Sp_TempMat.Values, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &Keinv->Rows, iparm, &msglvl, &fdum, &fdum, &error);
+
      if (error != 0)
      {
 	  printf ("\nERROR during symbolic factorization: %d", error);
