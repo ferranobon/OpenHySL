@@ -99,7 +99,7 @@ void Calc_Input_Load_AbsValues( MatrixVector *const InLoad, const MatrixVector *
      /* {r} is the load form vector */
      /* li = K*{r}*ug */
      dsymv_( &uplo, &(*InLoad).Rows, &Alpha, (*Stif).Array, &(*InLoad).Rows, (*D).Array, &incx, &Beta, (*InLoad).Array, &incy );
-     MatrixVector_To_File( InLoad, "InLoad" );
+
      /* li = K*{r}*ug + C*{r}*vg = li + C*{r}*vg */
      Beta = 1.0;
      dsymv_( &uplo, &(*InLoad).Rows, &Alpha, (*Damp).Array, &(*InLoad).Rows, (*V).Array, &incx, &Beta, (*InLoad).Array, &incy );
