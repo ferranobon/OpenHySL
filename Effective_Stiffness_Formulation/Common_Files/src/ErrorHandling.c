@@ -25,7 +25,7 @@ void PrintSuccess( const char *SuccessMessage )
 
 void PrintInfo ( const char *InfoMessage )
 {
-     printf( "[ INFO  ] %s", InfoMessage );
+     printf( "[ INFO   ] %s", InfoMessage );
 }
 
 void PrintErrorAndExit ( const char *ErrorMessage )

@@ -73,6 +73,8 @@ typedef struct Scal {
  */
 void Init_MatrixVector( MatrixVector *const Mat, const int Rows, const int Cols );
 
+void Set_RowsCols_Sp( Sp_MatrixVector *const Mat, const int Rows, const int Cols );
+void AllocateSpace_Sp( Sp_MatrixVector *const Mat, const int nnz );
 void Init_MatrixVector_Sp( Sp_MatrixVector *const Mat, const int Rows, const int Cols, const int nnz );
 
 #if _SPARSE_

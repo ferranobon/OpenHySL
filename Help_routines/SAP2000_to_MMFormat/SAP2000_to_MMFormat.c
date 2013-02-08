@@ -98,7 +98,7 @@ int main ( int argc, char **argv )
      while ( i < nnz ){
 	  fscanf( InFile, "%i %i %lf", &row, &column, &Value );
 	  if( Value != 0.0 ){
-	       fprintf( OutFile, "%i %i %.8lf\n", row, column, Value );
+	       fprintf( OutFile, "%i %i %.8lE\n", row, column, Value );
 	       i = i + 1;
 	  }
      }

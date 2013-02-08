@@ -463,15 +463,14 @@ void CalculateMatrixKeinv_Pardiso( MatrixVector *const Keinv, const MatrixVector
      MatrixVector TempMat;
      Sp_MatrixVector Sp_TempMat;
      double fdum;                       /* Dummy double */
-     int idum;                         /* Dummy integer */
+     int idum;                          /* Dummy integer */
 
      Init_MatrixVector( &TempMat, Keinv->Rows, Keinv->Cols );
 
      Add3Mat( &TempMat, &(*Stiff), &(*Mass), &(*Damp), Const );
 
-     Dense_to_CSR( &TempMat, &Sp_TempMat, 0 );  /* Transform into CSR format */
-     MatrixVector_To_File_Sparse( &Sp_TempMat, "TempMatDns.txt" );
-     Destroy_MatrixVector( &TempMat );                /* Destroy the dense matrix */
+     Dense_to_CSR( &TempMat, &Sp_TempMat, 0 );   /* Transform into CSR format */
+     Destroy_MatrixVector( &TempMat );           /* Destroy the dense matrix */
 
      /* Setup the Pardiso control parameters */
      for (i = 0; i < 64; i++){
@@ -571,7 +570,7 @@ void CalculateMatrixKeinv_Pardiso_Sparse( MatrixVector *const Keinv, const Sp_Ma
      MatrixVector IdentMatrix;
      Sp_MatrixVector Sp_TempMat;
      double fdum;                       /* Dummy double */
-     int idum;                         /* Dummy integer */
+     int idum;                          /* Dummy integer */
 
      Init_MatrixVector_Sp( &Sp_TempMat, Damp->Rows, Damp->Cols, Damp->Num_Nonzero );
 

@@ -53,7 +53,7 @@ int ConfFile_ReadFile( ConfFile *const CFile, const char *FileName )
 
      if( InFile == NULL ){
 	  fprintf( stderr, "Could not open %s\n.", FileName );
-	  return EXIT_FAILURE;
+	  exit( EXIT_FAILURE );
      }
 
      memset( Line, 0, MAX_LENGTH );

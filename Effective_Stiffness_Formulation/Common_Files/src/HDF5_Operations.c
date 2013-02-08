@@ -309,9 +309,9 @@ void HDF5_CreateGroup_TimeIntegration( int hdf5_file, AlgConst *const InitCnt )
 					"Units", "m" );
 
      /* Input load */
-     HDF5_Create_Dataset( file_id, "/Time Integration/Input Load", (int) InitCnt->Nstep, (int) InitCnt->Order );
-     status = H5LTset_attribute_string( file_id, "Time Integration/Input Load",
-					"Units", "N" );
+     //HDF5_Create_Dataset( file_id, "/Time Integration/Input Load", (int) InitCnt->Nstep, (int) InitCnt->Order );
+     //status = H5LTset_attribute_string( file_id, "Time Integration/Input Load",
+	//				"Units", "N" );
 
      /* If the number of substructures is greater than zero, store the results */
      if( InitCnt->OrderSub > 0 ){
@@ -345,7 +345,7 @@ void HDF5_Store_TimeHistoryData( int hdf5_file, MatrixVector *const Acc, MatrixV
      HDF5_AddResults_to_Dataset( file_id, "/Time Integration/Velocity", Vel, istep );
      HDF5_AddResults_to_Dataset( file_id, "/Time Integration/Displacement", Disp, istep );
 
-     HDF5_AddResults_to_Dataset( file_id, "/Time Integration/Input Load", InLoad, istep );
+     //HDF5_AddResults_to_Dataset( file_id, "/Time Integration/Input Load", InLoad, istep );
 
      /* If the number of substructures is greater than zero, store the results */
      if( InitCnt->OrderSub > 0 ){
@@ -534,11 +534,20 @@ void HDF5_Create_Dataset( hid_t file_id, const char *Path_name, int Nstep, int O
 
      hid_t cparms, dataspace_id, dataset_id;
      herr_t status;
-			    
+	
+     //  unsigned szip_options_mask;
+     // unsigned szip_pixels_per_block;
+
      dataspace_id = H5Screate_simple( 2, dims, max_dims );
 
      cparms = H5Pcreate( H5P_DATASET_CREATE);
      status = H5Pset_chunk( cparms, 2, dims );
+
+     //status = H5Pset_deflate (cparms, 6); 
+
+     //szip_options_mask = H5_SZIP_NN_OPTION_MASK;
+     //szip_pixels_per_block = 16;
+     //status = H5Pset_szip (cparms, szip_options_mask, szip_pixels_per_block);
 
      dataset_id = H5Dcreate( file_id, Path_name, H5T_NATIVE_DOUBLE, dataspace_id,
 			      H5P_DEFAULT, cparms, H5P_DEFAULT);
