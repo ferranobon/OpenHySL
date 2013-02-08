@@ -4,6 +4,8 @@
 .bin
 .bin.info
 build/
+Debug/
+Release/
 GPATH
 GRTAGS
 GSYMS
