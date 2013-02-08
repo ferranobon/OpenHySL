@@ -70,6 +70,8 @@ int main( int argc, char **argv )
 
      HDF5_time_t Time;
 
+
+
      /* TCP socket connection Variables */
      int Socket;
 
@@ -247,19 +249,23 @@ int main( int argc, char **argv )
      if( !InitCnt.Read_Sparse ){
 	  MatrixVector_From_File( &M, InitCnt.FileM );
 	  MatrixVector_From_File( &K, InitCnt.FileK );
+     } else if ( !InitCnt.Read_Sparse && InitCnt.Use_Sparse ){
+	  MatrixVector_From_File( &M, InitCnt.FileM );
+	  Dense_to_CSR( &M, &Sp_M, 0 );            /* Transform into CSR format */
+	  Destroy_MatrixVector( &M );              /* Destroy the dense matrix */
+
+	  MatrixVector_From_File( &K, InitCnt.FileK );
+	  Dense_to_CSR( &K, &Sp_K, 0 );            /* Transform into CSR format */
+	  Destroy_MatrixVector( &K );              /* Destroy the dense matrix */
      } else if ( InitCnt.Read_Sparse && !InitCnt.Use_Sparse ){
 	  MatrixVector_From_File_Sp2Dense( &M, InitCnt.FileM );
-	  Dense_to_CSR( &M, &Sp_M, 0 );            /* Transform into CSR format */
 	  MatrixVector_From_File_Sp2Dense( &K, InitCnt.FileK );
-	  Dense_to_CSR( &K, &Sp_K, 0 );            /* Transform into CSR format */
      } else if ( InitCnt.Read_Sparse && InitCnt.Use_Sparse ){
 #if _SPARSE_
 	  MatrixVector_From_File_Sp( &Sp_M, InitCnt.FileM );
 	  MatrixVector_From_File_Sp( &Sp_K, InitCnt.FileK );
 #endif
-     } else {
-	  assert( InitCnt.Read_Sparse && !InitCnt.Use_Sparse );
-     }
+     } else assert(0);
 
      if ( !InitCnt.Read_LVector ){
 	  Generate_LoadVectorForm( &LoadVectorForm, InitCnt.ExcitedDOF );
@@ -268,8 +274,7 @@ int main( int argc, char **argv )
      }
 
      /* Calculate damping matrix using Rayleigh. C = alpha*M + beta*K */
-     if ( InitCnt.Use_Sparse && InitCnt.Read_Sparse ) {
-
+     if ( InitCnt.Use_Sparse ) {
 #if _SPARSE_
 	  Init_MatrixVector_Sp( &Sp_C, InitCnt.Order, InitCnt.Order, Sp_K.Num_Nonzero );
 	  CalculateMatrixC_Sp( &Sp_M, &Sp_K, &Sp_C, &InitCnt.Rayleigh );
@@ -284,36 +289,17 @@ int main( int argc, char **argv )
      Constants.Beta = InitCnt.a0;
      Constants.Gamma = InitCnt.a1;
 
-     if( !InitCnt.Use_Pardiso ){
+     if( !InitCnt.Use_Sparse ){
 	  CalculateMatrixKeinv( &Keinv, &M, &C, &K, Constants );
-     } else if ( InitCnt.Use_Pardiso && !InitCnt.Use_Sparse ){
+     } else {
 #if _SPARSE_
-	  CalculateMatrixKeinv_Pardiso( &Keinv, &M, &C, &K, Constants );
-#endif
-     } else if ( InitCnt.Use_Pardiso && InitCnt.Use_Sparse && InitCnt.Read_Sparse ){
-#if _SPARSE_
-	  CalculateMatrixKeinv_Pardiso_Sparse( &Keinv, &Sp_M, &Sp_C, &Sp_K,
-					       Constants );
+	  CalculateMatrixKeinv_Sparse( &Keinv, &Sp_M, &Sp_C, &Sp_K, Constants );
 #endif
      }
 
      BuildMatrixXc( &Keinv, Keinv_c.Array, &CNodes );
      BuildMatrixXcm( &Keinv, &Keinv_m, &CNodes );
   
-#if _SPARSE_
-     /* Transform the matrices into CSR format */
-     if( !InitCnt.Read_Sparse && InitCnt.Use_Sparse ){
-	  Dense_to_CSR( &M, &Sp_M, 0 );            /* Transform into CSR format */
-	  Destroy_MatrixVector( &M );              /* Destroy the dense matrix */
-
-	  Dense_to_CSR( &K, &Sp_K, 0 );            /* Transform into CSR format */
-	  Destroy_MatrixVector( &K );              /* Destroy the dense matrix */
-
-	  Dense_to_CSR( &C, &Sp_C, 0 );            /* Transform into CSR format */
-	  Destroy_MatrixVector( &C );              /* Destroy the dense matrix */
-     }
-#endif
-
      /* Send the coupling part of the effective matrix if we are performing a distributed test */
      Send_Effective_Matrix( Keinv_c.Array, (unsigned int) CNodes.Order, &Socket, InitCnt.Remote );
 
@@ -482,11 +468,11 @@ int main( int argc, char **argv )
      free( Time.Date_time );
 
      /* Destroy the data structures */
-     if( (!InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (!InitCnt.Use_Sparse && InitCnt.Read_Sparse) ){
+     if( !InitCnt.Use_Sparse ){
 	  Destroy_MatrixVector( &M );
 	  Destroy_MatrixVector( &K );
 	  Destroy_MatrixVector( &C );
-     } else if ( InitCnt.Use_Sparse ){
+     } else {
 #if _SPARSE_
 	  Destroy_MatrixVector_Sparse( &Sp_M );
 	  Destroy_MatrixVector_Sparse( &Sp_C );

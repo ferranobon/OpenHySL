@@ -82,8 +82,6 @@ typedef struct {
      int Use_Sparse;          /*!< \brief Sparse routines will be used instead of dense ones. Only available with the support of the Intel MKL libraries.
 				\sa MatrixVector_From_File_Sp(), CalculateMatrixC_Sp(), CalculateMatrixKeinv_Pardiso_Sparse(), Calc_Input_Load_AbsValues_Sparse(),
 				Calc_Input_Load_RelValues_Sparse() and EffK_Calc_Effective_Force_Sparse(). */
-     int Use_Pardiso;         /*!< \brief Uses PARDISO solver instead of LAPACK to compute the matrix inversion. It is only available throught the MKL libraries.
-				\sa CaclulateMatrixKeinv_Pardiso() and CalculateMatrixKeinv_Pardiso_Sparse(). */
      int Read_LVector;        /*!< \brief Read the load vector instead of generating it. */
      int *ExcitedDOF;
 
@@ -244,6 +242,8 @@ void CalculateMatrixC_Sp( const Sp_MatrixVector *const Mass, const Sp_MatrixVect
  * \sa MatrixVector, Scalars and Add3Mat().
  */
 void CalculateMatrixKeinv( MatrixVector *const Keinv, const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *const Stif, const Scalars Const );
+
+void CalculateMatrixKeinv_Sparse( MatrixVector *const Keinv, const Sp_MatrixVector *const Mass, const Sp_MatrixVector *const Damp, const Sp_MatrixVector *const Stif, const Scalars Const );
 
 /**
  * \brief Construction of the inverse of the Effective Stiffness Matrix using PARDISO solver and dense matrices as input. It requires Intel MKL.
