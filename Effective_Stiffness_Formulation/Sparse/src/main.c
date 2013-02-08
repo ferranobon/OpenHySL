@@ -163,6 +163,7 @@ int main( int argc, char **argv )
 	  switch( Selected_Option ){
 	  case 'c':
 	       FileConf = optarg;
+	       break;
 	  case 'h':
 	       Print_Help( argv[0] );
 	       return EXIT_FAILURE;
@@ -200,6 +201,9 @@ int main( int argc, char **argv )
      if( (!InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (!InitCnt.Use_Sparse && InitCnt.Read_Sparse) ){
 	  Init_MatrixVector( &M, InitCnt.Order, InitCnt.Order );
 	  Init_MatrixVector( &K, InitCnt.Order, InitCnt.Order );
+     } else if ( InitCnt.Use_Sparse && InitCnt.Read_Sparse ){
+	  Set_RowsCols_Sp( &Sp_M, InitCnt.Order, InitCnt.Order );
+	  Set_RowsCols_Sp( &Sp_K, InitCnt.Order, InitCnt.Order );
      }
 
      Init_MatrixVector( &Keinv, InitCnt.Order, InitCnt.Order );
@@ -245,7 +249,9 @@ int main( int argc, char **argv )
 	  MatrixVector_From_File( &K, InitCnt.FileK );
      } else if ( InitCnt.Read_Sparse && !InitCnt.Use_Sparse ){
 	  MatrixVector_From_File_Sp2Dense( &M, InitCnt.FileM );
+	  Dense_to_CSR( &M, &Sp_M, 0 );            /* Transform into CSR format */
 	  MatrixVector_From_File_Sp2Dense( &K, InitCnt.FileK );
+	  Dense_to_CSR( &K, &Sp_K, 0 );            /* Transform into CSR format */
      } else if ( InitCnt.Read_Sparse && InitCnt.Use_Sparse ){
 #if _SPARSE_
 	  MatrixVector_From_File_Sp( &Sp_M, InitCnt.FileM );
@@ -280,7 +286,7 @@ int main( int argc, char **argv )
 
      if( !InitCnt.Use_Pardiso ){
 	  CalculateMatrixKeinv( &Keinv, &M, &C, &K, Constants );
-     } else if ( InitCnt.Use_Pardiso && !InitCnt.Read_Sparse ){
+     } else if ( InitCnt.Use_Pardiso && !InitCnt.Use_Sparse ){
 #if _SPARSE_
 	  CalculateMatrixKeinv_Pardiso( &Keinv, &M, &C, &K, Constants );
 #endif
@@ -290,6 +296,7 @@ int main( int argc, char **argv )
 					       Constants );
 #endif
      }
+
      BuildMatrixXc( &Keinv, Keinv_c.Array, &CNodes );
      BuildMatrixXcm( &Keinv, &Keinv_m, &CNodes );
   
@@ -298,13 +305,12 @@ int main( int argc, char **argv )
      if( !InitCnt.Read_Sparse && InitCnt.Use_Sparse ){
 	  Dense_to_CSR( &M, &Sp_M, 0 );            /* Transform into CSR format */
 	  Destroy_MatrixVector( &M );              /* Destroy the dense matrix */
-	  
+
 	  Dense_to_CSR( &K, &Sp_K, 0 );            /* Transform into CSR format */
 	  Destroy_MatrixVector( &K );              /* Destroy the dense matrix */
 
 	  Dense_to_CSR( &C, &Sp_C, 0 );            /* Transform into CSR format */
 	  Destroy_MatrixVector( &C );              /* Destroy the dense matrix */
-	  MatrixVector_To_File_Sparse( &Sp_C, "SpC_MKL.txt" );
      }
 #endif
 
@@ -423,13 +429,14 @@ int main( int argc, char **argv )
 	  Compute_Velocity( &VelT, &AccT, &AccTdT, InitCnt.a6, InitCnt.a7, &VelTdT );
 
 	  /* Error Compensation. fu = LoatTdT + fc -(Mass*AccTdT + Damp*VelTdT + Stiff*DispTdT) */
-
-	  if( !InitCnt.Use_Sparse ){
-	       Compute_Force_Error( &M, &C, &K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &fu );
-	  } else {
+	  if( InitCnt.PID.P != 0.0 || InitCnt.PID.I != 0.0 || InitCnt.PID.D != 0.0 ){
+	       if( !InitCnt.Use_Sparse ){
+		    Compute_Force_Error( &M, &C, &K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &fu );
+	       } else {
 #if _SPARSE_
-	       Compute_Force_Error_Sparse( &Sp_M, &Sp_C, &Sp_K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &fu );
+		    Compute_Force_Error_Sparse( &Sp_M, &Sp_C, &Sp_K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &fu );
 #endif
+	       }
 	  }
 
 	  /* Save the result in a HDF5 file format */

@@ -48,8 +48,9 @@ void Init_MatrixVector( MatrixVector *const Mat, const int Rows, const int Cols 
      }
 }
 
-void Init_MatrixVector_Sp( Sp_MatrixVector *const Mat, const int Rows, const int Cols, const int nnz )
+void Set_RowsCols_Sp( Sp_MatrixVector *const Mat, const int Rows, const int Cols )
 {
+     
      if ( Rows >= 0 ){ 
 	  Mat->Rows = Rows;
 	  if ( Rows > 0 ){
@@ -57,22 +58,39 @@ void Init_MatrixVector_Sp( Sp_MatrixVector *const Mat, const int Rows, const int
 	  } else {
 	       Mat->Cols = 0;
 	  }
+	  /* Set the number of non-zero elements to 0 to indicate
+	   * that the memory is not yet allocated. */
+	  Mat->Num_Nonzero = 0;   
      } else {
 	  PrintErrorAndExit( "The number of rows must be equal or greater than zero" );
      }
-     
-     if ( nnz == 0 ){
-	  PrintErrorAndExit( "The number of non-zero elements must be greater that zero" );
+
+}
+
+void AllocateSpace_Sp( Sp_MatrixVector *const Mat, const int nnz )
+{
+
+     /* Only perform this operation if the number of non-zero elements is equal
+      * to zero. A different number would mean that the matrix is already
+      * initialised */
+     if( Mat->Num_Nonzero != 0 ){
+	  PrintErrorAndExit( "Error when initialising a sparse matrix since it is already initialised" );
      } else {
 	  Mat->Num_Nonzero = nnz;
-     }
-     
-     /* Allocate the memory for the Values and Columns matrices */
-     Mat->Values = (double *) calloc( (size_t) Mat->Num_Nonzero, sizeof(double) );
-     Mat->Columns = (int *) calloc( (size_t) Mat->Num_Nonzero, sizeof(int) );
 
-     /* Allocate the RowIndex matrix. Length = Rows + 1 */
-     Mat->RowIndex = (int *) calloc( (size_t) Mat->Rows + 1, sizeof(int) );
+	  /* Allocate the memory for the Values and Columns matrices */
+	  Mat->Values = (double *) calloc( (size_t) Mat->Num_Nonzero, sizeof(double) );
+	  Mat->Columns = (int *) calloc( (size_t) Mat->Num_Nonzero, sizeof(int) );
+	  /* Allocate the RowIndex matrix. Length = Rows + 1 */
+	  Mat->RowIndex = (int *) calloc( (size_t) Mat->Rows + 1, sizeof(int) );
+     }
+
+}
+
+void Init_MatrixVector_Sp( Sp_MatrixVector *const Mat, const int Rows, const int Cols, const int nnz )
+{
+     Set_RowsCols_Sp( Mat, Rows, Cols );
+     AllocateSpace_Sp( Mat, nnz );
 }
 
 #if _SPARSE_
@@ -129,8 +147,8 @@ int Count_Nonzero_Elements_SY( const double *const Sym_Matrix, const int Rows )
 
      Count = 0;
      for ( i = 0; i < Rows; i++ ){
-	  for ( j = i; j < Rows; j++ ){
-	       if ( Sym_Matrix[i*Rows + j] != 0.0f ){
+	  for ( j = 0; j < Rows; j++ ){
+	       if ( Sym_Matrix[i*Rows + j] != 0.0 ){
 		    Count = Count + 1;
 	       }
 	  }
@@ -227,7 +245,7 @@ void MatrixVector_From_File_Sp2Dense( MatrixVector *const Mat, const char *Filen
       * requiring transposing it.
       */
      for( innz = 0; innz < nnz; innz++ ){
-	  fscanf( InFile, "%d %d %lf", &i, &j, &Value );
+	  fscanf( InFile, "%d %d %lE", &i, &j, &Value );
 	  Mat->Array[(j-1)*Mat->Cols + (i-1)] = Value;
      }
 }
@@ -235,57 +253,75 @@ void MatrixVector_From_File_Sp2Dense( MatrixVector *const Mat, const char *Filen
 #if _SPARSE_
 void MatrixVector_From_File_Sp( Sp_MatrixVector *const Mat, const char *Filename )
 {
-     FILE *InFile;  /* Input file */
-     int i, j;      /* Indexes of the position within the matrix of the readen value */
-     char d;        /* Dump character between two values */
-     double Value;   /* Value to be saved in the position (i,j) of the matrix */
-     int Position;  /* Counter for the Values and columns array */
+     FILE *InFile;          /* Input file */
+     MM_typecode matcode;   /* MatrixMarket: type of the matrix (symmetric, dense, complex, ...)  */
+     int return_code;       /* MatrixMarket: return code for the functions */
+     int i, j;              /* Indexes of the position within the matrix of the readen value */
+     double Value;           /* Value to be saved in the position (i,j) of the matrix */
+     int Rows, Cols;        /* Number of Rows and Columns */
+     int nnz;               /* Number of non-zero elements */
+     int innz;              /* Counter for the number of non-zero elements */
      int Pos_RI;    /* Counter for the RowIndex array */
-     int innz;      /* Counter for the number of non-zeros */
-     int Rows, Cols, nnz;       /* Number of rows, columns and non-zero elements */
 
+     /* Open the file */
      InFile = fopen( Filename, "r" );
+     if ( InFile == NULL) {
+	  ErrorFileAndExit( "Could not read the Load Vector Form. Failed to open: ",
+			    Filename );
+     }
 
-     if( InFile != NULL ){
-	  /* Read the number of rows, columns and non-zero elements */
-	  fscanf( InFile, "%d %d %d", &Rows, &Cols, &nnz );
+     /* Read the banner and identify which type of matrix is in the file */
+     if( mm_read_banner( InFile, &matcode ) != 0 ){
+	  ErrorFileAndExit( "Could not process Market Matrix banner in ", Filename );
+     }
+     
+     /* Only sparse matrices are accepted */
+     if ( !mm_is_sparse(matcode) ){
+	  fprintf( stderr, "[ " RED "ERROR" RESET " ] The Load vector form should be of");
+	  fprintf( stderr, "  type sparse or dense for this application to work\n" );
+	  fprintf( stderr, "[ " RED "ERROR" RESET " ] Market Market type: [%s]\n",
+		   mm_typecode_to_str(matcode));
+	  exit( EXIT_FAILURE );
+     }
+     
+     /* Get the sizes */
+     if ( (return_code = mm_read_mtx_crd_size( InFile, &Rows, &Cols, &nnz)) !=0){
+	  exit( EXIT_FAILURE );
+     }
 
-	  Init_MatrixVector_Sp( Mat, Rows, Cols, nnz );
-	  Position = 0;
-	  Pos_RI = 0;
-	  innz = 1;
-	  Mat->RowIndex[Pos_RI] = innz;
+     /* Check if the dimensions of the matrices are the same */
+     if ( Rows != Mat->Rows || Cols != Mat->Cols ){
+	  fprintf( stderr, "[ " RED "ERROR" RESET " ] The sizes of the load vector (%d, %d)", Rows, Cols ); 
+	  fprintf( stderr, "do not match with the specified ones in the configuration file (%d, %d).n",
+		   Mat->Rows, Mat->Cols );
+	  exit( EXIT_FAILURE );
+     }
 
-	  while( innz <= Mat->Num_Nonzero ) { 
-	       fscanf( InFile, "%i%c%i%c%le", &i, &d, &j, &d, &Value );
-	       if ( j >= i ){    /* Consider only the upper part */
-		    innz = innz + 1;
+     AllocateSpace_Sp( Mat, nnz );
 
-		    Mat->Values[Position] = Value;
-		    Mat->Columns[Position] = j + 1;  /* One based index */
-		    Position = Position + 1;
-		    if ( i > Pos_RI ){
-			 while ( Pos_RI < i ){
-			      Pos_RI = Pos_RI + 1;
-			      Mat->RowIndex[Pos_RI] = innz - 1;
-			 }
-		    }
-
-	       }        
+     /* Read the values. The MatrixMarket format imposes that the file should contain only the
+      * lower part of the matrix in 1-based index. Since C and FORTRAN use row-major and column-major
+      * ordering respectively, the matrices will be stored as upper part in the C so that when
+      * calling the FORTRAN routines from BLAS they access the lower part of the matrix without
+      * requiring transposing it.
+      */
+     Pos_RI = 0;
+     for( innz = 0; innz < nnz; innz++ ){
+	  fscanf( InFile, "%d %d %lE", &i, &j, &Value );
+	  Mat->Values[innz] = Value;
+	  Mat->Columns[innz] = i;            /* The read matrix is the lower triangular part but we store the upper triangular part */
+	  if ( j > Pos_RI ){
+	       while ( Pos_RI < j ){
+		    Mat->RowIndex[Pos_RI] = innz + 1;
+		    Pos_RI = Pos_RI + 1;
+	       }
 	  }
+     }
 
-	  /* Add the number of non-zero elements at the final position of the
-	   * RowIndex array */
+     while( Pos_RI <= Mat->Rows ){
+	  Mat->RowIndex[Pos_RI] = innz + 1;
 	  Pos_RI = Pos_RI + 1;
-	  while( Pos_RI <= Rows ){
-	       Mat->RowIndex[Pos_RI] = innz;
-	       Pos_RI = Pos_RI + 1;
-	  }
-
-	  /* The program has reached the end of the file */
-	  fclose( InFile );
-
-     } else ErrorFileAndExit( "It is not possible to read data because it was not possible to open: ", Filename );
+     }
 }
 #endif
 
@@ -459,7 +495,7 @@ void MatrixVector_To_File_Sparse( const Sp_MatrixVector *const Sp_Mat, const cha
 	  
 	  fprintf( OutFile, "Values: Nonzero elements.\n" );
 	  for ( i = 0; i < Sp_Mat->Num_Nonzero; i++ ){
-	       fprintf( OutFile, "%lf\t", Sp_Mat->Values[i] );
+	       fprintf( OutFile, "%lE\t", Sp_Mat->Values[i] );
 	  }
 	  fprintf( OutFile, "\n" );
 
