@@ -62,7 +62,9 @@ void HDF5_CreateGroup_Parameters( int hdf5_file, AlgConst *const InitCnt, Coupli
      dArray[2] = InitCnt->PID.D;
      HDF5_AddDoubleArray_AsTable( file_id, "/Test Parameters/PID", Entry_Names,
 				    dArray, 3 );
-
+     for( i = 0; i < 3; i++ ){
+	  free( Entry_Names[i] );
+     }
      /* Free the double array */
      free( dArray );
 
