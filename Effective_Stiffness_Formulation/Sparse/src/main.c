@@ -210,8 +210,10 @@ int main( int argc, char **argv )
 
      Init_MatrixVector( &Keinv, InitCnt.Order, InitCnt.Order );
  
-     Init_MatrixVector( &Keinv_c, CNodes.Order, CNodes.Order );
-     Init_MatrixVector( &Keinv_m, InitCnt.Order - CNodes.Order, CNodes.Order );
+     if( CNodes.Order >= 1 ){
+	  Init_MatrixVector( &Keinv_c, CNodes.Order, CNodes.Order );
+	  Init_MatrixVector( &Keinv_m, InitCnt.Order - CNodes.Order, CNodes.Order );
+     }
 
      Init_MatrixVector( &tempvec, InitCnt.Order, 1 );
 
@@ -219,8 +221,10 @@ int main( int argc, char **argv )
      Init_MatrixVector( &DispTdT0, InitCnt.Order, 1 );
      Init_MatrixVector( &DispTdT, InitCnt.Order, 1 );
 
-     Init_MatrixVector( &DispTdT0_c, CNodes.Order, 1 );
-     Init_MatrixVector( &DispTdT0_m, InitCnt.Order-CNodes.Order, 1 );
+     if( CNodes.Order >= 1 ){
+	  Init_MatrixVector( &DispTdT0_c, CNodes.Order, 1 );
+	  Init_MatrixVector( &DispTdT0_m, InitCnt.Order-CNodes.Order, 1 );
+     }
 
      Init_MatrixVector( &VelT, InitCnt.Order, 1 );
      Init_MatrixVector( &VelTdT, InitCnt.Order, 1 );
@@ -297,11 +301,13 @@ int main( int argc, char **argv )
 #endif
      }
 
-     BuildMatrixXc( &Keinv, Keinv_c.Array, &CNodes );
-     BuildMatrixXcm( &Keinv, &Keinv_m, &CNodes );
+     if( CNodes.Order >= 1 ){
+	  BuildMatrixXc( &Keinv, Keinv_c.Array, &CNodes );
+	  BuildMatrixXcm( &Keinv, &Keinv_m, &CNodes );
   
-     /* Send the coupling part of the effective matrix if we are performing a distributed test */
-     Send_Effective_Matrix( Keinv_c.Array, (unsigned int) CNodes.Order, &Socket, InitCnt.Remote );
+	  /* Send the coupling part of the effective matrix if we are performing a distributed test */
+	  Send_Effective_Matrix( Keinv_c.Array, (unsigned int) CNodes.Order, &Socket, InitCnt.Remote );
+     }
 
      /* Read the earthquake data from a file */
      if( InitCnt.Use_Absolute_Values ){
@@ -370,12 +376,16 @@ int main( int argc, char **argv )
 	  EffK_ComputeU0( &EffT, &LoadTdT, &fu, InitCnt.PID.P, &Keinv, &tempvec, &DispTdT0 );
 
 	  /* Split DispTdT into coupling and non-coupling part */
-	  CreateVectorXm( &DispTdT0, &DispTdT0_m, &CNodes );
-	  CreateVectorXc( &DispTdT0, DispTdT0_c.Array, &CNodes );
+	  if( CNodes.Order >= 1 ){
+	       CreateVectorXm( &DispTdT0, &DispTdT0_m, &CNodes );
+	       CreateVectorXc( &DispTdT0, DispTdT0_c.Array, &CNodes );
+	  }
 
 	  /* Perform substepping */
-	  Do_Substepping( Keinv_c.Array, DispTdT0_c.Array, DispTdT.Array, fcprevsub.Array, fc.Array, InitCnt.Remote.Type,
-			  InitCnt.Delta_t*(double) istep, Socket, &CNodes, InitCnt.NSubstep, InitCnt.DeltaT_Sub  );
+	  if( CNodes.Order >= 1 ){
+	       Do_Substepping( Keinv_c.Array, DispTdT0_c.Array, DispTdT.Array, fcprevsub.Array, fc.Array, InitCnt.Remote.Type,
+			       InitCnt.Delta_t*(double) istep, Socket, &CNodes, InitCnt.NSubstep, InitCnt.DeltaT_Sub  );
+	  }
 
 	  if ( istep < InitCnt.Nstep ){
 	       /* Calculate the input load for the next step during the
@@ -406,7 +416,11 @@ int main( int argc, char **argv )
 
 	  /* Join the non-coupling part. DispTdT_m = Keinv_m*fc + DispTdT0_m. Although DispTdT0_m is what has been received from the other computer,
 	     it has the name of DispTdT_m to avoid further operations if using the NETLIB libraries. */
-	  JoinNonCouplingPart( &DispTdT0_m, &Keinv_m, &fcprevsub, &DispTdT, &CNodes );
+	  if( CNodes.Order >= 1 ){
+	       JoinNonCouplingPart( &DispTdT0_m, &Keinv_m, &fcprevsub, &DispTdT, &CNodes );
+	  } else {
+	       dcopy_( &DispTdT0.Rows, DispTdT0.Array, &incx, DispTdT.Array, &incy ); /* ui = ui1 */
+	  }
 
 	  /* Compute acceleration ai1 = a0*(ui1 -ui) - a2*vi -a3*ai */
 	  Compute_Acceleration( &DispTdT, &DispT, &VelT, &AccT, InitCnt.a0, InitCnt.a2, InitCnt.a3, &AccTdT );
@@ -477,19 +491,24 @@ int main( int argc, char **argv )
 	  Destroy_MatrixVector_Sparse( &Sp_M );
 	  Destroy_MatrixVector_Sparse( &Sp_C );
 	  Destroy_MatrixVector_Sparse( &Sp_K );
+
 #endif
      }
 	  
      Destroy_MatrixVector( &Keinv );
-     Destroy_MatrixVector( &Keinv_c );
-     Destroy_MatrixVector( &Keinv_m );
+     if( CNodes.Order >= 1 ){
+	  Destroy_MatrixVector( &Keinv_c );
+	  Destroy_MatrixVector( &Keinv_m );
+     }
 
      Destroy_MatrixVector( &tempvec );
-
+     printf("1\n");
      Destroy_MatrixVector( &DispT );
      Destroy_MatrixVector( &DispTdT0 );
-     Destroy_MatrixVector( &DispTdT0_c );
-     Destroy_MatrixVector( &DispTdT0_m );
+     if( CNodes.Order >= 1 ){
+	  Destroy_MatrixVector( &DispTdT0_c );
+	  Destroy_MatrixVector( &DispTdT0_m );
+     }
      Destroy_MatrixVector( &DispTdT );
 
      Destroy_MatrixVector( &VelT );
