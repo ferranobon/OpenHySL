@@ -58,7 +58,7 @@ typedef struct {
  *
  * \post \c Damp is a symmetric matrix in general storage with only the upper part referenced
  *       (Lower part in FORTRAN routines). It contains the result of:
- *       \f[\mathcal{C} = \alpha \mathcal{M} \cdot \beta \mathcal{K}\f].
+ *       \f[\mathcal{C} = \alpha \mathcal{M} \cdot \beta \mathcal{K}\f]
  *
  * \sa MatrixVector and RayleighConst.
  */
@@ -97,7 +97,7 @@ void Rayleigh_Damping( const MatrixVector *const Mass, const MatrixVector *const
  *
  * \post \c Damp is a symmetric matrix in general storage with only the upper part referenced
  *       (Lower part in FORTRAN routines). It contains the result of:
- *       \f[\mathcal{C} = \alpha \mathcal{M} \cdot \beta \mathcal{K}\f].
+ *       \f[\mathcal{C} = \alpha \mathcal{M} \cdot \beta \mathcal{K}\f]
  *
  * \sa MatrixVector_Sp and RayleighConst.
  */
@@ -108,15 +108,15 @@ void Rayleigh_Damping_Sp( const MatrixVector_Sp *const Mass, const MatrixVector_
  *
  * This routine calculates the so called Gain Matrix through:
  *
- * \f[\mathcal{G}^{-1} = \biggl(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f].
+ * \f[\mathcal{G} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
  *
  * where:
  * - \f$\mathcal{M}\f$ is the mass matrix,
  * - \f$\mathcal{C}\f$ is the proportional viscous damping matrix,
  * - \f$\mathcal{K}\f$ is the stiffness matrix,
  * - \f$\mathcal{G}\f$ is the gain matrix,
- * - and \f$\alpha\f$, \f$beta\f$ and \f$\gamma\f$ are the parameters that multiply the mass, damping and stiffness matrices
- *   respectively.
+ * - and \f$\alpha\f$, \f$beta\f$, \f$\gamma\f$ and \f$\lambda\f$ are the parameters that multiply the mass, damping, stiffness and
+ *   matrices and the result of the matrix inversion respectively.
  *
  * It makes use of BLAS and LAPACK routines to perform the lineal algebra operations.
  *
@@ -130,12 +130,12 @@ void Rayleigh_Damping_Sp( const MatrixVector_Sp *const Mass, const MatrixVector_
  * \param[in] Mass The mass matrix.
  * \param[in] Damp The proportional viscous damping matrix.
  * \param[in] Stiff The stiffness matrix.
- * \param[in] Const Scalars that multiply the mass (\f$\alpha\f$), \c Const.Aplha), damping (\f$\beta\f$), \c Const.Beta)
- * and stiffness matrices (\f$\gamma\f$), \c Const.Gamma).
+ * \param[in] Const Scalars that multiply the mass (\f$\alpha\f$), \c Const.Aplha), damping (\f$\beta\f$), \c Const.Beta),
+ * stiffness (\f$\gamma\f$), \c Const.Gamma) matrices and the inverted matrix (\f$\lambda\f$), \c Const.Lambda) respectively.
  *
- * \post \c Keinv is a symmetric matrix in general storage with only the upper part referenced
+ * \post \c Gain is a symmetric matrix in general storage with only the upper part referenced
  *       (Lower part in FORTRAN routines). It contains the result of:
- *       \f[\mathcal{G}^{-1} = \biggl(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f].
+ *       \f[\mathcal{G} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
  *
  * \sa MatrixVector and Scalars_t.
  */
@@ -145,19 +145,19 @@ void GainMatrix( MatrixVector *const Gain, const MatrixVector *const Mass, const
 /**
  * \brief Computes the gain matrix. Sparse version.
  *
- * \warning This routine requires the Intel Math Kernel Library (\cite MKL 2013).
+ * \warning This routine requires the Intel Math Kernel Library (\cite MKL_2013).
  *
  * This routine calculates the so called Gain Matrix through:
  *
- * \f[\mathcal{G}^{-1} = \biggl(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f].
+ * \f[\mathcal{G} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
  *
  * where:
  * - \f$\mathcal{M}\f$ is the mass matrix,
  * - \f$\mathcal{C}\f$ is the proportional viscous damping matrix,
  * - \f$\mathcal{K}\f$ is the stiffness matrix,
  * - \f$\mathcal{G}\f$ is the gain matrix,
- * - and \f$\alpha\f$, \f$beta\f$ and \f$\gamma\f$ are the parameters that multiply the mass, damping and stiffness matrices
- *   respectively.
+ * - and \f$\alpha\f$, \f$beta\f$, \f$\gamma\f$ and \f$\lambda\f$ are the parameters that multiply the mass, damping, stiffness and
+ *   matrices and the result of the matrix inversion respectively.
  *
  * It makes use of the BLAS, LAPACK and Sparse BLAS routines of the Intel Math Kernel Library (\cite MKL_2013) to
  * perform the lineal algebra operations.
@@ -176,12 +176,12 @@ void GainMatrix( MatrixVector *const Gain, const MatrixVector *const Mass, const
  * \param[in] Mass The mass matrix.
  * \param[in] Damp The proportional viscous damping matrix.
  * \param[in] Stiff The stiffness matrix.
- * \param[in] Const Scalars that multiply the mass (\f$\alpha\f$), \c Const.Aplha), damping (\f$\beta\f$), \c Const.Beta)
- * and stiffness matrices (\f$\gamma\f$), \c Const.Gamma).
+ * \param[in] Const Scalars that multiply the mass (\f$\alpha\f$), \c Const.Aplha), damping (\f$\beta\f$), \c Const.Beta),
+ * stiffness (\f$\gamma\f$), \c Const.Gamma) matrices and the inverted matrix (\f$\lambda\f$), \c Const.Lambda) respectively.
  *
  * \post \c Keinv is a symmetric matrix in general storage with only the upper part referenced
  *       (Lower part in FORTRAN routines). It contains the result of:
- *       \f[\mathcal{G}^{-1} = \biggl(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f].
+ *       \f[\mathcal{G} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
  *
  * \sa MatrixVector, MatrixVector_Sp and Scalars_t.
  */
@@ -191,19 +191,19 @@ void GainMatrix_Sp( MatrixVector *const Gain, const MatrixVector_Sp *const Mass,
 /**
  * \brief Computes the gain matrix. PARDISO version.
  *
- * \warning This routine requires the Intel Math Kernel Library (\cite MKL 2013).
+ * \warning This routine requires the Intel Math Kernel Library (\cite MKL_2013).
  *
  * This routine calculates the so called Gain Matrix through:
  *
- * \f[\mathcal{G}^{-1} = \biggl(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f].
+ * \f[\mathcal{G} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
  *
  * where:
  * - \f$\mathcal{M}\f$ is the mass matrix,
  * - \f$\mathcal{C}\f$ is the proportional viscous damping matrix,
  * - \f$\mathcal{K}\f$ is the stiffness matrix,
  * - \f$\mathcal{G}\f$ is the gain matrix,
- * - and \f$\alpha\f$, \f$beta\f$ and \f$\gamma\f$ are the parameters that multiply the mass, damping and stiffness matrices
- *   respectively.
+ * - and \f$\alpha\f$, \f$beta\f$, \f$\gamma\f$ and \f$\lambda\f$ are the parameters that multiply the mass, damping, stiffness and
+ *   matrices and the result of the matrix inversion respectively.
  *
  * It makes use of BLAS libraries to perform the lineal algebra operations and the PARDISO solver of the Intel Math Kernel
  * Library (\cite MKL_2013) to compute the matrix inversion.
@@ -218,12 +218,12 @@ void GainMatrix_Sp( MatrixVector *const Gain, const MatrixVector_Sp *const Mass,
  * \param[in] Mass The mass matrix.
  * \param[in] Damp The proportional viscous damping matrix.
  * \param[in] Stiff The stiffness matrix.
- * \param[in] Const Scalars that multiply the mass (\f$\alpha\f$), \c Const.Aplha), damping (\f$\beta\f$), \c Const.Beta)
- * and stiffness matrices (\f$\gamma\f$), \c Const.Gamma).
+ * \param[in] Const Scalars that multiply the mass (\f$\alpha\f$), \c Const.Aplha), damping (\f$\beta\f$), \c Const.Beta),
+ * stiffness (\f$\gamma\f$), \c Const.Gamma) matrices and the inverted matrix (\f$\lambda\f$), \c Const.Lambda) respectively.
  *
  * \post \c Keinv is a symmetric matrix in general storage with only the upper part referenced
  *       (Lower part in FORTRAN routines). It contains the result of:
- *       \f[\mathcal{G}^{-1} = \biggl(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f].
+ *       \f[\mathcal{G} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
  *
  * \sa MatrixVector and Scalars_t.
  */
@@ -233,19 +233,19 @@ void GainMatrix_Pardiso( MatrixVector *const Gain, const MatrixVector *const Mas
 /**
  * \brief Computes the gain matrix. Sparse PARDISO version.
  *
- * \warning This routine requires the Intel Math Kernel Library (\cite MKL 2013).
+ * \warning This routine requires the Intel Math Kernel Library (\cite MKL_2013).
  *
  * This routine calculates the so called Gain Matrix through:
  *
- * \f[\mathcal{G}^{-1} = \biggl(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f].
+ * \f[\mathcal{G} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
  *
  * where:
  * - \f$\mathcal{M}\f$ is the mass matrix,
  * - \f$\mathcal{C}\f$ is the proportional viscous damping matrix,
  * - \f$\mathcal{K}\f$ is the stiffness matrix,
  * - \f$\mathcal{G}\f$ is the gain matrix,
- * - and \f$\alpha\f$, \f$beta\f$ and \f$\gamma\f$ are the parameters that multiply the mass, damping and stiffness matrices
- *   respectively.
+ * - and \f$\alpha\f$, \f$beta\f$, \f$\gamma\f$ and \f$\lambda\f$ are the parameters that multiply the mass, damping, stiffness and
+ *   matrices and the result of the matrix inversion respectively.
  *
  * It makes use of the BLAS and Sparse BLAS routines of the Intel Math Kernel Library (\cite MKL_2013) to
  * perform the lineal algebra operations and the PARDISO solver to compute the matrix inversion.
@@ -264,12 +264,13 @@ void GainMatrix_Pardiso( MatrixVector *const Gain, const MatrixVector *const Mas
  * \param[in] Mass The mass matrix.
  * \param[in] Damp The proportional viscous damping matrix.
  * \param[in] Stiff The stiffness matrix.
+
  * \param[in] Const Scalars that multiply the mass (\f$\alpha\f$), \c Const.Aplha), damping (\f$\beta\f$), \c Const.Beta)
  * and stiffness matrices (\f$\gamma\f$), \c Const.Gamma).
  *
  * \post \c Keinv is a symmetric matrix in general storage with only the upper part referenced
  *       (Lower part in FORTRAN routines). It contains the result of:
- *       \f[\mathcal{G}^{-1} = \biggl(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f].
+ *       \f[\mathcal{G} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
  *
  * \sa MatrixVector, MatrixVector_Sp and Scalars_t.
  */

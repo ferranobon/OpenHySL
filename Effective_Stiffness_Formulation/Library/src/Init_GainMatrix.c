@@ -31,6 +31,9 @@ void GainMatrix( MatrixVector *const Gain, const MatrixVector *const Mass, const
      char uplo;    
      int lda, info; /* Leading dimension of the matrix, LAPACK error handling variable */
 
+     int ione = 1;     /* Integer of value one */
+     double one = 1.0; /* Double precision one for dlascl() parameter cfrom */
+
      uplo = 'L';  /* The lower part of the matrix will be used and the upper part will strictly
 		   * not be referenced */
      lda = Max( 1, Gain->Rows );
@@ -64,6 +67,14 @@ void GainMatrix( MatrixVector *const Gain, const MatrixVector *const Mass, const
 	  fprintf( stderr, "Exiting program.\n" );
 	  exit( EXIT_FAILURE );
      }
+
+     dlascl_( &uplo, &ione, &ione, &one, Scalars.Lambda, &Gain->Rows, &Gain->Cols, Gain->Array, &lda, &info );
+     if( info < 0 ){
+	  LAPACKPErrorAndExit( "Gain matrix: the ", -info, "th argument has an illegal value and cannot be scaled" );
+     } else {
+	  PrintSucces( "Gain matrix successfully calculated.\n" );
+     }
+
 }
 
 #if _SPARSE_
@@ -74,6 +85,9 @@ void GainMatrix_Sp( MatrixVector *const Gain, const MatrixVector_Sp *const Mass,
      char uplo;
      int lda, info;              /* Leading dimension of the gain matrix, LAPACK error handling variable */
      MatrixVector_Sp Sp_TempMat; /* Temporal sparse matrix */
+
+     int ione = 1;     /* Integer of value one */
+     double one = 1.0; /* Double precision one for dlascl() parameter cfrom */
 
      Init_MatrixVector_Sp( &Sp_TempMat, Damp->Rows, Damp->Cols, Damp->Num_Nonzero );
      /* Gain = Const.Alpha*M + Const.Beta*C + Const.Gamma*K */
@@ -115,6 +129,14 @@ void GainMatrix_Sp( MatrixVector *const Gain, const MatrixVector_Sp *const Mass,
 	  fprintf( stderr, "Exiting program.\n" );
 	  exit( EXIT_FAILURE );
      }
+
+     dlascl_( &uplo, &ione, &ione, &one, Scalars.Lambda, &Gain->Rows, &Gain->Cols, Gain->Array, &lda, &info );
+     if( info < 0 ){
+	  LAPACKPErrorAndExit( "Gain matrix: the ", -info, "th argument has an illegal value and cannot be scaled" );
+     } else {
+	  PrintSucces( "Gain matrix successfully calculated.\n" );
+     }
+
 }
 
 /* This function is deprecated */
@@ -133,6 +155,8 @@ void GainMatrix_Pardiso( MatrixVector *const Gain, const MatrixVector *const Mas
      MatrixVector_Sp Sp_TempMat;
      double ddum;                       /* Dummy double */
      int idum;                          /* Dummy integer */
+     char uplo;                         /* Used in dlascl() */
+     int info, lda;                     /* Error handling and Leading dimension for dlascl() */
 
      Init_MatrixVector( &TempMat, Gain->Rows, Gain->Cols );
 
@@ -229,6 +253,17 @@ void GainMatrix_Pardiso( MatrixVector *const Gain, const MatrixVector *const Mas
      Destroy_MatrixVector_Sp( &Sp_TempMat );
 
      PrintSuccess( "Matrix Inversion successfully completed.\n" );
+
+     ddum = 1.0; idum = 1;
+     lda = Max( 1, Gain->Rows );
+     uplo = 'L';   /* The lower part of the matrix will be used (upper part in C) */
+     dlascl_( &uplo, &idum, &idum, &ddum, Scalars.Lambda, &Gain->Rows, &Gain->Cols, Gain->Array, &lda, &info );
+     if( info < 0 ){
+	  LAPACKPErrorAndExit( "Gain matrix: the ", -info, "th argument has an illegal value and cannot be scaled" );
+     } else {
+	  PrintSucces( "Gain matrix successfully calculated.\n" );
+     }
+
 }
 
 /* This function is deprecated */
@@ -246,6 +281,9 @@ void CalculateMatrixGain_Pardiso_Sp( MatrixVector *const Gain, const MatrixVecto
      MatrixVector_Sp Sp_TempMat;
      double ddum;                       /* Dummy double */
      int idum;                          /* Dummy integer */
+     char uplo;                         /* Used in dlascl() */
+     int info, lda;                     /* Error handling and Leading dimension for dlascl() */
+
 
      Init_MatrixVector_Sp( &Sp_TempMat, Damp->Rows, Damp->Cols, Damp->Num_Nonzero );
 
@@ -341,6 +379,16 @@ void CalculateMatrixGain_Pardiso_Sp( MatrixVector *const Gain, const MatrixVecto
      Destroy_MatrixVector_Sp( &Sp_TempMat );
 
      PrintSuccess( "Matrix Inversion successfully completed" );
+
+     ddum = 1.0; idum = 1;
+     lda = Max( 1, Gain->Rows );
+     uplo = 'L';   /* The lower part of the matrix will be used (upper part in C) */
+     dlascl_( &uplo, &idum, &idum, &ddum, Scalars.Lambda, &Gain->Rows, &Gain->Cols, Gain->Array, &lda, &info );
+     if( info < 0 ){
+	  LAPACKPErrorAndExit( "Gain matrix: the ", -info, "th argument has an illegal value and cannot be scaled" );
+     } else {
+	  PrintSucces( "Gain matrix successfully calculated.\n" );
+     }
 }
 #endif /* _SPARSE */
 
