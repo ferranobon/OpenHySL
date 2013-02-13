@@ -20,20 +20,20 @@
 
 /**
  * \brief Calculates the effective force vector according to the formulation using the effective
- * stiffness matrix (\cite Dorka_1998).
+ * stiffness matrix.
  * 
- * The effective force vector \f$\vec{f_{eff}^t}\f$ is calculated according to the formulation using the effective stiffness matrix described
+ * The effective force vector \f$\vec f_{eff}^t\f$ is calculated according to the formulation using the effective stiffness matrix described
  * in page 53 (\cite Dorka_1998):
  *
- * \f[\vec{f_{eff}^t} = \mathcal{M}(a_0\vec{u^t} + a_2\vec{\dot{u}^t} + a_3\vec{\ddot{u}^t}) + \mathcal{C}(a_1\vec{u^t} + a_4\vec{\dot{u}^t} + a_5\vec{\ddot{u}^t})\f]
+ * \f[\vec f_{eff}^t = \mathcal{M}(a_0\vec u^t + a_2\dot{\vec u}^t + a_3\ddot{\vec u}^t) + \mathcal{C}(a_1\vec u^t + a_4\dot{\vec u}^t + a_5\ddot{\vec u}^t)\f]
  *
  * where:
- * - \f$\vec{\f_{eff}^t}\f$ is the effective force vector at time \f$t\f$,
+ * - \f$\vec f_{eff}^t\f$ is the effective force vector at time \f$t\f$,
  * - \f$\mathcal{M}\f$ is the mass matrix,
  * - \f$\mathcal{C}\f$ is the proportional viscous damping matrix,
- * - \f$\vec{u^t}\f$ is the displacement vector at time \f$t\f$,
- * - \f$\vec{\dot{u}^t}\f$ is the velocity vector at time \f$t\f$,
- * - \f$\vec{\ddot{u}^t}\f$ is the acceleration vector at time \f$t\f$,
+ * - \f$\vec u^t\f$ is the displacement vector at time \f$t\f$,
+ * - \f$\dot{\vec u}^t\f$ is the velocity vector at time \f$t\f$,
+ * - \f$\ddot{\vec u}^t\f$ is the acceleration vector at time \f$t\f$,
  * - and \f$a_0\f$, \f$a_1\f$, \f$a_2\f$, \f$a_3\f$, \f$a_4\f$ and \f$a_5\f$ are integration constants (see \cite Dorka_1998).
  *
  * It makes use of BLAS routines to perform the lineal algebra operations.
@@ -47,23 +47,23 @@
  *
  * \param[in] Mass is the Mass matrix \f$\mathcal{M}\f$.
  * \param[in] Damp is the Viscous Damping matrix \f$\mathcal{C}\f$.
- * \param[in] DispT The displacement vector \f$\vec{u^t}\f$.
- * \param[in] VelT is the velocity vector \f$\dot{\vec{u}^t}\f$.
- * \param[in] AccT is the acceleration vector \f$\ddot{\vec{u}^t}\f$.
+ * \param[in] DispT The displacement vector \f$\vec u^t\f$.
+ * \param[in] VelT is the velocity vector \f$\dot{\vec u}^t\f$.
+ * \param[in] AccT is the acceleration vector \f$\ddot{\vec u}^t\f$.
  * \param[in,out] Tempvec is a temporal vector that helps in the calculations. This is included in order to avoid
  *                allocating and deallocating memory each step. On input only the number of rows is used.
- * \param[in] a0 The integration constant \f$a_0\f$ (\cite Dorka 1998).
- * \param[in] a1 The integration constant \f$a_1\f$ (\cite Dorka 1998).
- * \param[in] a2 The integration constant \f$a_2\f$ (\cite Dorka 1998).
- * \param[in] a3 The integration constant \f$a_3\f$ (\cite Dorka 1998).
- * \param[in] a4 The integration constant \f$a_4\f$ (\cite Dorka 1998).
- * \param[in] a5 The integration constant \f$a_5\f$ (\cite Dorka 1998).
- * \param[out] Eff_Force is the effective force vector \f$\vec{f_{eff}^t}\f$.
+ * \param[in] a0 The integration constant \f$a_0\f$ (\cite Dorka_1998).
+ * \param[in] a1 The integration constant \f$a_1\f$ (\cite Dorka_1998).
+ * \param[in] a2 The integration constant \f$a_2\f$ (\cite Dorka_1998).
+ * \param[in] a3 The integration constant \f$a_3\f$ (\cite Dorka_1998).
+ * \param[in] a4 The integration constant \f$a_4\f$ (\cite Dorka_1998).
+ * \param[in] a5 The integration constant \f$a_5\f$ (\cite Dorka_1998).
+ * \param[out] Eff_Force is the effective force vector \f$\vec f_{eff}^t\f$.
  *
  * \post
  * - \c Eff_Force is the result of the operation:
  *
- * \f[\vec{f_{eff}^t} = \mathcal{M}(a_0\vec{u^t} + a_2\vec{\dot{u}^t} + a_3\vec{\ddot{u}^t}) + \mathcal{C}(a_1\vec{u^t} + a_4\vec{\dot{u}^t} + a_5\vec{\ddot{u}^t})\f]
+ * \f[\vec f_{eff}^t = \mathcal{M}(a_0\vec u^t + a_2\dot{\vec u}^t + a_3\ddot{\vec u}^t) + \mathcal{C}(a_1\vec u^t + a_4\dot{\vec u}^t + a_5\ddot{\vec u}^t)\f]
  *
  * \sa MatrixVector.
  */
@@ -73,20 +73,19 @@ void EffK_EffectiveForce( const MatrixVector *const Mass, const MatrixVector *co
 			  const double a5, MatrixVector *const Eff_ForceT );
 
 /**
- * \brief Computes the new acceleration according to the formulation using the effective stiffness matrix
- * (\cite Dorka_1998).
+ * \brief Computes the new acceleration according to the formulation using the effective stiffness matrix.
  *
  * The acceleration at \f$t+\Delta t\f$ is calculated according to the formulation using the effective stiffness
- * matrix described in page 53 (\cite Dorka_1998):
+ * matrix described in page 53 (\cite Dorka_1998) \f$\ddot{\vec{u}}^t\f$:
  *
- * \f[\vec{\ddot{u}^{t+\Delta t}} = a_0 (\vec{u}^{t+\Delta t} - \vec{u}) - a_2\vec{\dot{u}^t} -a_3\vec{\ddot{u}^{t}}\f]
+ * \f[\ddot{\vec u}^{t+\Delta t} = a_0 (\vec u^{t+\Delta t} - \vec u) - a_2\dot{\vec u}^t -a_3\ddot{\vec u}^t\f]
  *
  * where:
- * - \f$\vec{\ddot{u}^{t+\Delta t}}\f$ is the acceleration vector at time \f$t + \Delta t\f$,
- * - \f$\vec{u^t}\f$ is the displacement vector at time \f$t\f$,
- * - \f$\vec{u^{t+\Delta t}}\f$ is the displacement vector at time \f$t + \Delta t\f$,
- * - \f$\vec{\dot{u}^t}\f$ is the velocity vector at time \f$t\f$,
- * - \f$\vec{\ddot{u}^t}\f$ is the acceleration vector at time \f$t\f$,
+ * - \f$\ddot{\vec u}^{t+\Delta t}\f$ is the acceleration vector at time \f$t + \Delta t\f$,
+ * - \f$\vec u^t\f$ is the displacement vector at time \f$t\f$,
+ * - \f$\vec u^{t+\Delta t}\f$ is the displacement vector at time \f$t + \Delta t\f$,
+ * - \f$\dot{\vec u}^t\f$ is the velocity vector at time \f$t\f$,
+ * - \f$\ddot{\vec u}^t\f$ is the acceleration vector at time \f$t\f$,
  * - and \f$a_0\f$, \f$a_2\f$ and \f$a_3\f$ are integration constants (see \cite Dorka_1998).
  *
  * It makes use of BLAS routines to perform the lineal algebra operations.
@@ -96,20 +95,20 @@ void EffK_EffectiveForce( const MatrixVector *const Mass, const MatrixVector *co
  * - The size of the vectors must be identical.
  * - The integration constants must be properly initialised.
  * 
- * \param[in] DispTdT The displacement vector \f$\vec{u^{t+\Delta t}\f$.
- * \param[in] DispT The displacement vector \f$\vec{u^t}\f$.
- * \param[in] VelT is the velocity vector \f$\dot{\vec{u}^t}\f$.
- * \param[in] AccT is the acceleration vector \f$\ddot{\vec{u}^t}\f$.
- * \param[in] a0 The integration constant \f$a_0\f$ (\cite Dorka 1998).
- * \param[in] a1 The integration constant \f$a_1\f$ (\cite Dorka 1998).
- * \param[in] a2 The integration constant \f$a_2\f$ (\cite Dorka 1998).
- * \param[in,out] AccTdT is the acceleration vector \f$\ddot{\vec{u}^{t+\Delta t}}\f$. On input only the number
+ * \param[in] DispTdT The displacement vector \f$\vec u^{t+\Delta t}\f$.
+ * \param[in] DispT The displacement vector \f$\vec u^t\f$.
+ * \param[in] VelT is the velocity vector \f$\dot{\vec u}^t\f$.
+ * \param[in] AccT is the acceleration vector \f$\ddot{\vec u}^t\f$.
+ * \param[in] a0 The integration constant \f$a_0\f$ (\cite Dorka_1998).
+ * \param[in] a1 The integration constant \f$a_1\f$ (\cite Dorka_1998).
+ * \param[in] a2 The integration constant \f$a_2\f$ (\cite Dorka_1998).
+ * \param[in,out] AccTdT is the acceleration vector \f$\ddot{\vec u}^{t+\Delta t}\f$. On input only the number
  *                of rows is used.
  *
  * \post
  * - \c AccTdT is the result of the operation:
  *
- * \f[\vec{\ddot{u}^{t+\Delta t}} = a_0 (\vec{u}^{t+\Delta t} - \vec{u}) - a_2\vec{\dot{u}^t} -a_3\vec{\ddot{u}^{t}}\f]
+ * \f[\ddot{\vec u}^{t+\Delta t} = a_0 (\vec u^{t+\Delta t} - \vec u) - a_2\dot{\vec u}^t -a_3\ddot{\vec u}^t\f]
  *
  * \sa MatrixVector.
  */
@@ -119,18 +118,17 @@ void EffK_ComputeAcceleration( const MatrixVector *const DispTdT, const MatrixVe
 
 /**
  * \brief Computes the new velocity according to the formulation using the effective stiffness matrix
- * (\cite Dorka_1998).
  *
  * The velocity at \f$t+\Delta t\f$ is calculated according to the formulation using the effective stiffness matrix described
  * in page 53 (\cite Dorka_1998):
  *
- * \f[\vec{\dot{u}^{t+\Delta t}} = \vec{\dot{u}^t} + a_6\vec{\ddot{u}^t} + a_7\vec{\ddot{u}^{t+\Delta t}\f]
+ * \f[\dot{\vec u}^{t+\Delta t} = \dot{\vec u}^t + a_6\ddot{\vec u}^t + a_7\ddot{\vec u}^{t+\Delta t}\f]
  *
  * where:
- * - \f$\vec{\dot{u}^{t+\Delta t}}\f$ is the velocity vector at time \f$t\f$,
- * - \f$\vec{\dot{u}^t}\f$ is the velocity vector at time \f$t\f$,
- * - \f$\vec{\ddot{u}^t}\f$ is the acceleration vector at time \f$t\f$,
- * - \f$\vec{\ddot{u}^{t+\Delta t}}\f$ is the acceleration vector at time \f$t + \Delta t\f$,
+ * - \f$\dot{\vec u}^{t+\Delta t}\f$ is the velocity vector at time \f$t\f$,
+ * - \f$\dot{\vec u}^t\f$ is the velocity vector at time \f$t\f$,
+ * - \f$\ddot{\vec u}^t\f$ is the acceleration vector at time \f$t\f$,
+ * - \f$\ddot{\vec u}^{t+\Delta t}\f$ is the acceleration vector at time \f$t + \Delta t\f$,
  * - and \f$a_6\f$ and \f$a_7\f$ are integration constants (see \cite Dorka_1998).
  *
  * It makes use of BLAS routines to perform the lineal algebra operations.
@@ -140,18 +138,18 @@ void EffK_ComputeAcceleration( const MatrixVector *const DispTdT, const MatrixVe
  * - The size of the vectors must be identical.
  * - The integration constants must be properly initialised.
  * 
- * \param[in] VelT is the velocity vector \f$\dot{\vec{u}^t}\f$.
- * \param[in] AccT is the acceleration vector \f$\ddot{\vec{u}^t}\f$.
- * \param[in] AccTdT is the acceleration vector \f$\ddot{\vec{u}^{t+\Delta t}}\f$.
- * \param[in] a6 The integration constant \f$a_0\f$ (\cite Dorka 1998).
- * \param[in] a7 The integration constant \f$a_1\f$ (\cite Dorka 1998).
- * \param[in,out] VelTdT is the velocity vector \f$\dot{\vec{u}^{t+\Delta t}}\f$. On input only the number
+ * \param[in] VelT is the velocity vector \f$\dot{\vec u}^t\f$.
+ * \param[in] AccT is the acceleration vector \f$\ddot{\vec u^t}\f$.
+ * \param[in] AccTdT is the acceleration vector \f$\ddot{\vec u}^{t+\Delta t}\f$.
+ * \param[in] a6 The integration constant \f$a_0\f$ (\cite Dorka_1998).
+ * \param[in] a7 The integration constant \f$a_1\f$ (\cite Dorka_1998).
+ * \param[in,out] VelTdT is the velocity vector \f$\dot{\vec u}^{t+\Delta t}\f$. On input only the number
  *                of rows is used.
  *
  * \post
  * - \c VelTdT is the result of the operation:
  *
- * \f[\vec{\dot{u}^{t+\Delta t}} = \vec{\dot{u}^t} + a_6\vec{\ddot{u}^t} + a_7\vec{\ddot{u}^{t+\Delta t}\f]
+ * \f[\dot{\vec u}^{t+\Delta t} = \dot{\vec u}^t + a_6\ddot{\vec u}^t + a_7\ddot{\vec u}^{t+\Delta t}\f]
  *
  * \sa MatrixVector.
  */
