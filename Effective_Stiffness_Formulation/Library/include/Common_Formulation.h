@@ -21,9 +21,9 @@
 /**
  * \brief Calculates the new state.
  *
- * The displacement is computed according to the formulation using the effective stiffness matrix in page 53 of (\cite Dorka_1998). This is the implicit displacement.
+ * The new state is computed. This routine does not depend on a specific formulationdisplacement is computed according to the formulation using the effective stiffness matrix in page 53 of (\cite Dorka_1998). This is the implicit displacement.
  * 
- * \f[\overrightarrow{u_0} = \mathcal{K}^{-1}_e(\overrightarrow{f_{eff}} + \overrightarrow{l_i} + \overrightarrow{f(e)})\f]
+ * \f[\vec u_0 = \mathcal{K}^{-1}_e(\overrightarrow{f_{eff}} + \overrightarrow{l_i} + \overrightarrow{f(e)})\f]
  * 
  * \pre
  * - All elements of type \c MatrixVector must be properly initialised through the Init_MatrixVector() routine.
