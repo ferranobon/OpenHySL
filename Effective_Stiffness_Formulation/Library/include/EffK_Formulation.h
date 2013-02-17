@@ -36,11 +36,11 @@
  * - \f$\ddot{\vec u}^t\f$ is the acceleration vector at time \f$t\f$,
  * - and \f$a_0\f$, \f$a_1\f$, \f$a_2\f$, \f$a_3\f$, \f$a_4\f$ and \f$a_5\f$ are integration constants (see \cite Dorka_1998).
  *
- * It makes use of BLAS routines to perform the lineal algebra operations.
+ * It makes use of BLAS routines to perform the linear algebra operations.
  *
  * \pre
  * - All elements of type \c MatrixVector must be properly initialised through the Init_MatrixVector() routine.
- * - The size of the vectors and matrices must be coherent, since it will not be checked in the routine.
+ * - The size of the vectors and matrices must be coherent since it will not be checked in the routine.
  * - The mass and viscous damping matrices must be symmetrical and only the upper part will be referenced (lower part
  *   in FORTRAN routines).
  * - The integration constants must be properly initialised.
@@ -58,7 +58,7 @@
  * \param[in] a3 The integration constant \f$a_3\f$ (\cite Dorka_1998).
  * \param[in] a4 The integration constant \f$a_4\f$ (\cite Dorka_1998).
  * \param[in] a5 The integration constant \f$a_5\f$ (\cite Dorka_1998).
- * \param[out] Eff_Force is the effective force vector \f$\vec f_{eff}^t\f$.
+ * \param[out] Eff_ForceT is the effective force vector \f$\vec f_{eff}^t\f$.
  *
  * \post
  * - \c Eff_Force is the result of the operation:
@@ -88,7 +88,7 @@ void EffK_EffectiveForce( const MatrixVector *const Mass, const MatrixVector *co
  * - \f$\ddot{\vec u}^t\f$ is the acceleration vector at time \f$t\f$,
  * - and \f$a_0\f$, \f$a_2\f$ and \f$a_3\f$ are integration constants (see \cite Dorka_1998).
  *
- * It makes use of BLAS routines to perform the lineal algebra operations.
+ * It makes use of BLAS routines to perform the linear algebra operations.
  *
  * \pre
  * - All elements of type \c MatrixVector must be properly initialised through the Init_MatrixVector() routine.
@@ -100,8 +100,8 @@ void EffK_EffectiveForce( const MatrixVector *const Mass, const MatrixVector *co
  * \param[in] VelT is the velocity vector \f$\dot{\vec u}^t\f$.
  * \param[in] AccT is the acceleration vector \f$\ddot{\vec u}^t\f$.
  * \param[in] a0 The integration constant \f$a_0\f$ (\cite Dorka_1998).
- * \param[in] a1 The integration constant \f$a_1\f$ (\cite Dorka_1998).
  * \param[in] a2 The integration constant \f$a_2\f$ (\cite Dorka_1998).
+ * \param[in] a3 The integration constant \f$a_3\f$ (\cite Dorka_1998).
  * \param[in,out] AccTdT is the acceleration vector \f$\ddot{\vec u}^{t+\Delta t}\f$. On input only the number
  *                of rows is used.
  *
@@ -131,7 +131,7 @@ void EffK_ComputeAcceleration( const MatrixVector *const DispTdT, const MatrixVe
  * - \f$\ddot{\vec u}^{t+\Delta t}\f$ is the acceleration vector at time \f$t + \Delta t\f$,
  * - and \f$a_6\f$ and \f$a_7\f$ are integration constants (see \cite Dorka_1998).
  *
- * It makes use of BLAS routines to perform the lineal algebra operations.
+ * It makes use of BLAS routines to perform the linear algebra operations.
  *
  * \pre
  * - All elements of type \c MatrixVector must be properly initialised through the Init_MatrixVector() routine.
