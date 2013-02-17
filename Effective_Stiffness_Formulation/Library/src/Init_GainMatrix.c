@@ -24,7 +24,7 @@
 #include "Netlib.h"
 #endif
 
-void GainMatrix( MatrixVector *const Gain, const MatrixVector *const Mass, const MatrixVector *const Damp,
+void IGainMatrix( MatrixVector *const Gain, const MatrixVector *const Mass, const MatrixVector *const Damp,
 		  const MatrixVector *const Stiff, const Scalars Const )
 {
 
@@ -78,7 +78,7 @@ void GainMatrix( MatrixVector *const Gain, const MatrixVector *const Mass, const
 }
 
 #if _SPARSE_
-void GainMatrix_Sp( MatrixVector *const Gain, const MatrixVector_Sp *const Mass, const MatrixVector_Sp *const Damp,
+void IGainMatrix_Sp( MatrixVector *const Gain, const MatrixVector_Sp *const Mass, const MatrixVector_Sp *const Damp,
 		    const MatrixVector_Sp *const Stiff, const Scalars Const )
 {
 
@@ -140,7 +140,7 @@ void GainMatrix_Sp( MatrixVector *const Gain, const MatrixVector_Sp *const Mass,
 }
 
 /* This function is deprecated */
-void GainMatrix_Pardiso( MatrixVector *const Gain, const MatrixVector *const Mass, const MatrixVector *const Damp,
+void IGainMatrix_Pardiso( MatrixVector *const Gain, const MatrixVector *const Mass, const MatrixVector *const Damp,
 			 const MatrixVector *const Stiff, const Scalars Const )
 {
 
@@ -267,9 +267,8 @@ void GainMatrix_Pardiso( MatrixVector *const Gain, const MatrixVector *const Mas
 }
 
 /* This function is deprecated */
-void CalculateMatrixGain_Pardiso_Sp( MatrixVector *const Gain, const MatrixVector_Sp *const Mass,
-				     const MatrixVector_Sp *const Damp, const MatrixVector_Sp *const Stiff,
-				     const Scalars Const )
+void IGainMatrix_Pardiso_Sp( MatrixVector *const Gain, const MatrixVector_Sp *const Mass, const MatrixVector_Sp *const Damp,
+		       const MatrixVector_Sp *const Stiff, const Scalars Const )
 {
      int i;
      int iparm[64];

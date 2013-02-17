@@ -41,7 +41,7 @@ typedef struct {
  * - and \f$\alpha\f$ and \f$beta\f$ are the parameters that multiply the mass and stiffness matrices
  *   respectively.
  * 
- * It makes use of BLAS and LAPACK routines to perform the lineal algebra operations.
+ * It makes use of BLAS and LAPACK routines to perform the linear algebra operations.
  *
  * \pre 
  * - All elements of type \c MatrixVector must be properly intialised through the Init_MatrixVector() routine.
@@ -80,7 +80,7 @@ void Rayleigh_Damping( const MatrixVector *const Mass, const MatrixVector *const
  *   respectively.
  * 
  * It makes use of the BLAS, LAPACK and Sparse BLAS routines of the Intel Math Kernel Library (\cite MKL_2013) to
- * perform the lineal algebra operations. This routine requires the MKL library.
+ * perform the linear algebra operations. This routine requires the MKL library.
  *
  * \pre 
  * - All elements of type \c MatrixVector_Sp must be properly intialised through the Init_MatrixVector_Sp() routine.
@@ -104,11 +104,11 @@ void Rayleigh_Damping( const MatrixVector *const Mass, const MatrixVector *const
 void Rayleigh_Damping_Sp( const MatrixVector_Sp *const Mass, const MatrixVector_Sp *const Stiff, MatrixVector_Sp *const Damp, const Rayleigh_t *const Rayleigh );
 
 /**
- * \brief Computes the gain matrix.
+ * \brief Computes the gain matrix and its inverse.
  *
- * This routine calculates the so called Gain Matrix through:
+ * This routine calculates the so called Gain Matrix and its inverse through:
  *
- * \f[\mathcal{G} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
+ * \f[\mathcal{G}^{-1} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
  *
  * where:
  * - \f$\mathcal{M}\f$ is the mass matrix,
@@ -118,7 +118,7 @@ void Rayleigh_Damping_Sp( const MatrixVector_Sp *const Mass, const MatrixVector_
  * - and \f$\alpha\f$, \f$beta\f$, \f$\gamma\f$ and \f$\lambda\f$ are the parameters that multiply the mass, damping, stiffness and
  *   matrices and the result of the matrix inversion respectively.
  *
- * It makes use of BLAS and LAPACK routines to perform the lineal algebra operations.
+ * It makes use of BLAS and LAPACK routines to perform the linear algebra operations.
  *
  * \pre 
  * - All elements of type \c MatrixVector must be properly intialised through the Init_MatrixVector() routine.
@@ -126,30 +126,30 @@ void Rayleigh_Damping_Sp( const MatrixVector_Sp *const Mass, const MatrixVector_
  * - The sizes of the matrices must be the identical.
  * - The values in scalars must be properly initialised and they depend on the used formulation (see \cite Dorka_1998).
  *
- * \param[in,out] Gain The gain matrix. As an input, only the size of the matrix is referenced.
+ * \param[in,out] IGain The inverse of the gain matrix. As an input, only the size of the matrix is referenced.
  * \param[in] Mass The mass matrix.
  * \param[in] Damp The proportional viscous damping matrix.
  * \param[in] Stiff The stiffness matrix.
  * \param[in] Const Scalars that multiply the mass (\f$\alpha\f$), \c Const.Aplha), damping (\f$\beta\f$), \c Const.Beta),
  * stiffness (\f$\gamma\f$), \c Const.Gamma) matrices and the inverted matrix (\f$\lambda\f$), \c Const.Lambda) respectively.
  *
- * \post \c Gain is a symmetric matrix in general storage with only the upper part referenced
+ * \post \c IGain is a symmetric matrix in general storage with only the upper part referenced
  *       (Lower part in FORTRAN routines). It contains the result of:
- *       \f[\mathcal{G} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
+ *       \f[\mathcal{G}^{-1} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
  *
  * \sa MatrixVector and Scalars_t.
  */
-void GainMatrix( MatrixVector *const Gain, const MatrixVector *const Mass, const MatrixVector *const Damp,
+void IGainMatrix( MatrixVector *const IGain, const MatrixVector *const Mass, const MatrixVector *const Damp,
 		 const MatrixVector *const Stiff, const Scalars_t Const );
 
 /**
- * \brief Computes the gain matrix. Sparse version.
+ * \brief Computes the gain matrix and its inverse. Sparse version.
  *
  * \warning This routine requires the Intel Math Kernel Library (\cite MKL_2013).
  *
- * This routine calculates the so called Gain Matrix through:
+ * This routine calculates the so called Gain Matrix and its inverse through:
  *
- * \f[\mathcal{G} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
+ * \f[\mathcal{G}^{-1} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
  *
  * where:
  * - \f$\mathcal{M}\f$ is the mass matrix,
@@ -160,7 +160,7 @@ void GainMatrix( MatrixVector *const Gain, const MatrixVector *const Mass, const
  *   matrices and the result of the matrix inversion respectively.
  *
  * It makes use of the BLAS, LAPACK and Sparse BLAS routines of the Intel Math Kernel Library (\cite MKL_2013) to
- * perform the lineal algebra operations.
+ * perform the linear algebra operations.
  *
  * \pre 
  * - The gain matrix must be properly initialised through the Init_MatrixVector() routine.
@@ -172,30 +172,30 @@ void GainMatrix( MatrixVector *const Gain, const MatrixVector *const Mass, const
  *   number of non zero elements in the stiffness matrix.
  * - The values in scalars must be properly initialised and they depend on the used formulation (see \cite Dorka_1998).
  *
- * \param[in,out] Gain The gain matrix. As an input, only the size of the matrix is referenced, not its elements.
+ * \param[in,out] IGain The gain matrix. As an input, only the size of the matrix is referenced, not its elements.
  * \param[in] Mass The mass matrix.
  * \param[in] Damp The proportional viscous damping matrix.
  * \param[in] Stiff The stiffness matrix.
  * \param[in] Const Scalars that multiply the mass (\f$\alpha\f$), \c Const.Aplha), damping (\f$\beta\f$), \c Const.Beta),
  * stiffness (\f$\gamma\f$), \c Const.Gamma) matrices and the inverted matrix (\f$\lambda\f$), \c Const.Lambda) respectively.
  *
- * \post \c Keinv is a symmetric matrix in general storage with only the upper part referenced
+ * \post \c IGain is a symmetric matrix in general storage with only the upper part referenced
  *       (Lower part in FORTRAN routines). It contains the result of:
- *       \f[\mathcal{G} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
+ *       \f[\mathcal{G}^{-1} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
  *
  * \sa MatrixVector, MatrixVector_Sp and Scalars_t.
  */
-void GainMatrix_Sp( MatrixVector *const Gain, const MatrixVector_Sp *const Mass, const MatrixVector_Sp *const Damp,
+void IGainMatrix_Sp( MatrixVector *const IGain, const MatrixVector_Sp *const Mass, const MatrixVector_Sp *const Damp,
 		    const MatrixVector_Sp *const Stiff, const Scalars_t Const );
 
 /**
- * \brief Computes the gain matrix. PARDISO version.
+ * \brief Computes the gain matrix and its inverse. PARDISO version.
  *
  * \warning This routine requires the Intel Math Kernel Library (\cite MKL_2013).
  *
- * This routine calculates the so called Gain Matrix through:
+ * This routine calculates the so called Gain Matrix and its inverse through:
  *
- * \f[\mathcal{G} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
+ * \f[\mathcal{G}^{-1} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
  *
  * where:
  * - \f$\mathcal{M}\f$ is the mass matrix,
@@ -205,7 +205,7 @@ void GainMatrix_Sp( MatrixVector *const Gain, const MatrixVector_Sp *const Mass,
  * - and \f$\alpha\f$, \f$beta\f$, \f$\gamma\f$ and \f$\lambda\f$ are the parameters that multiply the mass, damping, stiffness and
  *   matrices and the result of the matrix inversion respectively.
  *
- * It makes use of BLAS libraries to perform the lineal algebra operations and the PARDISO solver of the Intel Math Kernel
+ * It makes use of BLAS libraries to perform the linear algebra operations and the PARDISO solver of the Intel Math Kernel
  * Library (\cite MKL_2013) to compute the matrix inversion.
  *
  * \pre 
@@ -214,30 +214,30 @@ void GainMatrix_Sp( MatrixVector *const Gain, const MatrixVector_Sp *const Mass,
  * - The sizes of the matrices must be the identical.
  * - The values in scalars must be properly initialised and they depend on the used formulation (see \cite Dorka_1998).
  *
- * \param[in,out] Gain The gain matrix. As an input, only the size of the matrix is referenced.
+ * \param[in,out] IGain The gain matrix. As an input, only the size of the matrix is referenced.
  * \param[in] Mass The mass matrix.
  * \param[in] Damp The proportional viscous damping matrix.
  * \param[in] Stiff The stiffness matrix.
  * \param[in] Const Scalars that multiply the mass (\f$\alpha\f$), \c Const.Aplha), damping (\f$\beta\f$), \c Const.Beta),
  * stiffness (\f$\gamma\f$), \c Const.Gamma) matrices and the inverted matrix (\f$\lambda\f$), \c Const.Lambda) respectively.
  *
- * \post \c Keinv is a symmetric matrix in general storage with only the upper part referenced
+ * \post \c IGain is a symmetric matrix in general storage with only the upper part referenced
  *       (Lower part in FORTRAN routines). It contains the result of:
  *       \f[\mathcal{G} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
  *
  * \sa MatrixVector and Scalars_t.
  */
-void GainMatrix_Pardiso( MatrixVector *const Gain, const MatrixVector *const Mass, const MatrixVector *const Damp,
+void IGainMatrix_Pardiso( MatrixVector *const IGain, const MatrixVector *const Mass, const MatrixVector *const Damp,
 			 const MatrixVector *const Stiff, const Scalars_t Const );
 
 /**
- * \brief Computes the gain matrix. Sparse PARDISO version.
+ * \brief Computes the gain matrix and its inverse. Sparse PARDISO version.
  *
  * \warning This routine requires the Intel Math Kernel Library (\cite MKL_2013).
  *
- * This routine calculates the so called Gain Matrix through:
+ * This routine calculates the so called Gain Matrix and its inverse through:
  *
- * \f[\mathcal{G} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
+ * \f[\mathcal{G}^{-1} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
  *
  * where:
  * - \f$\mathcal{M}\f$ is the mass matrix,
@@ -248,7 +248,7 @@ void GainMatrix_Pardiso( MatrixVector *const Gain, const MatrixVector *const Mas
  *   matrices and the result of the matrix inversion respectively.
  *
  * It makes use of the BLAS and Sparse BLAS routines of the Intel Math Kernel Library (\cite MKL_2013) to
- * perform the lineal algebra operations and the PARDISO solver to compute the matrix inversion.
+ * perform the linear algebra operations and the PARDISO solver to compute the matrix inversion.
  *
  * \pre
  * - The gain matrix must be properly initialised through the Init_MatrixVector() routine.
@@ -260,22 +260,20 @@ void GainMatrix_Pardiso( MatrixVector *const Gain, const MatrixVector *const Mas
  *   in the stiffness matrix.
  * - The values in scalars must be properly initialised and they depend on the used formulation (see \cite Dorka_1998).
  *
- * \param[in,out] Gain The gain matrix. As an input, only the size of the matrix is referenced, not its elements.
+ * \param[in,out] IGain The gain matrix. As an input, only the size of the matrix is referenced, not its elements.
  * \param[in] Mass The mass matrix.
  * \param[in] Damp The proportional viscous damping matrix.
  * \param[in] Stiff The stiffness matrix.
-
  * \param[in] Const Scalars that multiply the mass (\f$\alpha\f$), \c Const.Aplha), damping (\f$\beta\f$), \c Const.Beta)
  * and stiffness matrices (\f$\gamma\f$), \c Const.Gamma).
  *
- * \post \c Keinv is a symmetric matrix in general storage with only the upper part referenced
+ * \post \c IGain is a symmetric matrix in general storage with only the upper part referenced
  *       (Lower part in FORTRAN routines). It contains the result of:
  *       \f[\mathcal{G} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
  *
  * \sa MatrixVector, MatrixVector_Sp and Scalars_t.
  */
-void CalculateMatrixGain_Pardiso_Sp( MatrixVector *const Gain, const MatrixVector_Sp *const Mass,
-				     const MatrixVector_Sp *const Damp, const MatrixVector_Sp *const Stiff,
-				     const Scalars_t Const );
+void IGainMatrix_Pardiso_Sp( MatrixVector *const IGain, const MatrixVector_Sp *const Mass, const MatrixVector_Sp *const Damp,
+			     const MatrixVector_Sp *const Stiff, const Scalars_t Const );
 #endif /* INITIATION */
 
