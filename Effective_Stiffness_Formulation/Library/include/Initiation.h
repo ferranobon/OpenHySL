@@ -79,7 +79,7 @@ void Rayleigh_Damping( const MatrixVector *const Mass, const MatrixVector *const
  * - and \f$\alpha\f$ and \f$beta\f$ are the parameters that multiply the mass and stiffness matrices
  *   respectively.
  * 
- * It makes use of the BLAS, LAPACK and Sparse BLAS routines of the Intel Math Kernel Library (\cite MKL_2013) to
+ * It makes use of the BLAS, LAPACK and Sparse BLAS routines from the Intel Math Kernel Library (\cite MKL_2013) to
  * perform the linear algebra operations. This routine requires the MKL library.
  *
  * \pre 
@@ -159,7 +159,7 @@ void IGainMatrix( MatrixVector *const IGain, const MatrixVector *const Mass, con
  * - and \f$\alpha\f$, \f$beta\f$, \f$\gamma\f$ and \f$\lambda\f$ are the parameters that multiply the mass, damping, stiffness and
  *   matrices and the result of the matrix inversion respectively.
  *
- * It makes use of the BLAS, LAPACK and Sparse BLAS routines of the Intel Math Kernel Library (\cite MKL_2013) to
+ * It makes use of the BLAS, LAPACK and Sparse BLAS routines from the Intel Math Kernel Library (\cite MKL_2013) to
  * perform the linear algebra operations.
  *
  * \pre 
@@ -205,7 +205,7 @@ void IGainMatrix_Sp( MatrixVector *const IGain, const MatrixVector_Sp *const Mas
  * - and \f$\alpha\f$, \f$beta\f$, \f$\gamma\f$ and \f$\lambda\f$ are the parameters that multiply the mass, damping, stiffness and
  *   matrices and the result of the matrix inversion respectively.
  *
- * It makes use of BLAS libraries to perform the linear algebra operations and the PARDISO solver of the Intel Math Kernel
+ * It makes use of BLAS libraries to perform the linear algebra operations and the PARDISO solver from the Intel Math Kernel
  * Library (\cite MKL_2013) to compute the matrix inversion.
  *
  * \pre 
@@ -247,7 +247,7 @@ void IGainMatrix_Pardiso( MatrixVector *const IGain, const MatrixVector *const M
  * - and \f$\alpha\f$, \f$beta\f$, \f$\gamma\f$ and \f$\lambda\f$ are the parameters that multiply the mass, damping, stiffness and
  *   matrices and the result of the matrix inversion respectively.
  *
- * It makes use of the BLAS and Sparse BLAS routines of the Intel Math Kernel Library (\cite MKL_2013) to
+ * It makes use of the BLAS and Sparse BLAS routines from the Intel Math Kernel Library (\cite MKL_2013) to
  * perform the linear algebra operations and the PARDISO solver to compute the matrix inversion.
  *
  * \pre
