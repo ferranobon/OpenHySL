@@ -6,13 +6,13 @@
 #include "Netlib.h"
 #endif
 
-void Compute_Force_Error( const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *Stiff,
-			  const MatrixVector *const AccTdT, const MatrixVector *const VelTdT, const MatrixVector *const DispTdT,
-			  const MatrixVector *const fc, const MatrixVector *const LoadTdT, const PID_t *const PID, MatrixVector *const fe )
+void ErrorForce_PID( const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *Stiff,
+		     const MatrixVector *const AccTdT, const MatrixVector *const VelTdT, const MatrixVector *const DispTdT,
+		     const MatrixVector *const fc, const MatrixVector *const LoadTdT, const PID_t *const PID, MatrixVector *const fe )
 {
 
-     static int incx = 1, incy = 1;
-     static double Alpha, Beta;
+     static int incx = 1, incy = 1;  /* Stride in the vectors for BLAS routines */
+     static double Alpha, Beta;      /* Constants to use in the Sparse BLAS routines */
      static char uplo = 'L';
 
      /* BLAS: fe = fc */
@@ -35,17 +35,18 @@ void Compute_Force_Error( const MatrixVector *const Mass, const MatrixVector *co
 }
 
 #if _SPARSE_
-void Compute_Force_Error_Sparse( const MatrixVector_Sp *const Mass, const MatrixVector_Sp *const Damp, const MatrixVector_Sp *Stiff,
-				 const MatrixVector *const AccTdT, const MatrixVector *const VelTdT, const MatrixVector *const DispTdT,
-				 const MatrixVector *const fc, const MatrixVector *const LoadTdT, const PID_t *const PID, MatrixVector *const fe )
+void ErrorForce_PID_Sp( const MatrixVector_Sp *const Mass, const MatrixVector_Sp *const Damp, const MatrixVector_Sp *Stiff,
+			const MatrixVector *const AccTdT, const MatrixVector *const VelTdT, const MatrixVector *const DispTdT,
+			const MatrixVector *const fc, const MatrixVector *const LoadTdT, const PID_t *const PID, MatrixVector *const fe )
 {
 
-     static int incx = 1, incy = 1;
-     static double Alpha, Beta;
-     static char trans = 'N';
-     static char matdescra[6] = {'S', 'U', 'N', 'F'};
-
-
+     static int incx = 1, incy = 1;    /* Stride in the vectors for BLAS routines */
+     static double Alpha, Beta;        /* Constants to use in the Sparse BLAS routines */
+     static char trans = 'N';          /* No transpose operation */
+     static char matdescra[6] = {'S',  /* The matrix is symmetric */
+				 'U',  /* The upper part is referenced */
+				 'N',  /* Non-unit values in the diagonal */
+				 'F'}; /* One based index */
 
      /* BLAS: fe = Mass*AccTdT */
      Alpha = 1.0; Beta = 0.0;
