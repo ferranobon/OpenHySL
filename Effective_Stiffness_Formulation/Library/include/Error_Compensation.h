@@ -130,7 +130,7 @@ void ErrorForce_PID( const MatrixVector *const Mass, const MatrixVector *const D
  * \f[\vec e^{t+\Delta t} = (\vec f_r^{t + \Delta t} + \vec f_s^{t+\Delta t} + \vec l_i^{t} - (\mathcal M \ddot{\vec u}^{t + \Delta t} + \mathcal C \dot{\vec u}^{t+\Delta t} + \mathcal K u^{t + \Delta t})\f]
  * \f[\vec f_e^{t + \Delta t} = \biggl[\vec e^t + I\Delta t\sum_i^t \vec e^t + \frac{D}{\Delta t} (\vec e^t - \vec e^{t-\Delta t})\biggr]\f]
  *
- * \sa MatrixVector and PID_t.
+ * \sa MatrixVector, MatrixVector_Sp and PID_t.
  */
 void ErrorForce_PID_Sp( const MatrixVector_Sp *const Mass, const MatrixVector_Sp *const Damp, const MatrixVector_Sp *Stiff,
 			const MatrixVector *const AccTdT, const MatrixVector *const VelTdT, const MatrixVector *const DispTdT,

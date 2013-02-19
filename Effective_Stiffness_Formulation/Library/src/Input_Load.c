@@ -39,3 +39,48 @@ void InputLoad_RelValues( MatrixVector *const InLoad, const MatrixVector *const 
      dsymv_( &uplo, &InLoad->Rows, &Alpha, Mass->Array, &InLoad->Rows, GAcc->Array, &incx, &Beta,
 	     InLoad->Array, &incy );
 }
+
+#if _SPARSE_
+void InputLoad_AbsValues_Sp( MatrixVector *const InLoad, const MatrixVector_Sp *const Stiff,
+				   const MatrixVector_Sp *const Damp, const MatrixVector *const GDisp,
+				   const MatrixVector *const GVel )
+{
+
+     static double Alpha, Beta;        /* Constants to use in the Sparse BLAS routines */
+     static char trans = 'N';          /* No transpose operation */
+     static char matdescra[6] = {'S',  /* The matrix is symmetric */
+				 'U',  /* The upper part is referenced */
+				 'N',  /* Non-unit values in the diagonal */
+				 'F'}; /* One based index */
+
+     Alpha = 1.0; Beta = 0.0;
+
+     /* Sparse BLAS: li = K*ug */
+     mkl_dcsrmv( &trans, &InLoad->Rows, &InLoad->Rows, &Alpha, matdescra, Stiff->Values, Stiff->Columns,
+		 Stiff->RowIndex, &Stiff->RowIndex[1], GDisp->Array, &Beta, InLoad->Array );
+
+     /* Sparse BLAS: li = K*ug + C*vg = li + C*vg */
+     Beta = 1.0;
+     mkl_dcsrmv( &trans, &InLoad->Rows, &InLoad->Rows, &Alpha, matdescra, Damp->Values, Damp->Columns,
+		 Damp->RowIndex, &Damp->RowIndex[1], GVel->Array, &Beta, InLoad->Array );
+}
+
+void InputLoad_RelValues_Sp( MatrixVector *const InLoad, const MatrixVector_Sp *const Mass,
+			     const MatrixVector *const GAcc )
+{
+     
+     static double Alpha, Beta;        /* Constants to use in the Sparse BLAS routines */
+     static char trans = 'N';          /* No transpose operation */
+     static char matdescra[6] = {'S',  /* The matrix is symmetric */
+				 'U',  /* The upper part is referenced */
+				 'N',  /* Non-unit values in the diagonal */
+				 'F'}; /* One based index */
+
+     Alpha = -1.0; Beta = 0.0;
+
+     /* Sparse BLAS: li = -M*ag */
+     mkl_dcsrmv( &trans, &InLoad->Rows, &InLoad->Rows, &Alpha, matdescra, Mass->Values, Mass->Columns,
+		 Mass->RowIndex, &Mass->RowIndex[1], GAcc->Array, &Beta, InLoad->Array );
+}
+
+#endif
