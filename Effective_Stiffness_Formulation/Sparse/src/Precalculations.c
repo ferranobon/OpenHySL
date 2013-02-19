@@ -149,7 +149,7 @@ void Calc_Input_Load_RelValues_Sparse( MatrixVector *const InLoad, const Sp_Matr
      static char trans = 'N';
      static char matdescra[6] = {'S', 'U', 'N', 'F'};
 
-     Alpha = 1.0; Beta = 0.0;
+     Alpha = -1.0; Beta = 0.0;
 
      mkl_dcsrmv( &trans, &InLoad->Rows, &InLoad->Rows, &Alpha, matdescra, Mass->Values, Mass->Columns, Mass->RowIndex, &Mass->RowIndex[1], A->Array, &Beta, InLoad->Array );
 }
