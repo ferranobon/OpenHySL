@@ -35,7 +35,7 @@ void Compute_Force_Error( const MatrixVector *const Mass, const MatrixVector *co
 }
 
 #if _SPARSE_
-void Compute_Force_Error_Sparse( const Sp_MatrixVector *const Mass, const Sp_MatrixVector *const Damp, const Sp_MatrixVector *Stiff,
+void Compute_Force_Error_Sparse( const MatrixVector_Sp *const Mass, const MatrixVector_Sp *const Damp, const MatrixVector_Sp *Stiff,
 				 const MatrixVector *const AccTdT, const MatrixVector *const VelTdT, const MatrixVector *const DispTdT,
 				 const MatrixVector *const fc, const MatrixVector *const LoadTdT, const PID_t *const PID, MatrixVector *const fe )
 {
