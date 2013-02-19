@@ -132,7 +132,7 @@ void ErrorForce_PID( const MatrixVector *const Mass, const MatrixVector *const D
  *
  * \sa MatrixVector and PID_t.
  */
-void ErrorForce_PID_Sp( const Sp_MatrixVector *const Mass, const Sp_MatrixVector *const Damp, const Sp_MatrixVector *Stiff,
+void ErrorForce_PID_Sp( const MatrixVector_Sp *const Mass, const MatrixVector_Sp *const Damp, const MatrixVector_Sp *Stiff,
 			const MatrixVector *const AccTdT, const MatrixVector *const VelTdT, const MatrixVector *const DispTdT,
 			const MatrixVector *const fc, const MatrixVector *const LoadTdT, const PID_t *const PID, MatrixVector *const fe );
 #endif /* ERRORCOMPENSATION_H_*/
