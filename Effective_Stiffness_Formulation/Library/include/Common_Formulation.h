@@ -99,6 +99,50 @@ void InputLoad_AbsValues( const MatrixVector *const Stiff, const MatrixVector *c
 			  const MatrixVector *const GDisp, const MatrixVector *const GVel,
 			  MatrixVector *const InLoad );
 /**
+ * \brief Calculates the input load as absolute values. Sparse version.
+ *
+ * This routine calculates the input load as absolute values that is required at the beginning of each step through:
+ *
+ * \f[\vec l_i^t = \mathcal{C} \dot{\vec u}_g + \mathcal{K} \vec u_g\f]
+ *
+ * where:
+ * - \f$\vec l_i^t\f$ is the input load vector at time \f$t\f$
+ * - \f$\mathcal{C}\f$ is the viscous damping matrix,
+ * - \f$\dot{\vec u}_g\f$ is a vector with the ground velocity values,
+ * - \f$\mathcal{K}\f$ is the stiffness matrix,
+ * - \f$\vec u_g\f$ is a vector with the ground displacement values,
+ *
+ * It makes use of the BLAS and Sparse BLAS routines from the Intel Math Kernel Library (\cite MKL_2013) to
+ * perform the linear algebra operations.
+ *
+ * \pre
+ * - All elements of type MatrixVector must be properly initialised through the Init_MatrixVector() routine.
+ * - All elements of type \c MatrixVector_Sp must be properly intialised through the Init_MatrixVector_Sp() routine.
+ * - The matrices must in Intel's MKL CSR-\em three \em array \em variation and in one based index.
+ * - The matrices must be symmetrical and only the upper part will be referenced (lower part in FORTRAN routines).
+ * - The sizes of the matrices must be the identical.
+ * - The size of the vectors and matrices must be coherent since it will not be checked in the routine.
+ * - The ground displacement and velocity vectors should have already the right values on the right position
+ *   since the routine does not check if they are applied to the right degree of freedom.
+ *
+ * \param[in] Stiff The stiffness matrix \f$\mathcal K\f$.
+ * \param[in] Damp The viscous damping matrix \f$\mathcal C\f$.
+ * \param[in] GDisp Vector containing the ground displacement of the earthquake at a certain step \f$\vec u_g\f$.
+ * \param[in] GVel Vector containing the ground velocity of the earthquake at a certain step \f$\dot{\vec u}_g\f$.
+ * \param[in,out] InLoad The input load vector \$\vec l_i^t\f$ as an absolute value. As an input, only the size
+ * of the vector is referenced, not its elements.
+ *
+ * \post \c InLoad is the input load vector considering absolute values.
+ *
+ * \f[\vec l_i^t = \mathcal{C} \dot{\vec u}_g + \mathcal{K} \vec u_g\f]
+ *
+ * \sa MatrixVector and MatrixVector_Sp.
+ */
+void InputLoad_AbsValues_Sp( MatrixVector *const InLoad, const MatrixVector_Sp *const Stiff,
+				   const MatrixVector_Sp *const Damp, const MatrixVector *const GDisp,
+				   const MatrixVector *const GVel );
+
+/**
  * \brief Calculates the input load as relative value.
  *
  * This routine calculates the input load as relative values that is required at the beginning of each step through:
@@ -133,6 +177,46 @@ void InputLoad_AbsValues( const MatrixVector *const Stiff, const MatrixVector *c
  */
 void InputLoad_RelValues( MatrixVector *const InLoad, const MatrixVector *const Mass,
 			  const MatrixVector *const GAcc );
+
+/**
+ * \brief Calculates the input load as relative value. Sparse version.
+ *
+ * \warning This routine requires the Intel Math Kernel Library (\cite MKL_2013).
+ *
+ * This routine calculates the input load as relative values that is required at the beginning of each step through:
+ *
+ * \f[\vec l_i^t = -\mathcal{M} \ddot{\vec u}_g\f]
+ *
+ * where:
+ * - \f$\vec l_i^t\f$ is the input load vector at time \f$t\f$
+ * - \f$\mathcal{M}\f$ is the mass matrix,
+ * - \f$\ddot{\vec u}_g\f$ is a vector with the ground acceleration values,
+ *
+ * It makes use of the BLAS and Sparse BLAS routines from the Intel Math Kernel Library (\cite MKL_2013) to
+ * perform the linear algebra operations.
+ *
+ * \pre
+ * - All elements of type MatrixVector must be properly initialised through the Init_MatrixVector() routine.
+ * - \c Mass must be properly intialised through the Init_MatrixVector_Sp() routine.
+ * - \c Mass must in Intel's MKL CSR-\em three \em array \em variation and in one based index.
+ * - \c Mass must be symmetrical and only the upper part will be referenced (lower part in FORTRAN routines).
+ * - The size of the vectors and matrices must be coherent since it will not be checked in the routine.
+ * - The ground acceleration vector should have already the right values on the right position
+ *   since the routine does not check if they are applied to the right degree of freedom.
+ *
+ * \param[in] Mass The mass matrix \f$\mathcal M\f$.
+ * \param[in] GAcc Vector containing the ground acceleration of the earthquake at a certain step \f$\ddot{\vec u}_g\f$.
+ * \param[in,out] InLoad The input load vector \$\vec l_i^t\f$ as a relative value. As an input, only the size
+ * of the vector is referenced, not its elements.
+ *
+ * \post \c InLoad is the input load vector considering relative values.
+ *
+ * \f[\vec l_i^t = -\mathcal{M} \ddot{\vec u}_g\f]
+ *
+ * \sa MatrixVector and MatrixVector_Sp.
+ */
+void InputLoad_RelValues_Sp( MatrixVector *const InLoad, const MatrixVector_Sp *const Mass,
+			     const MatrixVector *const GAcc );
 
 /**
  * \brief Joins the non-coupling of a vector.
