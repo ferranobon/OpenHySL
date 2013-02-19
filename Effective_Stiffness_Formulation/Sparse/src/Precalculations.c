@@ -137,7 +137,7 @@ void Calc_Input_Load_AbsValues_Sparse( MatrixVector *const InLoad, const Sp_Matr
      Alpha = 1.0; Beta = 0.0;
 
      mkl_dcsrmv( &trans, &InLoad->Rows, &InLoad->Rows, &Alpha, matdescra, Stif->Values, Stif->Columns, Stif->RowIndex, &(Stif->RowIndex[1]), D->Array, &Beta, InLoad->Array );
-     MatrixVector_To_File( InLoad, "InLoad" );
+
      Beta = 1.0;
      mkl_dcsrmv( &trans, &InLoad->Rows, &InLoad->Rows, &Alpha, matdescra, Damp->Values, Damp->Columns, Damp->RowIndex, &(Damp->RowIndex[1]), V->Array, &Beta, InLoad->Array );
 }
