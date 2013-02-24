@@ -36,7 +36,7 @@
  * It makes use of BLAS routines to perform the lineal algebra operations.
  * 
  * \pre
- * - All elements of type \c MatrixVector must be properly initialised through the Init_MatrixVector() routine.
+ * - All elements of type \c MatrixVector_t must be properly initialised through the MatrixVector_Create() routine.
  * - \c Gain must be a symmetrical matrix in general storage. Only the upper part will be referenced (lower part in FORTRAN).
  * - The size of the vectors and matrices must be coherent since it will not be checked in the routine.
  * 
@@ -54,10 +54,10 @@
  *
  * \f[\vec n_0^{t + \Delta t} = \mathcal{G}^{-1}(\vec f_{eff}^t + \vec l_i^t + \vec f_{err}^t)\f]
  *
- * \sa MatrixVector and EffK_Calc_Effective_Force().
+ * \sa MatrixVector_t and EffK_Calc_Effective_Force().
  */
-void Compute_NewState( const MatrixVector *const IGain, const MatrixVector *const Eff_ForceT, const MatrixVector *const In_LoadT,
-		       const MatrixVector *const Err_ForceT, MatrixVector *const Tempvec, MatrixVector *const VecTdT_0 );
+void Compute_NewState( const MatrixVector_t *const IGain, const MatrixVector_t *const Eff_ForceT, const MatrixVector_t *const In_LoadT,
+		       const MatrixVector_t *const Err_ForceT, MatrixVector_t *const Tempvec, MatrixVector_t *const VecTdT_0 );
 
 /**
  * \brief Calculates the input load as absolute values.
@@ -76,9 +76,9 @@ void Compute_NewState( const MatrixVector *const IGain, const MatrixVector *cons
  * It makes use of BLAS routines to perform the linear algebra operations.
  *
  * \pre
- * - All elements of type MatrixVector must be properly initialised through the Init_MatrixVector() routine.
+ * - All elements of type MatrixVector must be properly initialised through the MatrixVector_Create() routine.
  * - The matrices must be symmetrical and only the upper part will be referenced (lower part in FORTRAN routines).
- * - The sizes of the matrices must be the identical.
+ * - The dimensions of the matrices must be the identical.
  * - The size of the vectors and matrices must be coherent since it will not be checked in the routine.
  * - The ground displacement and velocity vectors should have already the right values on the right position
  *   since the routine does not check if they are applied to the right degree of freedom.
@@ -94,11 +94,11 @@ void Compute_NewState( const MatrixVector *const IGain, const MatrixVector *cons
  *
  * \f[\vec l_i^t = \mathcal{C} \dot{\vec u}_g + \mathcal{K} \vec u_g\f]
  *
- * \sa MatrixVector.
+ * \sa MatrixVector_t.
  */
-void InputLoad_AbsValues( const MatrixVector *const Stiff, const MatrixVector *const Damp,
-			  const MatrixVector *const GDisp, const MatrixVector *const GVel,
-			  MatrixVector *const InLoad );
+void InputLoad_AbsValues( const MatrixVector_t *const Stiff, const MatrixVector_t *const Damp,
+			  const MatrixVector_t *const GDisp, const MatrixVector_t *const GVel,
+			  MatrixVector_t *const InLoad );
 /**
  * \brief Calculates the input load as absolute values. Sparse version.
  *
@@ -117,12 +117,12 @@ void InputLoad_AbsValues( const MatrixVector *const Stiff, const MatrixVector *c
  * perform the linear algebra operations.
  *
  * \pre
- * - All elements of type MatrixVector must be properly initialised through the Init_MatrixVector() routine.
- * - All elements of type \c MatrixVector_Sp must be properly intialised through the Init_MatrixVector_Sp() routine.
+ * - All elements of type MatrixVector must be properly initialised through the MatrixVector_Create() routine.
+ * - All elements of type \c MatrixVector_Sp_t must be properly intialised through the MatrixVector_Create_Sp() routine.
  * - The matrices must in Intel's MKL CSR-\em three \em array \em variation and in one based index.
  * - The matrices must be symmetrical and only the upper part will be referenced (lower part in FORTRAN routines).
- * - The sizes of the matrices must be the identical.
- * - The size of the vectors and matrices must be coherent since it will not be checked in the routine.
+ * - The dimensions of the matrices must be the identical.
+ * - The dimensions of the vectors and matrices must be coherent since it will not be checked in the routine.
  * - The ground displacement and velocity vectors should have already the right values on the right position
  *   since the routine does not check if they are applied to the right degree of freedom.
  *
@@ -137,11 +137,11 @@ void InputLoad_AbsValues( const MatrixVector *const Stiff, const MatrixVector *c
  *
  * \f[\vec l_i^t = \mathcal{C} \dot{\vec u}_g + \mathcal{K} \vec u_g\f]
  *
- * \sa MatrixVector and MatrixVector_Sp.
+ * \sa MatrixVector_t and MatrixVector_Sp_t.
  */
-void InputLoad_AbsValues_Sp( MatrixVector *const InLoad, const MatrixVector_Sp *const Stiff,
-				   const MatrixVector_Sp *const Damp, const MatrixVector *const GDisp,
-				   const MatrixVector *const GVel );
+void InputLoad_AbsValues_Sp( MatrixVector_t *const InLoad, const MatrixVector_Sp_t *const Stiff,
+				   const MatrixVector_Sp_t *const Damp, const MatrixVector_t *const GDisp,
+				   const MatrixVector_t *const GVel );
 
 /**
  * \brief Calculates the input load as relative value.
@@ -158,10 +158,10 @@ void InputLoad_AbsValues_Sp( MatrixVector *const InLoad, const MatrixVector_Sp *
  * It makes use of BLAS routines to perform the linear algebra operations.
  *
  * \pre
- * - All elements of type MatrixVector must be properly initialised through the Init_MatrixVector() routine.
+ * - All elements of type MatrixVector must be properly initialised through the MatrixVector_Create() routine.
  * - The matrices must be symmetrical and only the upper part will be referenced (lower part in FORTRAN routines).
- * - The sizes of the matrices must be the identical.
- * - The size of the vectors and matrices must be coherent since it will not be checked in the routine.
+ * - The dimensions of the matrices must be the identical.
+ * - The dimensions of the vectors and matrices must be coherent since it will not be checked in the routine.
  * - The ground acceleration vector should have already the right values on the right position
  *   since the routine does not check if they are applied to the right degree of freedom.
  *
@@ -174,10 +174,10 @@ void InputLoad_AbsValues_Sp( MatrixVector *const InLoad, const MatrixVector_Sp *
  *
  * \f[\vec l_i^t = -\mathcal{M} \ddot{\vec u}_g\f]
  *
- * \sa MatrixVector.
+ * \sa MatrixVector_t.
  */
-void InputLoad_RelValues( MatrixVector *const InLoad, const MatrixVector *const Mass,
-			  const MatrixVector *const GAcc );
+void InputLoad_RelValues( MatrixVector_t *const InLoad, const MatrixVector_t *const Mass,
+			  const MatrixVector_t *const GAcc );
 
 /**
  * \brief Calculates the input load as relative value. Sparse version.
@@ -197,11 +197,11 @@ void InputLoad_RelValues( MatrixVector *const InLoad, const MatrixVector *const 
  * perform the linear algebra operations.
  *
  * \pre
- * - All elements of type MatrixVector must be properly initialised through the Init_MatrixVector() routine.
- * - \c Mass must be properly intialised through the Init_MatrixVector_Sp() routine.
+ * - All elements of type MatrixVector must be properly initialised through the MatrixVector_Create() routine.
+ * - \c Mass must be properly intialised through the MatrixVector_Create_Sp() routine.
  * - \c Mass must in Intel's MKL CSR-\em three \em array \em variation and in one based index.
  * - \c Mass must be symmetrical and only the upper part will be referenced (lower part in FORTRAN routines).
- * - The size of the vectors and matrices must be coherent since it will not be checked in the routine.
+ * - The dimensions of the vectors and matrices must be coherent since it will not be checked in the routine.
  * - The ground acceleration vector should have already the right values on the right position
  *   since the routine does not check if they are applied to the right degree of freedom.
  *
@@ -214,10 +214,10 @@ void InputLoad_RelValues( MatrixVector *const InLoad, const MatrixVector *const 
  *
  * \f[\vec l_i^t = -\mathcal{M} \ddot{\vec u}_g\f]
  *
- * \sa MatrixVector and MatrixVector_Sp.
+ * \sa MatrixVector_t and MatrixVector_Sp_t.
  */
-void InputLoad_RelValues_Sp( MatrixVector *const InLoad, const MatrixVector_Sp *const Mass,
-			     const MatrixVector *const GAcc );
+void InputLoad_RelValues_Sp( MatrixVector_t *const InLoad, const MatrixVector_Sp_t *const Mass,
+			     const MatrixVector_t *const GAcc );
 
 /**
  * \brief Joins the non-coupling of a vector.
@@ -237,7 +237,7 @@ void InputLoad_RelValues_Sp( MatrixVector *const InLoad, const MatrixVector_Sp *
  * It makes use of BLAS routines to perform the lineal algebra operations.
  *
  * \pre
- * - All elements of type \c MatrixVector must be properly initialised through the Init_MatrixVector() routine.
+ * - All elements of type \c MatrixVector_t must be properly initialised through the MatrixVector_Create() routine.
  * - \c Gain_m must be a matrix of size \f$Order\f$x\f$OrderC\f$ and have the output of Build_MatrixXm().
  * - \c VecTdT_m must be of length \f$Order - OrderC\f$.
  * - \c VecTdT must be of length \f$Order\f$.
@@ -261,11 +261,11 @@ void InputLoad_RelValues_Sp( MatrixVector *const InLoad, const MatrixVector_Sp *
  * \f[\hat{\vec n}^{t + \Delta t} \longrightarrow \vec n^{t + \Delta t}\f]
  *
  *
- * \sa MatrixVector.
+ * \sa MatrixVector_t.
  */
-void Join_NonCouplingPart( MatrixVector *const VecTdT_m, const MatrixVector *const Gain_m,
-			   const MatrixVector *const fcprevsub, const Coupling_Node *const CNodes,
-			   MatrixVector *const VecTdT );
+void Join_NonCouplingPart( MatrixVector_t *const VecTdT_m, const MatrixVector_t *const Gain_m,
+			   const MatrixVector_t *const fcprevsub, const Coupling_Node *const CNodes,
+			   MatrixVector_t *const VecTdT );
 
 
 #endif /* COMMON_FORMULATION_H_ */

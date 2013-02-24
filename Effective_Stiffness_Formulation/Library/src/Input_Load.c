@@ -1,9 +1,9 @@
 #include "Common_Formulation.h"
 #include "MatrixVector.h"
 
-void InputLoad_AbsValues( MatrixVector *const InLoad, const MatrixVector *const Stiff,
-			  const MatrixVector *const Damp, const MatrixVector *const GDisp,
-			  const MatrixVector *const GVel )
+void InputLoad_AbsValues( MatrixVector_t *const InLoad, const MatrixVector_t *const Stiff,
+			  const MatrixVector_t *const Damp, const MatrixVector_t *const GDisp,
+			  const MatrixVector_t *const GVel )
 {
 
      static int incx, incy;       /* Stride in the vectors for BLAS library */
@@ -26,8 +26,8 @@ void InputLoad_AbsValues( MatrixVector *const InLoad, const MatrixVector *const 
 	     InLoad->Array, &incy );
 }
 
-void InputLoad_RelValues( MatrixVector *const InLoad, const MatrixVector *const Mass,
-			  const MatrixVector *const GAcc )
+void InputLoad_RelValues( MatrixVector_t *const InLoad, const MatrixVector_t *const Mass,
+			  const MatrixVector_t *const GAcc )
 {
 
      static int incx = 1, incy = 1;           /* Stride in the vectors for BLAS library */
@@ -41,9 +41,9 @@ void InputLoad_RelValues( MatrixVector *const InLoad, const MatrixVector *const 
 }
 
 #if _SPARSE_
-void InputLoad_AbsValues_Sp( MatrixVector *const InLoad, const MatrixVector_Sp *const Stiff,
-				   const MatrixVector_Sp *const Damp, const MatrixVector *const GDisp,
-				   const MatrixVector *const GVel )
+void InputLoad_AbsValues_Sp( MatrixVector_t *const InLoad, const MatrixVector_Sp_t *const Stiff,
+				   const MatrixVector_Sp_t *const Damp, const MatrixVector_t *const GDisp,
+				   const MatrixVector_t *const GVel )
 {
 
      static double Alpha, Beta;        /* Constants to use in the Sparse BLAS routines */
@@ -65,8 +65,8 @@ void InputLoad_AbsValues_Sp( MatrixVector *const InLoad, const MatrixVector_Sp *
 		 Damp->RowIndex, &Damp->RowIndex[1], GVel->Array, &Beta, InLoad->Array );
 }
 
-void InputLoad_RelValues_Sp( MatrixVector *const InLoad, const MatrixVector_Sp *const Mass,
-			     const MatrixVector *const GAcc )
+void InputLoad_RelValues_Sp( MatrixVector_t *const InLoad, const MatrixVector_Sp_t *const Mass,
+			     const MatrixVector_t *const GAcc )
 {
      
      static double Alpha, Beta;        /* Constants to use in the Sparse BLAS routines */

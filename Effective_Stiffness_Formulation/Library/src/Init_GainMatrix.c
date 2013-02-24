@@ -25,8 +25,8 @@
 #include "Netlib.h"
 #endif
 
-void IGainMatrix( MatrixVector *const Gain, const MatrixVector *const Mass, const MatrixVector *const Damp,
-		  const MatrixVector *const Stiff, const Scalars Const )
+void IGainMatrix( MatrixVector_t *const Gain, const MatrixVector_t *const Mass, const MatrixVector_t *const Damp,
+		  const MatrixVector_t *const Stiff, const Scalars Const )
 {
 
      char uplo;    
@@ -67,7 +67,7 @@ void IGainMatrix( MatrixVector *const Gain, const MatrixVector *const Mass, cons
 	  Print_Message( ERROR, 3, STRING, "Matrix inversion: the ", INT, -info, STRING, "th argument has an illegal value." );
      } else if (info > 0){
 	  Print_Message( ERROR, 5, STRING, "Matrix Inversion: the (", INT, info, STRING, "," ,INT, info,
-			 STRING,") element of the factor U or L is zero, and the inverse could not be computed.\n" );
+			 STRING, ") element of the factor U or L is zero, and the inverse could not be computed.\n" );
 	  exit( EXIT_FAILURE );
      }
 
@@ -82,8 +82,8 @@ void IGainMatrix( MatrixVector *const Gain, const MatrixVector *const Mass, cons
 }
 
 #if _SPARSE_
-void IGainMatrix_Sp( MatrixVector *const Gain, const MatrixVector_Sp *const Mass, const MatrixVector_Sp *const Damp,
-		    const MatrixVector_Sp *const Stiff, const Scalars Const )
+void IGainMatrix_Sp( MatrixVector_t *const Gain, const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp,
+		    const MatrixVector_Sp_t *const Stiff, const Scalars Const )
 {
 
      char uplo;
@@ -132,7 +132,7 @@ void IGainMatrix_Sp( MatrixVector *const Gain, const MatrixVector_Sp *const Mass
 	  Print_Message( ERROR, 3, STRING, "Matrix inversion: the ", INT, -info, STRING, "th argument has an illegal value." );
      } else if (info > 0){
 	  Print_Message( ERROR, 5, STRING, "Matrix Inversion: the (", INT, info, STRING, "," ,INT, info,
-			 STRING,") element of the factor U or L is zero, and the inverse could not be computed.\n" );
+			 STRING, ") element of the factor U or L is zero, and the inverse could not be computed.\n" );
 	  exit( EXIT_FAILURE );
      }
 
@@ -147,8 +147,8 @@ void IGainMatrix_Sp( MatrixVector *const Gain, const MatrixVector_Sp *const Mass
 }
 
 /* This function is deprecated */
-void IGainMatrix_Pardiso( MatrixVector *const Gain, const MatrixVector *const Mass, const MatrixVector *const Damp,
-			 const MatrixVector *const Stiff, const Scalars Const )
+void IGainMatrix_Pardiso( MatrixVector_t *const Gain, const MatrixVector_t *const Mass, const MatrixVector_t *const Damp,
+			 const MatrixVector_t *const Stiff, const Scalars Const )
 {
 
      int i;
@@ -273,8 +273,8 @@ void IGainMatrix_Pardiso( MatrixVector *const Gain, const MatrixVector *const Ma
 }
 
 /* This function is deprecated */
-void IGainMatrix_Pardiso_Sp( MatrixVector *const Gain, const MatrixVector_Sp *const Mass, const MatrixVector_Sp *const Damp,
-		       const MatrixVector_Sp *const Stiff, const Scalars Const )
+void IGainMatrix_Pardiso_Sp( MatrixVector_t *const Gain, const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp,
+		       const MatrixVector_Sp_t *const Stiff, const Scalars Const )
 {
      int i;
      int iparm[64];

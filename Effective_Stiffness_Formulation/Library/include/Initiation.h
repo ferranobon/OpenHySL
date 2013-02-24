@@ -44,9 +44,9 @@ typedef struct {
  * It makes use of BLAS and LAPACK routines to perform the linear algebra operations.
  *
  * \pre 
- * - All elements of type \c MatrixVector must be properly intialised through the Init_MatrixVector() routine.
+ * - All elements of type \c MatrixVector_t must be properly intialised through the MatrixVector_Create() routine.
  * - The matrices must be symmetrical and only the upper part will be referenced (lower part in FORTRAN routines).
- * - The sizes of the matrices must be the identical.
+ * - The dimensions of the matrices must be the identical.
  * - The Rayleigh constants must be properly initialised.
  *
  * \param[in] Mass The mass matrix \f$\mathcal{M}\f$.
@@ -60,9 +60,9 @@ typedef struct {
  *       (Lower part in FORTRAN routines). It contains the result of:
  *       \f[\mathcal{C} = \alpha \mathcal{M} \cdot \beta \mathcal{K}\f]
  *
- * \sa MatrixVector and RayleighConst.
+ * \sa MatrixVector_t and Rayleigh_t.
  */
-void Rayleigh_Damping( const MatrixVector *const Mass, const MatrixVector *const Stiff, MatrixVector *const Damp, const Rayleigh_t *const Rayleigh );
+void Rayleigh_Damping( const MatrixVector_t *const Mass, const MatrixVector_t *const Stiff, MatrixVector_t *const Damp, const Rayleigh_t *const Rayleigh );
 
 /**
  * \brief Computes the proportional viscous damping matrix using Rayleigh damping. Sparse version.
@@ -83,9 +83,9 @@ void Rayleigh_Damping( const MatrixVector *const Mass, const MatrixVector *const
  * perform the linear algebra operations. This routine requires the MKL library.
  *
  * \pre 
- * - All elements of type \c MatrixVector_Sp must be properly intialised through the Init_MatrixVector_Sp() routine.
+ * - All elements of type \c MatrixVector_Sp_t must be properly intialised through the MatrixVector_Create_Sp() routine.
  * - The matrices must in Intel's MKL CSR-\em three \em array \em variation and in one based index.
- * - The sizes of the matrices must be identical.
+ * - The dimensions of the matrices must be identical.
  * - The Rayleigh constants must be properly initialised.
  *
  * \param[in] Mass The mass matrix \f$\mathcal{M}\f$.
@@ -99,9 +99,9 @@ void Rayleigh_Damping( const MatrixVector *const Mass, const MatrixVector *const
  *       (Lower part in FORTRAN routines). It contains the result of:
  *       \f[\mathcal{C} = \alpha \mathcal{M} \cdot \beta \mathcal{K}\f]
  *
- * \sa MatrixVector_Sp and RayleighConst.
+ * \sa MatrixVector_Sp_t and Rayleigh_t.
  */
-void Rayleigh_Damping_Sp( const MatrixVector_Sp *const Mass, const MatrixVector_Sp *const Stiff, MatrixVector_Sp *const Damp, const Rayleigh_t *const Rayleigh );
+void Rayleigh_Damping_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Stiff, MatrixVector_Sp_t *const Damp, const Rayleigh_t *const Rayleigh );
 
 /**
  * \brief Computes the gain matrix and its inverse.
@@ -121,9 +121,9 @@ void Rayleigh_Damping_Sp( const MatrixVector_Sp *const Mass, const MatrixVector_
  * It makes use of BLAS and LAPACK routines to perform the linear algebra operations.
  *
  * \pre 
- * - All elements of type \c MatrixVector must be properly intialised through the Init_MatrixVector() routine.
+ * - All elements of type \c MatrixVector_t must be properly intialised through the MatrixVector_Create() routine.
  * - The matrices must be symmetrical and only the upper part will be referenced (lower part in FORTRAN routines).
- * - The sizes of the matrices must be the identical.
+ * - The dimensions of the matrices must be the identical.
  * - The values in scalars must be properly initialised and they depend on the used formulation (see \cite Dorka_1998).
  *
  * \param[in,out] IGain The inverse of the gain matrix. As an input, only the size of the matrix is referenced.
@@ -137,10 +137,10 @@ void Rayleigh_Damping_Sp( const MatrixVector_Sp *const Mass, const MatrixVector_
  *       (Lower part in FORTRAN routines). It contains the result of:
  *       \f[\mathcal{G}^{-1} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
  *
- * \sa MatrixVector and Scalars_t.
+ * \sa MatrixVector_t and Scalars_t.
  */
-void IGainMatrix( MatrixVector *const IGain, const MatrixVector *const Mass, const MatrixVector *const Damp,
-		 const MatrixVector *const Stiff, const Scalars_t Const );
+void IGainMatrix( MatrixVector_t *const IGain, const MatrixVector_t *const Mass, const MatrixVector_t *const Damp,
+		 const MatrixVector_t *const Stiff, const Scalars_t Const );
 
 /**
  * \brief Computes the gain matrix and its inverse. Sparse version.
@@ -163,11 +163,11 @@ void IGainMatrix( MatrixVector *const IGain, const MatrixVector *const Mass, con
  * perform the linear algebra operations.
  *
  * \pre 
- * - The gain matrix must be properly initialised through the Init_MatrixVector() routine.
- * - All elements of type \c MatrixVector_Sp must be properly intialised through the Init_MatrixVector_Sp() routine.
+ * - The gain matrix must be properly initialised through the MatrixVector_Create() routine.
+ * - All elements of type \c MatrixVector_Sp_t must be properly intialised through the MatrixVector_Create_Sp() routine.
  * - The matrices must in Intel's MKL CSR-\em three \em array \em variation and in one based index.
  * - The matrices must be symmetrical with only the upper part referenced (lower part in FORTRAN routines).
- * - The sizes of the matrices must be the identical.
+ * - The dimensions of the matrices must be the identical.
  * - The maximum number or non zero elements of the proportional viscous damping matrix must be equal to the
  *   number of non zero elements in the stiffness matrix.
  * - The values in scalars must be properly initialised and they depend on the used formulation (see \cite Dorka_1998).
@@ -183,10 +183,10 @@ void IGainMatrix( MatrixVector *const IGain, const MatrixVector *const Mass, con
  *       (Lower part in FORTRAN routines). It contains the result of:
  *       \f[\mathcal{G}^{-1} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
  *
- * \sa MatrixVector, MatrixVector_Sp and Scalars_t.
+ * \sa MatrixVector_t, MatrixVector_Sp_t and Scalars_t.
  */
-void IGainMatrix_Sp( MatrixVector *const IGain, const MatrixVector_Sp *const Mass, const MatrixVector_Sp *const Damp,
-		    const MatrixVector_Sp *const Stiff, const Scalars_t Const );
+void IGainMatrix_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp,
+		    const MatrixVector_Sp_t *const Stiff, const Scalars_t Const );
 
 /**
  * \brief Computes the gain matrix and its inverse. PARDISO version.
@@ -209,9 +209,9 @@ void IGainMatrix_Sp( MatrixVector *const IGain, const MatrixVector_Sp *const Mas
  * Library (\cite MKL_2013) to compute the matrix inversion.
  *
  * \pre 
- * - All elements of type \c MatrixVector must be properly intialised through the Init_MatrixVector() routine.
+ * - All elements of type \c MatrixVector_t must be properly intialised through the MatrixVector_Create() routine.
  * - The matrices must be symmetrical and only the upper part will be referenced (lower part in FORTRAN routines).
- * - The sizes of the matrices must be the identical.
+ * - The dimensions of the matrices must be the identical.
  * - The values in scalars must be properly initialised and they depend on the used formulation (see \cite Dorka_1998).
  *
  * \param[in,out] IGain The gain matrix. As an input, only the size of the matrix is referenced.
@@ -225,10 +225,10 @@ void IGainMatrix_Sp( MatrixVector *const IGain, const MatrixVector_Sp *const Mas
  *       (Lower part in FORTRAN routines). It contains the result of:
  *       \f[\mathcal{G} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
  *
- * \sa MatrixVector and Scalars_t.
+ * \sa MatrixVector_t and Scalars_t.
  */
-void IGainMatrix_Pardiso( MatrixVector *const IGain, const MatrixVector *const Mass, const MatrixVector *const Damp,
-			 const MatrixVector *const Stiff, const Scalars_t Const );
+void IGainMatrix_Pardiso( MatrixVector_t *const IGain, const MatrixVector_t *const Mass, const MatrixVector_t *const Damp,
+			 const MatrixVector_t *const Stiff, const Scalars_t Const );
 
 /**
  * \brief Computes the gain matrix and its inverse. Sparse PARDISO version.
@@ -251,11 +251,11 @@ void IGainMatrix_Pardiso( MatrixVector *const IGain, const MatrixVector *const M
  * perform the linear algebra operations and the PARDISO solver to compute the matrix inversion.
  *
  * \pre
- * - The gain matrix must be properly initialised through the Init_MatrixVector() routine.
- * - All elements of type \c MatrixVector_Sp must be properly intialised through the Init_MatrixVector_Sp() routine.
+ * - The gain matrix must be properly initialised through the MatrixVector_Create() routine.
+ * - All elements of type \c MatrixVector_Sp_t must be properly intialised through the MatrixVector_Create_Sp() routine.
  * - The matrices must in Intel's MKL CSR-\em three \em array \em variation and in one based index.
  * - The matrices must be symmetrical with only the upper part referenced (lower part in FORTRAN routines).
- * - The sizes of the matrices must be the identical.
+ * - The dimensions of the matrices must be the identical.
  * - The maximum number or non zero elements of the gain matrix must be equal to the number of non zero elements
  *   in the stiffness matrix.
  * - The values in scalars must be properly initialised and they depend on the used formulation (see \cite Dorka_1998).
@@ -271,9 +271,9 @@ void IGainMatrix_Pardiso( MatrixVector *const IGain, const MatrixVector *const M
  *       (Lower part in FORTRAN routines). It contains the result of:
  *       \f[\mathcal{G} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
  *
- * \sa MatrixVector, MatrixVector_Sp and Scalars_t.
+ * \sa MatrixVector_t, MatrixVector_Sp_t and Scalars_t.
  */
-void IGainMatrix_Pardiso_Sp( MatrixVector *const IGain, const MatrixVector_Sp *const Mass, const MatrixVector_Sp *const Damp,
-			     const MatrixVector_Sp *const Stiff, const Scalars_t Const );
+void IGainMatrix_Pardiso_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp,
+			     const MatrixVector_Sp_t *const Stiff, const Scalars_t Const );
 #endif /* INITIATION */
 

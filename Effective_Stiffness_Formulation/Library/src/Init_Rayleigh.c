@@ -24,7 +24,7 @@
 #include "Netlib.h"
 #endif
 
-void Rayleigh_Damping( const MatrixVector *const Mass, const MatrixVector *const Stif, MatrixVector *const Damp, const RayleighConst *const Rayleigh )
+void Rayleigh_Damping( const MatrixVector_t *const Mass, const MatrixVector_t *const Stif, MatrixVector_t *const Damp, const RayleighConst *const Rayleigh )
 {
      char uplo;
      int ione;
@@ -70,7 +70,7 @@ void Rayleigh_Damping( const MatrixVector *const Mass, const MatrixVector *const
 }
 
 #if _SPARSE_
-void Rayleigh_Damping_Sp( const MatrixVector_Sp *const Mass, const MatrixVector_Sp *const Stif, MatrixVector_Sp *const Damp, const RayleighConst *const Rayleigh )
+void Rayleigh_Damping_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Stif, MatrixVector_Sp_t *const Damp, const RayleighConst *const Rayleigh )
 {
      MatrixVector_Sp Temp;  /* Temporal matrix */
      int i;                 /* A counter */

@@ -51,10 +51,10 @@ typedef struct {
  * It makes use of BLAS routines to perform the lineal algebra operations.
  *
  * \pre
- * - All elements of type \c MatrixVector must be properly initialised through the Init_MatrixVector() routine.
+ * - All elements of type \c MatrixVector_t must be properly initialised through the MatrixVector_Create() routine.
  * - The matrices must be symmetrical and only the upper part will be referenced (lower part in FORTRAN routines).
- * - The sizes of the matrices must be the identical.
- * - The size of the vectors and matrices must be coherent since it will not be checked in the routine.
+ * - The dimensions of the matrices must be the identical.
+ * - The dimensions of the vectors and matrices must be coherent since it will not be checked in the routine.
  * - The PID constants must be properly initialised.
  *
  * \param[in] Mass The mass matrix.
@@ -73,11 +73,11 @@ typedef struct {
  * \f[\vec e^{t+\Delta t} = (\vec f_r^{t + \Delta t} + \vec f_s^{t+\Delta t} + \vec l_i^{t} - (\mathcal M \ddot{\vec u}^{t + \Delta t} + \mathcal C \dot{\vec u}^{t+\Delta t} + \mathcal K u^{t + \Delta t})\f]
  * \f[\vec f_e^{t + \Delta t} = \biggl[\vec e^t + I\Delta t\sum_i^t \vec e^t + \frac{D}{\Delta t} (\vec e^t - \vec e^{t-\Delta t})\biggr]\f]
  *
- * \sa MatrixVector and PID_t.
+ * \sa MatrixVector_t and PID_t.
  */
-void ErrorForce_PID( const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *Stiff,
-		     const MatrixVector *const AccTdT, const MatrixVector *const VelTdT, const MatrixVector *const DispTdT,
-		     const MatrixVector *const fc, const MatrixVector *const LoadTdT, const PID_t *const PID, MatrixVector *const fe );
+void ErrorForce_PID( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp, const MatrixVector *Stiff,
+		     const MatrixVector_t *const AccTdT, const MatrixVector_t *const VelTdT, const MatrixVector_t *const DispTdT,
+		     const MatrixVector_t *const fc, const MatrixVector_t *const LoadTdT, const PID_t *const PID, MatrixVector_t *const fe );
 
 /**
  * \brief Error force compensation using a PID controller. Sparse version.
@@ -106,12 +106,12 @@ void ErrorForce_PID( const MatrixVector *const Mass, const MatrixVector *const D
  * perform the linear algebra operations.
  *
  * \pre
- * - All elements of type \c MatrixVector must be properly initialised through the Init_MatrixVector() routine.
- * - All elements of type \c MatrixVector_Sp must be properly intialised through the Init_MatrixVector_Sp() routine.
+ * - All elements of type \c MatrixVector_t must be properly initialised through the MatrixVector_Create() routine.
+ * - All elements of type \c MatrixVector_Sp_t must be properly intialised through the MatrixVector_Create_Sp() routine.
  * - The matrices must in Intel's MKL CSR-\em three \em array \em variation and in one based index.
  * - The matrices must be symmetrical and only the upper part will be referenced (lower part in FORTRAN routines).
- * - The sizes of the matrices must be the identical.
- * - The size of the vectors and matrices must be coherent since it will not be checked in the routine.
+ * - The dimensions of the matrices must be the identical.
+ * - The dimensions of the vectors and matrices must be coherent since it will not be checked in the routine.
  * - The PID constants must be properly initialised.
  *
  * \param[in] Mass The mass matrix.
@@ -130,10 +130,10 @@ void ErrorForce_PID( const MatrixVector *const Mass, const MatrixVector *const D
  * \f[\vec e^{t+\Delta t} = (\vec f_r^{t + \Delta t} + \vec f_s^{t+\Delta t} + \vec l_i^{t} - (\mathcal M \ddot{\vec u}^{t + \Delta t} + \mathcal C \dot{\vec u}^{t+\Delta t} + \mathcal K u^{t + \Delta t})\f]
  * \f[\vec f_e^{t + \Delta t} = \biggl[\vec e^t + I\Delta t\sum_i^t \vec e^t + \frac{D}{\Delta t} (\vec e^t - \vec e^{t-\Delta t})\biggr]\f]
  *
- * \sa MatrixVector, MatrixVector_Sp and PID_t.
+ * \sa MatrixVector_t, MatrixVector_Sp_t and PID_t.
  */
-void ErrorForce_PID_Sp( const MatrixVector_Sp *const Mass, const MatrixVector_Sp *const Damp, const MatrixVector_Sp *Stiff,
-			const MatrixVector *const AccTdT, const MatrixVector *const VelTdT, const MatrixVector *const DispTdT,
-			const MatrixVector *const fc, const MatrixVector *const LoadTdT, const PID_t *const PID, MatrixVector *const fe );
+void ErrorForce_PID_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp, const MatrixVector_Sp *Stiff,
+			const MatrixVector_t *const AccTdT, const MatrixVector_t *const VelTdT, const MatrixVector_t *const DispTdT,
+			const MatrixVector_t *const fc, const MatrixVector_t *const LoadTdT, const PID_t *const PID, MatrixVector_t *const fe );
 #endif /* ERRORCOMPENSATION_H_*/
 

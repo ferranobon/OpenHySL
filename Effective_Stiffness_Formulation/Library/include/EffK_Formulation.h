@@ -39,8 +39,8 @@
  * It makes use of BLAS routines to perform the linear algebra operations.
  *
  * \pre
- * - All elements of type \c MatrixVector must be properly initialised through the Init_MatrixVector() routine.
- * - The size of the vectors and matrices must be coherent since it will not be checked in the routine.
+ * - All elements of type \c MatrixVector_t must be properly initialised through the MatrixVector_Create() routine.
+ * - The dimensions of the vectors and matrices must be coherent since it will not be checked in the routine.
  * - The mass and viscous damping matrices must be symmetrical and only the upper part will be referenced (lower part
  *   in FORTRAN routines).
  * - The integration constants must be properly initialised.
@@ -65,12 +65,12 @@
  *
  * \f[\vec f_{eff}^t = \mathcal{M}(a_0\vec u^t + a_2\dot{\vec u}^t + a_3\ddot{\vec u}^t) + \mathcal{C}(a_1\vec u^t + a_4\dot{\vec u}^t + a_5\ddot{\vec u}^t)\f]
  *
- * \sa MatrixVector.
+ * \sa MatrixVector_t.
  */
-void EffK_EffectiveForce( const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *const DispT,
-			  const MatrixVector *const VelT, const MatrixVector *const AccT, MatrixVector *const Tempvec,
+void EffK_EffectiveForce( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp, const MatrixVector_t *const DispT,
+			  const MatrixVector_t *const VelT, const MatrixVector_t *const AccT, MatrixVector_t *const Tempvec,
 			  const double a0, const double a1, const double a2, const double a3, const double a4,
-			  const double a5, MatrixVector *const Eff_ForceT );
+			  const double a5, MatrixVector_t *const Eff_ForceT );
 
 /**
  * \brief Computes the new acceleration according to the formulation using the effective stiffness matrix.
@@ -91,8 +91,8 @@ void EffK_EffectiveForce( const MatrixVector *const Mass, const MatrixVector *co
  * It makes use of BLAS routines to perform the linear algebra operations.
  *
  * \pre
- * - All elements of type \c MatrixVector must be properly initialised through the Init_MatrixVector() routine.
- * - The size of the vectors must be identical.
+ * - All elements of type \c MatrixVector_t must be properly initialised through the MatrixVector_Create() routine.
+ * - The dimensions of the vectors must be identical.
  * - The integration constants must be properly initialised.
  * 
  * \param[in] DispTdT The displacement vector \f$\vec u^{t+\Delta t}\f$.
@@ -110,11 +110,11 @@ void EffK_EffectiveForce( const MatrixVector *const Mass, const MatrixVector *co
  *
  * \f[\ddot{\vec u}^{t+\Delta t} = a_0 (\vec u^{t+\Delta t} - \vec u) - a_2\dot{\vec u}^t -a_3\ddot{\vec u}^t\f]
  *
- * \sa MatrixVector.
+ * \sa MatrixVector_t.
  */
-void EffK_ComputeAcceleration( const MatrixVector *const DispTdT, const MatrixVector *const DispT,
-				const MatrixVector *const VelT, const MatrixVector *const AccT,
-				const double a0, const double a2, const double a3, MatrixVector *const AccTdT );
+void EffK_ComputeAcceleration( const MatrixVector_t *const DispTdT, const MatrixVector_t *const DispT,
+				const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
+				const double a0, const double a2, const double a3, MatrixVector_t *const AccTdT );
 
 /**
  * \brief Computes the new velocity according to the formulation using the effective stiffness matrix
@@ -134,8 +134,8 @@ void EffK_ComputeAcceleration( const MatrixVector *const DispTdT, const MatrixVe
  * It makes use of BLAS routines to perform the linear algebra operations.
  *
  * \pre
- * - All elements of type \c MatrixVector must be properly initialised through the Init_MatrixVector() routine.
- * - The size of the vectors must be identical.
+ * - All elements of type \c MatrixVector_t must be properly initialised through the MatrixVector_Create() routine.
+ * - The dimensions of the vectors must be identical.
  * - The integration constants must be properly initialised.
  * 
  * \param[in] VelT is the velocity vector \f$\dot{\vec u}^t\f$.
@@ -151,9 +151,9 @@ void EffK_ComputeAcceleration( const MatrixVector *const DispTdT, const MatrixVe
  *
  * \f[\dot{\vec u}^{t+\Delta t} = \dot{\vec u}^t + a_6\ddot{\vec u}^t + a_7\ddot{\vec u}^{t+\Delta t}\f]
  *
- * \sa MatrixVector.
+ * \sa MatrixVector_t.
  */
-void EffK_ComputeVelocity( const MatrixVector *const VelT, const MatrixVector *const AccT, const MatrixVector *const AccTdT,
-			    const double a6, const double a7, MatrixVector *const VelTdT );
+void EffK_ComputeVelocity( const MatrixVector_t *const VelT, const MatrixVector_t *const AccT, const MatrixVector_t *const AccTdT,
+			    const double a6, const double a7, MatrixVector_t *const VelTdT );
 
 #endif /* EFFK_FORMULATION_H_ */
