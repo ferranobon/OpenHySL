@@ -1,8 +1,8 @@
 #include "MatrixVector.h"
 #include "Common_Formulation.h"
 
-void Compute_NewState( const MatrixVector *const IGain, const MatrixVector *const Eff_ForceT, const MatrixVector *const In_LoadT,
-		       const MatrixVector *const Err_ForceT, MatrixVector *const Tempvec, MatrixVector *const VecTdT_0 )
+void Compute_NewState( const MatrixVector_t *const IGain, const MatrixVector_t *const Eff_ForceT, const MatrixVector_t *const In_LoadT,
+		       const MatrixVector_t *const Err_ForceT, MatrixVector_t *const Tempvec, MatrixVector_t *const VecTdT_0 )
 {
      static int incx = 1, incy = 1;           /* Stride in the vectors */
      static double Alpha = 1.0, Beta = 0.0;   /* Constants for the BLAS routines */
@@ -24,9 +24,9 @@ void Compute_NewState( const MatrixVector *const IGain, const MatrixVector *cons
 	     VecTdT_0->Array, &incy );
 }
 
-void Join_NonCouplingPart( MatrixVector *const VecTdT_m, const MatrixVector *const Gain_m,
-			   const MatrixVector *const fcprevsub, const Coupling_Node *const CNodes,
-			   MatrixVector *const VecTdT )			  
+void Join_NonCouplingPart( MatrixVector_t *const VecTdT_m, const MatrixVector_t *const Gain_m,
+			   const MatrixVector_t *const fcprevsub, const Coupling_Node *const CNodes,
+			   MatrixVector_t *const VecTdT )			  
 {
      static int icoup;                 /* Counter for the coupling nodes */
      static int incx, incy;            /* Stride in the vectors */

@@ -1,9 +1,9 @@
 #include "EffK_Formulation.h"
 
-void EffK_EffectiveForce( const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *const DispT,
-			  const MatrixVector *const VelT, const MatrixVector *const AccT, MatrixVector *const Tempvec,
+void EffK_EffectiveForce( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp, const MatrixVector_t *const DispT,
+			  const MatrixVector_t *const VelT, const MatrixVector_t *const AccT, MatrixVector_t *const Tempvec,
 			  const double a0, const double a1, const double a2, const double a3, const double a4,
-			  const double a5, MatrixVector *const Eff_ForceT )
+			  const double a5, MatrixVector_t *const Eff_ForceT )
 {
 
      static int incx = 1, incy = 1;  /* Stride in the vectors */
@@ -45,9 +45,9 @@ void EffK_EffectiveForce( const MatrixVector *const Mass, const MatrixVector *co
      
 }
 
-void EffK_ComputeAcceleration( const MatrixVector *const DispTdT, const MatrixVector *const DispT,
-			       const MatrixVector *const VelT, const MatrixVector *const AccT,
-			       const double a0, const double a2, const double a3, MatrixVector *const AccTdT )
+void EffK_ComputeAcceleration( const MatrixVector_t *const DispTdT, const MatrixVector_t *const DispT,
+			       const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
+			       const double a0, const double a2, const double a3, MatrixVector_t *const AccTdT )
 {
      static int incx = 1, incy = 1;  /* Stride in the vectors */
      static double Alpha;            /* Constant for the BLAS routines */
@@ -68,8 +68,8 @@ void EffK_ComputeAcceleration( const MatrixVector *const DispTdT, const MatrixVe
      daxpy_( &AccTdT->Rows, &Alpha, AccT->Array, &incx, AccTdT->Array, &incy );
 }
 
-void EffK_ComputeVelocity( const MatrixVector *const VelT, const MatrixVector *const AccT, const MatrixVector *const AccTdT,
-			   const double a6, const double a7, MatrixVector *const VelTdT )
+void EffK_ComputeVelocity( const MatrixVector_t *const VelT, const MatrixVector_t *const AccT, const MatrixVector_t *const AccTdT,
+			   const double a6, const double a7, MatrixVector_t *const VelTdT )
 {
      static int incx = 1, incy= 1;  /* Stride in the vectors */
      static double Alpha;           /* Constant for the BLAS routines */

@@ -6,9 +6,9 @@
 #include "Netlib.h"
 #endif
 
-void ErrorForce_PID( const MatrixVector *const Mass, const MatrixVector *const Damp, const MatrixVector *Stiff,
-		     const MatrixVector *const AccTdT, const MatrixVector *const VelTdT, const MatrixVector *const DispTdT,
-		     const MatrixVector *const fc, const MatrixVector *const LoadTdT, const PID_t *const PID, MatrixVector *const fe )
+void ErrorForce_PID( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp, const MatrixVector *Stiff,
+		     const MatrixVector_t *const AccTdT, const MatrixVector_t *const VelTdT, const MatrixVector_t *const DispTdT,
+		     const MatrixVector_t *const fc, const MatrixVector_t *const LoadTdT, const PID_t *const PID, MatrixVector_t *const fe )
 {
 
      static int incx = 1, incy = 1;  /* Stride in the vectors for BLAS routines */
@@ -35,9 +35,9 @@ void ErrorForce_PID( const MatrixVector *const Mass, const MatrixVector *const D
 }
 
 #if _SPARSE_
-void ErrorForce_PID_Sp( const MatrixVector_Sp *const Mass, const MatrixVector_Sp *const Damp, const MatrixVector_Sp *Stiff,
-			const MatrixVector *const AccTdT, const MatrixVector *const VelTdT, const MatrixVector *const DispTdT,
-			const MatrixVector *const fc, const MatrixVector *const LoadTdT, const PID_t *const PID, MatrixVector *const fe )
+void ErrorForce_PID_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp, const MatrixVector_Sp *Stiff,
+			const MatrixVector_t *const AccTdT, const MatrixVector_t *const VelTdT, const MatrixVector_t *const DispTdT,
+			const MatrixVector_t *const fc, const MatrixVector_t *const LoadTdT, const PID_t *const PID, MatrixVector_t *const fe )
 {
 
      static int incx = 1, incy = 1;    /* Stride in the vectors for BLAS routines */
