@@ -47,10 +47,5 @@ void PrintMessage( const int Mess_Type, const int Num_Pairs, ... )
      }
      va_end( ap );
 
-     if ( Type_Mess == ERROR ){
-	  fprintf( stream, " Exiting program.\n" );
-	  exit( EXIT_FAILURE );
-     } else {
-	  fprintf( stream, "\n" );
-     }
+     fprintf( stream, "\n" );
 }

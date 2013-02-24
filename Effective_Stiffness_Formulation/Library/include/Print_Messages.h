@@ -59,8 +59,7 @@ enum MyTypes {INT,    /*!< Integer type. */
  * - "[ INFO ] " if the specified type is \c INFO in \c stdout.
  * - "[  OK  ] " if the specified type is \c SUCCESS in \c stdout.
  *
- * In addition, in the case of an error message type, the routine will call <tt>exit( EXIT_FAILURE )<tt>,
- * in order to terminate the program. In all cases a new line escape sequence is added at the end
+ * In all cases a new line escape sequence is added at the end
  * of the message. For example. calling the function as:
  *
  * PrintMessage( INFO, 4, INT, 2, DOUBLE, 2.5, DOUBLE, 5.0, STRING, "This is a message." );
@@ -78,8 +77,7 @@ enum MyTypes {INT,    /*!< Integer type. */
  * \param[in] Mess_Type Type of the message to print.
  * \param[in] Num_Pairs Number of pairs of arguments.
  *
- * \post A formated message is print to stdout or stderr depending on the message type. If the message is
- * of type error, the program terminates with \c EXIT_FAILURE.
+ * \post A formated message is print to stdout or stderr depending on the message type.
  *
  * \sa MyTypes.
  */
