@@ -176,7 +176,6 @@ void ADwin_SaveData_HDF5( const int hdf5_file, const unsigned int Num_Steps, con
      if( Data == NULL ){
 	  Print_Message( ERROR, 1, STRING,
 			 "ADwin_SaveData_HDF5: Out of memory. Manual extraction of the data required." );
-	  exit( EXIT_FAILURE );
      }
 
      /* Get the data from ADwin */
@@ -202,7 +201,6 @@ void ADwin_SaveData_ASCII( const char *FileName, const unsigned int Num_Steps, c
 
      if( OutFile == NULL ){
 	  Print_Message( ERROR, 3, STRING, "ADwin_SaveData_TXT: Could not open ", STRING, FileName, STRING, "." );
-	  exit( EXIT_FAILURE );
      }
 
      Length = Num_Sub*Num_Steps*Num_Channels;
@@ -210,7 +208,6 @@ void ADwin_SaveData_ASCII( const char *FileName, const unsigned int Num_Steps, c
      if( Data == NULL ){
 	  Print_Message( ERROR, 1, STRING,
 			 "ADwin_SaveData_HDF5: Out of memory. Manual extraction of the data required." );
-	  exit( EXIT_FAILURE );
      }
 
      /* Get the data from ADwin */
