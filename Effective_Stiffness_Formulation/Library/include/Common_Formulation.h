@@ -87,7 +87,7 @@ void Compute_NewState( const MatrixVector *const IGain, const MatrixVector *cons
  * \param[in] Damp The viscous damping matrix \f$\mathcal C\f$.
  * \param[in] GDisp Vector containing the ground displacement of the earthquake at a certain step \f$\vec u_g\f$.
  * \param[in] GVel Vector containing the ground velocity of the earthquake at a certain step \f$\dot{\vec u}_g\f$.
- * \param[in,out] InLoad The input load vector \$\vec l_i^t\f$ as an absolute value. As an input, only the size
+ * \param[in,out] InLoad The input load vector \f$\vec l_i^t\f$ as an absolute value. As an input, only the size
  * of the vector is referenced, not its elements.
  *
  * \post \c InLoad is the input load vector considering absolute values.
@@ -130,7 +130,7 @@ void InputLoad_AbsValues( const MatrixVector *const Stiff, const MatrixVector *c
  * \param[in] Damp The viscous damping matrix \f$\mathcal C\f$.
  * \param[in] GDisp Vector containing the ground displacement of the earthquake at a certain step \f$\vec u_g\f$.
  * \param[in] GVel Vector containing the ground velocity of the earthquake at a certain step \f$\dot{\vec u}_g\f$.
- * \param[in,out] InLoad The input load vector \$\vec l_i^t\f$ as an absolute value. As an input, only the size
+ * \param[in,out] InLoad The input load vector \f$\vec l_i^t\f$ as an absolute value. As an input, only the size
  * of the vector is referenced, not its elements.
  *
  * \post \c InLoad is the input load vector considering absolute values.
@@ -167,7 +167,7 @@ void InputLoad_AbsValues_Sp( MatrixVector *const InLoad, const MatrixVector_Sp *
  *
  * \param[in] Mass The mass matrix \f$\mathcal M\f$.
  * \param[in] GAcc Vector containing the ground acceleration of the earthquake at a certain step \f$\ddot{\vec u}_g\f$.
- * \param[in,out] InLoad The input load vector \$\vec l_i^t\f$ as a relative value. As an input, only the size
+ * \param[in,out] InLoad The input load vector \f$\vec l_i^t\f$ as a relative value. As an input, only the size
  * of the vector is referenced, not its elements.
  *
  * \post \c InLoad is the input load vector considering relative values.
@@ -207,7 +207,7 @@ void InputLoad_RelValues( MatrixVector *const InLoad, const MatrixVector *const 
  *
  * \param[in] Mass The mass matrix \f$\mathcal M\f$.
  * \param[in] GAcc Vector containing the ground acceleration of the earthquake at a certain step \f$\ddot{\vec u}_g\f$.
- * \param[in,out] InLoad The input load vector \$\vec l_i^t\f$ as a relative value. As an input, only the size
+ * \param[in,out] InLoad The input load vector \f$\vec l_i^t\f$ as a relative value. As an input, only the size
  * of the vector is referenced, not its elements.
  *
  * \post \c InLoad is the input load vector considering relative values.

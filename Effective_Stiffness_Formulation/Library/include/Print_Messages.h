@@ -69,7 +69,7 @@ enum MyTypes {INT,    /*!< Integer type. */
  *
  * will yield in:
  *
- * <tt>(stdout):  [ INFO ] 2 2.5 5.0 This is a message.<tt>
+ * <tt>(stdout):  [ INFO ] 2 2.5 5.0 This is a message.</tt>
  *
  * \pre
  * - The first argument should be indicative of the type of the message: \c ERROR, \c WARNING, \c SUCCESS
