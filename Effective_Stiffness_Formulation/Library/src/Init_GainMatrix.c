@@ -14,8 +14,9 @@
  * operation. The PARDISO solver is no longer supported since it requires more memory and time than the LAPACK equivalent
  * routines.
  */
+#include <stdlib.h>         /* For exit() */
 
-#include "ErrorHandling.h"
+#include "Print_Messages.h" /* For Print_Message() */
 #include "Initiation.h"
 
 #if _SPARSE_
@@ -45,13 +46,14 @@ void IGainMatrix( MatrixVector *const Gain, const MatrixVector *const Mass, cons
      dpotrf_( &uplo, &Gain->Rows, Gain->Array, &lda, &info );
 
      if ( info == 0 ){
-	  PrintSuccess( "Cholesky factorization successfully completed.\n" );
+	  Print_Message( SUCCESS, 2, STRING, "Cholesky factorization successfully completed." );
      }
      else if (info < 0){
-	  LAPACKPErrorAndExit( "Cholesky factorization: the ", -info, "th argument has an illegal value." );
+	  Print_Message( ERROR, 3, STRING, "Cholesky factorization: the ", INT, -info, STRING, "th argument has an illegal value." );
+	  exit( EXIT_FAILURE );
      } else if (info > 0){
-	  LAPACKPErrorAndExit("Cholesky factorization: the leading minor of order ", info,
-			      " is not positive definite, and the factorization could not be completed." );
+	  Print_Message( ERROR, 3, STRING, "Cholesky factorization: the leading minor of order ", INT, info,
+			 STRING, " is not positive definite, and the factorization could not be completed." );
      }
 
      /* LAPACK: Compute the inverse of the Gain matrix using the Cholesky factorization computed
@@ -59,20 +61,22 @@ void IGainMatrix( MatrixVector *const Gain, const MatrixVector *const Mass, cons
      dpotri_( &uplo, &Gain->Rows, Gain->Array, &lda, &info );
 
      if ( info == 0 ){
-	  PrintSuccess( "Matrix Inversion successfully completed.\n" );
+	  Print_Message( SUCCESS, 1, STRING, "Matrix Inversion successfully completed." );
+	  exit( EXIT_FAILURE );
      } else if (info < 0){
-	  LAPACKPErrorAndExit( "Matrix Inversion: the ", -info, "th argument has an illegal value." );
+	  Print_Message( ERROR, 3, STRING, "Matrix inversion: the ", INT, -info, STRING, "th argument has an illegal value." );
      } else if (info > 0){
-	  fprintf( stderr, "Matrix Inversion: the (%d,%d) element of the factor U or L is zero, and the inverse could not be computed.\n", info, info );
-	  fprintf( stderr, "Exiting program.\n" );
+	  Print_Message( ERROR, 5, STRING, "Matrix Inversion: the (", INT, info, STRING, "," ,INT, info,
+			 STRING,") element of the factor U or L is zero, and the inverse could not be computed.\n" );
 	  exit( EXIT_FAILURE );
      }
 
      dlascl_( &uplo, &ione, &ione, &one, Scalars.Lambda, &Gain->Rows, &Gain->Cols, Gain->Array, &lda, &info );
      if( info < 0 ){
-	  LAPACKPErrorAndExit( "Gain matrix: the ", -info, "th argument has an illegal value and cannot be scaled" );
+	  Print_Message( ERROR, 3, STRING, "Gain matrix: the ", INT, -info, STRING, "th argument has an illegal value and cannot be scaled." );
+	  exit( EXIT_FAILURE );
      } else {
-	  PrintSucces( "Gain matrix successfully calculated.\n" );
+	  Print_Message( SUCCESS, 1, STRING, "Gain matrix successfully calculated.\n" );
      }
 
 }
@@ -107,13 +111,14 @@ void IGainMatrix_Sp( MatrixVector *const Gain, const MatrixVector_Sp *const Mass
      dpotrf_( &uplo, &Gain->Rows, Gain->Array, &lda, &info );
 
      if ( info == 0 ){
-	  PrintSuccess( "Cholesky factorization successfully completed.\n" );
+	  Print_Message( SUCCESS, 2, STRING, "Cholesky factorization successfully completed." );
      }
      else if (info < 0){
-	  LAPACKPErrorAndExit( "Cholesky factorization: the ", -info, "th argument has an illegal value." );
+	  Print_Message( ERROR, 3, STRING, "Cholesky factorization: the ", INT, -info, STRING, "th argument has an illegal value." );
+	  exit( EXIT_FAILURE );
      } else if (info > 0){
-	  LAPACKPErrorAndExit("Cholesky factorization: the leading minor of order ", info,
-			      " is not positive definite, and the factorization could not be completed." );
+	  Print_Message( ERROR, 3, STRING, "Cholesky factorization: the leading minor of order ", INT, info,
+			 STRING, " is not positive definite, and the factorization could not be completed." );
      }
 
      /* LAPACK: Compute the inverse of the Gain matrix using the Cholesky factorization computed
@@ -121,20 +126,22 @@ void IGainMatrix_Sp( MatrixVector *const Gain, const MatrixVector_Sp *const Mass
      dpotri_( &uplo, &Gain->Rows, Gain->Array, &lda, &info );
 
      if ( info == 0 ){
-	  PrintSuccess( "Matrix Inversion successfully completed.\n" );
+	  Print_Message( SUCCESS, 1, STRING, "Matrix Inversion successfully completed." );
+	  exit( EXIT_FAILURE );
      } else if (info < 0){
-	  LAPACKPErrorAndExit( "Matrix Inversion: the ", -info, "th argument has an illegal value." );
+	  Print_Message( ERROR, 3, STRING, "Matrix inversion: the ", INT, -info, STRING, "th argument has an illegal value." );
      } else if (info > 0){
-	  fprintf( stderr, "Matrix Inversion: the (%d,%d) element of the factor U or L is zero, and the inverse could not be computed.\n", info, info );
-	  fprintf( stderr, "Exiting program.\n" );
+	  Print_Message( ERROR, 5, STRING, "Matrix Inversion: the (", INT, info, STRING, "," ,INT, info,
+			 STRING,") element of the factor U or L is zero, and the inverse could not be computed.\n" );
 	  exit( EXIT_FAILURE );
      }
 
      dlascl_( &uplo, &ione, &ione, &one, Scalars.Lambda, &Gain->Rows, &Gain->Cols, Gain->Array, &lda, &info );
      if( info < 0 ){
-	  LAPACKPErrorAndExit( "Gain matrix: the ", -info, "th argument has an illegal value and cannot be scaled" );
+	  Print_Message( ERROR, 3, STRING, "Gain matrix: the ", INT, -info, STRING, "th argument has an illegal value and cannot be scaled." );
+	  exit( EXIT_FAILURE );
      } else {
-	  PrintSucces( "Gain matrix successfully calculated.\n" );
+	  Print_Message( SUCCESS, 1, STRING, "Gain matrix successfully calculated.\n" );
      }
 
 }
@@ -207,14 +214,13 @@ void IGainMatrix_Pardiso( MatrixVector *const Gain, const MatrixVector *const Ma
      phase = 11;
      PARDISO (pt, &maxfct, &mnum, &mtype, &phase, &Sp_TempMat.Rows, Sp_TempMat.Values, Sp_TempMat.RowIndex,
 	      Sp_TempMat.Columns, &idum, &Gain->Rows, iparm, &msglvl, &ddum, &ddum, &error);
-     if (error != 0)
-     {
-	  printf ("\nERROR during symbolic factorization: %d", error);
+     if (error != 0){
+	  Print_Message( ERROR, 3, "PARDISO: Error during symbolic factorization: ", INT, error, STRING, "." );
 	  exit (1);
      }
-     PrintSuccess( "\nReordering completed ... " );
-     printf ("\nNumber of nonzeros in factors = %d", iparm[17]);
-     printf ("\nNumber of factorization MFLOPS = %d", iparm[18]);
+     Print_Message( SUCCESS, 1, STRING, "PARDISO: Reordering completed ... " );
+     Print_Message( INFO, 3, STRING, "PARDISO: Number of nonzeros in factors = ", INT, iparm[17], STRING, "." ); 
+     Print_Message( INFO, 3, STRING, "PARDISO: Number of factorization MFLOPS = ", INT, iparm[18], STRING, "." ); 
 
      /* -------------------------------------------------------------------- */
      /* .. Numerical factorization. */
@@ -223,12 +229,11 @@ void IGainMatrix_Pardiso( MatrixVector *const Gain, const MatrixVector *const Ma
      
      PARDISO (pt, &maxfct, &mnum, &mtype, &phase, &Sp_TempMat.Rows, Sp_TempMat.Values, Sp_TempMat.RowIndex,
 	      Sp_TempMat.Columns, &idum, &Gain->Rows, iparm, &msglvl, &ddum, &ddum, &error);
-     if (error != 0)
-     {
-	  printf ("\nERROR during numerical factorization: %d", error);
+     if (error != 0){
+	  Print_Message( ERROR, 3, STRING, "PARDISO: Error during numerical factorization: ", INT, error, STRING, "." );
 	  exit (2);
      }
-     PrintSuccess ( "\nFactorization completed ... " );
+     Print_Message( SUCCESS, 1, STRING, "PARDISO: Factorization completed ... " );
 
      /* --------------------------------------------------------------------
       * .. Back substitution and iterative refinement.
@@ -252,16 +257,17 @@ void IGainMatrix_Pardiso( MatrixVector *const Gain, const MatrixVector *const Ma
      Destroy_MatrixVector( &IdentMatrix );
      Destroy_MatrixVector_Sp( &Sp_TempMat );
 
-     PrintSuccess( "Matrix Inversion successfully completed.\n" );
+     Print_Message( SUCCESS, 1, STRING, "PARDISO: Matrix Inversion successfully completed." );
 
      ddum = 1.0; idum = 1;
      lda = Max( 1, Gain->Rows );
      uplo = 'L';   /* The lower part of the matrix will be used (upper part in C) */
      dlascl_( &uplo, &idum, &idum, &ddum, Scalars.Lambda, &Gain->Rows, &Gain->Cols, Gain->Array, &lda, &info );
      if( info < 0 ){
-	  LAPACKPErrorAndExit( "Gain matrix: the ", -info, "th argument has an illegal value and cannot be scaled" );
+	  Print_Message( ERROR, 3, STRING, "Gain matrix: the ", INT, -info, STRING, "th argument has an illegal value and cannot be scaled." );
+	  exit( EXIT_FAILURE );
      } else {
-	  PrintSucces( "Gain matrix successfully calculated.\n" );
+	  Print_Message( SUCCESS, 1, STRING, "PARDISO: Gain matrix successfully calculated." );
      }
 
 }
@@ -332,14 +338,13 @@ void IGainMatrix_Pardiso_Sp( MatrixVector *const Gain, const MatrixVector_Sp *co
      PARDISO (pt, &maxfct, &mnum, &mtype, &phase, &Sp_TempMat.Rows, Sp_TempMat.Values, Sp_TempMat.RowIndex,
 	      Sp_TempMat.Columns, &idum, &Gain->Rows, iparm, &msglvl, &ddum, &ddum, &error);
 
-     if (error != 0)
-     {
-	  printf ("\nERROR during symbolic factorization: %d", error);
+     if (error != 0) {
+	  Print_Message( ERROR, 3, "PARDISO: Error during symbolic factorization: ", INT, error, STRING, "." );
 	  exit (1);
      }
-     PrintSuccess ("\nReordering completed ... ");
-     printf ("\nNumber of nonzeros in factors = %d", iparm[17]);
-     printf ("\nNumber of factorization MFLOPS = %d", iparm[18]);
+     Print_Message( SUCCESS, 1, STRING, "PARDISO: Reordering completed ... " );
+     Print_Message( INFO, 3, STRING, "PARDISO: Number of nonzeros in factors = ", INT, iparm[17], STRING, "." ); 
+     Print_Message( INFO, 3, STRING, "PARDISO: Number of factorization MFLOPS = ", INT, iparm[18], STRING, "." ); 
 
      /* --------------------------------------------------------------------
       * .. Numerical factorization.
@@ -347,12 +352,11 @@ void IGainMatrix_Pardiso_Sp( MatrixVector *const Gain, const MatrixVector_Sp *co
      phase = 22;
      PARDISO (pt, &maxfct, &mnum, &mtype, &phase, &Sp_TempMat.Rows, Sp_TempMat.Values, Sp_TempMat.RowIndex,
 	      Sp_TempMat.Columns, &idum, &Gain->Rows, iparm, &msglvl, &ddum, &ddum, &error);
-     if (error != 0)
-     {
-	  printf ("\nERROR during numerical factorization: %d", error);
+     if (error != 0){
+	  Print_Message( ERROR, 3, STRING, "PARDISO: Error during numerical factorization: ", INT, error, STRING, "." );
 	  exit (2);
      }
-     PrintSuccess ("\nFactorization completed ... ");
+     Print_Message( SUCCESS, 1, STRING, "PARDISO: Factorization completed ... " );
 
      /* --------------------------------------------------------------------
       * .. Back substitution and iterative refinement.
@@ -377,16 +381,17 @@ void IGainMatrix_Pardiso_Sp( MatrixVector *const Gain, const MatrixVector_Sp *co
      Destroy_MatrixVector( &IdentMatrix );
      Destroy_MatrixVector_Sp( &Sp_TempMat );
 
-     PrintSuccess( "Matrix Inversion successfully completed" );
+     Print_Message( SUCCESS, 1, STRING, "PARDISO: Matrix Inversion successfully completed." );
 
      ddum = 1.0; idum = 1;
      lda = Max( 1, Gain->Rows );
      uplo = 'L';   /* The lower part of the matrix will be used (upper part in C) */
      dlascl_( &uplo, &idum, &idum, &ddum, Scalars.Lambda, &Gain->Rows, &Gain->Cols, Gain->Array, &lda, &info );
      if( info < 0 ){
-	  LAPACKPErrorAndExit( "Gain matrix: the ", -info, "th argument has an illegal value and cannot be scaled" );
+	  Print_Message( ERROR, 3, STRING, "Gain matrix: the ", INT, -info, STRING, "th argument has an illegal value and cannot be scaled." );
+	  exit( EXIT_FAILURE );
      } else {
-	  PrintSucces( "Gain matrix successfully calculated.\n" );
+	  Print_Message( SUCCESS, 1, STRING, "PARDISO: Gain matrix successfully calculated." );
      }
 }
 #endif /* _SPARSE */

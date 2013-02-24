@@ -26,6 +26,7 @@ enum MyTypes {INT,    /*!< Integer type. */
 #define ERROR   0  /*!< Error message type.*/
 #define SUCCESS 1  /*!< Success message type.*/
 #define INFO    2  /*!< Informative message type.*/
+#define WARNING 3  /*!< Warning message type.*/
 
 #define RESET   "\033[0m"              /*!< Reset to default lettering.*/
 #define BLACK   "\033[30m"             /*!< Black color.*/

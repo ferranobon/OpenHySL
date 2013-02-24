@@ -36,13 +36,13 @@ void ADwin_CheckProcessStatus( const int ProcessNumber )
      ADwinStatus = Process_Status ( ProcessNumber );
 
      if ( ADwinStatus == 1){
-	  Print_Message( INFO, 3, STRING, "Process", INT, ProcessNumber, STRING, "is running." );
+	  Print_Message( INFO, 3, STRING, "Process ", INT, ProcessNumber, STRING, " is running." );
      } else if ( ADwinStatus == 0 ){
-	  Print_Message( ERROR, 3, STRING, "Process", INT, ProcessNumber, STRING, "is not running." );
+	  Print_Message( ERROR, 3, STRING, "Process ", INT, ProcessNumber, STRING, " is not running." );
 	  exit( EXIT_FAILURE );
      } else if ( ADwinStatus == -1 ){
-	  Print_Message( INFO, 3, STRING, "Process", INT, ProcessNumber, STRING,
-			 "is being stopped and is waiting for the last event." );
+	  Print_Message( INFO, 3, STRING, "Process ", INT, ProcessNumber, STRING,
+			 " is being stopped and is waiting for the last event." );
      } else assert(0);
 }
 

@@ -12,10 +12,11 @@
  * make use of the BLAS library to perform the linear algebra operations and they support both single and
  * double precision. Sparse BLAS operations are supported through the Intel MKL library.
  */
+#include <stdlib.h>        /* For exit() */
 
-#include "Initiation."     /* Header files for the initiation phase */
-#include "MatrixVector.h"  /* MatrixVector definition */
-#include "ErrorHandling.h" /* Routines for error handling */
+#include "Initiation.h"     /* Header files for the initiation phase */
+#include "MatrixVector.h"   /* MatrixVector definition */
+#include "Print_Messages.h" /* For Print_Message() */
 
 #if _SPARSE_
 #include <mkl.h>
@@ -55,7 +56,8 @@ void Rayleigh_Damping( const MatrixVector *const Mass, const MatrixVector *const
      dlascl_( &uplo, &ione, &ione, &done, &alpha, &Damp->Rows, &Damp->Cols, Damp->Array, &lda, &info );
 
      if ( info < 0 ){
-	  LAPACKPErrorAndExit( "dlascl: The ", -info, "-th argument had an illegal value" );
+	  Print_Message( ERROR, 3, STRING, "dlascl: The ", INT, -info, STRING, "-th argument had an illegal value." );
+	  exit( EXIT_FAILURE );
      }
 
      /* BLAS: C = alpha*M + beta*K = C + beta*K. Only half of the matrix is calculated */
@@ -64,7 +66,7 @@ void Rayleigh_Damping( const MatrixVector *const Mass, const MatrixVector *const
 	  daxpy_( &Length, &beta, Stif->Array[i*Stif->Rows + i], &incx, Damp->Array[i*Damp->Rows +i], &incy);
      }
 
-     PrintSuccess( "Damping matrix successfully calculated.\n" );
+     Print_Message( SUCCESS, 1, STRING "Damping matrix successfully calculated." );
 }
 
 #if _SPARSE_
@@ -114,11 +116,11 @@ void Rayleigh_Damping_Sp( const MatrixVector_Sp *const Mass, const MatrixVector_
      Destroy_MatrixVector_Sparse( &Temp );
 
      if ( info > 0){
-	  PrintErrorAndExit( "Number of elements exceeded while calculating the Damping matrix" );
+	  Print_Message( ERROR, 1, STRING, "Number of elements exceeded while calculating the Damping matrix." );
      } else if ( info < 0 ){
-	  PrintErrorAndExit( "I do not understand" );
+	  Print_Message( ERROR, 1, STRING, "I do not understand." );
      } else {
-	  PrintSuccess( "Damping matrix successfully calculated.\n" );
+	  Print_Message( SUCCESS, 1, STRING, "Damping matrix successfully calculated." );
      }
 }
 #endif

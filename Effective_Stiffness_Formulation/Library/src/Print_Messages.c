@@ -20,25 +20,28 @@ void Print_Message( const int Mess_Type, const int Num_Pairs, ... )
      } else if ( Mess_Type == INFO ){
 	  stream = stdout;
 	  fprintf( stream, "[ INFO ]" );
+     } else if ( Mess_Type == WARNING ){
+	  stream = stderr;
+	  fprintf( stream, "[" YELLOW " WARN " RESET "]" );
      } else if ( Mess_Type == ERROR ){
 	  stream = stderr;
 	  fprintf( stream, "[" RED "FAILED" RESET "]" );
-     } else assert( Mess_Type >= ERROR && Mess_Type <= INFO );
+     } else assert( Mess_Type >= ERROR && Mess_Type <= WARNING );
 
      va_start( ap, Num_Pairs );
      for( i=0 ; i < Num_Pairs; i++ ){
 	  type = va_arg( ap, enum MyTypes );
 	  switch (type){
 	  case INT:
-	       fprintf( stream," %d", va_arg(ap,int) );
+	       fprintf( stream,"%d", va_arg(ap,int) );
 	       break;
 	  case FLOAT:
 	       /* float is automatically promoted to double when passed to va_arg */
 	  case DOUBLE:
-	       fprintf( stream," %lf", va_arg(ap,double) );
+	       fprintf( stream,"%lf", va_arg(ap,double) );
 	       break;
 	  case STRING:
-	       fprintf( stream," %s", va_arg(ap,char *) );
+	       fprintf( stream,"%s", va_arg(ap,char *) );
 	       break;
 	  default: /* unknown type */
 	       PrintMessage( ERROR, 2, STRING, "PrintMessage: Unknown type." );
