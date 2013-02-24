@@ -46,7 +46,8 @@
  * \param[in] Err_ForceT the error force vector \f$\vec f_{err}^t\f$.
  * \param[in,out] Tempvec is a temporal vector that helps in the calculations. This is included in order to avoid
  * allocating and deallocating memory each step. On input only the number of rows is used.
- * \param[out] VecTdT_0 is new explicit displacement \f$\vec n_0^{t + \Delta t}\f$.
+ * \param[out] VecTdT_0 is new explicit state (displacement, velocity or acceleration depending on the selected formulation)
+ * \f$\vec n_0^{t + \Delta t}\f$.
  *
  * \post
  * - \c VecTdT_0 is the result of the operation:
@@ -247,8 +248,8 @@ void InputLoad_RelValues_Sp( MatrixVector *const InLoad, const MatrixVector_Sp *
  *
  * It makes use of BLAS routines to perform the linear algebra operations.
  *
- * \param[in] VecTdT_m The non-coupling part of the vector.
- * \param[in] Gain_m The non-coupling part of the vector.
+ * \param[in] VecTdT_m The non-coupling part of the vector (displacement, velocity or acceleration depending on the formulation).
+ * \param[in] Gain_m The non-coupling part of the gain matrix \f$\mathcal G\f$.
  * \param[in] fcprevsub The non-coupling part of the vector.
  * \param[in] CNodes Structure containing the coupling nodes.
  * \param[in,out] VecTdT The non-coupling part of the vector. Only the non-coupling positions are modified.
