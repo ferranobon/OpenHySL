@@ -26,6 +26,7 @@ enum MyTypes {INT,    /*!< Integer type. */
 #define ERROR   0  /*!< Error message type.*/
 #define SUCCESS 1  /*!< Success message type.*/
 #define INFO    2  /*!< Informative message type.*/
+#define WARNING 3  /*!< Warning message type.*/
 
 #define RESET   "\033[0m"              /*!< Reset to default lettering.*/
 #define BLACK   "\033[30m"             /*!< Black color.*/
@@ -52,10 +53,12 @@ enum MyTypes {INT,    /*!< Integer type. */
  *
  * The desired message is printed to stdout in the form. The function uses a variable number of
  * arguments in order to handle different situations. Also, the message is redirected to \c stdout
- * or \c stderr depending on the type of message: \c ERROR (stderr), \c SUCCESS (stdout) or \c INFO
- * (stdout). Also, depending on the type of message, a prefix will be added to the line, being:
+ * or \c stderr depending on the type of message: \c ERROR (stderr), \c WARNING, \c SUCCESS (stdout)
+ * or \c INFO (stdout). Also, depending on the type of message, a prefix will be added to the line,
+ * being:
  *
  * - "[FAILED] " if the specified type is \c ERROR in \c stderr.
+ * - "[ WARN ] " if the specified type is \c ERROR in \c stderr.
  * - "[ INFO ] " if the specified type is \c INFO in \c stdout.
  * - "[  OK  ] " if the specified type is \c SUCCESS in \c stdout.
  *
