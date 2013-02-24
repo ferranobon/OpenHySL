@@ -20,13 +20,10 @@ void Print_Message( const int Mess_Type, const int Num_Pairs, ... )
      } else if ( Mess_Type == INFO ){
 	  stream = stdout;
 	  fprintf( stream, "[ INFO ]" );
-     } else if ( Mess_Type == WARNING ){
-	  stream = stderr;
-	  fprintf( stream, "[" YELLOW " WARN " RESET "]" );
      } else if ( Mess_Type == ERROR ){
 	  stream = stderr;
 	  fprintf( stream, "[" RED "FAILED" RESET "]" );
-     } else assert( Mess_Type >= ERROR && Mess_Type <= WARN );
+     } else assert( Mess_Type >= ERROR && Mess_Type <= INFO );
 
      va_start( ap, Num_Pairs );
      for( i=0 ; i < Num_Pairs; i++ ){
