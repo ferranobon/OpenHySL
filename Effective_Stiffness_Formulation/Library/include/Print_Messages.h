@@ -81,6 +81,6 @@ enum MyTypes {INT,    /*!< Integer type. */
  *
  * \sa MyTypes.
  */
-void PrintMessage( const int Mess_Type, const int Num_Pairs, ... );
+void Print_Message( const int Mess_Type, const int Num_Pairs, ... );
 
 #endif /* PRINT_MESSAGES_H_ */

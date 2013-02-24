@@ -5,7 +5,7 @@
 
 #include "Print_Messages.h"  /* Function prototypes and definition of ansi colors */
 
-void PrintMessage( const int Mess_Type, const int Num_Pairs, ... )
+void Print_Message( const int Mess_Type, const int Num_Pairs, ... )
 {
 
      int i;        /* A counter */

@@ -39,6 +39,7 @@ void ADwin_CheckProcessStatus( const int ProcessNumber )
 	  Print_Message( INFO, 3, STRING, "Process", INT, ProcessNumber, STRING, "is running." );
      } else if ( ADwinStatus == 0 ){
 	  Print_Message( ERROR, 3, STRING, "Process", INT, ProcessNumber, STRING, "is not running." );
+	  exit( EXIT_FAILURE );
      } else if ( ADwinStatus == -1 ){
 	  Print_Message( INFO, 3, STRING, "Process", INT, ProcessNumber, STRING,
 			 "is being stopped and is waiting for the last event." );
@@ -149,13 +150,17 @@ void ADwin_TestVersion( void )
      if ( Status == 0 ){
 	  Print_Message( SUCCESS, 1, STRING, "ADwin: Everything is OK." );
      } else if ( Status == 1 ){
-	  Print_Message( ERROR, 1, STRING, "ADwin: Wrong driver version, processor continues working." );  
+	  Print_Message( ERROR, 1, STRING, "ADwin: Wrong driver version, processor continues working." );
+	  exit( EXIT_FAILURE );
      } else if ( Status == 2 ){
-	  Print_Message( ERROR, 1, STRING, "ADwin: Wrong driver version, processor stops." ); 
+	  Print_Message( ERROR, 1, STRING, "ADwin: Wrong driver version, processor stops." );
+	  exit( EXIT_FAILURE );
      } else if ( Status == 3 ){
 	  Print_Message( ERROR, 1, STRING, "ADwin: No response from the ADwin system." );
+	  exit( EXIT_FAILURE );
      } else {
 	  Print_Message( ERROR, 1, STRING, "ADwin: Unrecognised return value." );
+	  exit( EXIT_FAILURE );
      }
 }
 
@@ -171,6 +176,7 @@ void ADwin_SaveData_HDF5( const int hdf5_file, const unsigned int Num_Steps, con
      if( Data == NULL ){
 	  Print_Message( ERROR, 1, STRING,
 			 "ADwin_SaveData_HDF5: Out of memory. Manual extraction of the data required." );
+	  exit( EXIT_FAILURE );
      }
 
      /* Get the data from ADwin */
@@ -196,6 +202,7 @@ void ADwin_SaveData_ASCII( const char *FileName, const unsigned int Num_Steps, c
 
      if( OutFile == NULL ){
 	  Print_Message( ERROR, 2, STRING, "ADwin_SaveData_TXT: Could not open ", STRING, FileName );
+	  exit( EXIT_FAILURE );
      }
 
      Length = Num_Sub*Num_Steps*Num_Channels;
@@ -203,6 +210,7 @@ void ADwin_SaveData_ASCII( const char *FileName, const unsigned int Num_Steps, c
      if( Data == NULL ){
 	  Print_Message( ERROR, 1, STRING,
 			 "ADwin_SaveData_HDF5: Out of memory. Manual extraction of the data required." );
+	  exit( EXIT_FAILURE );
      }
 
      /* Get the data from ADwin */
