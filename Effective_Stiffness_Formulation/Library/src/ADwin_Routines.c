@@ -201,7 +201,7 @@ void ADwin_SaveData_ASCII( const char *FileName, const unsigned int Num_Steps, c
      OutFile = fopen( FileName, "w" );
 
      if( OutFile == NULL ){
-	  Print_Message( ERROR, 2, STRING, "ADwin_SaveData_TXT: Could not open ", STRING, FileName );
+	  Print_Message( ERROR, 3, STRING, "ADwin_SaveData_TXT: Could not open ", STRING, FileName, STRING, "." );
 	  exit( EXIT_FAILURE );
      }
 
