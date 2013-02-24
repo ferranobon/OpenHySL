@@ -52,19 +52,12 @@ enum MyTypes {INT,    /*!< Integer type. */
  *
  * The desired message is printed to stdout in the form. The function uses a variable number of
  * arguments in order to handle different situations. Also, the message is redirected to \c stdout
-<<<<<<< HEAD
  * or \c stderr depending on the type of message: \c ERROR (stderr), \c WARNING (stderr), \c SUCCESS
  * (stdout) or \c INFO (stdout). Also, depending on the type of message, a prefix will be added to
  * the line, being:
  *
  * - "[FAILED] " if the specified type is \c ERROR in \c stderr.
  * - "[ WARN ] " if the specified type is \c WARNING in \c stderr.
-=======
- * or \c stderr depending on the type of message: \c ERROR (stderr), \c SUCCESS (stdout) or \c INFO
- * (stdout). Also, depending on the type of message, a prefix will be added to the line, being:
- *
- * - "[FAILED] " if the specified type is \c ERROR in \c stderr.
->>>>>>> parent of 73b846c... The Print_Message() routine now can handle warnings. The routines ADwin_SaveData* make use of this additional message type.
  * - "[ INFO ] " if the specified type is \c INFO in \c stdout.
  * - "[  OK  ] " if the specified type is \c SUCCESS in \c stdout.
  *
