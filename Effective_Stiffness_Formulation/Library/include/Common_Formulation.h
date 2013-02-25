@@ -76,7 +76,7 @@ void Compute_NewState( const MatrixVector_t *const IGain, const MatrixVector_t *
  * It makes use of BLAS routines to perform the linear algebra operations.
  *
  * \pre
- * - All elements of type MatrixVector must be properly initialised through the MatrixVector_Create() routine.
+ * - All elements of type \c MatrixVector_t must be properly initialised through the MatrixVector_Create() routine.
  * - The matrices must be symmetrical and only the upper part will be referenced (lower part in FORTRAN routines).
  * - The dimensions of the matrices must be the identical.
  * - The size of the vectors and matrices must be coherent since it will not be checked in the routine.
@@ -117,7 +117,7 @@ void InputLoad_AbsValues( const MatrixVector_t *const Stiff, const MatrixVector_
  * perform the linear algebra operations.
  *
  * \pre
- * - All elements of type MatrixVector must be properly initialised through the MatrixVector_Create() routine.
+ * - All elements of type \c MatrixVector_t must be properly initialised through the MatrixVector_Create() routine.
  * - All elements of type \c MatrixVector_Sp_t must be properly intialised through the MatrixVector_Create_Sp() routine.
  * - The matrices must in Intel's MKL CSR-\em three \em array \em variation and in one based index.
  * - The matrices must be symmetrical and only the upper part will be referenced (lower part in FORTRAN routines).
@@ -139,9 +139,9 @@ void InputLoad_AbsValues( const MatrixVector_t *const Stiff, const MatrixVector_
  *
  * \sa MatrixVector_t and MatrixVector_Sp_t.
  */
-void InputLoad_AbsValues_Sp( MatrixVector_t *const InLoad, const MatrixVector_Sp_t *const Stiff,
-				   const MatrixVector_Sp_t *const Damp, const MatrixVector_t *const GDisp,
-				   const MatrixVector_t *const GVel );
+void InputLoad_AbsValues_Sp( const MatrixVector_Sp_t *const Stiff, const MatrixVector_Sp_t *const Damp,
+			     const MatrixVector_t *const GDisp, const MatrixVector_t *const GVel,
+			     MatrixVector_t *const InLoad );
 
 /**
  * \brief Calculates the input load as relative value.
@@ -158,7 +158,7 @@ void InputLoad_AbsValues_Sp( MatrixVector_t *const InLoad, const MatrixVector_Sp
  * It makes use of BLAS routines to perform the linear algebra operations.
  *
  * \pre
- * - All elements of type MatrixVector must be properly initialised through the MatrixVector_Create() routine.
+ * - All elements of type \c MatrixVector_t must be properly initialised through the MatrixVector_Create() routine.
  * - The matrices must be symmetrical and only the upper part will be referenced (lower part in FORTRAN routines).
  * - The dimensions of the matrices must be the identical.
  * - The dimensions of the vectors and matrices must be coherent since it will not be checked in the routine.
@@ -176,8 +176,8 @@ void InputLoad_AbsValues_Sp( MatrixVector_t *const InLoad, const MatrixVector_Sp
  *
  * \sa MatrixVector_t.
  */
-void InputLoad_RelValues( MatrixVector_t *const InLoad, const MatrixVector_t *const Mass,
-			  const MatrixVector_t *const GAcc );
+void InputLoad_RelValues( const MatrixVector_t *const Mass, const MatrixVector_t *const GAcc,
+			  MatrixVector_t *const InLoad );
 
 /**
  * \brief Calculates the input load as relative value. Sparse version.
@@ -197,7 +197,7 @@ void InputLoad_RelValues( MatrixVector_t *const InLoad, const MatrixVector_t *co
  * perform the linear algebra operations.
  *
  * \pre
- * - All elements of type MatrixVector must be properly initialised through the MatrixVector_Create() routine.
+ * - All elements of type \c MatrixVector_t must be properly initialised through the MatrixVector_Create() routine.
  * - \c Mass must be properly intialised through the MatrixVector_Create_Sp() routine.
  * - \c Mass must in Intel's MKL CSR-\em three \em array \em variation and in one based index.
  * - \c Mass must be symmetrical and only the upper part will be referenced (lower part in FORTRAN routines).
@@ -216,8 +216,8 @@ void InputLoad_RelValues( MatrixVector_t *const InLoad, const MatrixVector_t *co
  *
  * \sa MatrixVector_t and MatrixVector_Sp_t.
  */
-void InputLoad_RelValues_Sp( MatrixVector_t *const InLoad, const MatrixVector_Sp_t *const Mass,
-			     const MatrixVector_t *const GAcc );
+void InputLoad_RelValues_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVector_t *const GAcc, 
+			     MatrixVector_t *const InLoad );
 
 /**
  * \brief Joins the non-coupling of a vector.

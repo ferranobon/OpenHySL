@@ -54,7 +54,7 @@ void MatrixVector_FromFile_MM( const char *Filename, MatrixVector_t *const MatVe
      
      /* Only sparse matrices are accepted */
      if ( !mm_is_sparse(matcode) ){
-	  Print_Message( ERROR, 1, STRING, "MatrixVector_FromFile_Sp2Dense: the matrix or vector should be of type sparse or dense for this application to work." );
+	  Print_Message( ERROR, 1, STRING, "MatrixVector_FromFile_Sp2Dense: the matrix or vector should be of type sparse for this application to work." );
 	  Print_Message( ERROR, 3, STRING, "Specified Matrix Market type: [", STRING, mm_typecode_to_str(matcode), STRING, "]." );
 	  exit( EXIT_FAILURE );
      }
@@ -66,8 +66,9 @@ void MatrixVector_FromFile_MM( const char *Filename, MatrixVector_t *const MatVe
 
      /* Check if the dimensions of the matrices are the same */
      if ( Rows != MatVec->Rows || Cols != MatVec->Cols ){
-	  Print_Message( ERROR, 10, STRING, "The sizes of the load vector (", INT, Rows, STRING, ",", INT, Cols, STRING, ") do not match with the"
-			 STRING, " specified ones in the configuration file (", INT, MatVec->Rows, STRING, ",", INT, MatVec->Cols, STRING, ")." );
+	  Print_Message( ERROR, 10, STRING, "MatrixVector_From_File_MM: The sizes of the matrix or vector (", INT, Rows, STRING, ",", INT, Cols,
+			 STRING, ") do not match with the", STRING, " specified ones in the configuration file (", INT, MatVec->Rows,
+			 STRING, ",", INT, MatVec->Cols, STRING, ")." );
 	  exit( EXIT_FAILURE );
      }
 

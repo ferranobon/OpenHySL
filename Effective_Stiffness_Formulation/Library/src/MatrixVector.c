@@ -68,13 +68,13 @@ void MatrixVector_ModifyElement( const int RowIndex, const int ColIndex, const d
 
 
 void MatrixVector_Add3Mat( const MatrixVector_t *const MatA, const MatrixVector_t *const MatB, const MatrixVector_t *const MatC,
-			   const Scalars_t Const, MatrixVector_t *const MatY );
+			   const Scalars_t Const, MatrixVector_t *const MatY )
 {
 
      int i;           /* A counter */
      int Length;      /* Variable to store the size of the vector to multiply. */
      int incx, incy;  /* Stride in the vectors for BLAS library */
-     int lda;
+     int lda, ldy;
      int ione;
      double done, Scalar;     /* Constant to use in the BLAS library */
      char uplo;       /* BLAS & LAPACK: Character to specify which part of the matrix has been referenced. */
@@ -86,13 +86,14 @@ void MatrixVector_Add3Mat( const MatrixVector_t *const MatA, const MatrixVector_
      done = 1.0;
 
      lda = Max( 1, MatA->Rows );
+     ldy = Max( 1, MatY->Rows );
 
      /* LAPACK: Y = A */
-     dlacpy_( &uplo, &MatY->Rows, &MatY->Cols, MatA->Array, &lda, MatY->Array, &lda );
+     dlacpy_( &uplo, &MatY->Rows, &MatY->Cols, MatA->Array, &lda, MatY->Array, &ldy );
 
      /* LAPACK: Calculates Y = A  */
      Scalar = Const.Alpha;
-     dlascl_( &uplo, &ione, &ione, &done, &Scalar, &MatY->Rows, &MatY->Cols, MatY->Array, &lda, &info);
+     dlascl_( &uplo, &ione, &ione, &done, &Scalar, &MatY->Rows, &MatY->Cols, MatY->Array, &ldy, &info);
 
      if ( info < 0 ){
 	  Print_Message( ERROR, 3, STRING, "dlascl: The ", INT, -info, STRING, "-th argument had an illegal value." );
