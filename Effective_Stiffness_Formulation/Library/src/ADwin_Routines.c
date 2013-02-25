@@ -75,7 +75,8 @@ void ADwin_SendArray( const unsigned int Index, const double *const Array, const
 
 }
 
-void ADwin_Substep( const double *const VecTdT_0c, double *const VecTdT_c, double *const fcprev_c, double *const fc_c, const unsigned int OrderC )
+void ADwin_Substep( const double *const VecTdT_0c, const unsigned int OrderC, const double Time_To_Wait, double *const VecTdT_c,
+		    double *const fcprev_c, double *const fc_c )
 {
 
      unsigned int i;

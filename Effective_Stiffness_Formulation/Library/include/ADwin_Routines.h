@@ -87,7 +87,7 @@ void ADwin_ManageProcess( const char* PName, const int PNum, const int dowhat );
  * - \c Index cannot exceed the number of data arrays in the ADwin system.
  *
  * \param[in] Index Array number in ADwin.
- * \param[in] Array It contains the data to be transfered (Array length \f$\geq Length\f$
+ * \param[in] Array It contains the data to be transfered (Array length \f$\geq Length\f$).
  * \param[in] Length Number of elements to be transfered.
  *
  * \post The number of variables contained in Array and transfered to ADwin is equal to \c Length.
@@ -122,13 +122,13 @@ void ADwin_SendArray( const unsigned int Index, const double *const Array, const
  * - Only the coupling elements should be on the given vectors since the routine does not consider the global position of the coupling degrees of
  * freedom.
  *
- * \param[in] VecTdT_c0 Explicit displacement at the begining of the step to be sent to ADwin. It should be at least $\Length \geq OrderC\$.
+ * \param[in] VecTdT_0c Explicit displacement at the begining of the step to be sent to ADwin. It should be at least \f$Length \geq OrderC\f$.
  * \param[in] OrderC Amount of data to be sent to the ADwin system.
  * \param[in] Time_To_Wait Amount of time that the computer should wait before asking ADwin for the first time for the new values.
- * \param[out] VecTdT_c Displacement at the end of the sub-stepping process. It should be at least $\Length \geq OrderC\$.
- * \param[out] fcprev_c Coupling forces measured at the sub-step $\n_{sub} - 1\f$, where \f$n_{sub}\f$ is the total number of sub-steps.
- *  It should be at least $\Length \geq OrderC\$.
- * \param[out] fc_c Coupling forces measured at the sub-step $\n_{sub}. It should be at least $\Length \geq OrderC\$.
+ * \param[out] VecTdT_c Displacement at the end of the sub-stepping process. It should be at least \f$Length \geq OrderC\f$.
+ * \param[out] fcprev_c Coupling forces measured at the sub-step \f$n_{sub} - 1\f$, where \f$n_{sub}\f$ is the total number of sub-steps.
+ *  It should be at least \f$Length \geq OrderC\f$.
+ * \param[out] fc_c Coupling forces measured at the sub-step \f$n_{sub}\f$. It should be at least \f$Length \geq OrderC\f$.
  * 
  * \post The vectors \c VecTdT_c, \c fcprev_c, \c fc_c contain the last control values and the coupling force at the previous and last sub-steps.  
  */
@@ -156,12 +156,12 @@ int ADwin_TestVersion( void );
  * - Data must be a properly initialised array of length \f$L \geq N_{steps}\cdot N_{substeps}\cdot N_{channels}\f$.
  * - The hdf5_file identifier must point to a open hdf5 file.
  *
- * \param[in] FileName Name of the output file.
+ * \param[in] hdf5_file HDF5 file identifier.
  * \param[in] Num_Steps Number of steps.
  * \param[in] Num_Sub Number of sub-steps.
  * \param[in] Num_Channels Number of data acquisition channels.
  * \param[in] Chan_Names List of channel names.
- * \param[in] Data_Index points out which data array is to be accessed in ADwin.
+ * \param[in] DataIndex points out which data array is to be accessed in ADwin.
  *
  * \post
  * - The new dataset will have the the data stored in the array identified by \c Data_Index in ADwin with:
@@ -170,7 +170,7 @@ int ADwin_TestVersion( void );
  * - Number of rows equal to \f$N_{step}\cdot N_{substep}\f$.
  */
 void ADwin_SaveData_HDF5( const int hdf5_file, const unsigned int Num_Steps, const unsigned int Num_Sub,
-			  const unsigned short int Num_Channels, const int DataIndex );
+			  const unsigned short int Num_Channels, const char **Chan_Names, const int DataIndex );
 /**
  * \brief Reads the data from ADwin and stores it in a file.
  *
@@ -186,7 +186,7 @@ void ADwin_SaveData_HDF5( const int hdf5_file, const unsigned int Num_Steps, con
  * \param[in] Num_Sub Number of sub-steps.
  * \param[in] Num_Channels Number of data acquisition channels.
  * \param[in] Chan_Names List of channel names.
- * \param[in] Data_Index points out which data array is to be accessed in ADwin.
+ * \param[in] DataIndex points out which data array is to be accessed in ADwin.
  *
  * \post
  * - FileName will contain the data stored in the array identified by \c Data_Index in ADwin with:

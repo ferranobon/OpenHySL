@@ -25,8 +25,8 @@
 #include "Netlib.h"
 #endif
 
-void IGainMatrix( MatrixVector_t *const Gain, const MatrixVector_t *const Mass, const MatrixVector_t *const Damp,
-		  const MatrixVector_t *const Stiff, const Scalars Const )
+void IGainMatrix( MatrixVector_t *const IGain, const MatrixVector_t *const Mass, const MatrixVector_t *const Damp,
+		  const MatrixVector_t *const Stiff, const Scalars_t Const )
 {
 
      char uplo;    

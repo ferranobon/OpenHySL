@@ -5,7 +5,7 @@
  * \date 19th of February 2013
  * \todo Add support for packaged storages to decrease the memory use
  *
- * \brief MatrixVector creation and manipulation prototypes.
+ * \brief MatrixVector_t creation and manipulation prototypes.
  *
  * This file contains the prototypes of those functions involved in creating/destroying dense matrices and vectors.
  */
@@ -20,7 +20,7 @@
  * as well as the values within the matrix. It uses a 1-dimensional array for this purpose. This is intended to be used
  * only for dense matrices and vectors. If a sparse format is desired, \c MatrixVector_Sp should be used instead. 
  *
- * \sa MatrixVector_Sp.
+ * \sa MatrixVector_Sp_t.
  */
 typedef struct MatVec {
      int Rows;       /*!< Number of Rows of the matrix */
@@ -45,9 +45,10 @@ typedef struct Scal{
  * \pre
  * - All elements of type \c MatVec must be properly initialised through MatrixVector_Create().
  * - The matrices must be symmetrical and only the upper part will be referenced (lower part in FORTRAN routines).
- * - The dimensions of the matrices must be the identical.
+ * - \f$S(\mathcal Y) \geq max(S(\mathcal A),S(\mathcal B),S(\mathcal C))\f$ where \f$S(\mathcal X) = X.Rows*X.Cols\f$ is
+ * the size of the matrix.
  *
- * This routine adds three identical matrices through the operation:
+ * This routine adds three matrices through the operation:
  *
  * \f[\mathcal Y = \alpha \mathcal A + \beta \mathcal B + \gamma \mathcal C\f]
  *
@@ -55,7 +56,8 @@ typedef struct Scal{
  * - \f$\mathcal Y\f$, \f$\mathcal A\f$, \f$\mathcal B\f$, \f$\mathcal C\f$ are symmetric matrices,
  * - and \f$\alpha\f$, \f$\beta\f$, \f$\gamma\f$ are real scalars.
  *
- * It makes use of BLAS and LAPACK routines to perform the lineal algebra operations.
+ * It makes use of BLAS and LAPACK routines to perform the lineal algebra operations. For the dense version use the
+ *  MatrixVector_Add3Mat() routine.
  * 
  * \param[in] MatA Symmetric matrix \f$\mathcal A\f$ with only the upper part referenced (lower part in FORTRAN routines).
  * \param[in] MatB Symmetric matrix \f$\mathcal B\f$ with only the upper part referenced (lower part in FORTRAN routines).
@@ -73,11 +75,11 @@ typedef struct Scal{
 void MatrixVector_Add3Mat( const MatrixVector_t *const MatA, const MatrixVector_t *const MatB, const MatrixVector_t *const MatC,
 			   const Scalars_t Const, MatrixVector_t *const MatY );
 /**
- * \brief Allocates the memory for the MatrixVector type.
+ * \brief Allocates the memory for the \c MatrixVector_t type.
  *
  * \pre \f$ Rows \geq 0\f$ and \f$Cols \geq 0 \f$.
  *
- * A MatrixVector type is initialised. The routine allocates an amount of memory as a single dimenson array with length
+ * A \c MatrixVector_t type is initialised. The routine allocates an amount of memory as a single dimenson array with length
  * \f$L = Rows*Cols\f$. The number of rows and columns is also stored and all elements of the array are initialised and
  * set to 0.0.
  *
@@ -86,8 +88,9 @@ void MatrixVector_Add3Mat( const MatrixVector_t *const MatA, const MatrixVector_
  * \param[out] MatVec The matrix or vector to initialise.
  *
  * \post
- * - \c MatVec.Rows = Rows and \c MatVec.Cols = Cols.
+ * - <tt>MatVec.Rows = Rows</tt> and <tt>MatVec.Cols = Cols</tt>.
  * - The length of the allocated double array is set to \f$L = Rows*Cols\f$ and all its values initialised to 0.0.
+ * - The memory should be deallocated through MatrixVector_Destroy().
  *
  * \sa MatrixVector_t.
  */
@@ -121,20 +124,20 @@ void MatrixVector_Destroy( MatrixVector_t *const MatVec );
 void MatrixVector_FromFile( const char *Filename, MatrixVector_t *const MatVec );
 
 /**
- * \brief Reads a matrix or a vector in the matrix market format.
+ * \brief Reads a matrix or a vector in the MatrixMarket format.
  *
  * \warning This routine requires the MatrixMarket header files.
  *
  * \pre
  * - \c MatVec must be properly initialised through MatrixVector_Create().
- * - \c Filename must be in MatrixMarket format and stored either in a dense or a sparse way.
+ * - \c Filename must be in MatrixMarket format and stored in a sparse way.
  *
  * This routine reads a matrix or a vector from a MatrixMarket (\cite MatrixMarket) formatted file. It can
- * handle both, sparse and dense, formats but the output will always be a dense matrix. If a sparse matrix
+ * handle only sparse formats but the output will always be a dense matrix. If a sparse matrix
  * is desired the routine MatrixVector_FromFile_MM_Sp() should be used instead.
  *
- *\param[in] Filename The file with a MatrixMarket format.
- *\param[in,out] MatVec On input only the number of rows and columns is referenced.
+ * \param[in] Filename The file with a MatrixMarket format.
+ * \param[in,out] MatVec On input only the number of rows and columns is referenced.
  *
  * \post \c MatVec.Array have the contents of the file always in dense storage.
  */

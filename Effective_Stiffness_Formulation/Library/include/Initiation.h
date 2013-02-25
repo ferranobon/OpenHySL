@@ -62,7 +62,8 @@ typedef struct {
  *
  * \sa MatrixVector_t and Rayleigh_t.
  */
-void Rayleigh_Damping( const MatrixVector_t *const Mass, const MatrixVector_t *const Stiff, MatrixVector_t *const Damp, const Rayleigh_t *const Rayleigh );
+void Rayleigh_Damping( const MatrixVector_t *const Mass, const MatrixVector_t *const Stiff, MatrixVector_t *const Damp,
+		       const Rayleigh_t *const Rayleigh );
 
 /**
  * \brief Computes the proportional viscous damping matrix using Rayleigh damping. Sparse version.
@@ -140,7 +141,7 @@ void Rayleigh_Damping_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVecto
  * \sa MatrixVector_t and Scalars_t.
  */
 void IGainMatrix( MatrixVector_t *const IGain, const MatrixVector_t *const Mass, const MatrixVector_t *const Damp,
-		 const MatrixVector_t *const Stiff, const Scalars_t Const );
+		  const MatrixVector_t *const Stiff, const Scalars_t Const );
 
 /**
  * \brief Computes the gain matrix and its inverse. Sparse version.
