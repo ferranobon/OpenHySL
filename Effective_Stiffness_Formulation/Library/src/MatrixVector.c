@@ -58,10 +58,10 @@ void MatrixVector_ModifyElement( const int RowIndex, const int ColIndex, const d
 	  MatVec->Array[(RowIndex - 1)*MatVec->Cols + (ColIndex - 1)] = MatVec->Array[(RowIndex - 1)*MatVec->Cols + (ColIndex - 1)]/Alpha;
      } else {
 	  Print_Message( ERROR, 3, STRING, "MatrixVector_ModifyElement: Operation '", STRING, Operation, STRING, "' not identified. Valid operations are:" );
-	  fprintf( stderr, "\t\t1) %s\n", OpSet );
-	  fprintf( stderr, "\t\t2) %s\n", OpAdd );
-	  fprintf( stderr, "\t\t3) %s\n", OpMult );
-	  fprintf( stderr, "\t\t4) %s\n", OpDiv );
+	  fprintf( stderr, "\t\t1) %s.\n", OpSet );
+	  fprintf( stderr, "\t\t2) %s.\n", OpAdd );
+	  fprintf( stderr, "\t\t3) %s.\n", OpMult );
+	  fprintf( stderr, "\t\t4) %s.\n", OpDiv );
 	  exit( EXIT_FAILURE );
      }
 }
