@@ -44,7 +44,7 @@ void Print_Message( const int Mess_Type, const int Num_Pairs, ... )
 	       fprintf( stream,"%s", va_arg(ap,char *) );
 	       break;
 	  default: /* unknown type */
-	       PrintMessage( ERROR, 2, STRING, "PrintMessage: Unknown type." );
+	       Print_Message( ERROR, 2, STRING, "PrintMessage: Unknown type." );
 	       break;
 	  }
      }

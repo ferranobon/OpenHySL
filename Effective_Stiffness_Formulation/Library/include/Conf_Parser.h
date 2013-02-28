@@ -62,7 +62,7 @@ typedef struct ConfigFile {
  *
  * \sa ConfFile.
  */
-ConfFile* ConfFile_Create( const size_t Size );
+ConfFile_t* ConfFile_Create( const size_t Size );
 
 /**
  * \brief Reads the contents of a configuration file.

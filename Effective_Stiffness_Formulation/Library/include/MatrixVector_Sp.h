@@ -74,7 +74,7 @@ typedef struct MatVec_Sp {
  * \sa MatrixVector_Sp_t Scalars_t.
  */
 void MatrixVector_Add3Mat_Sp( const MatrixVector_Sp_t *const MatA, const MatrixVector_Sp_t *const MatB,
-			      const MatrixVector_Sp_t *const MatC, const Scalars Const, MatrixVector_Sp_t *const MatY );
+			      const MatrixVector_Sp_t *const MatC, const Scalars_t Const, MatrixVector_Sp_t *const MatY );
 /**
  * \brief Allocates the memory for the \c MatrixVector_Sp_t type.
  *
@@ -265,6 +265,6 @@ void MatrixVector_SetRowsCols_Sp( const int Rows, const int Cols, MatrixVector_S
  * \post Filename is an ASCII file with the sparse matrix represented in the Intel's MKL CSR-\em three \em array
  * \em variation format.
  */
-void MatrixVector_ToFile_Sp( const Sp_MatrixVector *const MatVec_Sp, const char *Filename );
+void MatrixVector_ToFile_Sp( const MatrixVector_Sp_t *const MatVec_Sp, const char *Filename );
 
 #endif /* MATRIXVECTOR_SP_H_ */

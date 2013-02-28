@@ -4,6 +4,11 @@
 #include "MatrixVector_Sp.h"
 #include "Print_Messages.h"
 
+#if _MATRIXMARKET_
+#include "mmio.h"
+#endif
+
+#if _MATRIXMARKET_
 void MatrixVector_FromFile_MM_Sp( const char *Filename, MatrixVector_Sp_t *const MatVec_Sp )
 {
      FILE *InFile;          /* Input file */
@@ -51,7 +56,7 @@ void MatrixVector_FromFile_MM_Sp( const char *Filename, MatrixVector_Sp_t *const
 	  exit( EXIT_FAILURE );
      }
 
-     AllocateSpace_Sp( Mat, nnz );
+     MatrixVector_AllocateSpace_Sp( nnz, MatVec_Sp );
 
      /* Read the values. The MatrixMarket format imposes that the file should contain only the
       * lower part of the matrix in 1-based index. Since C and FORTRAN use row-major and column-major
@@ -77,8 +82,9 @@ void MatrixVector_FromFile_MM_Sp( const char *Filename, MatrixVector_Sp_t *const
 	  Pos_RI = Pos_RI + 1;
      }
 }
+#endif /* _MATRIXMARKET_ */
 
-void MatrixVector_ToFile_Sp( const Sp_MatrixVector *const MatVec_Sp, const char *Filename )
+void MatrixVector_ToFile_Sp( const MatrixVector_Sp_t *const MatVec_Sp, const char *Filename )
 {
      int i;          /* Counter */
 

@@ -4,6 +4,10 @@
 #include "MatrixVector.h"
 #include "Print_Messages.h" /* For Print_Message() */
 
+#if _MATRIXMARKET_
+#include "mmio.h"
+#endif
+
 void MatrixVector_FromFile( const char *Filename, MatrixVector_t *const MatVec )
 {
 
@@ -19,7 +23,7 @@ void MatrixVector_FromFile( const char *Filename, MatrixVector_t *const MatVec )
 	  }
 	  fclose( InFile );
      } else{
-	  PrintMessage( ERROR, 3, STRING, "MatrixVector_FromFile: It is not possible to open: ", STRING, Filename, STRING, "." );
+	  Print_Message( ERROR, 3, STRING, "MatrixVector_FromFile: It is not possible to open: ", STRING, Filename, STRING, "." );
 	  exit( EXIT_FAILURE );
      }
 

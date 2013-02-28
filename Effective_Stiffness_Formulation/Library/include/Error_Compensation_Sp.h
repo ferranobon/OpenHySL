@@ -1,8 +1,8 @@
 /**
- * \file Error_Compensation.h
+ * \file Error_Compensation_Sp.h
  * \author Ferran Obón Santacana
  * \version 1.0 
- * \date 18th of February 2013
+ * \date 26th of February 2013
  * 
  * \todo Add support for packed storage to reduce memory use.
  *
@@ -13,22 +13,18 @@
  * operations are supported through the Intel MKL library.
  */
 
-#ifndef ERROR_COMPENSATION_H_
-#define ERROR_COMPENSATION_H_
+#ifndef ERROR_COMPENSATION_SP_H_
+#define ERROR_COMPENSATION_SP_H_
+
+#include "Error_Compensation.h"
 
 #include "MatrixVector.h"
+#include "MatrixVector_Sp.h"
 
 /**
- * \brief Stores the proportional, integral and derivative constant of the PID compensator.
- */
-typedef struct {
-     double P;  /*!< \brief Proportional constant.*/
-     double I;  /*!< \brief Integral constant.*/
-     double D;  /*!< \brief Derivative constant.*/
-} PID_t;
-
-/**
- * \brief Error force compensation using a PID controller.
+ * \brief Error force compensation using a PID controller. Sparse version.
+ *
+ * \warning This routine requires the Intel Math Kernel Library (\cite MKL_2013).
  *
  * This routine implements the PID controller for calculating the error force. The operation performed is:
  *
@@ -48,10 +44,13 @@ typedef struct {
  * - \f$\vec u^{t+\Delta t}\f$ is the displacement vector at time \f$t + \Delta t\f$,
  * - and \f$P\f$, \f$I\f$ and \f$D\f$ are the proportional, integral and derivative constants of the PIR error compensator.
  * 
- * It makes use of BLAS routines to perform the lineal algebra operations.
+ * It makes use of the BLAS and Sparse BLAS routines from the Intel Math Kernel Library (\cite MKL_2013) to
+ * perform the linear algebra operations.
  *
  * \pre
  * - All elements of type \c MatrixVector_t must be properly initialised through the MatrixVector_Create() routine.
+ * - All elements of type \c MatrixVector_Sp_t must be properly intialised through the MatrixVector_Create_Sp() routine.
+ * - The matrices must in Intel's MKL CSR-\em three \em array \em variation and in one based index.
  * - The matrices must be symmetrical and only the upper part will be referenced (lower part in FORTRAN routines).
  * - The dimensions of the matrices must be the identical.
  * - The dimensions of the vectors and matrices must be coherent since it will not be checked in the routine.
@@ -73,12 +72,10 @@ typedef struct {
  * \f[\vec e^{t+\Delta t} = (\vec f_r^{t + \Delta t} + \vec f_s^{t+\Delta t} + \vec l_i^{t} - (\mathcal M \ddot{\vec u}^{t + \Delta t} + \mathcal C \dot{\vec u}^{t+\Delta t} + \mathcal K u^{t + \Delta t})\f]
  * \f[\vec f_e^{t + \Delta t} = \biggl[\vec e^t + I\Delta t\sum_i^t \vec e^t + \frac{D}{\Delta t} (\vec e^t - \vec e^{t-\Delta t})\biggr]\f]
  *
- * \sa MatrixVector_t and PID_t.
+ * \sa MatrixVector_t, MatrixVector_Sp_t and PID_t.
  */
-void ErrorForce_PID( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp, const MatrixVector_t *Stiff,
-		     const MatrixVector_t *const AccTdT, const MatrixVector_t *const VelTdT, const MatrixVector_t *const DispTdT,
-		     const MatrixVector_t *const fc, const MatrixVector_t *const LoadTdT, const PID_t *const PID, MatrixVector_t *const fe );
+void ErrorForce_PID_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp, const MatrixVector_Sp_t *const Stiff,
+			const MatrixVector_t *const AccTdT, const MatrixVector_t *const VelTdT, const MatrixVector_t *const DispTdT,
+			const MatrixVector_t *const fc, const MatrixVector_t *const LoadTdT, const PID_t *const PID, MatrixVector_t *const fe );
 
-
-#endif /* ERRORCOMPENSATION_H_*/
-
+#endif /* ERROR_COMPENSATION_SP_H_ */

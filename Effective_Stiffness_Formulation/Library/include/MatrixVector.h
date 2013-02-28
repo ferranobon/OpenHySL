@@ -22,7 +22,7 @@
  *
  * \sa MatrixVector_Sp_t.
  */
-typedef struct MatVec {
+typedef struct MatVect {
      int Rows;       /*!< Number of Rows of the matrix */
      int Cols;       /*!< \brief Number of Columns of the matrix */
      double *Array;  /*!< \brief Array of size \f$Size = Rows*Cols\f$ */
@@ -32,9 +32,10 @@ typedef struct MatVec {
  * \brief Structure to handle constants to be used in some matrix/vector operations.
  */
 typedef struct Scal{
-     double Alpha;   /*!< \brief First Constant.*/
-     double Beta;    /*!< \brief Second Constant.*/
-     double Gamma;   /*!< \brief Third Constant.*/
+     double Alpha;   /*!< \brief First constant.*/
+     double Beta;    /*!< \brief Second constant.*/
+     double Gamma;   /*!< \brief Third constant.*/
+     double Lambda;  /*!< \brief Fourth constant.*/
 } Scalars_t;
 
 /**
@@ -200,17 +201,6 @@ void MatrixVector_Set2Value( const double Value, MatrixVector_t *const MatVec );
  *
  * \post The ASCII file \c Filename has the contents of \c MatVec.Array in a dense format.
  */
-void MatrixVector_ToFile( const MatrixVector_t *const MatVec, const char *Filename );
-
-/**
- * \brief Returns the maximum of two values
- *
- * The maximum of two double values is returned at the end of the function.
- *
- * \param a First value
- * \param b Second value
- * \return max(a,b)
- */
-int Max ( const int a, const int b );
+void MatrixVector_ToFile( const char *Filename, const MatrixVector_t *const MatVec );
 
 #endif /* MATRIXVECTOR_H_ */
