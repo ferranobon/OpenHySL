@@ -14,9 +14,10 @@
  * operation. The PARDISO solver is no longer supported since it requires more memory and time than the LAPACK equivalent
  * routines.
  */
+#include <stdio.h>          /* For printf(), fprintf() */
 #include <stdlib.h>         /* For exit() */
 
-#include "Print_Messages.h" /* For Print_Message() */
+#include "Print_Messages.h" /* For Print_Header() */
 #include "Initiation.h"
 #include "MatrixVector.h"
 
@@ -51,14 +52,18 @@ void IGainMatrix( MatrixVector_t *const IGain, const MatrixVector_t *const Mass,
      dpotrf_( &uplo, &IGain->Rows, IGain->Array, &lda, &info );
 
      if ( info == 0 ){
-	  Print_Message( SUCCESS, 2, STRING, "Cholesky factorization successfully completed." );
+	  Print_Header( SUCCESS );
+	  printf( "Cholesky factorization successfully completed.\n" );
      }
      else if (info < 0){
-	  Print_Message( ERROR, 3, STRING, "Cholesky factorization: the ", INT, -info, STRING, "th argument has an illegal value." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Cholesky factorization: the %d-th argument has an illegal value.\n", -info );
 	  exit( EXIT_FAILURE );
      } else if (info > 0){
-	  Print_Message( ERROR, 3, STRING, "Cholesky factorization: the leading minor of order ", INT, info,
-			 STRING, " is not positive definite, and the factorization could not be completed." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Cholesky factorization: the leading minor of order %d is not positive definite,", info );
+	  fprintf( stderr, " and the factorization could not be completed.\n" );
+	  exit( EXIT_FAILURE );
      }
 
      /* LAPACK: Compute the inverse of the IGain matrix using the Cholesky factorization computed
@@ -66,22 +71,29 @@ void IGainMatrix( MatrixVector_t *const IGain, const MatrixVector_t *const Mass,
      dpotri_( &uplo, &IGain->Rows, IGain->Array, &lda, &info );
 
      if ( info == 0 ){
-	  Print_Message( SUCCESS, 1, STRING, "Matrix Inversion successfully completed." );
-	  exit( EXIT_FAILURE );
+	  Print_Header( SUCCESS );
+	  printf( "Matrix Inversion successfully completed.\n" );
      } else if (info < 0){
-	  Print_Message( ERROR, 3, STRING, "Matrix inversion: the ", INT, -info, STRING, "th argument has an illegal value." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Matrix inversion: the %d-th argument has an illegal value.\n", -info );
+	  exit( EXIT_FAILURE );
      } else if (info > 0){
-	  Print_Message( ERROR, 5, STRING, "Matrix Inversion: the (", INT, info, STRING, "," ,INT, info,
-			 STRING, ") element of the factor U or L is zero, and the inverse could not be computed.\n" );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Matrix Inversion: the (%d,%d) element of the factor U or L is zero,", info, info );
+	  fprintf( stderr, "and the inverse could not be computed.\n" );
 	  exit( EXIT_FAILURE );
      }
+
      Scalar = Const.Lambda;
      dlascl_( &uplo, &ione, &ione, &one, &Scalar, &IGain->Rows, &IGain->Cols, IGain->Array, &lda, &info );
+
      if( info < 0 ){
-	  Print_Message( ERROR, 3, STRING, "Gain matrix: the ", INT, -info, STRING, "th argument has an illegal value and cannot be scaled." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Gain matrix: the %d-th argument has an illegal value and cannot be scaled.\n", -info );
 	  exit( EXIT_FAILURE );
      } else {
-	  Print_Message( SUCCESS, 1, STRING, "Gain matrix successfully calculated.\n" );
+	  Print_Header( SUCCESS );
+	  printf( "Gain matrix successfully calculated.\n" );
      }
 
 }

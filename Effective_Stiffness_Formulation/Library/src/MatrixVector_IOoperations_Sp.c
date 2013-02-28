@@ -24,22 +24,24 @@ void MatrixVector_FromFile_MM_Sp( const char *Filename, MatrixVector_Sp_t *const
      /* Open the file */
      InFile = fopen( Filename, "r" );
      if ( InFile == NULL) {
-	  Print_Message( ERROR, 3, STRING, "MatrixVector_FromFile_MM_Sp: It is not possible to open: ", STRING, Filename,
-			 STRING, "." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "MatrixVector_FromFile_MM_Sp: It is not possible to open: %s.\n", Filename );
 	  exit( EXIT_FAILURE );
      }
 
      /* Read the banner and identify which type of matrix is in the file */
      if( mm_read_banner( InFile, &matcode ) != 0 ){
-	  Print_Message( ERROR, 3, STRING, "MatrixVector_FromFile_MM_Sp: Could not process Market Matrix banner in ", STRING, Filename,
-			 STRING, "." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "MatrixVector_FromFile_MM_Sp: Could not process Market Matrix banner in %s\n.", Filename );
 	  exit( EXIT_FAILURE );
      }
-     
-     /* Only sparse matrices are accepted */
+
+     /* Only sparse matrices are accepted */     
      if ( !mm_is_sparse(matcode) ){
-	  Print_Message( ERROR, 1, STRING, "MatrixVector_FromFile_MM_Sp: the matrix or vector should be of type sparse for this application to work." );
-	  Print_Message( ERROR, 3, STRING, "Specified Matrix Market type: [", STRING, mm_typecode_to_str(matcode), STRING, "]." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "MatrixVector_FromFile_MM_Sp: the matrix or vector should be of type sparse for this application to work.\n" );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Specified Matrix Market type: %s.\n", mm_typecode_to_str(matcode) );
 	  exit( EXIT_FAILURE );
      }
      
@@ -50,9 +52,9 @@ void MatrixVector_FromFile_MM_Sp( const char *Filename, MatrixVector_Sp_t *const
 
      /* Check if the dimensions of the matrices are the same */
      if ( Rows != MatVec_Sp->Rows || Cols != MatVec_Sp->Cols ){
-	  Print_Message( ERROR, 10, STRING, "MatrixVector_FromFile_MM_Sp The dimensions of the matrix or vector (", INT, Rows, STRING, ",", INT, Cols,
-			 STRING, ") do not match with the", STRING, " specified ones in the configuration file (", INT, MatVec_Sp->Rows, STRING, ",",
-			 INT, MatVec_Sp->Cols, STRING, ")." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "MatrixVector_From_File_MM_Sp: The sizes of the matrix or vector (%d,%d) ", Rows, Cols );
+	  fprintf( stderr, "do not match with the specified ones in the configuration file (%d,%d)\n", MatVec_Sp->Rows, MatVec_Sp->Cols );
 	  exit( EXIT_FAILURE );
      }
 
@@ -81,6 +83,9 @@ void MatrixVector_FromFile_MM_Sp( const char *Filename, MatrixVector_Sp_t *const
 	  MatVec_Sp->RowIndex[Pos_RI] = innz + 1;
 	  Pos_RI = Pos_RI + 1;
      }
+
+     Print_Header( SUCCESS );
+     printf( "MatrixVector_FromFile_MM_Sp: Contents of %s successfully readen.\n", Filename );
 }
 #endif /* _MATRIXMARKET_ */
 
@@ -92,32 +97,34 @@ void MatrixVector_ToFile_Sp( const MatrixVector_Sp_t *const MatVec_Sp, const cha
 
      OutFile = fopen( Filename, "w" );
 
-     if ( OutFile != NULL ){
-	  
-	  fprintf( OutFile, "Values: Nonzero elements.\n" );
-	  for ( i = 0; i < MatVec_Sp->Num_Nonzero; i++ ){
-	       fprintf( OutFile, "%lE\t", MatVec_Sp->Values[i] );
-	  }
-	  fprintf( OutFile, "\n" );
-
-	  fprintf( OutFile, "Columns array.\n" );
-	  for ( i = 0; i < MatVec_Sp->Num_Nonzero; i++ ){
-	       fprintf( OutFile, "%i\t", MatVec_Sp->Columns[i] );
-	  }
-	  fprintf( OutFile, "\n" );
-
-	  fprintf( OutFile, "RowIndex array.\n" );
-	  for ( i = 0; i < MatVec_Sp->Rows + 1; i++ ){
-	       fprintf( OutFile, "%i\t", MatVec_Sp->RowIndex[i] );
-	  }
-	  fprintf( OutFile, "\n" );	  
-
-	  /* Close file */
-	  fclose( OutFile );
-	       
-     } else {
-	  Print_Message( ERROR, 3, STRING, "MatrixVector_ToFile_Sp: It is not possible to open: ", STRING,
-			 Filename, STRING, "." );
+     if ( OutFile == NULL ){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "MatrixVector_ToFile_Sp: It is not possible to open %s.", Filename );
      }
+
+	  
+     fprintf( OutFile, "Values: Nonzero elements.\n" );
+     for ( i = 0; i < MatVec_Sp->Num_Nonzero; i++ ){
+	  fprintf( OutFile, "%lE\t", MatVec_Sp->Values[i] );
+     }
+     fprintf( OutFile, "\n" );
+
+     fprintf( OutFile, "Columns array.\n" );
+     for ( i = 0; i < MatVec_Sp->Num_Nonzero; i++ ){
+	  fprintf( OutFile, "%i\t", MatVec_Sp->Columns[i] );
+     }
+     fprintf( OutFile, "\n" );
+
+     fprintf( OutFile, "RowIndex array.\n" );
+     for ( i = 0; i < MatVec_Sp->Rows + 1; i++ ){
+	  fprintf( OutFile, "%i\t", MatVec_Sp->RowIndex[i] );
+     }
+     fprintf( OutFile, "\n" );	  
+
+     /* Close file */
+     fclose( OutFile );
+
+     Print_Header( SUCCESS );
+     printf( "MatrixVector_ToFile_Sp: Sparse matrix successfully saved to %s in CSR three array variation format.\n", Filename );
 
 }

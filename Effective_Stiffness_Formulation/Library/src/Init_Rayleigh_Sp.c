@@ -1,3 +1,4 @@
+#include <stdio.h>            /* For printf(), fprintf() */
 #include <stdlib.h>           /* For exit() */
 
 #include "Initiation.h"
@@ -5,7 +6,7 @@
 
 #include "MatrixVector.h"     /* MatrixVector definition */
 #include "MatrixVector_Sp.h"
-#include "Print_Messages.h"   /* For Print_Message() */
+#include "Print_Messages.h"   /* For Print_Header() */
 
 #include <mkl_blas.h>
 #include <mkl_spblas.h>
@@ -57,12 +58,15 @@ void Rayleigh_Damping_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVecto
      MatrixVector_Destroy_Sp( &Temp );
 
      if ( info > 0){
-	  Print_Message( ERROR, 1, STRING, "Number of elements exceeded while calculating the Damping matrix." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Number of elements exceeded while calculating the Damping matrix.\n" );
 	  exit( EXIT_FAILURE );
      } else if ( info < 0 ){
-	  Print_Message( ERROR, 1, STRING, "I do not understand." );
+	  Print_Header( ERROR);
+	  fprintf( stderr, "I do not understand.\n" );
 	  exit( EXIT_FAILURE );
      } else {
-	  Print_Message( SUCCESS, 1, STRING, "Damping matrix successfully calculated." );
+	  Print_Header( SUCCESS );
+	  printf( "Damping matrix successfully calculated.\n" );
      }
 }

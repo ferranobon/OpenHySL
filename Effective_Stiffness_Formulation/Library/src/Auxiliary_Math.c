@@ -1,3 +1,4 @@
+#include <stdio.h>              /* For printf(), fprintf() */
 #include <stdlib.h>             /* For exit() */
 
 #include "Auxiliary_Math.h"
@@ -23,7 +24,8 @@ MatrixVector_t Generate_IdentityMatrix( int Rows, int Cols )
      unsigned short int i;
 
      if( Rows != Cols ){
-	  Print_Message( ERROR, 1, "Generate_IdentityMatrix: The number of rows and columns must be the same." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Generate_IdentityMatrix: The number of rows and columns must be the same.\n" );
 	  exit( EXIT_FAILURE );
      }
 

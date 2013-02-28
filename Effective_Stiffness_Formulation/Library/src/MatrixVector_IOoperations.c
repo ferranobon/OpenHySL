@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #include "MatrixVector.h"
-#include "Print_Messages.h" /* For Print_Message() */
+#include "Print_Messages.h" /* For Print_Header() */
 
 #if _MATRIXMARKET_
 #include "mmio.h"
@@ -12,21 +12,24 @@ void MatrixVector_FromFile( const char *Filename, MatrixVector_t *const MatVec )
 {
 
      FILE *InFile;
+     int i;         /* A counter */
 
      InFile = fopen( Filename, "r" );
 
-     if ( InFile != NULL ){
-
-	  int i;
-	  for ( i = 0; i < MatVec->Rows*MatVec->Cols; i++ ){
-	       fscanf(InFile,"%lf", &MatVec->Array[i]);
-	  }
-	  fclose( InFile );
-     } else{
-	  Print_Message( ERROR, 3, STRING, "MatrixVector_FromFile: It is not possible to open: ", STRING, Filename, STRING, "." );
+     if ( InFile == NULL ){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "MatrixVector_FromFile: It is not possible to open %s.\n", Filename );
 	  exit( EXIT_FAILURE );
-     }
 
+     }
+     
+     for ( i = 0; i < MatVec->Rows*MatVec->Cols; i++ ){
+	  fscanf(InFile,"%lf", &MatVec->Array[i]);
+     }
+     fclose( InFile );
+     
+     Print_Header( SUCCESS );
+     printf( "MatrixVector_FromFile: Contents of %s successfully readen.\n", Filename );
 }
 
 #if _MATRIXMARKET_
@@ -44,22 +47,24 @@ void MatrixVector_FromFile_MM( const char *Filename, MatrixVector_t *const MatVe
      /* Open the file */
      InFile = fopen( Filename, "r" );
      if ( InFile == NULL) {
-	  Print_Message( ERROR, 3, STRING, "MatrixVector_FromFIle_Sp2Dense: It is not possible to open: ", STRING, Filename,
-			 STRING, "." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "MatrixVector_FromFile_MM: It is not possible to open %s.\n", Filename );
 	  exit( EXIT_FAILURE );
      }
 
      /* Read the banner and identify which type of matrix is in the file */
      if( mm_read_banner( InFile, &matcode ) != 0 ){
-	  Print_Message( ERROR, 3, STRING, "MatrixVector_FromFile_Sp2Dense: Could not process Market Matrix banner in ", STRING, Filename,
-			 STRING, "." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "MatrixVector_FromFile_MM: Could not process Market Matrix banner in %s\n.", Filename );
 	  exit( EXIT_FAILURE );
      }
      
      /* Only sparse matrices are accepted */
      if ( !mm_is_sparse(matcode) ){
-	  Print_Message( ERROR, 1, STRING, "MatrixVector_FromFile_Sp2Dense: the matrix or vector should be of type sparse for this application to work." );
-	  Print_Message( ERROR, 3, STRING, "Specified Matrix Market type: [", STRING, mm_typecode_to_str(matcode), STRING, "]." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "MatrixVector_FromFile_MM: the matrix or vector should be of type sparse for this application to work.\n" );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Specified Matrix Market type: %s.\n", mm_typecode_to_str(matcode) );
 	  exit( EXIT_FAILURE );
      }
      
@@ -70,9 +75,9 @@ void MatrixVector_FromFile_MM( const char *Filename, MatrixVector_t *const MatVe
 
      /* Check if the dimensions of the matrices are the same */
      if ( Rows != MatVec->Rows || Cols != MatVec->Cols ){
-	  Print_Message( ERROR, 10, STRING, "MatrixVector_From_File_MM: The sizes of the matrix or vector (", INT, Rows, STRING, ",", INT, Cols,
-			 STRING, ") do not match with the", STRING, " specified ones in the configuration file (", INT, MatVec->Rows,
-			 STRING, ",", INT, MatVec->Cols, STRING, ")." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "MatrixVector_From_File_MM: The sizes of the matrix or vector (%d,%d) ", Rows, Cols );
+	  fprintf( stderr, "do not match with the specified ones in the configuration file (%d,%d)\n", MatVec->Rows, MatVec->Cols );
 	  exit( EXIT_FAILURE );
      }
 
@@ -86,6 +91,9 @@ void MatrixVector_FromFile_MM( const char *Filename, MatrixVector_t *const MatVe
 	  fscanf( InFile, "%d %d %lE", &i, &j, &Value );
 	  MatVec->Array[(j-1)*MatVec->Cols + (i-1)] = Value;
      }
+
+     Print_Header( SUCCESS );
+     printf( "MatrixVector_FromFile_MM: Contents of %s successfully readen.\n", Filename );
 }
 #endif /* _MATRIXMARKET_ */
 
@@ -96,16 +104,20 @@ void MatrixVector_ToFile( const char *Filename, const MatrixVector_t *const MatV
 
      OutFile = fopen( Filename, "w" );
 
-     if ( OutFile != NULL ){
-	  for ( i = 0; i < MatVec->Rows; i++){
-	       for( j = 0; j < MatVec->Cols; j++ ){
-		    fprintf(OutFile,"%le\t", MatVec->Array[i + j*MatVec->Rows]);
-	       }
-	       fprintf( OutFile, "\n" );
-	  }
-	  fclose( OutFile );
-     } else{
-	  Print_Message( ERROR, 3, STRING, "MatrixVector_ToFile: It is not possible to open: ", STRING,
-			 Filename, STRING, "." );
+     if ( OutFile == NULL ){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "MatrixVector_ToFile: It is not possible to open %s.\n", Filename );
+	  exit( EXIT_FAILURE );
      }
+
+     for ( i = 0; i < MatVec->Rows; i++){
+	  for( j = 0; j < MatVec->Cols; j++ ){
+	       fprintf(OutFile,"%le\t", MatVec->Array[i + j*MatVec->Rows]);
+	  }
+	  fprintf( OutFile, "\n" );
+     }
+     fclose( OutFile );
+     
+     Print_Header( SUCCESS );
+     printf( "MatrixVector_ToFile: Matrix successfully saved to %s.\n", Filename );
 }

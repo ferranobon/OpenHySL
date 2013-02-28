@@ -7,7 +7,7 @@
 #include <libadwin/errno.h>  /* ADwin error handling */
 
 #include "Routines_ADwin.h"
-#include "Print_Messages.h"  /* For Print_Message() */
+#include "Print_Messages.h"  /* For Print_Header() */
 
 #if _HDF5_
 #include <hdf5.h>
@@ -25,7 +25,7 @@ void ADwin_Boot( const int32_t Device_Number, const char *Boot_Path  )
       * been loaded
       */
      ADwin_TestVersion( );
-     Print_Message( SUCCESS, 1, STRING, "ADwin: Boot successful." );  
+     Print_Header( SUCCESS, 1, STRING, "ADwin: Boot successful." );  
 }
 
 void ADwin_CheckProcessStatus( const int ProcessNumber )
@@ -36,12 +36,12 @@ void ADwin_CheckProcessStatus( const int ProcessNumber )
      ADwinStatus = Process_Status ( ProcessNumber );
 
      if ( ADwinStatus == 1){
-	  Print_Message( INFO, 3, STRING, "Process ", INT, ProcessNumber, STRING, " is running." );
+	  Print_Header( INFO, 3, STRING, "Process ", INT, ProcessNumber, STRING, " is running." );
      } else if ( ADwinStatus == 0 ){
-	  Print_Message( ERROR, 3, STRING, "Process ", INT, ProcessNumber, STRING, " is not running." );
+	  Print_Header( ERROR, 3, STRING, "Process ", INT, ProcessNumber, STRING, " is not running." );
 	  exit( EXIT_FAILURE );
      } else if ( ADwinStatus == -1 ){
-	  Print_Message( INFO, 3, STRING, "Process ", INT, ProcessNumber, STRING,
+	  Print_Header( INFO, 3, STRING, "Process ", INT, ProcessNumber, STRING,
 			 " is being stopped and is waiting for the last event." );
      } else assert(0);
 }
@@ -149,18 +149,18 @@ void ADwin_TestVersion( void )
      Status = Test_Version( );
 
      if ( Status == 0 ){
-	  Print_Message( SUCCESS, 1, STRING, "ADwin: Everything is OK." );
+	  Print_Header( SUCCESS, 1, STRING, "ADwin: Everything is OK." );
      } else if ( Status == 1 ){
-	  Print_Message( ERROR, 1, STRING, "ADwin: Wrong driver version, processor continues working." );
+	  Print_Header( ERROR, 1, STRING, "ADwin: Wrong driver version, processor continues working." );
 	  exit( EXIT_FAILURE );
      } else if ( Status == 2 ){
-	  Print_Message( ERROR, 1, STRING, "ADwin: Wrong driver version, processor stops." );
+	  Print_Header( ERROR, 1, STRING, "ADwin: Wrong driver version, processor stops." );
 	  exit( EXIT_FAILURE );
      } else if ( Status == 3 ){
-	  Print_Message( ERROR, 1, STRING, "ADwin: No response from the ADwin system." );
+	  Print_Header( ERROR, 1, STRING, "ADwin: No response from the ADwin system." );
 	  exit( EXIT_FAILURE );
      } else {
-	  Print_Message( ERROR, 1, STRING, "ADwin: Unrecognised return value." );
+	  Print_Header( ERROR, 1, STRING, "ADwin: Unrecognised return value." );
 	  exit( EXIT_FAILURE );
      }
 }
@@ -175,7 +175,7 @@ void ADwin_SaveData_HDF5( const int hdf5_file, const unsigned int Num_Steps, con
      Length = Num_Sub*Num_Steps*Num_Channels;
      Data = (double *) calloc( (size_t) Length, sizeof( double ) );
      if( Data == NULL ){
-	  Print_Message( WARNING, 1, STRING,
+	  Print_Header( WARNING, 1, STRING,
 			 "ADwin_SaveData_HDF5: Out of memory. Manual extraction of the data required." );
      }
 
@@ -201,13 +201,13 @@ void ADwin_SaveData_ASCII( const char *FileName, const unsigned int Num_Steps, c
      OutFile = fopen( FileName, "w" );
 
      if( OutFile == NULL ){
-	  Print_Message( WARNING, 3, STRING, "ADwin_SaveData_TXT: Could not open ", STRING, FileName, STRING, "." );
+	  Print_Header( WARNING, 3, STRING, "ADwin_SaveData_TXT: Could not open ", STRING, FileName, STRING, "." );
      }
 
      Length = Num_Sub*Num_Steps*Num_Channels;
      Data = (double *) calloc( (size_t) Length, sizeof( double ) );
      if( Data == NULL ){
-	  Print_Message( WARNING, 1, STRING,
+	  Print_Header( WARNING, 1, STRING,
 			 "ADwin_SaveData_HDF5: Out of memory. Manual extraction of the data required." );
      }
 

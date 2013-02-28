@@ -13,7 +13,8 @@ ConfFile_t* ConfFile_Create( const size_t Size )
 
      Config = (ConfFile_t *) calloc( 1, sizeof(ConfFile_t) );
      if( Config == NULL ){
-	  Print_Message( ERROR, 1, STRING, "Error allocating memory." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Error allocating memory.\n" );
 	  return NULL;
      }
 
@@ -21,7 +22,8 @@ ConfFile_t* ConfFile_Create( const size_t Size )
      Config->Keys = (char **) calloc( Size, sizeof(char*) );
      if( Config->Keys == NULL ){
 	  free( Config );
-	  Print_Message( ERROR, 1, STRING, "Error allocating memory." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Error allocating memory." );
 	  return NULL;
      }
 
@@ -29,7 +31,8 @@ ConfFile_t* ConfFile_Create( const size_t Size )
      if( Config->Keys == NULL ){
 	  free( Config->Keys );
 	  free( Config );
-	  Print_Message( ERROR, 1, STRING, "Error allocating memory." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Error allocating memory." );
 	  return NULL;
      }
      return Config;
@@ -51,7 +54,8 @@ int ConfFile_ReadFile( const char *FileName, ConfFile_t *const CFile )
      InFile = fopen( FileName, "r" );
 
      if( InFile == NULL ){
-	  Print_Message( ERROR, 3, STRING, "ConfFile_ReadFile: Could not open configuration file", STRING, FileName, STRING, "." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "ConfFile_ReadFile: Could not open configuration file %s.", FileName );
 	  exit( EXIT_FAILURE );
      }
 
@@ -74,8 +78,8 @@ int ConfFile_ReadFile( const char *FileName, ConfFile_t *const CFile )
 
 	  /* Check if the line was too long */
 	  if( Line[StrLength] != '\n' && !feof(InFile) ){
-	       Print_Message( ERROR, 5, STRING, "ConfFile_ReadFile: Line", INT, Line_Num, STRING, "was too long in the configuration file",
-			      STRING, FileName, STRING, "." );
+	       Print_Header( ERROR );
+	       fprintf( stderr, "ConfFile_ReadFile: Line %d was too long in the configuration file %s.\n", Line_Num, FileName );
 	       return EXIT_FAILURE;
 	  }
 
@@ -119,6 +123,10 @@ int ConfFile_ReadFile( const char *FileName, ConfFile_t *const CFile )
 	       break;
 	  }
      }
+
+     Print_Header( SUCCESS );
+     printf( "Configuration file successfully read.\n" );
+
      /* Close the file */
      fclose( InFile );
      return 0;
@@ -183,8 +191,9 @@ void ConfFile_SetEntry( const char *Entry, const char *Value, ConfFile_t *const 
 
 	  CFile->NumEntries = CFile->NumEntries + 1;
      } else {
-	  Print_Message( ERROR, 2, STRING, "Maximum number of entries reached in the configuration file.\n",
-			 STRING, "Increase the number of allocated entries in ConfFile_Create()." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Maximum number of entries reached in the configuration file.\n" );
+	  fprintf( stderr, "[......] Increase the number of allocated entries in ConfFile_Create().\n" );
 	  exit( EXIT_FAILURE );
      }
 }
@@ -237,7 +246,8 @@ size_t ConfFile_FindPosition( const ConfFile_t *const CFile, const char *Key )
      }
 
      if ( !Found ){
-	  Print_Message( ERROR, 3, STRING, "The entry ", STRING, Key, STRING, "was not found." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "The entry %s was not found.\n", Key );
 	  exit( EXIT_FAILURE );
      } else {
 	  return i;
