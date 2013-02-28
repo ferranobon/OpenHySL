@@ -141,6 +141,9 @@ else(NOT USE_MPI)
   endif()
 endif()
 
+
+add_executable( SAlgorithm SAlgorithm.c)
+target_link_libraries(SAlgorithm core)
 # Rules to build the programs related to the substructure. Each program will
 # be compliant with one of the different protocols: Custom, NSEP and OpenFresco
 
