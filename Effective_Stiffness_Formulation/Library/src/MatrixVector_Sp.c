@@ -19,7 +19,8 @@ void MatrixVector_SetRowsCols_Sp( const int Rows, const int Cols, MatrixVector_S
 	   * that the memory is not yet allocated. */
 	  MatVec_Sp->Num_Nonzero = 0;   
      } else {
-	  Print_Message( ERROR, 1, STRING, "MatrixVector_SetRowsCols_Sp: The number of rows or columns must be greater than zero." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "MatrixVector_SetRowsCols_Sp: The number of rows or columns must be greater than zero.\n" );
 	  exit( EXIT_FAILURE );
      }
 
@@ -32,7 +33,8 @@ void MatrixVector_AllocateSpace_Sp( const int nnz, MatrixVector_Sp_t *const MatV
       * to zero. A different number would mean that the matrix is already
       * initialised */
      if( MatVec_Sp->Num_Nonzero != 0 ){
-	  Print_Message( ERROR, 1, STRING, "MatrixVector_AllocateSpace_Sp: Error when initialising a sparse matrix since it is already initialised." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "MatrixVector_AllocateSpace_Sp: Error when initialising a sparse matrix since it is already initialised.\n" );
      } else {
 	  MatVec_Sp->Num_Nonzero = nnz;
 
@@ -122,7 +124,8 @@ void MatrixVector_Dense2CSR( const MatrixVector_t *const MatVec, const int Opera
      mkl_ddnscsr( job, &MatVec_Sp->Rows, &MatVec_Sp->Cols, MatVec->Array, &lda, MatVec_Sp->Values, MatVec_Sp->Columns, MatVec_Sp->RowIndex, &info );
 
      if (info != 0 ){
-	  Print_Message( ERROR, 1, STRING, "MatrixVector_Dense2CSR: An error occurred during the mkl_ddnscsr() operation." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "MatrixVector_Dense2CSR: An error occurred during the mkl_ddnscsr() operation.\n" );
 	  exit( EXIT_FAILURE );
      }
 }
@@ -134,7 +137,8 @@ void MatrixVector_CSR2Dense( const MatrixVector_Sp_t *const MatVec_Sp,  const in
      int info;
 
      if( MatVec_Sp->Rows != MatVec->Rows || MatVec_Sp->Cols != MatVec->Cols ){
-	  Print_Message( ERROR, 1, STRING, "MatrixVector_CSR2Dense: The dimensions of the matrices must match." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "MatrixVector_CSR2Dense: The dimensions of the matrices must match.\n" );
 	  exit( EXIT_FAILURE );
      }
 
@@ -155,7 +159,8 @@ void MatrixVector_CSR2Dense( const MatrixVector_Sp_t *const MatVec_Sp,  const in
      mkl_ddnscsr( job, &MatVec->Rows, &MatVec->Cols, MatVec->Array, &lda, MatVec_Sp->Values, MatVec_Sp->Columns, MatVec_Sp->RowIndex, &info );
 
      if (info != 0 ){
-	  Print_Message( ERROR, 1, STRING, "MatrixVector_CSR2Dense: An error occurred during the mkl_ddnscsr() operation." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "MatrixVector_CSR2Dense: An error occurred during the mkl_ddnscsr() operation.\n" );
 	  exit( EXIT_FAILURE );
      }
 }
@@ -204,7 +209,8 @@ void MatrixVector_Add3Mat_Sp( const MatrixVector_Sp_t *const MatA, const MatrixV
 		  MatY->Values, MatY->Columns, MatY->RowIndex, &MatY->Num_Nonzero, &info );
 
      if (info != 0 ){
-	  Print_Message( ERROR, 1, STRING, "MatrixVector_Add3Mat_Sp: An error occurred during the mkl_dcsradd() operation." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "MatrixVector_Add3Mat_Sp: An error occurred during the mkl_dcsradd() operation.\n" );
 	  exit( EXIT_FAILURE );
      }
 
@@ -216,7 +222,8 @@ void MatrixVector_Add3Mat_Sp( const MatrixVector_Sp_t *const MatA, const MatrixV
 		  MatY->Values, MatY->Columns, MatY->RowIndex, &MatY->Num_Nonzero, &info );
 
      if (info != 0 ){
-	  Print_Message( ERROR, 1, STRING, "MatrixVector_Add3Mat_Sp: An error occurred during the mkl_dcsradd() operation." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "MatrixVector_Add3Mat_Sp: An error occurred during the mkl_dcsradd() operation.\n" );
 	  exit( EXIT_FAILURE );
      }
      

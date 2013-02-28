@@ -13,16 +13,6 @@
 #ifndef PRINT_MESSAGES_H_
 #define PRINT_MESSAGES_H_
 
-/**
- * \brief Supported types for using in conjunction with the PrintMessage() function.
- */
-enum MyTypes {INT,    /*!< Integer type. */
-	      UINT,   /*!< unsigned integer type. */
-	      FLOAT,  /*!< float type. */
-	      DOUBLE, /*!< double type. */
-	      STRING  /*!< string type. */
-};
-
 #define ERROR   0  /*!< Error message type.*/
 #define SUCCESS 1  /*!< Success message type.*/
 #define INFO    2  /*!< Informative message type.*/
@@ -49,42 +39,23 @@ enum MyTypes {INT,    /*!< Integer type. */
 #define BOLDWHITE   "\033[1m\033[37m"  /*!< Bold White color.*/
 
 /**
- * \brief Prints a formated message to the screen.
+ * \brief Prints a formated header to the screen.
  *
- * The desired message is printed to stdout in the form. The function uses a variable number of
- * arguments in order to handle different situations. Also, the message is redirected to \c stdout
- * or \c stderr depending on the type of message: \c ERROR (stderr), \c WARNING (stderr), \c SUCCESS
- * (stdout) or \c INFO (stdout). Also, depending on the type of message, a prefix will be added to
- * the line, being:
+ * The desired formated header is printed either to \c stdout or \c stderr depending on the type of message \c ERROR
+ * (stderr), \c WARNING (stderr), \c SUCCESS (stdout) or \c INFO (stdout). The resulting output is:
  *
  * - "[FAILED] " if the specified type is \c ERROR in \c stderr.
  * - "[ WARN ] " if the specified type is \c WARNING in \c stderr.
  * - "[ INFO ] " if the specified type is \c INFO in \c stdout.
  * - "[  OK  ] " if the specified type is \c SUCCESS in \c stdout.
  *
- * In all cases a new line escape sequence is added at the end
- * of the message. For example. calling the function as:
- *
- * PrintMessage( INFO, 4, INT, 2, DOUBLE, 2.5, DOUBLE, 5.0, STRING, "This is a message." );
- *
- * will yield in:
- *
- * <tt>(stdout):  [ INFO ] 2 2.5 5.0 This is a message.</tt>
- *
- * \pre
- * - The first argument should be indicative of the type of the message: \c ERROR, \c WARNING, \c SUCCESS
- * or \c INFO.
- * - The second argument indicates the number of pairs of arguments that follow.
- * - The next pairs of arguments must be always in the format: TYPE, Value. Where TYPE must \b match one of
- * the entries of enum MyType and \b match the type of the next argument.
+ * \pre \c Mess_Type should be : \c ERROR, \c WARNING, \c SUCCESS or \c INFO.
  *
  * \param[in] Mess_Type Type of the message to print.
- * \param[in] Num_Pairs Number of pairs of arguments.
  *
- * \post A formated message is print to stdout or stderr depending on the message type.
+ * \post A formated header is printed to \c stdout or \c stderr depending on the message type.
  *
- * \sa MyTypes.
  */
-void Print_Message( const int Mess_Type, const int Num_Pairs, ... );
+void Print_Header( const int Mess_Type );
 
 #endif /* PRINT_MESSAGES_H_ */

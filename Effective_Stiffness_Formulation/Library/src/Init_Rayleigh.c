@@ -12,11 +12,12 @@
  * make use of the BLAS library to perform the linear algebra operations and they support both single and
  * double precision. Sparse BLAS operations are supported through the Intel MKL library.
  */
-#include <stdlib.h>        /* For exit() */
+#include <stdio.h>          /* For printf(), fprintf() */
+#include <stdlib.h>         /* For exit() */
 
 #include "Initiation.h"     /* Header files for the initiation phase */
 #include "MatrixVector.h"   /* MatrixVector definition */
-#include "Print_Messages.h" /* For Print_Message() */
+#include "Print_Messages.h" /* For Print_Header() */
 
 #include "Auxiliary_Math.h" /* For Max() */
 
@@ -60,7 +61,8 @@ void Rayleigh_Damping( const MatrixVector_t *const Mass, const MatrixVector_t *c
      dlascl_( &uplo, &ione, &ione, &done, &alpha, &Damp->Rows, &Damp->Cols, Damp->Array, &lda, &info );
 
      if ( info < 0 ){
-	  Print_Message( ERROR, 3, STRING, "dlascl: The ", INT, -info, STRING, "-th argument had an illegal value." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "dlascl: The %d-th argument had an illegal value.\n", -info );
 	  exit( EXIT_FAILURE );
      }
 
@@ -70,5 +72,6 @@ void Rayleigh_Damping( const MatrixVector_t *const Mass, const MatrixVector_t *c
 	  daxpy( &Length, &beta, &Stiff->Array[i*Stiff->Rows + i], &incx, &Damp->Array[i*Damp->Rows +i], &incy);
      }
 
-     Print_Message( SUCCESS, 1, STRING, "Damping matrix successfully calculated." );
+     Print_Header( SUCCESS );
+     printf("Damping matrix successfully calculated.\n" );
 }

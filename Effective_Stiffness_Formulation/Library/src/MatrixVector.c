@@ -21,7 +21,8 @@ void MatrixVector_Create( const int Rows, const int Cols, MatrixVector_t *const 
 	  MatVec->Rows = Rows;
 	  MatVec->Cols = Cols;
      } else {
-	  Print_Message( ERROR, 1, STRING, "The number of rows or columns must be greater than zero." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "MatrixVector_Create(): The number of rows or columns must be greater than zero.\n" );
 	  exit( EXIT_FAILURE );
      }
      
@@ -29,7 +30,8 @@ void MatrixVector_Create( const int Rows, const int Cols, MatrixVector_t *const 
      MatVec->Array = NULL;
      MatVec->Array = (double *) calloc( (size_t) MatVec->Rows*(size_t) MatVec->Cols, sizeof(double));
      if ( MatVec->Array == NULL ){
-	  Print_Message( ERROR, 1, STRING, "MatrixVector_Create: Out of memory." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "MatrixVector_Create: Out of memory.\n" );
 	  exit( EXIT_FAILURE );
      }
 }
@@ -66,11 +68,12 @@ void MatrixVector_ModifyElement( const int RowIndex, const int ColIndex, const d
      } else if ( strcmp( Operation, OpDiv ) == 0 ){
 	  MatVec->Array[(RowIndex - 1)*MatVec->Cols + (ColIndex - 1)] = MatVec->Array[(RowIndex - 1)*MatVec->Cols + (ColIndex - 1)]/Alpha;
      } else {
-	  Print_Message( ERROR, 3, STRING, "MatrixVector_ModifyElement: Operation '", STRING, Operation, STRING, "' not identified. Valid operations are:" );
-	  fprintf( stderr, "\t\t1) %s.\n", OpSet );
-	  fprintf( stderr, "\t\t2) %s.\n", OpAdd );
-	  fprintf( stderr, "\t\t3) %s.\n", OpMult );
-	  fprintf( stderr, "\t\t4) %s.\n", OpDiv );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "MatrixVector_ModifyElement: Operation '%s' not identified. Valid operations are:\n" , Operation );
+	  fprintf( stderr, "[......] 1) %s.\n", OpSet );
+	  fprintf( stderr, "[......] 2) %s.\n", OpAdd );
+	  fprintf( stderr, "[......] 3) %s.\n", OpMult );
+	  fprintf( stderr, "[......] 4) %s.\n", OpDiv );
 	  exit( EXIT_FAILURE );
      }
 }
@@ -105,7 +108,8 @@ void MatrixVector_Add3Mat( const MatrixVector_t *const MatA, const MatrixVector_
      dlascl_( &uplo, &ione, &ione, &done, &Scalar, &MatY->Rows, &MatY->Cols, MatY->Array, &ldy, &info );
 
      if ( info < 0 ){
-	  Print_Message( ERROR, 3, STRING, "dlascl: The ", INT, -info, STRING, "-th argument had an illegal value." );
+	  Print_Header( ERROR );
+	  fprintf( stderr, "dlascl: The %d-th argument had an illegal value.\n", -info );
 	  exit( EXIT_FAILURE );
      }
 
