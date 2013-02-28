@@ -18,8 +18,11 @@
 #include "MatrixVector.h"   /* MatrixVector definition */
 #include "Print_Messages.h" /* For Print_Message() */
 
-#if _SPARSE_
-#include <mkl.h>
+#include "Auxiliary_Math.h" /* For Max() */
+
+#if _MKL_
+#include <mkl_blas.h>
+#include <mkl_lapack.h>
 #else
 #include "Netlib.h"
 #endif
@@ -64,65 +67,8 @@ void Rayleigh_Damping( const MatrixVector_t *const Mass, const MatrixVector_t *c
      /* BLAS: C = alpha*M + beta*K = C + beta*K. Only half of the matrix is calculated */
      for ( i = 0; i < Damp->Rows; i++ ){
 	  Length = Damp->Rows - i;
-	  daxpy_( &Length, &beta, Stif->Array[i*Stif->Rows + i], &incx, Damp->Array[i*Damp->Rows +i], &incy);
+	  daxpy( &Length, &beta, &Stiff->Array[i*Stiff->Rows + i], &incx, &Damp->Array[i*Damp->Rows +i], &incy);
      }
 
-     Print_Message( SUCCESS, 1, STRING "Damping matrix successfully calculated." );
+     Print_Message( SUCCESS, 1, STRING, "Damping matrix successfully calculated." );
 }
-
-#if _SPARSE_
-void Rayleigh_Damping_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Stif, MatrixVector_Sp_t *const Damp,
-			  const Rayleigh_t *const Rayleigh )
-{
-     MatrixVector_Sp Temp;  /* Temporal matrix */
-     int i;                 /* A counter */
-     int Length;
-     int incx, incy;        /* Stride in the operations */
-     double alpha, beta;    /* Constants */
-     char trans;
-     int job, sort, info;   /* MKL variables */
-
-     alpha = Rayleigh->Alpha;
-     beta = Rayleigh->Beta;
-
-     Init_MatrixVector_Sp( &Temp, Mass->Rows, Mass->Cols, Mass->Num_Nonzero );
-
-     incx = 1; incy = 1;
-     Length = Temp.Num_Nonzero;
-     dcopy_( &Length, Mass->Values, &incx, Temp.Values, &incy );
-
-     /* Copy the column array */
-#pragma omp parallel for
-     for (i = 0; i < Length; i++ ){
-	  Temp.Columns[i] = Mass->Columns[i];
-     }
-
-     /* Copy the RowIndex array */
-     Length = Temp.Rows + 1;
-#pragma omp parallel for
-     for (i = 0; i < Length; i++ ){
-	  Temp.RowIndex[i] = Mass->RowIndex[i];
-     }
-
-     /* Scal the Values array */
-     dscal_( &Length, &alpha, Temp.Values, &incx );
-
-     trans = 'N';  /* The transpose of the matrix is not used */
-     job = 0;      /* The routine computes the addition */
-     sort = 0;     /* The routine does not perform any reordering */
-     mkl_dcsradd( &trans, &job, &sort, &Temp.Rows, &Temp.Cols, Temp.Values, Temp.Columns, Temp.RowIndex,
-		  &beta, Stif->Values, Stif->Columns, Stif->RowIndex,
-		  Damp->Values, Damp->Columns, Damp->RowIndex, &Damp->Num_Nonzero, &info );
-
-     /* Delete the previously allocated sparse matrix */
-     Destroy_MatrixVector_Sparse( &Temp );
-
-     if ( info > 0){
-	  Print_Message( ERROR, 1, STRING, "Number of elements exceeded while calculating the Damping matrix." );
-     } else if ( info < 0 ){
-	  Print_Message( ERROR, 1, STRING, "I do not understand." );
-     } else {
-	  Print_Message( SUCCESS, 1, STRING, "Damping matrix successfully calculated." );
-     }
-}
-#endif

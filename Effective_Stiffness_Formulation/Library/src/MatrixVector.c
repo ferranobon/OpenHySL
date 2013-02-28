@@ -1,8 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>  /* For strcmp() */
 
 #include "MatrixVector.h"
 #include "Print_Messages.h"
+#include "Auxiliary_Math.h"  /* For max() */
+
+#if _MKL_
+#include <mkl_blas.h>
+#include <mkl_lapack.h>
+#else
+#include "Netlib.h"
+#endif
 
 void MatrixVector_Create( const int Rows, const int Cols, MatrixVector_t *const MatVec )
 {
@@ -36,7 +45,7 @@ void MatrixVector_Set2Value( const double Value, MatrixVector_t *const MatVec )
      Val = Value;
 
      /* BLAS: All elements of MatVec are equal to Value */ 
-     dcopy_( &Length, &Val, &incx, MatVec->Array, &incy );
+     dcopy( &Length, &Val, &incx, MatVec->Array, &incy );
 }
 
 void MatrixVector_ModifyElement( const int RowIndex, const int ColIndex, const double Alpha,
@@ -93,7 +102,7 @@ void MatrixVector_Add3Mat( const MatrixVector_t *const MatA, const MatrixVector_
 
      /* LAPACK: Calculates Y = A  */
      Scalar = Const.Alpha;
-     dlascl_( &uplo, &ione, &ione, &done, &Scalar, &MatY->Rows, &MatY->Cols, MatY->Array, &ldy, &info);
+     dlascl_( &uplo, &ione, &ione, &done, &Scalar, &MatY->Rows, &MatY->Cols, MatY->Array, &ldy, &info );
 
      if ( info < 0 ){
 	  Print_Message( ERROR, 3, STRING, "dlascl: The ", INT, -info, STRING, "-th argument had an illegal value." );
@@ -104,14 +113,14 @@ void MatrixVector_Add3Mat( const MatrixVector_t *const MatA, const MatrixVector_
      Scalar = Const.Beta;
      for (i = 0; i < MatY->Rows; i++){
 	  Length = MatY->Rows - i;
-	  daxpy_( &Length, &Scalar, &MatB->Array[i*MatB->Rows + i], &incx, &MatY->Array[i*MatY->Rows +i], &incy);
+	  daxpy( &Length, &Scalar, &MatB->Array[i*MatB->Rows + i], &incx, &MatY->Array[i*MatY->Rows +i], &incy);
      }
 
      /* BLAS: Calculates Y = Gamma*C + Y. Only computes half of the matrix */
      Scalar = Const.Gamma;
      for (i = 0; i < MatY->Rows; i++){
 	  Length = MatY->Rows - i;
-	  daxpy_( &Length, &Scalar, &MatC->Array[i*MatC->Rows + i], &incx, &MatY->Array[i*MatY->Rows +i], &incy);
+	  daxpy( &Length, &Scalar, &MatC->Array[i*MatC->Rows + i], &incx, &MatY->Array[i*MatY->Rows +i], &incy);
      }
 }
 
@@ -121,11 +130,4 @@ void MatrixVector_Destroy( MatrixVector_t *const MatVec )
      MatVec->Rows = 0;
      MatVec->Cols = 0;
      free( MatVec->Array );
-}
-
-int Max ( const int a, const int b )
-{
-     if ( a >= b ){
-	  return a;
-     } else return b;
 }

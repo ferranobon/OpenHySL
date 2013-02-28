@@ -5,12 +5,13 @@
 #include <ctype.h>  /* For isspace */
 
 #include "Conf_Parser.h"
+#include "Print_Messages.h"
 
-ConfFile* ConfFile_Create( const size_t Size )
+ConfFile_t* ConfFile_Create( const size_t Size )
 {
      ConfFile_t *Config;
 
-     Config = (ConfFile *) calloc( 1, sizeof(ConfFile_t) );
+     Config = (ConfFile_t *) calloc( 1, sizeof(ConfFile_t) );
      if( Config == NULL ){
 	  Print_Message( ERROR, 1, STRING, "Error allocating memory." );
 	  return NULL;
@@ -74,7 +75,7 @@ int ConfFile_ReadFile( const char *FileName, ConfFile_t *const CFile )
 	  /* Check if the line was too long */
 	  if( Line[StrLength] != '\n' && !feof(InFile) ){
 	       Print_Message( ERROR, 5, STRING, "ConfFile_ReadFile: Line", INT, Line_Num, STRING, "was too long in the configuration file",
-			      STRING, Filename, STRING, "." );
+			      STRING, FileName, STRING, "." );
 	       return EXIT_FAILURE;
 	  }
 
@@ -104,7 +105,7 @@ int ConfFile_ReadFile( const char *FileName, ConfFile_t *const CFile )
 	  case CONFFILE_LVALUE:
 	       ConfFile_ProcessLine( Line, Key, Value );
 	       sprintf( EntryLine, "%s:%s", Section, Key );
-	       ConfFile_SetEntry( CFile, EntryLine, Value );
+	       ConfFile_SetEntry( EntryLine, Value, CFile );
 	       memset( EntryLine, 0, MAX_LENGTH );
 	       memset( Line, 0, MAX_LENGTH );
 	       memset( Key, 0, MAX_LENGTH );

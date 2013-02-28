@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>  /* For assert() */
 
 #include "MatrixVector_Sp.h"
 #include "Print_Messages.h"
+#include "Auxiliary_Math.h" /* For Max() */
 
-#include <mkl.h>
+#include <mkl_blas.h>
+#include <mkl_spblas.h>
 
 void MatrixVector_SetRowsCols_Sp( const int Rows, const int Cols, MatrixVector_Sp_t *const MatVec_Sp )
 {
@@ -44,8 +47,8 @@ void MatrixVector_AllocateSpace_Sp( const int nnz, MatrixVector_Sp_t *const MatV
 
 void MatrixVector_Create_Sp( const int Rows, const int Cols, const int nnz, MatrixVector_Sp_t *const MatVec_Sp )
 {
-     Set_RowsCols_Sp( MatVec_Sp, Rows, Cols );
-     AllocateSpace_Sp( MatVec_Sp, nnz );
+     MatrixVector_SetRowsCols_Sp( Rows, Cols, MatVec_Sp );
+     MatrixVector_AllocateSpace_Sp( nnz, MatVec_Sp );
 }
 
 int MatrixVector_CountNNZ_GE( const double *const Matrix, const int Rows, const int Cols )
@@ -90,13 +93,13 @@ void MatrixVector_Dense2CSR( const MatrixVector_t *const MatVec, const int Opera
      int info;
 
      /* Copy the number of Rows and Columns */
-     MatrixVector_SetRowsCols_Sp( MatVec->Rows, MatVec->Cols, MatVec_Sp )
+     MatrixVector_SetRowsCols_Sp( MatVec->Rows, MatVec->Cols, MatVec_Sp );
 
      /* Count the number of non-zero elements */
      if ( Operation == 0 ){      /* Count the non-zero elements of a symmetric matrix */
-	  MatVec_Sp->Num_Nonzero = Count_Nonzero_Elements_SY( MatVec_Sp->Array, MatVec_Sp->Rows );
+	  MatVec_Sp->Num_Nonzero = MatrixVector_CountNNZ_SY( MatVec->Array, MatVec->Rows );
      } else if ( Operation == 1 ){ /* Count the non-zero elements of a general matrix */       
-	  MatVec_Sp->Num_Nonzero = Count_Nonzero_Elements_GE( MatVec_Sp->Array, MatVec_Sp->Rows, MatVec_Sp->Cols );
+	  MatVec_Sp->Num_Nonzero = MatrixVector_CountNNZ_GE( MatVec->Array, MatVec->Rows, MatVec->Cols );
      } else assert( Operation < 0 || Operation > 1 );
 
      /* Allocate the necessary space for the Value and Columns arrays */
@@ -116,7 +119,7 @@ void MatrixVector_Dense2CSR( const MatrixVector_t *const MatVec, const int Opera
      job[4] = MatVec_Sp->Num_Nonzero; /* Maximum number of non-zero elements allowed. */
      job[5] = 1; /* Values, Columns and RowIndex arrays are generated. */
      lda = Max( 1, MatVec_Sp->Rows );
-     mkl_ddnscsr( job, &MatVec->Rows, &MatVec->Cols, MatVec->Array, &lda, MatVec_Sp->Values, MatVec_Sp->Columns, MatVec_Sp->RowIndex, &info );
+     mkl_ddnscsr( job, &MatVec_Sp->Rows, &MatVec_Sp->Cols, MatVec->Array, &lda, MatVec_Sp->Values, MatVec_Sp->Columns, MatVec_Sp->RowIndex, &info );
 
      if (info != 0 ){
 	  Print_Message( ERROR, 1, STRING, "MatrixVector_Dense2CSR: An error occurred during the mkl_ddnscsr() operation." );
@@ -130,6 +133,10 @@ void MatrixVector_CSR2Dense( const MatrixVector_Sp_t *const MatVec_Sp,  const in
 			 * the matrix lda = max(1,Num_Rows). */
      int info;
 
+     if( MatVec_Sp->Rows != MatVec->Rows || MatVec_Sp->Cols != MatVec->Cols ){
+	  Print_Message( ERROR, 1, STRING, "MatrixVector_CSR2Dense: The dimensions of the matrices must match." );
+	  exit( EXIT_FAILURE );
+     }
 
      /* MKL: Transform the dense matrix into a CSR-three array variation matrix */
      job[0] = 1; /* The matrix is converted to dense format. */
@@ -145,7 +152,7 @@ void MatrixVector_CSR2Dense( const MatrixVector_Sp_t *const MatVec_Sp,  const in
      job[4] = MatVec_Sp->Num_Nonzero; /* Maximum number of non-zero elements allowed. */
      job[5] = 1; /* Values, Columns and RowIndex arrays are generated. */
      lda = Max( 1, MatVec->Rows );
-     mkl_ddnscsr( job, &MatVec_Sp->Rows, &MatVec_Sp->Cols, MatVec->Array, &lda, MatVec_Sp->Values, MatVec_Sp->Columns, MatVec_Sp->RowIndex, &info );
+     mkl_ddnscsr( job, &MatVec->Rows, &MatVec->Cols, MatVec->Array, &lda, MatVec_Sp->Values, MatVec_Sp->Columns, MatVec_Sp->RowIndex, &info );
 
      if (info != 0 ){
 	  Print_Message( ERROR, 1, STRING, "MatrixVector_CSR2Dense: An error occurred during the mkl_ddnscsr() operation." );
@@ -154,7 +161,7 @@ void MatrixVector_CSR2Dense( const MatrixVector_Sp_t *const MatVec_Sp,  const in
 }
 
 void MatrixVector_Add3Mat_Sp( const MatrixVector_Sp_t *const MatA, const MatrixVector_Sp_t *const MatB, const MatrixVector_Sp_t *const MatC,
-			      const Scalars Const, MatrixVector_Sp_t *const MatY )
+			      const Scalars_t Const, MatrixVector_Sp_t *const MatY )
 {
 
      MatrixVector_Sp_t Temp;
@@ -168,11 +175,11 @@ void MatrixVector_Add3Mat_Sp( const MatrixVector_Sp_t *const MatA, const MatrixV
      beta = Const.Beta;
      gamma = Const.Gamma;
 
-     Init_MatrixVector_Sp( &Temp, MatA->Rows, MatA->Cols, MatA->Num_Nonzero );
+     MatrixVector_Create_Sp( MatA->Rows, MatA->Cols, MatA->Num_Nonzero, &Temp );
 
      incx = 1; incy = 1;
      Length = Temp.Num_Nonzero;
-     dcopy_( &Length, MatA->Values, &incx, Temp.Values, &incy );
+     dcopy( &Length, MatA->Values, &incx, Temp.Values, &incy );
 
 #pragma omp parallel for
      for (i = 0; i < Length; i++ ){
@@ -180,7 +187,7 @@ void MatrixVector_Add3Mat_Sp( const MatrixVector_Sp_t *const MatA, const MatrixV
      }
 
      /* Scal the Values array */
-     dscal_( &Length, &alpha, Temp.Values, &incx );
+     dscal( &Length, &alpha, Temp.Values, &incx );
 
      /* Copy the RowIndex array */
      Length = Temp.Rows + 1;
@@ -202,7 +209,7 @@ void MatrixVector_Add3Mat_Sp( const MatrixVector_Sp_t *const MatA, const MatrixV
      }
 
      /* Delete the previously allocated sparse matrix */
-     Destroy_MatrixVector_Sparse( &Temp );
+     MatrixVector_Destroy_Sp( &Temp );
 
      mkl_dcsradd( &trans, &job, &sort, &MatY->Rows, &MatY->Cols, MatY->Values, MatY->Columns, MatY->RowIndex,
 		  &gamma, MatC->Values, MatC->Columns, MatC->RowIndex,
