@@ -47,8 +47,9 @@ typedef struct AlgConst{
 			       * Calc_Input_Load_RelValues_Sparse() and EffK_Calc_Effective_Force_Sparse().
 			       */
      int Read_LVector;        /*!< \brief Read the load vector instead of generating it. */
-     int *ExcitedDOF;
-
+     int *ExcitedDOF;         /*!< \brief Integer string containing wich elements of the external load will be applied.
+			       * \sa AlgorithM_GetExcitedDOF().
+			       */
      double Delta_t;          /*!< \brief Time increment \f$\Delta t\f$ */
      double DeltaT_Sub;       /*!< \brief Time increment for the sub-stepping process */
 
@@ -155,6 +156,6 @@ void Algorithm_Destroy( AlgConst_t *const InitConst );
  * \param[in] Config Structure containing the entries of the configuration file.
  * \param[in] Expression String with the desired DOFs to be excited.
  */
-int* Get_Excited_DOF( const ConfFile_t *const Config, const char *Expression );
+int* Algorithm_GetExcitedDOF( const ConfFile_t *const Config, const char *Expression );
 
 #endif /* _ALGORITHM_AUX_H_ */
