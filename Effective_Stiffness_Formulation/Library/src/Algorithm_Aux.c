@@ -51,7 +51,7 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
      }
 
      if( !InitConst->Read_LVector ){
-	  InitConst->ExcitedDOF = Get_Excited_DOF( Config, "General:Excited_DOF" );
+	  InitConst->ExcitedDOF = Algorithm_GetExcitedDOF( Config, "General:Excited_DOF" );
      } else {
 	  InitConst->ExcitedDOF = NULL;
      }
@@ -154,7 +154,7 @@ void Algorithm_Destroy( AlgConst_t *const InitConst )
      free( InitConst->FileOutput );
 }
 
-int* Get_Excited_DOF( const ConfFile_t *const Config, const char *Expression )
+int* Algorithm_GetExcitedDOF( const ConfFile_t *const Config, const char *Expression )
 {
      unsigned int i, j;
      int *DOF_Table;  
