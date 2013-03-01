@@ -36,7 +36,8 @@
  * - \f$\ddot{\vec u}^t\f$ is the acceleration vector at time \f$t\f$,
  * - and \f$a_0\f$, \f$a_1\f$, \f$a_2\f$, \f$a_3\f$, \f$a_4\f$ and \f$a_5\f$ are integration constants (see \cite Dorka_1998).
  *
- * It makes use of BLAS routines to perform the linear algebra operations.
+ * It makes use of BLAS routines to perform the linear algebra operations. For sparse matrices, the routine
+ * EffK_EffectiveForce_Sp() should be used instead.
  *
  * \pre
  * - All elements of type \c MatrixVector_t must be properly initialised through the MatrixVector_Create() routine.

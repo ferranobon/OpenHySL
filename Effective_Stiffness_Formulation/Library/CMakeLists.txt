@@ -112,7 +112,7 @@ endif()
 
 # Find the ADwin libraries and tag it as required
 if(WITH_ADWIN)
-  add_definitions(-DADWIN_)
+  add_definitions(-D_ADWIN_)
   include("CMakeCustomFiles/CMakeADwin.cmake")
   set(CMAKE_REQUIRED_LIBRARIES ${ADWIN_LIBS})
 else(NOT WITH_ADWIN)
@@ -135,6 +135,7 @@ if(USE_MPI)
 else(NOT USE_MPI)
   # Rules to build the programs related to the sequential version of the algorithm.
   if(USE_SPARSE AND USE_MKL)
+    add_definitions(-D_SPARSE_)
     file( GLOB SPARSE_SRCS src/*_Sp.c )
     add_library( core_sp ${SPARSE_SRCS})
     target_link_libraries(core_sp ${MATH_LIBS} -lm core )
@@ -142,8 +143,8 @@ else(NOT USE_MPI)
 endif()
 
 
-add_executable( SAlgorithm SAlgorithm.c)
-target_link_libraries(SAlgorithm core)
+add_executable( SAlgorithm SAlgorithm.c src/Algorithm_Aux.c)
+target_link_libraries(SAlgorithm core core_sp)
 # Rules to build the programs related to the substructure. Each program will
 # be compliant with one of the different protocols: Custom, NSEP and OpenFresco
 
