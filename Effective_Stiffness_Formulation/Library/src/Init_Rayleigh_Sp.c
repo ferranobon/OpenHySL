@@ -14,12 +14,13 @@
 void Rayleigh_Damping_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Stif, MatrixVector_Sp_t *const Damp,
 			  const Rayleigh_t *const Rayleigh )
 {
-     MatrixVector_Sp_t Temp; /* Temporal matrix */
-     int Length, i;          /* A counter */
-     int incx, incy;         /* Stride in the operations */
-     double alpha, beta;     /* Constants */
+     MatrixVector_Sp_t Temp;  /* Temporal matrix */
+     int  i;                  /* A counter */
+     int Length;
+     int incx, incy;          /* Stride in the operations */
+     double alpha, beta;      /* Constants */
      char trans;
-     int job, sort, info;    /* MKL variables */
+     int job, sort, info;     /* MKL variables */
 
      alpha = Rayleigh->Alpha;
      beta = Rayleigh->Beta;
@@ -28,15 +29,16 @@ void Rayleigh_Damping_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVecto
 
      incx = 1; incy = 1;
      Length = Temp.Num_Nonzero;
-     dcopy_( &Length, Mass->Values, &incx, Temp.Values, &incy );
+     dcopy( &Length, Mass->Values, &incx, Temp.Values, &incy );
 
+     /* Copy the column array */
 #pragma omp parallel for
      for (i = 0; i < Length; i++ ){
 	  Temp.Columns[i] = Mass->Columns[i];
      }
 
      /* Scal the Values array */
-     dscal_( &Length, &alpha, Temp.Values, &incx );
+     dscal( &Length, &alpha, Temp.Values, &incx );
 
      /* Copy the RowIndex array */
      Length = Temp.Rows + 1;
