@@ -55,7 +55,7 @@ int ConfFile_ReadFile( const char *FileName, ConfFile_t *const CFile )
 
      if( InFile == NULL ){
 	  Print_Header( ERROR );
-	  fprintf( stderr, "ConfFile_ReadFile: Could not open configuration file %s.", FileName );
+	  fprintf( stderr, "ConfFile_ReadFile: Could not open configuration file %s.\n", FileName );
 	  exit( EXIT_FAILURE );
      }
 
