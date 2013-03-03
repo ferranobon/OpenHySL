@@ -40,9 +40,21 @@ void MatrixVector_AllocateSpace_Sp( const int nnz, MatrixVector_Sp_t *const MatV
 
 	  /* Allocate the memory for the Values and Columns matrices */
 	  MatVec_Sp->Values = (double *) calloc( (size_t) MatVec_Sp->Num_Nonzero, sizeof(double) );
+	  if( MatVec_Sp->Values == NULL ){
+	       Print_Header( ERROR );
+	       fprintf( stderr, "MatrixVector_AllocateSpace_Sp: Out of memory.\n");
+	  }
 	  MatVec_Sp->Columns = (int *) calloc( (size_t) MatVec_Sp->Num_Nonzero, sizeof(int) );
+	  if( MatVec_Sp->Columns == NULL ){
+	       Print_Header( ERROR );
+	       fprintf( stderr, "MatrixVector_AllocateSpace_Sp: Out of memory.\n");
+	  }
 	  /* Allocate the RowIndex matrix. Length = Rows + 1 */
-	  MatVec_Sp->RowIndex = (int *) calloc( (size_t) MatVec_Sp->Rows + 1, sizeof(int) );
+	  MatVec_Sp->RowIndex = (int *) calloc( (size_t) (MatVec_Sp->Rows + 1), sizeof(int) );
+	  if( MatVec_Sp->RowIndex == NULL ){
+	       Print_Header( ERROR );
+	       fprintf( stderr, "MatrixVector_AllocateSpace_Sp: Out of memory.\n");
+	  }
      }
 
 }
@@ -230,7 +242,7 @@ void MatrixVector_Add3Mat_Sp( const MatrixVector_Sp_t *const MatA, const MatrixV
 }
 #endif
 
-void MatrixVector_Destroy_Sp( MatrixVector_Sp_t *const MatVec_Sp )
+void MatrixVector_Destroy_Sp( MatrixVector_Sp_t *MatVec_Sp )
 {
 
      /* Set the number of rows, columns and non-zero elements to 0 */
