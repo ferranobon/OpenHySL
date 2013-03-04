@@ -142,9 +142,13 @@ else(NOT USE_MPI)
   endif()
 endif()
 
+# Build Substructure Library
+file( GLOB SUBS_SRCS src/Substructure.c src/Substructure_Exact.c src/Substructure_UHYDEfbr.c src/Substructure_SimMeasured.c)
+add_library( substructure ${SUBS_SRCS})
+target_link_libraries( substructure -lm core )
 
-add_executable( SAlgorithm SAlgorithm.c src/Algorithm_Aux.c)
-target_link_libraries(SAlgorithm core core_sp)
+add_executable( SAlgorithm SAlgorithm.c src/Algorithm_Aux.c)# ${CORE_SRCS} ${SPARSE_SRCS} ${SUBS_SRCS})
+target_link_libraries(SAlgorithm core core_sp substructure)
 # Rules to build the programs related to the substructure. Each program will
 # be compliant with one of the different protocols: Custom, NSEP and OpenFresco
 

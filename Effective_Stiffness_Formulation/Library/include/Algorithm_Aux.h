@@ -30,7 +30,7 @@ typedef struct AlgConst{
      int Order;               /*!< \brief Order of the matrices */
      int OrderSub;            /*!< \brief Number of substructures */
 
-     unsigned int Nstep;      /*!< \brief Number of steps */
+     unsigned int NStep;      /*!< \brief Number of steps */
      unsigned int NSubstep;   /*!< \brief Number of sub-steps */
 
      int Use_Absolute_Values; /*!< \brief Variable to control whether to use absolute values in the equation of motion

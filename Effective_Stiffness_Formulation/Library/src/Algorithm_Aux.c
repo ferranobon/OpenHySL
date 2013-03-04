@@ -57,8 +57,8 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
      }
 
      /* Number of steps and Time step */
-     (*InitConst).Nstep = (unsigned int) ConfFile_GetInt( Config, "General:Num_Steps" );
-     if ( InitConst->Nstep <= 0 ){
+     (*InitConst).NStep = (unsigned int) ConfFile_GetInt( Config, "General:Num_Steps" );
+     if ( InitConst->NStep <= 0 ){
 	  Print_Header( ERROR );
 	  fprintf( stderr, "Invalid number of steps.\n" );
 	  exit( EXIT_FAILURE );
