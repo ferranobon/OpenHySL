@@ -14,10 +14,10 @@ typedef struct UHYDEfbrSim {
      double qyield;                      /*!< Yield displacement. */
      double qplastic;                    /*!< Plastic displacement. */
      double k;                           /*!< Initial stiffness. */
-     char Description[MAX_DESCRIPTION];  /*!< Optional description of the substructure. */
+     char *Description;  /*!< Optional description of the substructure. */
 } UHYDEfbrSim_t;
 
 void Substructure_SimUHYDE_1D( const double u0c, const double DeltaT, UHYDEfbrSim_t *const Num, double *const Friction_Force );
-void Substructure_SimUHYDE_1D_Init( const double qyield, const double yield_factor, const double Friction, UHYDEfbrSim_t *const Num );
+void Substructure_SimUHYDE_1D_Init( const double qyield, const double yield_factor, const double Friction, const char *Description, UHYDEfbrSim_t *const Num );
 
 #endif /* SUBSTRUCTURE_UHYDEFBR_H_ */

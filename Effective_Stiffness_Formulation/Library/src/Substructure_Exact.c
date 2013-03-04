@@ -1,15 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 #include "Print_Messages.h"
 #include "Substructure_Exact.h"
 
-void Substructure_ExactSolution_Init( const double Mass, const double Damp, const double Stiff, const double DeltaT, ExactSim_t *const Num )
+void Substructure_ExactSolution_Init( const double Mass, const double Damp, const double Stiff, const double DeltaT, const char *Description, ExactSim_t *const Num )
 {
      double omega, omegaD, omega2;
      double xi;
      double expdt, sinDdt, cosDdt, omegadt, omegaDdt;
+
+     Num->Description = strdup( Description );
 
      /* Init the variables */
      Num->Mass = Mass;

@@ -67,10 +67,12 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 				     const int OrderSub, const double DeltaTSub, const char *Filename )
 {
      FILE *InFile;
+     int Count_Type;
      int i, j;
      int itemp;
      double *ftemp;
-     char Type[8], Description[MAX_DESCRIPTION], FileMeas[MAX_FILENAME];
+     char Type[MAX_SUBTYPE], Description[MAX_DESCRIPTION], FileMeas[MAX_FILENAME];
+     char InLine[MAX_LINE];
 
      ExpSub_t *Experimental;     
 
@@ -84,6 +86,7 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 
      /* The first value should be the number of Coupling nodes */
      fscanf( InFile, "%i", &CNodes->Order );
+     fgets( InLine, MAX_LINE, InFile );
 
      if( CNodes->Order != OrderSub ){
 	  fclose( InFile );
@@ -98,83 +101,165 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
      CNodes->u0c0 = (double *) calloc( (size_t) CNodes->Order, sizeof(double) );
 
      /* Read the contents of the file */
-     for( i = 0; i < CNodes->Order; i++ ){
-	  fscanf( InFile, "%s %i", Type, &CNodes->Array[i] );
-	  
+     i = 0;
+     while( i < CNodes->Order ){
+
+	  /* Read until the coma */
+	  fscanf( InFile, "%[^,], %d", Type, &Count_Type );
+
+	  /* Check if the number of sub-structures is still valid */
+	  if( (i +  Count_Type) > CNodes->Order ){
+	       fclose( InFile );
+	       Print_Header( ERROR );
+	       fprintf( stderr, "Substructure_ReadCouplingNodes: Number of substructures exceeded.\n" );
+	       Print_Header( ERROR );
+	       fprintf( stderr, "Substructure_ReadCouplingNodes: Specified %d but read %d.\n", CNodes->Order, i + Count_Type );
+	       exit( EXIT_FAILURE );
+	  }
 	  Substructure_Identify( Type, &CNodes->Sub[i].Type );
+
+	  for( j = 0; j < Count_Type; j++ ){
+	       fscanf( InFile, "%d", &CNodes->Array[i + j] );
+	       if( j > 0 ){
+		    /* Only copy the values if j > 0 */
+		    CNodes->Sub[i + j].Type = CNodes->Sub[i].Type;
+	       }
+	  }
 
 	  switch (CNodes->Sub[i].Type) {
 	  case SIM_EXACT:
-	       fscanf( InFile, "%i", &itemp );
+	       /* Ignore coma */
+	       fscanf( InFile, "%*[,] %i", &itemp );
 	       if ( itemp != UHYDE_NUMPARAM_INIT ){
 		    Print_Header( ERROR );
-		    fprintf( stderr, "Wrong number of parameters for the substructue number %i of type TMD.\n", i );
+		    fprintf( stderr, "Wrong number of parameters for the substructue number %i of type Exact.\n", i );
 		    fprintf( stderr, "The number of init parameters should be %i\n", EXACT_NUMPARAM_INIT );
 		    exit( EXIT_FAILURE );
 	       } else {
-		    Print_Header( INFO );
-		    printf( "Simulating the sub-structure in the coupling node %d as an exact integration method.\n", CNodes->Array[i] );
-		    CNodes->Sub[i].SimStruct = (void *) malloc( sizeof(ExactSim_t) );
 		    ftemp = NULL;
 		    ftemp = (double *) calloc( (size_t) EXACT_NUMPARAM_INIT, sizeof( double ) );
 
 		    for( j = 0; j < EXACT_NUMPARAM_INIT; j++ ){
 			 fscanf( InFile, "%lf", &ftemp[j] );
 		    }
-			 
-		    Substructure_ExactSolution_Init( ftemp[0], ftemp[1], ftemp[2], DeltaTSub, (ExactSim_t *) CNodes->Sub[i].SimStruct );
+
+		    /* Read the optional description */
+		    fscanf( InFile, "%*[,]" );
+		    fgets( Description, MAX_DESCRIPTION, InFile );
+
+		    if( Description[strlen(Description) - 1] != '\n'  && !feof(InFile) ){
+			 Print_Header( ERROR );
+			 fprintf( stderr, "Substructure_ReadCouplingNodes: Maximum description length (%d) exceeded in line %d.\n", MAX_DESCRIPTION, i+2 );
+			 exit( EXIT_FAILURE );
+		    }
+
+ 		    if( Description[strlen(Description) - 2] != ';' && Description[strlen(Description) - 1] != ';' ){
+			 Print_Header( ERROR );
+			 fprintf( stderr, "Substructure_ReadCouplingNodes: Line number %d should terminate with ';'.\n", i+2 );
+			 exit( EXIT_FAILURE );
+		    }
+		 
+		    for( j = 0; j < Count_Type; j++ ){
+			 Print_Header( INFO );
+			 printf( "Simulating the substructure in the coupling node %d as an exact integration method.\n", CNodes->Array[i + j] );
+			 CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(ExactSim_t) );
+			 Substructure_ExactSolution_Init( ftemp[0], ftemp[1], ftemp[2], DeltaTSub, Description, (ExactSim_t *) CNodes->Sub[i + j].SimStruct );
+		    }
 		    free( ftemp );
 	       }
 	       break;
 	  case SIM_UHYDE:
-	       fscanf( InFile, "%i", &itemp );
+	       /* Ignore coma */
+	       fscanf( InFile, "%*[,] %i", &itemp );
 	       if ( itemp != UHYDE_NUMPARAM_INIT ){
 		    Print_Header( ERROR );
 		    fprintf( stderr, "Wrong number of parameters for the substructue number %i of type UHYDE.\n", i );
 		    fprintf( stderr, "The number of init parameters should be %i\n", UHYDE_NUMPARAM_INIT );
 		    exit( EXIT_FAILURE );
 	       } else {
-		    Print_Header( INFO );
-		    printf( "Simulating the sub-structure in the coupling node %d as a UHYDE-fbr device.\n", CNodes->Array[i] );
-		    CNodes->Sub[i].SimStruct = (void *) malloc( sizeof(UHYDEfbrSim_t) );
 		    ftemp = NULL;
 		    ftemp = (double *) calloc( (size_t) UHYDE_NUMPARAM_INIT, sizeof( double ) );
 
 		    for( j = 0; j < UHYDE_NUMPARAM_INIT; j++ ){
 			 fscanf( InFile, "%lf", &ftemp[j] );
 		    }
-			 
-		    Substructure_SimUHYDE_1D_Init( ftemp[0], ftemp[1], ftemp[2], (UHYDEfbrSim_t *) CNodes->Sub[i].SimStruct );
+
+		    /* Read the optional description */
+		    fscanf( InFile, "%*[,]" );
+		    fgets( Description, MAX_DESCRIPTION, InFile );
+
+		    if( Description[strlen(Description) - 1] != '\n'  && !feof(InFile) ){
+			 Print_Header( ERROR );
+			 fprintf( stderr, "Substructure_ReadCouplingNodes: Maximum description length (%d) exceeded in line %d.\n", MAX_DESCRIPTION, i+2 );
+			 exit( EXIT_FAILURE );
+		    }
+
+ 		    if( Description[strlen(Description) - 2] != ';' && Description[strlen(Description) - 1] != ';' ){
+			 Print_Header( ERROR );
+			 fprintf( stderr, "Substructure_ReadCouplingNodes: Line number %d should terminate with ';'.\n", i+2 );
+			 exit( EXIT_FAILURE );
+		    }
+
+		    for( j = 0; j < Count_Type; j++ ){
+			 Print_Header( INFO );
+			 printf( "Simulating the substructure in the coupling node %d as a UHYDE-fbr device.\n", CNodes->Array[i + j] );
+			 CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(UHYDEfbrSim_t) );
+			 Substructure_SimUHYDE_1D_Init( ftemp[0], ftemp[1], ftemp[2], Description, (UHYDEfbrSim_t *) CNodes->Sub[i + j].SimStruct );
+		    }
 		    free( ftemp );
 	       }
 	       break;
 	  case SIM_MEASURED:
-	       fscanf( InFile, "%s", FileMeas );
+	       fscanf( InFile, "%*[,] %[^,]", FileMeas );
+
+	       /* Read the optional description */
+	       fscanf( InFile, "%*[,]" );
 	       fgets( Description, MAX_DESCRIPTION, InFile );
 
-	       if( Description[strlen(Description) - 1] != '\n' && !feof(InFile) ){
+	       if( Description[strlen(Description) - 1] != '\n'  && !feof(InFile) ){
 		    Print_Header( ERROR );
-		    fprintf( stderr, "Substructure_ReadCouplingNodes: The desciption of the substructure %d is too long. Maximum number of characters %d.",
-			     i + 1, MAX_DESCRIPTION );
+		    fprintf( stderr, "Substructure_ReadCouplingNodes: Maximum description length (%d) exceeded in line %d.\n", MAX_DESCRIPTION, i+2 );
 		    exit( EXIT_FAILURE );
-	       } else {
+	       }
+
+	       if( Description[strlen(Description) - 2] != ';' && Description[strlen(Description) - 1] != ';' ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Substructure_ReadCouplingNodes: Line number %d should terminate with ';'.\n", i+2 );
+		    exit( EXIT_FAILURE );
+	       }
+
+	       for( j = 0; j <  Count_Type; j++ ){
 		    Print_Header( INFO );
-		    printf( "Simulating the sub-structure in the coupling node %d using time history measured forces.\n", CNodes->Array[i] );
-		    CNodes->Sub[i].SimStruct = (void *) malloc( sizeof(MeasuredSim_t) );
-		    Substructure_SimMeasured_Init( FileMeas, NSteps, NSubsteps, (MeasuredSim_t *) CNodes->Sub[i].SimStruct );
+		    printf( "Simulating the substructure in the coupling node %d using time history measured forces.\n", CNodes->Array[i + j] );
+		    CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(MeasuredSim_t) );
+		    Substructure_SimMeasured_Init( FileMeas, NSteps, NSubsteps, Description, (MeasuredSim_t *) CNodes->Sub[i + j].SimStruct );
 	       }
 	       break;
 	  case EXP_ADWIN:
-	       CNodes->Sub[i].SimStruct = (void *) malloc( sizeof(ExpSub_t) );
-	       Experimental = CNodes->Sub[i].SimStruct;
-	       /* Dynamic string input. Reads everything between " " */
-	       fgets( Experimental->Description, MAX_DESCRIPTION, InFile );
 
-	       if( Experimental->Description[strlen(Experimental->Description) - 1] != '\n' && !feof(InFile) ){
+	       /* Read the optional description */
+	       fscanf( InFile, "%*[,]" );
+	       fgets( Description, MAX_DESCRIPTION, InFile );
+
+	       if( Description[strlen(Description) - 1] != '\n'  && !feof(InFile) ){
 		    Print_Header( ERROR );
-		    fprintf( stderr, "Substructure_ReadCouplingNodes: The desciption of the substructure %d is too long. Maximum characters %d.",
-			     i + 1, MAX_DESCRIPTION );
+		    fprintf( stderr, "Substructure_ReadCouplingNodes: Maximum description length (%d) exceeded in line %d.\n", MAX_DESCRIPTION, i+2 );
 		    exit( EXIT_FAILURE );
+	       }
+
+	       if( Description[strlen(Description) - 2] != ';' && Description[strlen(Description) - 1] != ';' ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Substructure_ReadCouplingNodes: Line number %d should terminate with ';'.\n", i+2 );
+		    exit( EXIT_FAILURE );
+	       }
+
+	       for( j = 0; j <  Count_Type; j++ ){
+		    Print_Header( INFO );
+		    printf( "The substructure in the coupling node %d is computed in ADwin.\n", CNodes->Array[i + j] );
+		    CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(ExpSub_t) );
+		    Experimental = CNodes->Sub[i + j].SimStruct;
+		    /* Dynamic string input. Reads everything between " " */
+		    Experimental->Description = strdup( Description );
 	       }
 	       break;
 	  case REMOTE_TCP:
@@ -186,6 +271,7 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 	  case REMOTE_OF:
 	       break;
 	  }
+	  i = i + Count_Type;
      }
      /* Close the file */
      fclose( InFile );
@@ -209,7 +295,7 @@ void Substructure_Identify( char *const Type, int *const Identity_Num )
      /* The substructure in Type is not supported.*/
      if ( !Found ){
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Substructure_Identify: The substructure type '%s' is not supported. Valid operations are:\n", Type );
+	  fprintf( stderr, "Substructure_Identify: The substructure type '%s' is not supported. Valid substructures are:\n", Type );
 	  for( ID = 0; ID < NUM_TYPE_SUB; ID++ ){
 	       fprintf( stderr, "[......] %d) %s.\n", ID+1, Substructure_Type[ID] );
 	  }
@@ -220,11 +306,12 @@ void Substructure_Identify( char *const Type, int *const Identity_Num )
      }
 }
 
+
 void Substructure_DeleteCouplingNodes( CouplingNode_t *CNodes )
 {
      int i;
 
-     for( i = 0; i < CNodes->Order; i++ ){
+     for( i = 0; i < CNodes->Order; i++ ){	  
 	  free( CNodes->Sub[i].SimStruct );
      }
 

@@ -1,13 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "Print_Messages.h"
 #include "Substructure_SimMeasured.h"
 
-void Substructure_SimMeasured_Init( const char *FileName, const unsigned int NSteps, const unsigned int NSubsteps, MeasuredSim_t *const Sub )
+void Substructure_SimMeasured_Init( const char *FileName, const unsigned int NSteps, const unsigned int NSubsteps, const char *Description, MeasuredSim_t *const Sub )
 {
      unsigned int i;   /* A counter */
      FILE *InFile;
+
+     Sub->Description = strdup( Description );
 
      Sub->Length = NSteps*NSubsteps;
 

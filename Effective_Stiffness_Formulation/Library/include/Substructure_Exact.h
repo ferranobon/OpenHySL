@@ -14,11 +14,11 @@ typedef struct ExactSim {
      double v0c;          /* Velocity at the coupling node */
 
      double A,B,C,D,E,F,G,H;  /* Several constants */
-     char Description[MAX_DESCRIPTION];  /*!< Optional description of the substructure. */
+     char *Description;  /*!< Optional description of the substructure. */
 } ExactSim_t;
 
 
-void Substructure_ExactSolution_Init( const double Mass, const double Damp, const double Stiff, const double DeltaT, ExactSim_t *const Num );
+void Substructure_ExactSolution_Init( const double Mass, const double Damp, const double Stiff, const double DeltaT, const char *Description, ExactSim_t *const Num );
 void Substructure_ExactSolution_SDOF( const double u0c, const double DeltaT, ExactSim_t *const Num, double *const fc );
 
 #endif /* SUBSTRUCTURE_EXACT_H_ */
