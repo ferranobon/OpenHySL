@@ -15,10 +15,12 @@ enum Substructure_Id { SIM_EXACT,     /*!< Simulate the substructure using the e
 		       REMOTE_OF      /*!< Remote node using OpenFresco. */
 };
 
-extern const char *Substructure_Type[]; /*!< Has all the substructure types. The order of the substructures
-					 * must be the same as in Substructure_Id type.
-					 * \sa Substructure_Id.*/
+//extern const char *Substructure_Type[]; /*!< Has all the substructure types. The order of the substructures
+//					 * must be the same as in Substructure_Id type.
+//					 * \sa Substructure_Id.*/
 
+#define MAX_LINE 200          /*!< Maximum input line length. */
+#define MAX_SUBTYPE 20        /*!< Maximum length of the substructure type */
 #define MAX_DESCRIPTION 80    /*!< Maximum description length for a substructure. */
 #define MAX_FILENAME 20       /*!< Maximum file name length. */
 
@@ -28,7 +30,7 @@ typedef struct Substructure{
 } Substructure_t;
 
 typedef struct ExpSub{
-     char Description[MAX_DESCRIPTION];
+     char *Description;
 } ExpSub_t;
 
 /**

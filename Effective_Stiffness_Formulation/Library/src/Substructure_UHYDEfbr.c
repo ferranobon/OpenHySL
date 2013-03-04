@@ -1,10 +1,13 @@
 #include <math.h>
 #include <assert.h>
+#include <string.h>
 
 #include "Substructure_UHYDEfbr.h"
 
-void Substructure_SimUHYDE_1D_Init( const double qyield, const double yield_factor, const double Friction, UHYDEfbrSim_t *const Num )
+void Substructure_SimUHYDE_1D_Init( const double qyield, const double yield_factor, const double Friction, const char *Description, UHYDEfbrSim_t *const Num )
 {
+
+     Num->Description = strdup( Description );
 
      Num->u0c_old = 0.0;
      Num->q = 0.0;
