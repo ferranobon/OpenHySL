@@ -5,6 +5,7 @@
  * \date 9th of February 2013
  * 
  * \todo Add support for packed storage to reduce memory use.
+ * \todo Parallelise the loop in InputLoad_Generate_LoadVectorForm().
  *
  * \brief Rayleigh damping routines.
  *
@@ -135,5 +136,78 @@ void InputLoad_AbsValues( const MatrixVector_t *const Stiff, const MatrixVector_
  */
 void InputLoad_RelValues( const MatrixVector_t *const Mass, const MatrixVector_t *const GAcc,
 			  MatrixVector_t *const InLoad );
+
+/**
+ * \brief Generates an input load vector form from a given pattern.
+ *
+ * Through a given pattern, an input load vector form is generated. This load vector form indicates which
+ * equations are going to have an external force applied and it is generated given a pattern that repeats
+ * itself until the end of the vector is reached. For example given the pattern:
+ *
+ * <tt>6 1 1 1 0 0 -2</tt>
+ *
+ * where the first number indicates its length, the resulting output vector form would be:
+ *
+ * <tt>LoadVector = {1.0 1.0 1.0 0.0 0.0 -2.0
+ *                   1.0 1.0 1.0 0.0 0.0 -2.0
+ *                             ....
+ *                   1.0 1.0 1.0 0.0 0.0 -2.0}</tt>
+ *
+ * \pre
+ * - \c LoadVector must be properly initialised through MatrixVector_Create().
+ * - The first element of the pattern must be indicative of its length.
+ * - The length of \c LoadVector must be a multiple of the length of the specified pattern.
+ *
+ * \param[in] DOF The pattern to be applied.
+ * \param[in,out] LoadVectorForm The load vector form. On input, only the dimensions are referenced.
+ *
+ * \post \c LoadVectorForm contains the specified pattern \f$N = \frac{Order}{n}\f$ times, where \f$Order\f$
+ * is the length of this vector and \f$n\f$ the length of the load pattern.
+ *
+ * \sa MatrixVector_t and Algorithm_GetExcitedDOF().
+ */
+void InputLoad_Generate_LoadVectorForm( int *DOF, MatrixVector_t *const LoadVectorForm );
+
+
+/**
+ * \brief Given load vector form and a ground measurement, a excitation vector is generated.
+ *
+ * This routine applies a ground motion measurement (displacement, velocity or acceleration) into a load
+ * vector form. The output of this routine will be a vector with the specified measurement value applied to
+ * those parts of the load vector form that are different to 0.0. In this way, only the desired degrees of
+ * freedom (or system equations) will have an be external load applied. The output is ready to be used in
+ * calculating the input load as relative (InputLoad_RelValues()) or absolute values
+ * (InputLoad_AbsValues()). Therefore if the following \c LoadForm is considered:
+ *
+ * <tt>LoadForm = {1.0 1.0 1.0 0.0 0.0 -2.0
+ *                   1.0 1.0 1.0 0.0 0.0 -2.0
+ *                             ....
+ *                   1.0 1.0 1.0 0.0 0.0 -2.0}</tt>
+ *
+ * the resulting \c LoadVector if the ground measurement is \c A would be:
+ *
+ * <tt>LoadVector = {A A A 0.0 0.0 -2.0*A
+ *                   A A A 0.0 0.0 -2.0*A
+ *                             ....
+ *                   A A A 0.0 0.0 -2.0*A}</tt>
+ *
+ * \pre 
+ * - All elements of type \c MatrixVector_t must be properly initialised through the MatrixVector_Create()
+ * routine.
+ * - The dimensions of the vectors  must be the identical.
+ * - In \c LoadForm the equivalent elements of the degrees of freedom to be excited must have a value
+ * different than 0.
+ *
+ * \param[in] LoadForm A load vector form.
+ * \param[in] Value The desired ground measurement to be applied.
+ * \param[out] LoadVector The load vector.
+ *
+ * \post \c LoadVector is the result of multiplying the \c LoadForm vector by the given ground measurement. It
+ * is ready to be used in calculating the input load as relative (InputLoad_RelValues()) or absolute values
+ * (InputLoad_AbsValues())
+ *
+ * \sa MatrixVector_t and InputLoad_Generate_LoadVectorForm().
+ */
+void InputLoad_Apply_LoadVectorForm ( const MatrixVector_t *const LoadForm, const double Value, MatrixVector_t *const LoadVector );
 
 #endif /* COMMON_FORMULATION_H_ */

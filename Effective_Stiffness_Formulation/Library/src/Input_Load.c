@@ -45,3 +45,27 @@ void InputLoad_RelValues( const MatrixVector_t *const Mass, const MatrixVector_t
      dsymv( &uplo, &InLoad->Rows, &Alpha, Mass->Array, &InLoad->Rows, GAcc->Array, &incx, &Beta,
 	     InLoad->Array, &incy );
 }
+
+void InputLoad_Generate_LoadVectorForm( int *DOF, MatrixVector_t *const LoadVectorForm )
+{
+     int i, j;
+
+     i = 0;
+     while( i < LoadVectorForm->Rows ){	  
+	  for ( j = 1; j < DOF[0]; j++ ){
+	       LoadVectorForm->Array[i] = (double) DOF[j];
+	       i = i + 1;
+	  }
+     }
+}
+
+void InputLoad_Apply_LoadVectorForm( const MatrixVector_t *const LoadForm, const double Value, MatrixVector_t *const LoadVector )
+{
+     int incx = 1;
+     int incy = 1;
+     double Scalar;
+
+     Scalar = Value;
+     dcopy( &LoadVector->Rows, LoadForm->Array, &incx, LoadVector->Array, &incy );
+     dscal( &LoadVector->Rows, &Scalar, LoadVector->Array, &incx );
+}
