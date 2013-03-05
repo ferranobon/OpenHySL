@@ -8,8 +8,7 @@
 #include "Substructure_UHYDEfbr.h"
 #include "Substructure_SimMeasured.h"
 #include "Substructure_Experimental.h"
-
-#include "Auxiliary_Math.h"
+#include "Substructure_CouplingNodes.h"
 
 #if _ADWIN_
 #include "ADwinRoutines.h"
@@ -21,51 +20,12 @@
 #include "Netlib.h"
 #endif
 
-void Join_NonCouplingPart( MatrixVector_t *const VecTdT_m, const MatrixVector_t *const Gain_m,
-			   const MatrixVector_t *const fcprevsub, const CouplingNode_t *const CNodes,
-			   MatrixVector_t *const VecTdT )			  
-{
-     static int icoup;                 /* Counter for the coupling nodes */
-     static int incx, incy;            /* Stride in the vectors */
-     static double Alpha, Beta;        /* Constants for the BLAS routines */
-     static char trans;                /* Use or not the transpose */
-     static int Rows, Cols;            /* Number of Rows and columns */
-     static int lda;                   /* Leading dimension */
-     static int Length, PosX, PosXm;   /* Length and position counters */
-     
-     incx = 1; incy = 1;
-     trans = 'N';
-     Alpha = 1.0; Beta = 1.0;
-     Rows = Gain_m->Rows;
-     Cols = Gain_m->Cols;
-     lda = Max( 1, Gain_m->Rows);
-
-     /* Update the VecTdT_m displacments to include the effects of the coupling force */
-     /* BLAS: VecTdT_m = Gain_m*fcprevsub */
-     dgemv( &trans, &Rows, &Cols, &Alpha, Gain_m->Array, &lda,
-	     fcprevsub->Array, &incx, &Beta, VecTdT_m->Array, &incy );
-
-     /* Copy the updated values into the complete displacement vector */
-     PosX = 0; PosXm = 0;
-     for ( icoup = 0; icoup < CNodes->Order; icoup++ ){
-	  Length = CNodes->Array[icoup] - PosX -1;
-	  dcopy( &Length, &VecTdT_m->Array[PosXm], &incx, &VecTdT->Array[PosX], &incy );
-	  PosX = CNodes->Array[icoup];
-	  PosXm = PosXm + Length;
-     }
-
-     /* Add the elements between the final coupling node and the final element
-      * of the complete displacement vector */
-     Length = VecTdT->Rows - CNodes->Array[CNodes->Order -1];
-     dcopy( &Length, &VecTdT_m->Array[PosXm], &incx, &VecTdT->Array[PosX], &incy );	
-}
-
-void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, const double Time, const int NSubstep,
+void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, const double Time, const unsigned int NSubstep,
 			       const double DeltaT_Sub, CouplingNode_t *const CNodes, double *const DispTdT,
 			       double *const fcprevsub, double *const fc )
 {
 
-     unsigned int i;
+     int i;
      bool Called_Sub = false;
      double *Recv = NULL;
 
@@ -172,7 +132,7 @@ void Substructure_Simulate( CouplingNode_t *const CNodes, double *IGain, double 
 	  }
 	  
 	  /* Compute the new fc */
-	  for( i = 0; i < CNodes->Order; i ++ ){
+	  for( i = 0; i < (unsigned int) CNodes->Order; i ++ ){
 	       switch( CNodes->Sub[i].Type )
 	       if( CNodes->Sub[i].Type == SIM_EXACT ){
 		    Exact = (ExactSim_t *) CNodes->Sub[i].SimStruct;
