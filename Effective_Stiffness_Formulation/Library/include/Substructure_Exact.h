@@ -3,7 +3,7 @@
 
 #include "Substructure.h"
 
-#define EXACT_NUMPARAM_INIT 3  /*!< Number of required parameters in order to initialise a substructure of
+#define EXACT_NUMPARAM_INIT 3  /*!< Subber of required parameters in order to initialise a substructure of
 			        * type Exact fbr */
 typedef struct ExactSim {
      double Mass, Damp, Stiff;
@@ -18,7 +18,8 @@ typedef struct ExactSim {
 } ExactSim_t;
 
 
-void Substructure_ExactSolution_Init( const double Mass, const double Damp, const double Stiff, const double DeltaT, const char *Description, ExactSim_t *const Num );
-void Substructure_ExactSolution_SDOF( const double u0c, const double DeltaT, ExactSim_t *const Num, double *const fc );
+void Substructure_ExactSolution_Init( const double Mass, const double Damp, const double Stiff, const double DeltaT, const char *Description, ExactSim_t *const Sub );
+void Substructure_ExactSolution_SDOF( const double u0c, const double DeltaT, ExactSim_t *const Sub, double *const fc );
+void Substructure_ExactSolution_Destroy( ExactSim_t *const Sub );
 
 #endif /* SUBSTRUCTURE_EXACT_H_ */

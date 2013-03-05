@@ -29,10 +29,6 @@ typedef struct Substructure{
      int Type;
 } Substructure_t;
 
-typedef struct ExpSub{
-     char *Description;
-} ExpSub_t;
-
 /**
  * \brief Structure to store the coupling nodes.
  * 
