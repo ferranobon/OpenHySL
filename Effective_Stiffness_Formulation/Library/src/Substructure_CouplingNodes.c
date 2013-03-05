@@ -54,7 +54,7 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
      /* Allocate the necessary memory */
      CNodes->Array = (int *) calloc( (size_t) CNodes->Order, sizeof(int) );
      CNodes->Sub = (Substructure_t *) malloc( (size_t) CNodes->Order*sizeof(Substructure_t) );
-     CNodes->u0c0 = (double *) calloc( (size_t) CNodes->Order, sizeof(double) );
+     CNodes->VecTdT0_c0 = (double *) calloc( (size_t) CNodes->Order, sizeof(double) );
 
      /* Read the contents of the file */
      i = 0;
@@ -304,5 +304,5 @@ void Substructure_DeleteCouplingNodes( CouplingNode_t *CNodes )
      CNodes->Order = 0;
      free( CNodes->Sub );
      free( CNodes->Array );
-     free( CNodes->u0c0 );
+     free( CNodes->VecTdT0_c0 );
 }

@@ -1,9 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <stdbool.h>
 
 #include "Substructure.h"
+#include "Substructure_Exact.h"
+#include "Substructure_UHYDEfbr.h"
+#include "Substructure_SimMeasured.h"
+#include "Substructure_Experimental.h"
+
 #include "Auxiliary_Math.h"
+
+#if _ADWIN_
+#include "ADwinRoutines.h"
+#endif
 
 #if _MKL_
 #include <mkl_blas.h>
@@ -50,8 +60,9 @@ void Join_NonCouplingPart( MatrixVector_t *const VecTdT_m, const MatrixVector_t 
      dcopy( &Length, &VecTdT_m->Array[PosXm], &incx, &VecTdT->Array[PosX], &incy );	
 }
 
-#if _1_
-void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, double *const DispTdT, double *const fcprevsub, double *const fc, const double Time, CouplingNode_t *const CNodes, const int NSubstep, const double DeltaT_Sub )
+void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, const double Time, const int NSubstep,
+			       const double DeltaT_Sub, CouplingNode_t *const CNodes, double *const DispTdT,
+			       double *const fcprevsub, double *const fc )
 {
 
      unsigned int i;
@@ -72,7 +83,7 @@ void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, do
 	       /* Call the Simulate_Substructures() function only once. All the simulated substructures are handled
 		* together in this routine */
 	       if( !Called_Sub ){
-		    Simulate_Substructures( CNodes, IGain, DispTdT0_c, &Recv[0], &Recv[CNodes->Order], &Recv[2*CNodes->Order], NSubstep, DeltaT_Sub );
+		    Substructure_Simulate( CNodes, IGain, DispTdT0_c, NSubstep, DeltaT_Sub, &Recv[0], &Recv[CNodes->Order], &Recv[2*CNodes->Order] );
 		    Called_Sub = true;
 	       }
 	       break;
@@ -84,27 +95,27 @@ void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, do
 #endif
 	  case REMOTE_TCP:
 	       /* Using TCP communication protocol */
-	       Send_Data( DispTdT0_c, CNodes->Order, Socket );
+//	       Send_Data( DispTdT0_c, CNodes->Order, Socket );
 
-	       Receive_Data( Recv, 3*CNodes->Order, Socket );
+//	       Receive_Data( Recv, 3*CNodes->Order, Socket );
 	       break;
 	  case REMOTE_UDP:
 	       /* Using UDP communication protocol */
 
-	       Send_Data( DispTdT0_c, CNodes->Order, Socket );
-	       if ( recv( Socket, Recv, sizeof(double)*3*(size_t) CNodes->Order,0) != (int) sizeof(double)*3*CNodes->Order ){    /* sizeof returns an unsigned integer ? */
-		    PrintErrorAndExit( "recv() failed in connected UDP mode" );
-	       }
+//	       Send_Data( DispTdT0_c, CNodes->Order, Socket );
+//	       if ( recv( Socket, Recv, sizeof(double)*3*(size_t) CNodes->Order,0) != (int) sizeof(double)*3*CNodes->Order ){    /* sizeof returns an unsigned integer ? */
+//		    PrintErrorAndExit( "recv() failed in connected UDP mode" );
+//	       }
 	       break;
 	  case REMOTE_NSEP:
 	       /* Using NSEP Protocol */
-	       Communicate_With_PNSE( 1, Time, DispTdT0_c, Recv, CNodes->Order );
+//	       Communicate_With_PNSE( 1, Time, DispTdT0_c, Recv, CNodes->Order );
 	       /* Receive the force from the PNSE server. WhatToDo = 2 */
-	       Communicate_With_PNSE( 2, Time, DispTdT0_c, Recv, 3*CNodes->Order );
+//	       Communicate_With_PNSE( 2, Time, DispTdT0_c, Recv, 3*CNodes->Order );
 	       break;
 	  case REMOTE_OF:
 	       /* Using OpenFresco */
-	       Communicate_With_OpenFresco( DispTdT0_c, Recv, CNodes->Order, 3 ); 
+//	       Communicate_With_OpenFresco( DispTdT0_c, Recv, CNodes->Order, 3 ); 
 	       break;
 	  }
      }
@@ -126,8 +137,7 @@ void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, do
      free( Recv );
 }
 
-
-void Substructure_Simulate( CouplingNode_t *const CNodes, double *IGain, double *const u0c, double *const uc, double *const fcprev, double *const fc, const unsigned int NSubstep, const double DeltaT_Sub )
+void Substructure_Simulate( CouplingNode_t *const CNodes, double *IGain, double *const VecTdT0_c, const unsigned int NSubstep, const double DeltaT_Sub, double *const VecTdT_c, double *const fcprev, double *const fc )
 {
 
      unsigned int i, Substep;
@@ -153,12 +163,12 @@ void Substructure_Simulate( CouplingNode_t *const CNodes, double *IGain, double 
 	  ramp0 = 1.0 - ramp;   
 
 	  if ( CNodes->Order > 1 ){
-	       dcopy( &Length, CNodes->u0c0, &incx, uc, &incy );
-	       dscal( &Length, &ramp0, uc, &incx );
-	       daxpy( &Length, &ramp, u0c, &incx, uc, &incy );
-	       dsymv( &uplo, &Length, &One, IGain, &Length, fc, &incx, &One, uc, &incy ); 
+	       dcopy( &Length, CNodes->VecTdT0_c0, &incx, VecTdT_c, &incy );
+	       dscal( &Length, &ramp0, VecTdT_c, &incx );
+	       daxpy( &Length, &ramp, VecTdT0_c, &incx, VecTdT_c, &incy );
+	       dsymv( &uplo, &Length, &One, IGain, &Length, fc, &incx, &One, VecTdT_c, &incy ); 
 	  } else {
-	       uc[0] = ramp0*CNodes->u0c0[0] + ramp*u0c[0] + IGain[0]*fc[0];
+	       VecTdT_c[0] = ramp0*CNodes->VecTdT0_c0[0] + ramp*VecTdT0_c[0] + IGain[0]*fc[0];
 	  }
 	  
 	  /* Compute the new fc */
@@ -166,19 +176,18 @@ void Substructure_Simulate( CouplingNode_t *const CNodes, double *IGain, double 
 	       switch( CNodes->Sub[i].Type )
 	       if( CNodes->Sub[i].Type == SIM_EXACT ){
 		    Exact = (ExactSim_t *) CNodes->Sub[i].SimStruct;
-		    ExactSolution_SDOF( u0c[i], DeltaT_Sub, Exact, &fc[i] );
+		    Substructure_ExactSolution_SDOF( VecTdT0_c[i], DeltaT_Sub, Exact, &fc[i] );
 	       } else if ( CNodes->Sub[i].Type == SIM_UHYDE ){
 		    UHYDE = (UHYDEfbrSim_t *) CNodes->Sub[i].SimStruct;
-		    Simulate_UHYDE_1D( u0c[i], DeltaT_Sub, UHYDE, &fc[i] );
+		    Substructure_SimUHYDE_1D( VecTdT0_c[i], DeltaT_Sub, UHYDE, &fc[i] );
 	       } else if ( CNodes->Sub[i].Type == SIM_MEASURED ){
 		    Measured = (MeasuredSim_t *) CNodes->Sub[i].SimStruct;
-		    Simulate_Measured( Measured, &fc[i] );
+		    Substructure_SimMeasured( Measured, &fc[i] );
 	       }
 	  }
 	  
      }
 
-     /* Backup u0c */
-     dcopy( &Length, u0c, &incx, CNodes->u0c0, &incy );
+     /* Backup VecTdT0_c */
+     dcopy( &Length, VecTdT0_c, &incx, CNodes->VecTdT0_c0, &incy );
 }
-#endif
