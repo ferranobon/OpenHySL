@@ -22,7 +22,7 @@ typedef struct Substructure{
 typedef struct CouplingNode {
      int *Array;  /*!< \brief Array containing the coupling nodes */
      int Order;   /*!< \brief Number of coupling nodes */
-     double *u0c0;
+     double *VecTdT0_c0;
      Substructure_t *Sub;
 } CouplingNode_t;
 
@@ -53,8 +53,8 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 
 /**
  * \brief Perform */
-void Substructure_SimMeasuredValues( const char *FileName, const double *const Keinv, const double *const u0c, double *const uc, double *const fcprev, double *const fc, const unsigned int OrderC, const unsigned int NSub );
+void Substructure_SimMeasuredValues( const char *FileName, const double *const IGain, const double *const VecTdT0_c, double *const VecTdT_c, double *const fcprev, double *const fc, const unsigned int OrderC, const unsigned int NSub );
 
 
-#endif /* SUBSTRUCTURE_READCOUPLINGnODES_H_ */
+#endif /* SUBSTRVECTDT_CTURE_READCOUPLINGnODES_H_ */
 

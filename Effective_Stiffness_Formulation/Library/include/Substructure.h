@@ -64,6 +64,10 @@ void Join_NonCouplingPart( MatrixVector_t *const VecTdT_m, const MatrixVector_t 
 			   const MatrixVector_t *const fcprevsub, const CouplingNode_t *const CNodes,
 			   MatrixVector_t *const VecTdT );
 
-void Substructure_Simulate( CouplingNode_t *const CNodes, double *Keinv, double *const u0c, double *const uc, double *const fcprev, double *const fc, const unsigned int NSubstep, const double DeltaT_Sub );
+void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, const double Time, const int NSubstep,
+			       const double DeltaT_Sub, CouplingNode_t *const CNodes, double *const DispTdT,
+			       double *const fcprevsub, double *const fc );
+
+void Substructure_Simulate( CouplingNode_t *const CNodes, double *IGain, double *const VecTdT0_c, const unsigned int NSubstep, const double DeltaT_Sub, double *const VecTdT_c, double *const fcprev, double *const fc );
 
 #endif /* SUBSTRUCTURE_H_ */
