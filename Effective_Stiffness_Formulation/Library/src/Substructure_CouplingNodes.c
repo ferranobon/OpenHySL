@@ -278,16 +278,16 @@ void Substructure_DeleteCouplingNodes( CouplingNode_t *CNodes )
      for( i = 0; i < CNodes->Order; i++ ){
 	  switch( CNodes->Sub[i].Type ){
 	  case SIM_EXACT:
-	       Substructure_ExactSolution_Destroy( (ExactSim_t *) &CNodes->Sub[i].SimStruct );
+	       Substructure_ExactSolution_Destroy( (ExactSim_t *) CNodes->Sub[i].SimStruct );
 	       break;
 	  case SIM_UHYDE:
-	       Substructure_SimUHYDE_Destroy( (UHYDEfbrSim_t *) &CNodes->Sub[i].SimStruct );
+	       Substructure_SimUHYDE_Destroy( (UHYDEfbrSim_t *) CNodes->Sub[i].SimStruct );
 	       break;
 	  case SIM_MEASURED:
-	       Substructure_SimMeasured_Destroy( (MeasuredSim_t *) &CNodes->Sub[i].SimStruct );
+	       Substructure_SimMeasured_Destroy( (MeasuredSim_t *) CNodes->Sub[i].SimStruct );
 	       break;
 	  case EXP_ADWIN:
-	       Substructure_Experimental_Destroy( (ExpSub_t *) &CNodes->Sub[i].SimStruct );
+	       Substructure_Experimental_Destroy( (ExpSub_t *) CNodes->Sub[i].SimStruct );
 	       break;
 	  case REMOTE_TCP:
 	       break;
