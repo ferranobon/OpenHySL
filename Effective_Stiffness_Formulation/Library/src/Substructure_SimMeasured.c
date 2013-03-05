@@ -54,5 +54,8 @@ void Substructure_SimMeasured( const MeasuredSim_t *const Sub, double *const fc 
 
 void Substructure_SimMeasured_Destroy( MeasuredSim_t *const Sub )
 {
+     Sub->Length = 0;
+
      free( Sub->Description );
+     free( Sub->Values );
 }
