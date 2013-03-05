@@ -158,4 +158,69 @@ void Algorithm_Destroy( AlgConst_t *const InitConst );
  */
 int* Algorithm_GetExcitedDOF( const ConfFile_t *const Config, const char *Expression );
 
+/**
+ * \brief Reads the velocity and displacement of an earthquake from a file.
+ *
+ * The data from an earthquake is readen from the specified file and its components are stored in different
+ * variables, namely: displacement and velocity. If the specified file does not exist, an appropriate error is
+ * displayed and the program exists with \c EXIT_FAILURE.
+ *
+ * \pre
+ * - The input text file should be in ASCII format and it must contain no header and four columns in the
+ * following order:
+ *    -# It can contain anything, since it will not be stored, it is recommended that it has the
+ * step number to detect any possible errors (see the next precondition).
+ *    -# Acceleration in \f$[mm/s^2]\f$.
+ *    -# Velocity in \f$[mm/s]\f$.
+ *    -# Displacement in \f$[mm]\f$.
+ * - Note also that the number of steps in the file should be equal to the number of steps defined in
+ * Algorithm_Init()InitConstants(). No check is performed.
+ * - The arrays must be properly initialised and its length should be \f$l = Number~of~Steps\f$.
+ *
+ * \param[in] NumSteps The number of steps in which the earthquake is divided.
+ * \param[in] Filename The name of the file where the earthquake is recorded.
+ * \param[out] Velocity Array that will store the third column of the data file, that is, the velocity of
+ * the recorded earthquake converted to \f$[m/s]\f$.
+ * \param[out] Displacement Array that will store the fourth column of the data file, that is, the
+ * displacement of the recorded earthquake converted to \f$[m]\f$
+ *
+ * \post \c Velocity and \c Displacement will store the velocity and displacement of the recorded earthquake
+ * in \f$[m/s]\f$ and \f$[m]\f$ respectively.
+ *
+ * \sa Algorithm_Initnit().
+ */
+void Algorithm_ReadDataEarthquake_AbsValues( const unsigned int NumSteps, const char *Filename,
+					     double *Velocity, double *Displacement );
+
+/**
+ * \brief Reads the accelerations of an earthquake from a file.
+ *
+ * The acceleration record from an earthquake is readen from the specified file. If it does not exist, an
+ * appropriate error is displayed and the program exists with \c EXIT_FAILURE.
+ *
+ * \pre
+ * - The input text file should be in ASCII format and it must contain no header and four columns in the
+ * following order:
+ *    -# It can contain anything, since it will not be stored, it is recommended that it has the
+ * step number to detect any possible errors (see the next precondition).
+ *    -# Acceleration in \f$[mm/s^2]\f$.
+ *    -# Velocity in \f$[mm/s]\f$.
+ *    -# Displacement in \f$[mm]\f$.
+ * - Note also that the number of steps in the file should be equal to the number of steps defined in
+ * Algorithm_Init(). No check is performed.
+ * - The arrays must be properly initialised and its length should be \f$l = Number~of~Steps\f$.
+ *
+ * \param[in] NumSteps The number of steps in which the earthquake is divided.
+ * \param[in] Filename The name of the file where the earthquake is recorded.
+ * \param[out] Acceleration Array that will store the second column of the data file, that is, the
+ * acceleration of the recorder earthquake converted to \f$[mm/s^2]\f$.
+ *
+ * \post
+ * - \c Acceleration will store the acceleration of the recorded earthquake in \f$[m/s^2]\f$.
+ *
+ * \sa Algorithm_Init().
+ */
+void Algorithm_ReadDataEarthquake_RelValues( const unsigned int NumSteps, const char *Filename,
+					     double *Acceleration );
+
 #endif /* _ALGORITHM_AUX_H_ */
