@@ -2,6 +2,7 @@
 #define SUBSTRUCTURE_H_
 
 #include "MatrixVector.h"
+#include "Substructure_CouplingNodes.h"
 
 #define NUM_TYPE_SUB  8  /*!< Number of recognized sub-structure types */
 
@@ -14,33 +15,6 @@ enum Substructure_Id { SIM_EXACT,     /*!< Simulate the substructure using the e
 		       REMOTE_NSEP,   /*!< Remote node using NSEP protocol. */
 		       REMOTE_OF      /*!< Remote node using OpenFresco. */
 };
-
-//extern const char *Substructure_Type[]; /*!< Has all the substructure types. The order of the substructures
-//					 * must be the same as in Substructure_Id type.
-//					 * \sa Substructure_Id.*/
-
-#define MAX_LINE 200          /*!< Maximum input line length. */
-#define MAX_SUBTYPE 20        /*!< Maximum length of the substructure type */
-#define MAX_DESCRIPTION 80    /*!< Maximum description length for a substructure. */
-#define MAX_FILENAME 20       /*!< Maximum file name length. */
-
-typedef struct Substructure{
-     void *SimStruct;
-     int Type;
-} Substructure_t;
-
-/**
- * \brief Structure to store the coupling nodes.
- * 
- * This structure is used in order to store the coupling nodes that will be used
- * during a test. The nodes are stored sequentially and in increasing order.
- */
-typedef struct CouplingNode {
-     int *Array;  /*!< \brief Array containing the coupling nodes */
-     int Order;   /*!< \brief Number of coupling nodes */
-     double *u0c0;
-     Substructure_t *Sub;
-} CouplingNode_t;
 
 /**
  * \brief Joins the non-coupling of a vector.
@@ -90,33 +64,6 @@ void Join_NonCouplingPart( MatrixVector_t *const VecTdT_m, const MatrixVector_t 
 			   const MatrixVector_t *const fcprevsub, const CouplingNode_t *const CNodes,
 			   MatrixVector_t *const VecTdT );
 
-/**
- * \brief Deallocates the memory in the \c CouplingNode_t.
- * 
- * \pre \c CNodes must be properly initialised through Substructure_ReadCouplingNodes().
- *
- * \param[in,out] CNodes On entry only the number of substructures is referenced.
- * 
- * \post The dynamically allocated memory inside \c CNodes is freed and <tt>CNodes.Order = 0</tt>.
- */
-void Substructure_DeleteCouplingNodes( CouplingNode_t *CNodes );
-
-/**
- * \brief Identifies the type of substructure.
- *
- * \param[in] Type Substructure type to be validated/identified.
- * \param[out] Identity_Num Substructure identifier.
- *
- * \post If the input substructure type in \c Type is not recognised. The program will terminate.
- */
-void Substructure_Identify( char *const Type, int *const Identity_Num );
-
-void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigned int NSteps, const unsigned int NSubsteps,
-				     const int OrderSub, const double DeltaTSub, const char *Filename );
-
-/**
- * \brief Perform */
-void Substructure_SimMeasuredValues( const char *FileName, const double *const Keinv, const double *const u0c, double *const uc, double *const fcprev, double *const fc, const unsigned int OrderC, const unsigned int NSub );
 void Substructure_Simulate( CouplingNode_t *const CNodes, double *Keinv, double *const u0c, double *const uc, double *const fcprev, double *const fc, const unsigned int NSubstep, const double DeltaT_Sub );
 
 #endif /* SUBSTRUCTURE_H_ */
