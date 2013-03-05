@@ -52,3 +52,8 @@ void Substructure_SimUHYDE_1D( const double u0c, const double DeltaT, UHYDEfbrSi
      Num->u0c_old = u0c;
 
 }
+
+void Substructure_SimUHYDE_Destroy( UHYDEfbrSim_t *const Sub )
+{
+     free( Sub->Description );
+}
