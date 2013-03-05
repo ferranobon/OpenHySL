@@ -147,8 +147,8 @@ file( GLOB SUBS_SRCS src/Substructure.c src/Substructure_Exact.c src/Substructur
 add_library( substructure ${SUBS_SRCS})
 target_link_libraries( substructure -lm core )
 
-add_executable( SAlgorithm SAlgorithm.c src/Algorithm_Aux.c)# ${CORE_SRCS} ${SPARSE_SRCS} ${SUBS_SRCS})
-target_link_libraries(SAlgorithm core core_sp substructure)
+add_executable( SAlgorithm SAlgorithm.c src/Algorithm_Aux.c src/HDF5_Operations.c)# ${CORE_SRCS} ${SPARSE_SRCS} ${SUBS_SRCS})
+target_link_libraries(SAlgorithm core core_sp substructure -lhdf5 -lhdf5_hl)
 # Rules to build the programs related to the substructure. Each program will
 # be compliant with one of the different protocols: Custom, NSEP and OpenFresco
 
