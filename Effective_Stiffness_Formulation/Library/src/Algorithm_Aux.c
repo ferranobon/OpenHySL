@@ -182,3 +182,56 @@ int* Algorithm_GetExcitedDOF( const ConfFile_t *const Config, const char *Expres
      free( FullString );
      return DOF_Table;
 }
+
+void Algorithm_ReadDataEarthquake_AbsValues( const unsigned int NumSteps, const char *Filename,
+					     double *Velocity, double *Displacement )
+{
+
+     unsigned int i;					/* A counter */
+     double unnecessary;		/* Variable to store unnecessary data */
+     double temp1, temp2, temp3;
+     FILE *InFile;
+
+     InFile = fopen( Filename, "r" );
+
+     if ( InFile == NULL ){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "The earthquake data cannot be read because it was not possible to open %s.\n",
+		   Filename );
+     }
+
+     for ( i = 0; i < NumSteps; i++ ){
+	  fscanf( InFile, "%lE %lE %lE %lE", &unnecessary, &temp1, &temp2, &temp3 );
+	  Velocity[i] = temp2/1000.0;
+	  Displacement[i] = temp3/1000.0;
+     }
+
+     /* Close File */
+     fclose( InFile );
+}
+
+void Algorithm_ReadDataEarthquake_RelValues( const unsigned int NumSteps, const char *Filename,
+					     double *Acceleration )
+{
+
+     unsigned int i;					/* A counter */
+     double unnecessary;		/* Variable to store unnecessary data */
+     double temp1, temp2, temp3;
+     FILE *InFile;
+
+     InFile = fopen( Filename, "r" );
+
+     if ( InFile == NULL ){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "The earthquake data cannot be read because it was not possible to open %s.\n",
+		   Filename );
+     }
+
+     for ( i = 0; i < NumSteps; i++ ){
+	  fscanf( InFile, "%lE %lE %lE %lE", &unnecessary, &temp1, &temp2, &temp3 );
+	  Acceleration[i] = temp1/1000.0;
+     }
+
+     /* Close File */
+     fclose( InFile );
+}

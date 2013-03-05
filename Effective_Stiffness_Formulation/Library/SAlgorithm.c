@@ -134,7 +134,8 @@ int main( int argc, char **argv ){
      }
 
      /* Initialise the matrices and vectors that will be used in the Time Integration process */
-     if( (!InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (!InitCnt.Use_Sparse && InitCnt.Read_Sparse) ){
+     if( (!InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (InitCnt.Use_Sparse && !InitCnt.Read_Sparse) ||
+	 (!InitCnt.Use_Sparse && InitCnt.Read_Sparse) ){
 	  MatrixVector_Create( InitCnt.Order, InitCnt.Order, &M );
 	  MatrixVector_Create( InitCnt.Order, InitCnt.Order, &K );
      } else if ( InitCnt.Use_Sparse && InitCnt.Read_Sparse ){
@@ -189,12 +190,12 @@ int main( int argc, char **argv ){
 	  MatrixVector_FromFile( InitCnt.FileK, &K );
      } else if ( !InitCnt.Read_Sparse && InitCnt.Use_Sparse ){
 	  MatrixVector_FromFile( InitCnt.FileM, &M );
-	  MatrixVector_Dense2CSR( &M, 0, &Sp_M );            /* Transform into CSR format */
-	  MatrixVector_Destroy( &M );              /* Destroy the dense matrix */
+	  MatrixVector_Dense2CSR( &M, 0, &Sp_M );        /* Transform into CSR format */
+	  MatrixVector_Destroy( &M );                    /* Destroy the dense matrix */
 
 	  MatrixVector_FromFile( InitCnt.FileK, &K );
-	  MatrixVector_Dense2CSR( &K, 0, &Sp_K );            /* Transform into CSR format */
-	  MatrixVector_Destroy( &K );              /* Destroy the dense matrix */
+	  MatrixVector_Dense2CSR( &K, 0, &Sp_K );        /* Transform into CSR format */
+	  MatrixVector_Destroy( &K );                    /* Destroy the dense matrix */
      } else if ( InitCnt.Read_Sparse && !InitCnt.Use_Sparse ){
 	  MatrixVector_FromFile_MM( InitCnt.FileM, &M );
 	  MatrixVector_FromFile_MM( InitCnt.FileK, &K );
@@ -246,9 +247,9 @@ int main( int argc, char **argv ){
 
      /* Read the earthquake data from a file */
      if( InitCnt.Use_Absolute_Values ){
-//	  ReadDataEarthquake_AbsValues( VelAll, DispAll, InitCnt.NStep, InitCnt.FileData );
+	  Algorithm_ReadDataEarthquake_AbsValues( InitCnt.NStep, InitCnt.FileData, VelAll, DispAll );
      } else {
-//	  ReadDataEarthquake_RelValues( AccAll, InitCnt.NStep, InitCnt.FileData );
+	  Algorithm_ReadDataEarthquake_RelValues( InitCnt.NStep, InitCnt.FileData, AccAll );
      }
 
      /* Open Output file. If the file cannot be opened, the program will exit, since the results cannot be stored. */
