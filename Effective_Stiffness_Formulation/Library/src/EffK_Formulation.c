@@ -13,10 +13,10 @@ void EffK_EffectiveForce( const MatrixVector_t *const Mass, const MatrixVector_t
 			  const double a5, MatrixVector_t *const Eff_ForceT )
 {
 
-     static int incx = 1, incy = 1;  /* Stride in the vectors */
-     static char uplo = 'L';         /* The lower part (upper part in C) will be used and the upper part (lower part in C)
+     int incx = 1, incy = 1;  /* Stride in the vectors */
+     char uplo = 'L';         /* The lower part (upper part in C) will be used and the upper part (lower part in C)
 				      *	will strictly not be referenced */
-     static double Alpha, Beta;      /* Constants for the BLAS routines */
+     double Alpha, Beta;      /* Constants for the BLAS routines */
 
      /* BLAS: tempvec = Disp */
      dcopy( &Tempvec->Rows, DispT->Array, &incx, Tempvec->Array, &incy );
@@ -56,8 +56,8 @@ void EffK_ComputeAcceleration( const MatrixVector_t *const DispTdT, const Matrix
 			       const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
 			       const double a0, const double a2, const double a3, MatrixVector_t *const AccTdT )
 {
-     static int incx = 1, incy = 1;  /* Stride in the vectors */
-     static double Alpha;            /* Constant for the BLAS routines */
+     int incx = 1, incy = 1;  /* Stride in the vectors */
+     double Alpha;            /* Constant for the BLAS routines */
 
      /* BLAS: AccTdT = DispTdT */
      dcopy( &AccTdT->Rows, DispTdT->Array, &incx, AccTdT->Array, &incy ); 
@@ -78,8 +78,8 @@ void EffK_ComputeAcceleration( const MatrixVector_t *const DispTdT, const Matrix
 void EffK_ComputeVelocity( const MatrixVector_t *const VelT, const MatrixVector_t *const AccT, const MatrixVector_t *const AccTdT,
 			   const double a6, const double a7, MatrixVector_t *const VelTdT )
 {
-     static int incx = 1, incy= 1;  /* Stride in the vectors */
-     static double Alpha;           /* Constant for the BLAS routines */
+     int incx = 1, incy= 1;  /* Stride in the vectors */
+     double Alpha;           /* Constant for the BLAS routines */
 
      /* BLAS: VelTdT = VelT */
      dcopy( &VelTdT->Rows, VelT->Array, &incx, VelTdT->Array, &incy );

@@ -10,9 +10,9 @@
 void Compute_NewState( const MatrixVector_t *const IGain, const MatrixVector_t *const Eff_ForceT, const MatrixVector_t *const In_LoadT,
 		       const MatrixVector_t *const Err_ForceT, MatrixVector_t *const Tempvec, MatrixVector_t *const VecTdT_0 )
 {
-     static int incx = 1, incy = 1;           /* Stride in the vectors */
-     static double Alpha = 1.0, Beta = 0.0;   /* Constants for the BLAS routines */
-     static char uplo = 'L';                  /* The lower part (upper part in C) will be used and the upper part (lower part
+     int incx = 1, incy = 1;           /* Stride in the vectors */
+     double Alpha = 1.0, Beta = 0.0;   /* Constants for the BLAS routines */
+     char uplo = 'L';                  /* The lower part (upper part in C) will be used and the upper part (lower part
 					       * in C) will strictly not be referenced */
 
      /* BLAS: tempvec = Eff_Force */

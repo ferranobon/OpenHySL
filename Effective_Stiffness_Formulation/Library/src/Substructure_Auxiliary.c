@@ -15,13 +15,13 @@ void Substructure_JoinNonCouplingPart( MatrixVector_t *const VecTdT_m, const Mat
 			   const MatrixVector_t *const fcprevsub, const CouplingNode_t *const CNodes,
 			   MatrixVector_t *const VecTdT )			  
 {
-     static int icoup;                 /* Counter for the coupling nodes */
-     static int incx, incy;            /* Stride in the vectors */
-     static double Alpha, Beta;        /* Constants for the BLAS routines */
-     static char trans;                /* Use or not the transpose */
-     static int Rows, Cols;            /* Number of Rows and columns */
-     static int lda;                   /* Leading dimension */
-     static int Length, PosX, PosXm;   /* Length and position counters */
+     int icoup;                 /* Counter for the coupling nodes */
+     int incx, incy;            /* Stride in the vectors */
+     double Alpha, Beta;        /* Constants for the BLAS routines */
+     char trans;                /* Use or not the transpose */
+     int Rows, Cols;            /* Number of Rows and columns */
+     int lda;                   /* Leading dimension */
+     int Length, PosX, PosXm;   /* Length and position counters */
      
      incx = 1; incy = 1;
      trans = 'N';
