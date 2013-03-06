@@ -21,9 +21,9 @@ void ErrorForce_PID_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVector_
 				 'F'}; /* One based index */
 
      /* BLAS: fe = fc */
-     Alpha = 1.0;
-     daxpy( &fe->Rows, &Alpha, fc->Array, &incx, fe->Array, &incy );
+     dcopy( &fe->Rows, fc->Array, &incx, fe->Array, &incy );
      /* BLAS: fe = fc + LoadTdT */
+     Alpha = 1.0;
      daxpy( &fe->Rows, &Alpha, LoadTdT->Array, &incx, fe->Array, &incy );
 
      /* Sparse BLAS: fe =  fc + LoadTdT - Mass*AccTdT = fe - Mass*AccTdT */
