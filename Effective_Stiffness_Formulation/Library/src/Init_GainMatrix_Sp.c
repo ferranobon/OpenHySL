@@ -28,7 +28,7 @@ void IGainMatrix_Sp( MatrixVector_t *const Gain, const MatrixVector_Sp_t *const 
 
      MatrixVector_Create_Sp( Damp->Rows, Damp->Cols, Damp->Num_Nonzero, &Sp_TempMat );
      /* Gain = Const.Alpha*M + Const.Beta*C + Const.Gamma*K */
-     MatrixVector_Add3Mat_Sp(Mass, Damp, Stiff, Const, &Sp_TempMat );
+     MatrixVector_Add3Mat_Sp( Mass, Damp, Stiff, Const, &Sp_TempMat );
 
      /* Sparse to dense conversion. The Gain matrix will be symmetrical and only the upper part (lower part
       * in FORTRAN) will be referenced.
@@ -111,7 +111,7 @@ void IGainMatrix_Pardiso( MatrixVector_t *const Gain, const MatrixVector_t *cons
 
      MatrixVector_Create( Gain->Rows, Gain->Cols, &TempMat );
 
-     MatrixVector_Add3Mat( Stiff, Mass, Damp, Const, &TempMat );
+     MatrixVector_Add3Mat( Mass, Damp, Stiff, Const, &TempMat );
 
      MatrixVector_Dense2CSR( &TempMat, 0, &Sp_TempMat );   /* Transform into CSR format */
      MatrixVector_Destroy( &TempMat );           /* Destroy the dense matrix */
@@ -252,7 +252,7 @@ void IGainMatrix_Pardiso_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_
 
      MatrixVector_Create_Sp( Damp->Rows, Damp->Cols, Damp->Num_Nonzero, &Sp_TempMat );
 
-     MatrixVector_Add3Mat_Sp( Stiff, Mass, Damp, Const, &Sp_TempMat );
+     MatrixVector_Add3Mat_Sp( Mass, Damp, Stiff, Const, &Sp_TempMat );
 
      /* Setup the Pardiso control parameters */
      for (i = 0; i < 64; i++){

@@ -148,7 +148,7 @@ int main( int argc, char **argv ){
      }
 
      MatrixVector_Create( InitCnt.Order, InitCnt.Order, &Keinv );
- 
+
      if( CNodes.Order >= 1 ){
 	  MatrixVector_Create( CNodes.Order, CNodes.Order, &Keinv_c );
 	  MatrixVector_Create( InitCnt.Order - CNodes.Order, CNodes.Order, &Keinv_m );
@@ -178,7 +178,9 @@ int main( int argc, char **argv ){
      MatrixVector_Create( InitCnt.Order, 1, &LoadTdT1 );
 
      MatrixVector_Create( InitCnt.Order, 1, &fc );
-     MatrixVector_Create( CNodes.Order, 1, &fcprevsub );
+     if( CNodes.Order >= 1 ){
+	  MatrixVector_Create( CNodes.Order, 1, &fcprevsub );
+     }
      MatrixVector_Create( InitCnt.Order, 1, &fu );
 
      MatrixVector_Create( InitCnt.Order, 1, &ErrCompT );
@@ -227,11 +229,11 @@ int main( int argc, char **argv ){
 	  Rayleigh_Damping( &M, &K, &C, &InitCnt.Rayleigh );
      }
 
-     /* Calculate Matrix Keinv = [K + a0*M + a1*C]^(-1) */
-     Constants.Alpha = 1.0;
-     Constants.Beta = InitCnt.a0;
-     Constants.Gamma = InitCnt.a1;
-     Constants.Lambda = 1.0;
+     /* Calculate Matrix Keinv = 1.0*[K + a0*M + a1*C]^(-1) */
+     Constants.Alpha = InitCnt.a0;    /* Mass matrix coefficient */
+     Constants.Beta = InitCnt.a1;     /* Damping matrix coefficent */
+     Constants.Gamma = 1.0;           /* Stiffness matrix coefficient */
+     Constants.Lambda = 1.0;          /* Matrix inversion coefficient */
 
      if( !InitCnt.Use_Sparse ){
 	  IGainMatrix( &Keinv, &M, &C, &K, Constants );
@@ -458,7 +460,9 @@ int main( int argc, char **argv ){
      MatrixVector_Destroy( &EffT );
 
      MatrixVector_Destroy( &fc );
-     MatrixVector_Destroy( &fcprevsub );
+     if( CNodes.Order >= 1 ){
+	  MatrixVector_Destroy( &fcprevsub );
+     }
      MatrixVector_Destroy( &fu );
 
      MatrixVector_Destroy( &ErrCompT );

@@ -99,7 +99,7 @@ void MatrixVector_ToFile_Sp( const MatrixVector_Sp_t *const MatVec_Sp, const cha
 
      if ( OutFile == NULL ){
 	  Print_Header( ERROR );
-	  fprintf( stderr, "MatrixVector_ToFile_Sp: It is not possible to open %s.", Filename );
+	  fprintf( stderr, "MatrixVector_ToFile_Sp: It is not possible to open %s.\n", Filename );
      }
 
 	  

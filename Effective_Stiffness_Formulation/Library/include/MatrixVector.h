@@ -196,11 +196,11 @@ void MatrixVector_Set2Value( const double Value, MatrixVector_t *const MatVec );
  * 
  * \pre \c MatVec must be properly initialised through MatrixVector_Create().
  *
- * \param[in] Filename Name of the ASCII file to be opened.
  * \param[in] MatVec The matrix or vector to save to the file \c Filename.
+ * \param[in] Filename Name of the ASCII file to be opened.
  *
  * \post The ASCII file \c Filename has the contents of \c MatVec.Array in a dense format.
  */
-void MatrixVector_ToFile( const char *Filename, const MatrixVector_t *const MatVec );
+void MatrixVector_ToFile( const MatrixVector_t *const MatVec, const char *Filename );
 
 #endif /* MATRIXVECTOR_H_ */

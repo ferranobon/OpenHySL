@@ -97,7 +97,7 @@ void MatrixVector_FromFile_MM( const char *Filename, MatrixVector_t *const MatVe
 }
 #endif /* _MATRIXMARKET_ */
 
-void MatrixVector_ToFile( const char *Filename, const MatrixVector_t *const MatVec )
+void MatrixVector_ToFile( const MatrixVector_t *const MatVec, const char *Filename )
 {
      int i, j;      /* Counters */
      FILE *OutFile;
