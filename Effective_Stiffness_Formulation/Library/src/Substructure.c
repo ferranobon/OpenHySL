@@ -133,16 +133,19 @@ void Substructure_Simulate( CouplingNode_t *const CNodes, double *IGain, double 
 	  
 	  /* Compute the new fc */
 	  for( i = 0; i < (unsigned int) CNodes->Order; i ++ ){
-	       switch( CNodes->Sub[i].Type )
-	       if( CNodes->Sub[i].Type == SIM_EXACT ){
+	       switch( CNodes->Sub[i].Type ){
+	       case SIM_EXACT:
 		    Exact = (ExactSim_t *) CNodes->Sub[i].SimStruct;
 		    Substructure_ExactSolution_SDOF( VecTdT0_c[i], DeltaT_Sub, Exact, &fc[i] );
-	       } else if ( CNodes->Sub[i].Type == SIM_UHYDE ){
+		    break;
+	       case SIM_UHYDE:
 		    UHYDE = (UHYDEfbrSim_t *) CNodes->Sub[i].SimStruct;
 		    Substructure_SimUHYDE_1D( VecTdT0_c[i], DeltaT_Sub, UHYDE, &fc[i] );
-	       } else if ( CNodes->Sub[i].Type == SIM_MEASURED ){
+		    break;
+	       case SIM_MEASURED:
 		    Measured = (MeasuredSim_t *) CNodes->Sub[i].SimStruct;
 		    Substructure_SimMeasured( Measured, &fc[i] );
+		    break;
 	       }
 	  }
 	  
