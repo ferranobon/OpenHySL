@@ -12,9 +12,9 @@ void InputLoad_AbsValues( const MatrixVector_t *const Stiff, const MatrixVector_
 			  MatrixVector_t *const InLoad )
 {
 
-     static int incx, incy;       /* Stride in the vectors for BLAS library */
-     static double Alpha, Beta;   /* Constants to use in the BLAS library */
-     static char uplo;            /* Character to use in the BLAS library */
+     int incx, incy;       /* Stride in the vectors for BLAS library */
+     double Alpha, Beta;   /* Constants to use in the BLAS library */
+     char uplo;            /* Character to use in the BLAS library */
 
      incx = 1; incy = 1;
      Alpha = 1.0; Beta = 0.0;
@@ -36,9 +36,9 @@ void InputLoad_RelValues( const MatrixVector_t *const Mass, const MatrixVector_t
 			  MatrixVector_t *const InLoad )
 {
 
-     static int incx = 1, incy = 1;           /* Stride in the vectors for BLAS library */
-     static double Alpha = -1.0, Beta = 0.0;  /* Constants to use in the BLAS library */
-     static char uplo = 'L';                  /* Character defining that the lower part (FORTRAN) of the
+     int incx = 1, incy = 1;           /* Stride in the vectors for BLAS library */
+     double Alpha = -1.0, Beta = 0.0;  /* Constants to use in the BLAS library */
+     char uplo = 'L';                  /* Character defining that the lower part (FORTRAN) of the
 					       * symmetric matrix is referenced (upper part in C) */
 
      /* BLAS: li = -M*ag */
