@@ -46,9 +46,9 @@ void ErrorForce_PID_PS( const MatrixVector_t *const Mass, const MatrixVector_t *
      char uplo = 'L';
 
      /* BLAS: fe = fc */
-     Alpha = 1.0;
-     daxpy( &fe->Rows, &Alpha, fc->Array, &incx, fe->Array, &incy );
+     dcopy( &fe->Rows, fc->Array, &incx, fe->Array, &incy );
      /* BLAS: fe = fc + LoadTdT */
+     Alpha = 1.0;
      daxpy( &fe->Rows, &Alpha, LoadTdT->Array, &incx, fe->Array, &incy );
 
      /* BLAS: fe =  fc + LoadTdT - Mass*AccTdT = fe - Mass*AccTdT */
