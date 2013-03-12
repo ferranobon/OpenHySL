@@ -32,18 +32,59 @@ void InputLoad_AbsValues( const MatrixVector_t *const Stiff, const MatrixVector_
 	     InLoad->Array, &incy );
 }
 
+void InputLoad_AbsValues_PS( const MatrixVector_t *const Stiff, const MatrixVector_t *const Damp,
+			     const MatrixVector_t *const GDisp, const MatrixVector_t *const GVel,
+			     MatrixVector_t *const InLoad )
+{
+
+     int incx, incy;       /* Stride in the vectors for BLAS library */
+     double Alpha, Beta;   /* Constants to use in the BLAS library */
+     char uplo;            /* Character to use in the BLAS library */
+
+     incx = 1; incy = 1;
+     Alpha = 1.0; Beta = 0.0;
+     uplo = 'L';                  /* The lower part (FORTRAN) of the symmetric matrix is
+				   * referenced (upper part in C) */
+
+
+     /* BLAS: li = K*ug */
+     dspmv( &uplo, &InLoad->Rows, &Alpha, Stiff->Array, GDisp->Array, &incx, &Beta,
+	    InLoad->Array, &incy );
+
+     /* BLAS: li = K*ug + C*vg = li + C*vg */
+     Beta = 1.0;
+     dspmv( &uplo, &InLoad->Rows, &Alpha, Damp->Array, GVel->Array, &incx, &Beta,
+	    InLoad->Array, &incy );
+}
+
 void InputLoad_RelValues( const MatrixVector_t *const Mass, const MatrixVector_t *const GAcc,
 			  MatrixVector_t *const InLoad )
 {
 
      int incx = 1, incy = 1;           /* Stride in the vectors for BLAS library */
      double Alpha = -1.0, Beta = 0.0;  /* Constants to use in the BLAS library */
-     char uplo = 'L';                  /* Character defining that the lower part (FORTRAN) of the
-					       * symmetric matrix is referenced (upper part in C) */
+     char uplo = 'L';                  /* Character defining that the lower part (FORTRAN)
+					* of the symmetric matrix is referenced (upper
+					* part in C) */
 
      /* BLAS: li = -M*ag */
      dsymv( &uplo, &InLoad->Rows, &Alpha, Mass->Array, &InLoad->Rows, GAcc->Array, &incx, &Beta,
 	     InLoad->Array, &incy );
+}
+
+void InputLoad_RelValues_PS( const MatrixVector_t *const Mass, const MatrixVector_t *const GAcc,
+			  MatrixVector_t *const InLoad )
+{
+
+     int incx = 1, incy = 1;           /* Stride in the vectors for BLAS library */
+     double Alpha = -1.0, Beta = 0.0;  /* Constants to use in the BLAS library */
+     char uplo = 'L';                  /* Character defining that the lower part (FORTRAN)
+					* of the symmetric matrix is referenced (upper
+					* part in C) */
+
+     /* BLAS: li = -M*ag */
+     dspmv( &uplo, &InLoad->Rows, &Alpha, Mass->Array, GAcc->Array, &incx, &Beta,
+	    InLoad->Array, &incy );
 }
 
 void InputLoad_Generate_LoadVectorForm( int *DOF, MatrixVector_t *const LoadVectorForm )

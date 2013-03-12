@@ -75,3 +75,30 @@ void Rayleigh_Damping( const MatrixVector_t *const Mass, const MatrixVector_t *c
      Print_Header( SUCCESS );
      printf("Damping matrix successfully calculated.\n" );
 }
+
+void Rayleigh_Damping_PS( const MatrixVector_t *const Mass, const MatrixVector_t *const Stiff, MatrixVector_t *const Damp,
+		       const Rayleigh_t *const Rayleigh )
+{
+     int incx, incy;
+     int Length;
+     double alpha, beta;
+
+     incx = 1; incy = 1;
+
+     alpha = Rayleigh->Alpha;
+     beta = Rayleigh->Beta;
+
+     Length = (Damp->Rows*Damp->Cols + Damp->Rows)/2;
+
+     /* BLAS: C = M */
+     dcopy( &Length, Mass->Array, &incx, Damp->Array, &incy );
+
+     /* BLAS: C = Rayleigh.alpha*M = Rayleigh.alpha*C */
+     dscal( &Length, &alpha, Damp->Array, &incx );
+
+     /* BLAS: C = alpha*M + beta*K = C + beta*K. Only half of the matrix is calculated */
+     daxpy( &Length, &beta, Stiff->Array, &incx, Damp->Array, &incy);
+     
+     Print_Header( SUCCESS );
+     printf("Damping matrix successfully calculated.\n" );
+}

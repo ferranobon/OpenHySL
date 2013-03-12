@@ -44,8 +44,8 @@ void Substructure_JoinNonCouplingPart( MatrixVector_t *const VecTdT_m, const Mat
 	  PosXm = PosXm + Length;
      }
 
-     /* Add the elements between the final coupling node and the final element
-      * of the complete displacement vector */
+     /* Add the elements between the final coupling node and the final element of the
+      * complete displacement vector */
      Length = VecTdT->Rows - CNodes->Array[CNodes->Order -1];
      dcopy( &Length, &VecTdT_m->Array[PosXm], &incx, &VecTdT->Array[PosX], &incy );	
 }
@@ -79,12 +79,13 @@ void Substructure_MatrixXcm( const MatrixVector_t *const Mat, const CouplingNode
      int PosXcm, Acumulated_Length;
 
      incx = Mat->Rows;
-     incy = 1;          /* The values in the Xm matrix are stored in columns. Therefore the stride
-			 * has to be 1 because of the way FORTRAN handles arrays (major column ordering) */
+     incy = 1;          /* The values in the Xm matrix are stored in columns. Therefore
+			 * the stride has to be 1 because of the way FORTRAN handles
+			 * arrays (major column ordering) */
 
-     /* Since the matrix is symmetric and only a part of it is stored, this routine has to be splitted into two
-      * parts. The first will copy the elements above the coupling node, while the second will focus on the
-      * other part */
+     /* Since the matrix is symmetric and only a part of it is stored, this routine has to
+      * be splitted into two parts. The first will copy the elements above the coupling
+      * node, while the second will focus on the other part */
 
      /* Copy until the first coupling node */
      PosXcm = 0;

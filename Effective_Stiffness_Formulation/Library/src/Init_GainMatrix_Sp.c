@@ -11,10 +11,11 @@
 
 #include "Print_Messages.h"
 
+#include <mkl_blas.h>
 #include <mkl_lapack.h>
 #include <mkl_pardiso.h>
 
-void IGainMatrix_Sp( MatrixVector_t *const Gain, const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp,
+void IGainMatrix_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp,
 		    const MatrixVector_Sp_t *const Stiff, const Scalars_t Const )
 {
 
@@ -33,15 +34,15 @@ void IGainMatrix_Sp( MatrixVector_t *const Gain, const MatrixVector_Sp_t *const 
      /* Sparse to dense conversion. The Gain matrix will be symmetrical and only the upper part (lower part
       * in FORTRAN) will be referenced.
       */
-     MatrixVector_CSR2Dense( &Sp_TempMat, 0, Gain );
+     MatrixVector_CSR2Dense( &Sp_TempMat, 0, IGain );
      MatrixVector_Destroy_Sp( &Sp_TempMat );
 
      uplo = 'L';  /* The lower part of the matrix will be used and the upper part will strictly not be
 		   * referenced */
-     lda = Max( 1, Gain->Rows );
+     lda = Max( 1, IGain->Rows );
 
      /* LAPACK: Compute the Cholesky factorization */
-     dpotrf_( &uplo, &Gain->Rows, Gain->Array, &lda, &info );
+     dpotrf_( &uplo, &IGain->Rows, IGain->Array, &lda, &info );
 
      if ( info == 0 ){
 	  Print_Header( SUCCESS );
@@ -60,7 +61,7 @@ void IGainMatrix_Sp( MatrixVector_t *const Gain, const MatrixVector_Sp_t *const 
 
      /* LAPACK: Compute the inverse of the Gain matrix using the Cholesky factorization computed
       * by dpotrf_( ) */
-     dpotri_( &uplo, &Gain->Rows, Gain->Array, &lda, &info );
+     dpotri_( &uplo, &IGain->Rows, IGain->Array, &lda, &info );
 
      if ( info == 0 ){
 	  Print_Header( SUCCESS );
@@ -77,7 +78,7 @@ void IGainMatrix_Sp( MatrixVector_t *const Gain, const MatrixVector_Sp_t *const 
      }
 
      Scalar = Const.Lambda;
-     dlascl_( &uplo, &ione, &ione, &one, &Scalar, &Gain->Rows, &Gain->Cols, Gain->Array, &lda, &info );
+     dlascl_( &uplo, &ione, &ione, &one, &Scalar, &IGain->Rows, &IGain->Cols, IGain->Array, &lda, &info );
 
      if( info < 0 ){
 	  Print_Header( ERROR );
@@ -89,8 +90,75 @@ void IGainMatrix_Sp( MatrixVector_t *const Gain, const MatrixVector_Sp_t *const 
      }
 }
 
+void IGainMatrix_Sp_PS( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp,
+		    const MatrixVector_Sp_t *const Stiff, const Scalars_t Const )
+{
+
+     char uplo;
+     int info;                     /* LAPACK error handling variable */
+     MatrixVector_Sp_t Sp_TempMat; /* Temporal sparse matrix */
+     double Scalar;                /* Double precision scalar */
+     int incx, Length;
+
+     MatrixVector_Create_Sp( Damp->Rows, Damp->Cols, Damp->Num_Nonzero, &Sp_TempMat );
+     /* Gain = Const.Alpha*M + Const.Beta*C + Const.Gamma*K */
+     MatrixVector_Add3Mat_Sp( Mass, Damp, Stiff, Const, &Sp_TempMat );
+
+     /* Sparse to dense conversion. The Gain matrix will be symmetrical and only the upper
+      * part (lower part in FORTRAN) will be referenced.
+      */
+     MatrixVector_CSR2Packed( &Sp_TempMat, IGain );
+     MatrixVector_Destroy_Sp( &Sp_TempMat );
+
+     uplo = 'L';  /* The lower part of the matrix will be used and the upper part will
+		   * strictly not be referenced */
+
+     /* LAPACK: Compute the Cholesky factorization */
+     dpptrf_( &uplo, &IGain->Rows, IGain->Array, &info );
+
+     if ( info == 0 ){
+	  Print_Header( SUCCESS );
+	  printf( "Cholesky factorization successfully completed.\n" );
+     }
+     else if (info < 0){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Cholesky factorization: the %d-th argument has an illegal value.\n", -info );
+	  exit( EXIT_FAILURE );
+     } else if (info > 0){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Cholesky factorization: the leading minor of order %d is not positive definite,", info );
+	  fprintf( stderr, " and the factorization could not be completed.\n" );
+	  exit( EXIT_FAILURE );
+     }
+
+     /* LAPACK: Compute the inverse of the Gain matrix using the Cholesky factorization
+      * computed by dpptrf_( ) */
+     dpptri_( &uplo, &IGain->Rows, IGain->Array, &info );
+
+     if ( info == 0 ){
+	  Print_Header( SUCCESS );
+	  printf( "Matrix Inversion successfully completed.\n" );
+     } else if (info < 0){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Matrix inversion: the %d-th argument has an illegal value.\n", -info );
+	  exit( EXIT_FAILURE );
+     } else if (info > 0){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Matrix Inversion: the (%d,%d) element of the factor U or L is zero,", info, info );
+	  fprintf( stderr, "and the inverse could not be computed.\n" );
+	  exit( EXIT_FAILURE );
+     }
+
+     Length = (IGain->Rows*IGain->Cols + IGain->Rows)/2;
+     Scalar = Const.Lambda;
+     dscal( &Length, &Scalar, IGain->Array, &incx );
+     
+     Print_Header( SUCCESS );
+     printf( "Gain matrix successfully calculated.\n" );
+}
+
 /* This function is deprecated */
-void IGainMatrix_Pardiso( MatrixVector_t *const Gain, const MatrixVector_t *const Mass, const MatrixVector_t *const Damp,
+void IGainMatrix_Pardiso( MatrixVector_t *const IGain, const MatrixVector_t *const Mass, const MatrixVector_t *const Damp,
 			 const MatrixVector_t *const Stiff, const Scalars_t Const )
 {
 
@@ -109,7 +177,7 @@ void IGainMatrix_Pardiso( MatrixVector_t *const Gain, const MatrixVector_t *cons
      int info, lda;                     /* Error handling and Leading dimension for dlascl() */
      double Scalar;    /* Double precision scalar */
 
-     MatrixVector_Create( Gain->Rows, Gain->Cols, &TempMat );
+     MatrixVector_Create( IGain->Rows, IGain->Cols, &TempMat );
 
      MatrixVector_Add3Mat( Mass, Damp, Stiff, Const, &TempMat );
 
@@ -157,7 +225,7 @@ void IGainMatrix_Pardiso( MatrixVector_t *const Gain, const MatrixVector_t *cons
       * -------------------------------------------------------------------- */
      phase = 11;
      PARDISO(pt, &maxfct, &mnum, &mtype, &phase, &Sp_TempMat.Rows, Sp_TempMat.Values, Sp_TempMat.RowIndex,
-	      Sp_TempMat.Columns, &idum, &Gain->Rows, iparm, &msglvl, &ddum, &ddum, &error);
+	      Sp_TempMat.Columns, &idum, &IGain->Rows, iparm, &msglvl, &ddum, &ddum, &error);
 
      if (error != 0){
 	  Print_Header( ERROR );
@@ -178,7 +246,7 @@ void IGainMatrix_Pardiso( MatrixVector_t *const Gain, const MatrixVector_t *cons
      phase = 22;
      
      PARDISO (pt, &maxfct, &mnum, &mtype, &phase, &Sp_TempMat.Rows, Sp_TempMat.Values, Sp_TempMat.RowIndex,
-	      Sp_TempMat.Columns, &idum, &Gain->Rows, iparm, &msglvl, &ddum, &ddum, &error);
+	      Sp_TempMat.Columns, &idum, &IGain->Rows, iparm, &msglvl, &ddum, &ddum, &error);
 
      if (error != 0){
 	  Print_Header( ERROR );
@@ -196,17 +264,17 @@ void IGainMatrix_Pardiso( MatrixVector_t *const Gain, const MatrixVector_t *cons
      iparm[7] = 10; /* Max numbers of iterative refinement steps. */
 
      /* Set right hand side to be the identity matrix. */     
-     IdentMatrix = Generate_IdentityMatrix( Gain->Rows, Gain->Cols );
+     IdentMatrix = Generate_IdentityMatrix( IGain->Rows, IGain->Cols );
 
      PARDISO (pt, &maxfct, &mnum, &mtype, &phase, &Sp_TempMat.Rows, Sp_TempMat.Values, Sp_TempMat.RowIndex,
-	      Sp_TempMat.Columns, &idum, &Gain->Rows, iparm, &msglvl, IdentMatrix.Array, Gain->Array, &error);
+	      Sp_TempMat.Columns, &idum, &IGain->Rows, iparm, &msglvl, IdentMatrix.Array, IGain->Array, &error);
 
      /* --------------------------------------------------------------------
       *	.. Termination and release of memory.
       *	-------------------------------------------------------------------- */
      phase = -1; /* Release internal memory. */
      PARDISO (pt, &maxfct, &mnum, &mtype, &phase, &Sp_TempMat.Rows, &ddum, Sp_TempMat.RowIndex, Sp_TempMat.Columns,
-	      &idum, &Gain->Rows, iparm, &msglvl, &ddum, &ddum, &error);
+	      &idum, &IGain->Rows, iparm, &msglvl, &ddum, &ddum, &error);
 
      MatrixVector_Destroy( &IdentMatrix );
      MatrixVector_Destroy_Sp( &Sp_TempMat );
@@ -215,11 +283,11 @@ void IGainMatrix_Pardiso( MatrixVector_t *const Gain, const MatrixVector_t *cons
      printf( "PARDISO: Matrix Inversion successfully completed.\n" );
 
      ddum = 1.0; idum = 1;
-     lda = Max( 1, Gain->Rows );
+     lda = Max( 1, IGain->Rows );
      uplo = 'L';   /* The lower part of the matrix will be used (upper part in C) */
 
      Scalar = Const.Lambda;
-     dlascl_( &uplo, &idum, &idum, &ddum, &Scalar, &Gain->Rows, &Gain->Cols, Gain->Array, &lda, &info );
+     dlascl_( &uplo, &idum, &idum, &ddum, &Scalar, &IGain->Rows, &IGain->Cols, IGain->Array, &lda, &info );
 
      if( info < 0 ){
 	  Print_Header( ERROR );
@@ -233,7 +301,7 @@ void IGainMatrix_Pardiso( MatrixVector_t *const Gain, const MatrixVector_t *cons
 }
 
 /* This function is deprecated */
-void IGainMatrix_Pardiso_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp,
+void IGainMatrix_Pardiso_Sp( MatrixVector_t *const IIGain, const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp,
 			     const MatrixVector_Sp_t *const Stiff, const Scalars_t Const )
 {
      int i;
@@ -296,7 +364,7 @@ void IGainMatrix_Pardiso_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_
      phase = 11;
 
      PARDISO (pt, &maxfct, &mnum, &mtype, &phase, &Sp_TempMat.Rows, Sp_TempMat.Values, Sp_TempMat.RowIndex,
-	      Sp_TempMat.Columns, &idum, &IGain->Rows, iparm, &msglvl, &ddum, &ddum, &error);
+	      Sp_TempMat.Columns, &idum, &IIGain->Rows, iparm, &msglvl, &ddum, &ddum, &error);
 
      if (error != 0){
 	  Print_Header( ERROR );
@@ -317,7 +385,7 @@ void IGainMatrix_Pardiso_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_
      phase = 22;
 
      PARDISO (pt, &maxfct, &mnum, &mtype, &phase, &Sp_TempMat.Rows, Sp_TempMat.Values, Sp_TempMat.RowIndex,
-	      Sp_TempMat.Columns, &idum, &IGain->Rows, iparm, &msglvl, &ddum, &ddum, &error);
+	      Sp_TempMat.Columns, &idum, &IIGain->Rows, iparm, &msglvl, &ddum, &ddum, &error);
 
      if (error != 0){
 	  Print_Header( ERROR );
@@ -335,17 +403,17 @@ void IGainMatrix_Pardiso_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_
      iparm[7] = 10;	/* Max numbers of iterative refinement steps. */
 
      /* Set right hand side to be the identity matrix. */
-     IdentMatrix = Generate_IdentityMatrix( IGain->Rows, IGain->Cols );
+     IdentMatrix = Generate_IdentityMatrix( IIGain->Rows, IIGain->Cols );
 
      PARDISO (pt, &maxfct, &mnum, &mtype, &phase, &Sp_TempMat.Rows, Sp_TempMat.Values, Sp_TempMat.RowIndex,
-	      Sp_TempMat.Columns, &idum, &IGain->Rows, iparm, &msglvl, IdentMatrix.Array, IGain->Array, &error);
+	      Sp_TempMat.Columns, &idum, &IIGain->Rows, iparm, &msglvl, IdentMatrix.Array, IIGain->Array, &error);
 
      /* --------------------------------------------------------------------
       * .. Termination and release of memory.
       * -------------------------------------------------------------------- */
      phase = -1;       /* Release internal memory. */
      PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
-	      &Sp_TempMat.Rows, &ddum, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &IGain->Rows,
+	      &Sp_TempMat.Rows, &ddum, Sp_TempMat.RowIndex, Sp_TempMat.Columns, &idum, &IIGain->Rows,
 	      iparm, &msglvl, &ddum, &ddum, &error);
 
      MatrixVector_Destroy( &IdentMatrix );
@@ -355,10 +423,10 @@ void IGainMatrix_Pardiso_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_
      printf( "PARDISO: Matrix Inversion successfully completed.\n" );
 
      ddum = 1.0; idum = 1;
-     lda = Max( 1, IGain->Rows );
+     lda = Max( 1, IIGain->Rows );
      uplo = 'L';   /* The lower part of the matrix will be used (upper part in C) */
      Scalar = Const.Lambda;
-     dlascl_( &uplo, &idum, &idum, &ddum, &Scalar, &IGain->Rows, &IGain->Cols, IGain->Array, &lda, &info );
+     dlascl_( &uplo, &idum, &idum, &ddum, &Scalar, &IIGain->Rows, &IIGain->Cols, IIGain->Array, &lda, &info );
 
      if( info < 0 ){
 	  Print_Header( ERROR );

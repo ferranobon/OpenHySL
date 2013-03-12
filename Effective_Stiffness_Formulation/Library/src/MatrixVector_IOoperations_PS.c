@@ -1,18 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "MatrixVector.h"
+#include "MatrixVector_PS.h"
 #include "Print_Messages.h" /* For Print_Header() */
 
 #if _MATRIXMARKET_
 #include "mmio.h"
 #endif
 
-void MatrixVector_FromFile( const char *Filename, MatrixVector_t *const MatVec )
+void MatrixVector_FromFile_GE2PS( const char *Filename, MatrixVector_t *const MatVec )
 {
 
      FILE *InFile;
-     int i;         /* A counter */
+     int i, j;         /* A counter */
+     double temp;
 
      InFile = fopen( Filename, "r" );
 
@@ -23,8 +24,15 @@ void MatrixVector_FromFile( const char *Filename, MatrixVector_t *const MatVec )
 
      }
      
-     for ( i = 0; i < MatVec->Rows*MatVec->Cols; i++ ){
-	  fscanf( InFile,"%lf", &MatVec->Array[i] );
+     for ( i = 0; i < MatVec->Rows; i++ ){
+	  for ( j = 0; j < MatVec->Cols; i++ ){
+	       /* Only the values in the upper part of the matrix are stored */
+	       if( j >= i ){
+		    fscanf( InFile,"%lf", &MatVec->Array[(i-1)*(MatVec->Cols - (i - 1)) + (j-i)] );
+	       } else {
+		    fscanf( InFile, "%lf", &temp );
+	       }
+	  }
      }
      fclose( InFile );
      
@@ -33,7 +41,7 @@ void MatrixVector_FromFile( const char *Filename, MatrixVector_t *const MatVec )
 }
 
 #if _MATRIXMARKET_
-void MatrixVector_FromFile_MM( const char *Filename, MatrixVector_t *const MatVec )
+void MatrixVector_FromFile_MM_PS( const char *Filename, MatrixVector_t *const MatVec )
 {
      FILE *InFile;          /* Input file */
      MM_typecode matcode;   /* MatrixMarket: type of the matrix (symmetric, dense, complex, ...)  */
@@ -81,15 +89,20 @@ void MatrixVector_FromFile_MM( const char *Filename, MatrixVector_t *const MatVe
 	  exit( EXIT_FAILURE );
      }
 
-     /* Read the values. The MatrixMarket format imposes that the file should contain only the
-      * lower part of the matrix in 1-based index. Since C and FORTRAN use row-major and column-major
-      * ordering respectively, the matrices will be stored as upper part in the C so that when
-      * calling the FORTRAN routines from BLAS they access the lower part of the matrix without
-      * requiring transposing it.
+     /* Read the values. The MatrixMarket format imposes that the file should contain only
+      * the lower part of the matrix in 1-based index. Since C and FORTRAN use row-major
+      * and column-major ordering respectively, the matrices will be stored as upper part
+      * in the C so that when calling the FORTRAN routines from BLAS they access the lower
+      * part of the matrix without requiring transposing it.
       */
      for( innz = 0; innz < nnz; innz++ ){
 	  fscanf( InFile, "%d %d %lE", &i, &j, &Value );
-	  MatVec->Array[(j-1)*MatVec->Cols + (i-1)] = Value;
+	  /* Only those values that are located in the diagonal or the lower part (upper
+	   * part in C are stored. The rest are ignored. */
+	  if( i >= j ){
+	       MatVec->Array[(j-1)*(MatVec->Cols - (j - 1)) + (i-j)] = Value;
+	  }
+	       
      }
 
      Print_Header( SUCCESS );
@@ -97,10 +110,11 @@ void MatrixVector_FromFile_MM( const char *Filename, MatrixVector_t *const MatVe
 }
 #endif /* _MATRIXMARKET_ */
 
-void MatrixVector_ToFile( const MatrixVector_t *const MatVec, const char *Filename )
+void MatrixVector_ToFile_PS2Full( const MatrixVector_t *const MatVec, const char *Filename )
 {
      int i, j;      /* Counters */
      FILE *OutFile;
+     const double dzero = 0.0;
 
      OutFile = fopen( Filename, "w" );
 
@@ -112,7 +126,11 @@ void MatrixVector_ToFile( const MatrixVector_t *const MatVec, const char *Filena
 
      for ( i = 0; i < MatVec->Rows; i++){
 	  for( j = 0; j < MatVec->Cols; j++ ){
-	       fprintf( OutFile,"%le\t", MatVec->Array[i + j*MatVec->Rows] );
+	       if( j >= i ){
+		    fprintf( OutFile,"%le\t", MatVec->Array[(i-1)*(MatVec->Cols - (i - 1)) + (j-i)] );
+	       } else {
+		    fprintf( OutFile, "%le\t", dzero );
+	       }
 	  }
 	  fprintf( OutFile, "\n" );
      }
