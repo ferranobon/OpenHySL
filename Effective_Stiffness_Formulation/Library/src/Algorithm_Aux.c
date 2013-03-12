@@ -36,6 +36,12 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
 	  fprintf( stderr, "Invalid option for Use_Sparse.\n" );
      }
 
+     InitConst->Use_Packed = ConfFile_GetInt( Config, "General:Use_Packed" );
+     if ( InitConst->Use_Packed != 0 && InitConst->Use_Packed != 1 ){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Invalid option for Use_Packed.\n" );
+     }
+
      InitConst->Read_LVector = ConfFile_GetInt( Config, "General:Read_LVector" );
      if ( InitConst->Read_LVector != 0 && InitConst->Read_LVector != 1 ){
 	  Print_Header( ERROR );

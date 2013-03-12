@@ -7,7 +7,8 @@
  *
  * \brief MatrixVector_t creation and manipulation prototypes.
  *
- * This file contains the prototypes of those functions involved in creating/destroying dense matrices and vectors.
+ * This file contains the prototypes of those functions involved in creating/destroying
+ * dense matrices and vectors.
  */
 
 #ifndef AUXILIARY_MATH_H_
@@ -40,7 +41,8 @@ int Min ( const int a, const int b );
 /**
  * \brief Generation of a Identity Matrix.
  *
- * The identity matrix with sizes equal to \c Rows and \c Cols (number of rows and columns respectively) is generated. The output format is in general storage.
+ * The identity matrix with sizes equal to \c Rows and \c Cols (number of rows and columns
+ * respectively) is generated. The output format is in general storage.
  * 
  * \pre The number of rows must be equal to the number of columns.
  *

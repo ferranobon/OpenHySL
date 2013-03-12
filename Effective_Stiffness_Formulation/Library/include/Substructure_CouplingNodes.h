@@ -1,6 +1,7 @@
 #ifndef SUBSTRUCTURE_COUPLINGNODES_H_
 #define SUBSTRUCTURE_COUPLINGNODES_H_
 
+#include <stdio.h>
 #include "Substructure.h"
 
 #define MAX_LINE 200          /*!< Maximum input line length. */
@@ -47,6 +48,8 @@ void Substructure_DeleteCouplingNodes( CouplingNode_t *CNodes );
  * \post If the input substructure type in \c Type is not recognised. The program will terminate.
  */
 void Substructure_Identify( char *const Type, int *const Identity_Num );
+
+void Substructure_GetDescription( FILE *const InFile, const int LineNum, char *const Description );
 
 void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigned int NSteps, const unsigned int NSubsteps,
 				     const int OrderSub, const double DeltaTSub, const char *Filename );

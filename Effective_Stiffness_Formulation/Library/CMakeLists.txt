@@ -88,7 +88,7 @@ set(CMAKE_REQUIRED_LIBRARIES ${MATH_LIBS})
 Find_Package(HDF5)
 
 # Build the core library
-file(GLOB CORE_SRCS src/Common_Formulation.c src/Conf_Parser.c src/EffK_Formulation.c src/Err_PID.c src/Init_GainMatrix.c src/Init_Rayleigh.c src/Input_Load.c src/MatrixVector.c src/MatrixVector_IOoperations.c src/Print_Messages.c src/Auxiliary_Math.c)
+file(GLOB CORE_SRCS src/Common_Formulation.c src/Conf_Parser.c src/EffK_Formulation.c src/Err_PID.c src/Init_GainMatrix.c src/Init_Rayleigh.c src/Input_Load.c src/MatrixVector.c src/MatrixVector_IOoperations.c src/Print_Messages.c src/Auxiliary_Math.c src/MatrixVector_PS.c src/MatrixVector_IOoperations_PS.c)
 
 set( MMPATH "Extern/MatrixMarket" )
 find_file( MMIOSRC mmio.c ${MMPATH})
@@ -143,7 +143,7 @@ else(NOT USE_MPI)
 endif()
 
 # Build Substructure Library
-file( GLOB SUBS_SRCS src/Substructure.c src/Substructure_Exact.c src/Substructure_UHYDEfbr.c src/Substructure_SimMeasured.c src/Substructure_Experimental.c src/Substructure_CouplingNodes.c src/Substructure_Auxiliary.c)
+file( GLOB SUBS_SRCS src/Substructure.c src/Substructure_Exact.c src/Substructure_UHYDEfbr.c src/Substructure_SimMeasured.c src/Substructure_Experimental.c src/Substructure_CouplingNodes.c src/Substructure_Auxiliary.c ) #src/Substructure_Remote.c)
 add_library( substructure ${SUBS_SRCS})
 target_link_libraries( substructure -lm core )
 

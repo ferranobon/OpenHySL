@@ -215,10 +215,42 @@ void dlascl_( char *type, int *kl, int *ku, double *cfrom, double *cto, int *m, 
 void dpotrf_( char *uplo, int *n, double *a, int *lda, int *info );
 
 /**
+ * \brief Computes the Cholesky factorization of a real symmetric positive definite matrix
+ * \c a stored in packed format.
+ *
+ * \c dpptrf computes the Cholesky factorization of a real symmetric positive definite
+ * matrix A stored in packed format.
+ *
+ * The factorization has the form:
+ * - \f$\mathcal A = \mathcal U^T\cdot \mathcal U\f$, if \c uplo = 'U', or
+ * - \f$\mathcal A = \mathcal L\cdot L^T\f$,  if \c uplo = 'L',
+ * where \f$\mathcal U\f$ is an upper triangular matrix and \f$\mathcal L\f$ is lower triangular.
+ *
+ * \param[in] uplo Specifies the stored part of the matrix.
+ * - = 'U':  Upper triangle of \c a is stored;
+ * - = 'L':  Lower triangle of \c a is stored.
+ * \param[in] n The order of the matrix \c A.  \f$n \geq 0\f$.
+ * \param[in,out] ap Array of dimension \f$(n*(n+1)/2)\f$.
+ * - On entry, the upper or lower triangle of the symmetric matrix \c a, packed columnwise
+ * in a linear array. The \em j-th column of \c a is stored in the array \c ap as follows:
+ *     -# if UPLO = 'U', AP(i + (j-1)*j/2) = A(i,j) for 1<=i<=j;
+ *     -# if UPLO = 'L', AP(i + (j-1)*(2n-j)/2) = A(i,j) for j<=i<=n.
+ * - On exit, if \c info = 0, the triangular factor U or L from the
+ *          Cholesky factorization A = U**T*U or A = L*L**T, in the same
+ *          storage format as A.
+ * \param[out] info if:
+ * - \f$info = 0\f$: successful exit.
+ * - \f$info < 0\f$: if \f$info = -i\f$, the i-th argument had an illegal value.
+ * - \f$info > 0\f$: if \f$info = i\f$·, the leading minor of order i is not positive
+ * definite, and the factorization could not be completed.
+ */
+void dpptrf_( char *uplo, int *n, double *ap, int *info );
+
+/**
  * \brief Computes the inverse of a real symmetric positive definite matrix \c a using the Cholesky factorization.
  *
  * \c dpotri computes the inverse of a real symmetric positive definite matrix \c a using the Cholesky
- * factorization \f$\mathcal A = \mathcal U**T*\mathcal U or A = \mathcal L*\mathcal L**T\f$ computed by \c dpotrf_().
+ * factorization \f$\mathcal A = \mathcal U**T*\mathcal U\f$ or \f$\mathcal A = \mathcal L*\mathcal L**T\f$ computed by \c dpotrf_().
  *
  * \param[in] uplo On entry, \c uplo specifies whether the upper or lower triangular part of the array \c a is to be referenced as follows:
  * - \c uplo = 'U':  Upper triangle of \c a is stored;
@@ -235,6 +267,8 @@ void dpotrf_( char *uplo, int *n, double *a, int *lda, int *info );
  * - \f$info < 0\f$: if \f$info = i\f$, the \f$(i,i)\f$ element of the factor U or L is zero, and the inverse could not be computed.
  */
 void dpotri_( char *uplo, int *n, double *a, int *lda, int *info );
+
+void dpptri_( char *uplo, int *n, double *a, int *info );
 
 
 #if _MPI_

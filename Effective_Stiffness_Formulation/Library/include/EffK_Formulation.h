@@ -20,12 +20,14 @@
 
 /**
  * \brief Calculates the effective force vector according to the formulation using the effective
- * stiffness matrix.
+ * stiffness matrix. General storage version.
  * 
- * The effective force vector \f$\vec f_{eff}^t\f$ is calculated according to the formulation using the effective stiffness matrix described
- * in page 53 (\cite Dorka_1998):
+ * The effective force vector \f$\vec f_{eff}^t\f$ is calculated according to the
+ * formulation using the effective stiffness matrix described in page 53 (\cite
+ * Dorka_1998):
  *
- * \f[\vec f_{eff}^t = \mathcal{M}(a_0\vec u^t + a_2\dot{\vec u}^t + a_3\ddot{\vec u}^t) + \mathcal{C}(a_1\vec u^t + a_4\dot{\vec u}^t + a_5\ddot{\vec u}^t)\f]
+ * \f[\vec f_{eff}^t = \mathcal{M}(a_0\vec u^t + a_2\dot{\vec u}^t + a_3\ddot{\vec u}^t) +
+ * \mathcal{C}(a_1\vec u^t + a_4\dot{\vec u}^t + a_5\ddot{\vec u}^t)\f]
  *
  * where:
  * - \f$\vec f_{eff}^t\f$ is the effective force vector at time \f$t\f$,
@@ -34,41 +36,111 @@
  * - \f$\vec u^t\f$ is the displacement vector at time \f$t\f$,
  * - \f$\dot{\vec u}^t\f$ is the velocity vector at time \f$t\f$,
  * - \f$\ddot{\vec u}^t\f$ is the acceleration vector at time \f$t\f$,
- * - and \f$a_0\f$, \f$a_1\f$, \f$a_2\f$, \f$a_3\f$, \f$a_4\f$ and \f$a_5\f$ are integration constants (see \cite Dorka_1998).
+ * - and \f$a_0\f$, \f$a_1\f$, \f$a_2\f$, \f$a_3\f$, \f$a_4\f$ and \f$a_5\f$ are
+ *   integration constants (see \cite Dorka_1998).
  *
- * It makes use of BLAS routines to perform the linear algebra operations. For sparse matrices, the routine
- * EffK_EffectiveForce_Sp() should be used instead.
+ * It makes use of BLAS routines to perform the linear algebra operations. For sparse
+ * matrices or matrices in packed storage the routines EffK_EffectiveForce_Sp() or
+ * EffK_EffectiveForce_PS() should be used instead.
  *
  * \pre
- * - All elements of type \c MatrixVector_t must be properly initialised through the MatrixVector_Create() routine.
- * - The dimensions of the vectors and matrices must be coherent since it will not be checked in the routine.
- * - The mass and viscous damping matrices must be symmetrical and only the upper part will be referenced (lower part
- *   in FORTRAN routines).
+ * - All elements of type \c MatrixVector_t must be properly initialised through the
+ *   MatrixVector_Create() routine.
+ * - The dimensions of the vectors and matrices must be coherent since it will not be
+ *   checked in the routine.
+ * - The mass and viscous damping matrices must be symmetrical and only the upper part
+ *   will be referenced (lower part in FORTRAN routines).
  * - The integration constants must be properly initialised.
  *
- * \param[in] Mass is the Mass matrix \f$\mathcal{M}\f$.
- * \param[in] Damp is the Viscous Damping matrix \f$\mathcal{C}\f$.
- * \param[in] DispT The displacement vector \f$\vec u^t\f$.
- * \param[in] VelT is the velocity vector \f$\dot{\vec u}^t\f$.
- * \param[in] AccT is the acceleration vector \f$\ddot{\vec u}^t\f$.
- * \param[in,out] Tempvec is a temporal vector that helps in the calculations. This is included in order to avoid
- *                allocating and deallocating memory each step. On input only the number of rows is used.
- * \param[in] a0 The integration constant \f$a_0\f$ (\cite Dorka_1998).
- * \param[in] a1 The integration constant \f$a_1\f$ (\cite Dorka_1998).
- * \param[in] a2 The integration constant \f$a_2\f$ (\cite Dorka_1998).
- * \param[in] a3 The integration constant \f$a_3\f$ (\cite Dorka_1998).
- * \param[in] a4 The integration constant \f$a_4\f$ (\cite Dorka_1998).
- * \param[in] a5 The integration constant \f$a_5\f$ (\cite Dorka_1998).
- * \param[out] Eff_ForceT is the effective force vector \f$\vec f_{eff}^t\f$.
+ * \param[in]     Mass is the Mass matrix \f$\mathcal{M}\f$.
+ * \param[in]     Damp is the Viscous Damping matrix \f$\mathcal{C}\f$.
+ * \param[in]     DispT The displacement vector \f$\vec u^t\f$.
+ * \param[in]     VelT is the velocity vector \f$\dot{\vec u}^t\f$.
+ * \param[in]     AccT is the acceleration vector \f$\ddot{\vec u}^t\f$.
+ * \param[in,out] Tempvec is a temporal vector that helps in the calculations. This is
+ *                included in order to avoid allocating and deallocating memory each
+ *                step. On input only the number of rows is used.
+ * \param[in] a0  The integration constant \f$a_0\f$ (\cite Dorka_1998).
+ * \param[in] a1  The integration constant \f$a_1\f$ (\cite Dorka_1998).
+ * \param[in] a2  The integration constant \f$a_2\f$ (\cite Dorka_1998).
+ * \param[in] a3  The integration constant \f$a_3\f$ (\cite Dorka_1998).
+ * \param[in] a4  The integration constant \f$a_4\f$ (\cite Dorka_1998).
+ * \param[in] a5  The integration constant \f$a_5\f$ (\cite Dorka_1998).
+ * \param[out]    Eff_ForceT is the effective force vector \f$\vec f_{eff}^t\f$.
  *
  * \post
  * - \c Eff_Force is the result of the operation:
  *
- * \f[\vec f_{eff}^t = \mathcal{M}(a_0\vec u^t + a_2\dot{\vec u}^t + a_3\ddot{\vec u}^t) + \mathcal{C}(a_1\vec u^t + a_4\dot{\vec u}^t + a_5\ddot{\vec u}^t)\f]
+ * \f[\vec f_{eff}^t = \mathcal{M}(a_0\vec u^t + a_2\dot{\vec u}^t + a_3\ddot{\vec u}^t) +
+ * \mathcal{C}(a_1\vec u^t + a_4\dot{\vec u}^t + a_5\ddot{\vec u}^t)\f]
  *
  * \sa MatrixVector_t.
  */
 void EffK_EffectiveForce( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp, const MatrixVector_t *const DispT,
+			  const MatrixVector_t *const VelT, const MatrixVector_t *const AccT, MatrixVector_t *const Tempvec,
+			  const double a0, const double a1, const double a2, const double a3, const double a4,
+			  const double a5, MatrixVector_t *const Eff_ForceT );
+
+/**
+ * \brief Calculates the effective force vector according to the formulation using the
+ * effective stiffness matrix. Packed storage version.
+ * 
+ * The effective force vector \f$\vec f_{eff}^t\f$ is calculated according to the
+ * formulation using the effective stiffness matrix described in page 53 (\cite
+ * Dorka_1998):
+ *
+ * \f[\vec f_{eff}^t = \mathcal{M}(a_0\vec u^t + a_2\dot{\vec u}^t + a_3\ddot{\vec u}^t) +
+ * \mathcal{C}(a_1\vec u^t + a_4\dot{\vec u}^t + a_5\ddot{\vec u}^t)\f]
+ *
+ * where:
+ * - \f$\vec f_{eff}^t\f$ is the effective force vector at time \f$t\f$,
+ * - \f$\mathcal{M}\f$ is the mass matrix,
+ * - \f$\mathcal{C}\f$ is the proportional viscous damping matrix,
+ * - \f$\vec u^t\f$ is the displacement vector at time \f$t\f$,
+ * - \f$\dot{\vec u}^t\f$ is the velocity vector at time \f$t\f$,
+ * - \f$\ddot{\vec u}^t\f$ is the acceleration vector at time \f$t\f$,
+ * - and \f$a_0\f$, \f$a_1\f$, \f$a_2\f$, \f$a_3\f$, \f$a_4\f$ and \f$a_5\f$ are
+ *   integration constants (see \cite Dorka_1998).
+ *
+ * It makes use of BLAS routines to perform the linear algebra operations. For sparse
+ * matrices or matrices in general storage the routines EffK_EffectiveForce_Sp() or
+ * EffK_EffectiveForce() should be used instead.
+ *
+ * \pre
+ * - \c Mass and \c Damp should be symmetrical matrices in packed storage format with the
+ *   upper triangular part referenced (lower part in FORTRAN). They should also be
+ *   properly initialised through the MatrixVector_Create_PS() routine.
+ * - The rest of the elements of type \c MatrixVector_t must be properly initialised
+ *   through the MatrixVector_Create() routine.
+ * - The dimensions of the vectors and matrices must be coherent since it will not be
+ *   checked in the routine.
+ * - The integration constants must be properly initialised.
+ *
+ * \param[in]     Mass is the Mass matrix \f$\mathcal{M}\f$.
+ * \param[in]     Damp is the Viscous Damping matrix \f$\mathcal{C}\f$.
+ * \param[in]     DispT The displacement vector \f$\vec u^t\f$.
+ * \param[in]     VelT is the velocity vector \f$\dot{\vec u}^t\f$.
+ * \param[in]     AccT is the acceleration vector \f$\ddot{\vec u}^t\f$.
+ * \param[in,out] Tempvec is a temporal vector that helps in the calculations. This is
+ *                included in order to avoid allocating and deallocating memory each
+ *                step. On input only the number of rows is used.
+ * \param[in] a0  The integration constant \f$a_0\f$ (\cite Dorka_1998).
+ * \param[in] a1  The integration constant \f$a_1\f$ (\cite Dorka_1998).
+ * \param[in] a2  The integration constant \f$a_2\f$ (\cite Dorka_1998).
+ * \param[in] a3  The integration constant \f$a_3\f$ (\cite Dorka_1998).
+ * \param[in] a4  The integration constant \f$a_4\f$ (\cite Dorka_1998).
+ * \param[in] a5  The integration constant \f$a_5\f$ (\cite Dorka_1998).
+ * \param[out]    Eff_ForceT is the effective force vector \f$\vec f_{eff}^t\f$.
+ *
+ * \post
+ * - \c Eff_Force is the result of the operation:
+ *
+ * \f[\vec f_{eff}^t = \mathcal{M}(a_0\vec u^t + a_2\dot{\vec u}^t + a_3\ddot{\vec u}^t) +
+ * \mathcal{C}(a_1\vec u^t + a_4\dot{\vec u}^t + a_5\ddot{\vec u}^t)\f]
+ *
+ * \sa MatrixVector_t.
+ */
+void EffK_EffectiveForce_PS( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp, const MatrixVector_t *const DispT,
 			  const MatrixVector_t *const VelT, const MatrixVector_t *const AccT, MatrixVector_t *const Tempvec,
 			  const double a0, const double a1, const double a2, const double a3, const double a4,
 			  const double a5, MatrixVector_t *const Eff_ForceT );

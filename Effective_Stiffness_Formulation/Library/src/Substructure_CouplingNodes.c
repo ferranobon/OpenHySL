@@ -5,6 +5,7 @@
 
 #include "Print_Messages.h"
 #include "Substructure_Exact.h"
+#include "Substructure_Remote.h"
 #include "Substructure_UHYDEfbr.h"
 #include "Substructure_SimMeasured.h"
 #include "Substructure_Experimental.h"
@@ -31,6 +32,7 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
      double *ftemp;
      char Type[MAX_SUBTYPE], Description[MAX_DESCRIPTION], FileMeas[MAX_FILENAME];
      char InLine[MAX_LINE];
+     char IPAddress[20], Port[20];
 
      InFile = fopen( Filename, "r" );
 
@@ -110,20 +112,7 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 		    }
 
 		    /* Read the optional description */
-		    fscanf( InFile, "%*[,]" );
-		    fgets( Description, MAX_DESCRIPTION, InFile );
-
-		    if( Description[strlen(Description) - 1] != '\n'  && !feof(InFile) ){
-			 Print_Header( ERROR );
-			 fprintf( stderr, "Substructure_ReadCouplingNodes: Maximum description length (%d) exceeded in line %d.\n", MAX_DESCRIPTION, i+1 );
-			 exit( EXIT_FAILURE );
-		    }
-
- 		    if( Description[strlen(Description) - 2] != ';' && Description[strlen(Description) - 1] != ';' ){
-			 Print_Header( ERROR );
-			 fprintf( stderr, "Substructure_ReadCouplingNodes: Line number %d should terminate with ';'.\n", i+1 );
-			 exit( EXIT_FAILURE );
-		    }
+		    Substructure_GetDescription( InFile, i, Description );
 		 
 		    for( j = 0; j < Count_Type; j++ ){
 			 CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(ExactSim_t) );
@@ -151,20 +140,7 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 		    }
 
 		    /* Read the optional description */
-		    fscanf( InFile, "%*[,]" );
-		    fgets( Description, MAX_DESCRIPTION, InFile );
-
-		    if( Description[strlen(Description) - 1] != '\n'  && !feof(InFile) ){
-			 Print_Header( ERROR );
-			 fprintf( stderr, "Substructure_ReadCouplingNodes: Maximum description length (%d) exceeded in line %d.\n", MAX_DESCRIPTION, i+1 );
-			 exit( EXIT_FAILURE );
-		    }
-
- 		    if( Description[strlen(Description) - 2] != ';' && Description[strlen(Description) - 1] != ';' ){
-			 Print_Header( ERROR );
-			 fprintf( stderr, "Substructure_ReadCouplingNodes: Line number %d should terminate with ';'.\n", i+2 );
-			 exit( EXIT_FAILURE );
-		    }
+		    Substructure_GetDescription( InFile, i, Description );
 
 		    for( j = 0; j < Count_Type; j++ ){			
 			 CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(UHYDEfbrSim_t) );
@@ -179,20 +155,7 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 	       fscanf( InFile, "%*[,] %[^,]", FileMeas );
 
 	       /* Read the optional description */
-	       fscanf( InFile, "%*[,]" );
-	       fgets( Description, MAX_DESCRIPTION, InFile );
-
-	       if( Description[strlen(Description) - 1] != '\n'  && !feof(InFile) ){
-		    Print_Header( ERROR );
-		    fprintf( stderr, "Substructure_ReadCouplingNodes: Maximum description length (%d) exceeded in line %d.\n", MAX_DESCRIPTION, i+1 );
-		    exit( EXIT_FAILURE );
-	       }
-
-	       if( Description[strlen(Description) - 2] != ';' && Description[strlen(Description) - 1] != ';' ){
-		    Print_Header( ERROR );
-		    fprintf( stderr, "Substructure_ReadCouplingNodes: Line number %d should terminate with ';'.\n", i+2 );
-		    exit( EXIT_FAILURE );
-	       }
+	       Substructure_GetDescription( InFile, i, Description );
 
 	       for( j = 0; j <  Count_Type; j++ ){    
 		    CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(MeasuredSim_t) );
@@ -202,22 +165,8 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 	       }
 	       break;
 	  case EXP_ADWIN:
-
 	       /* Read the optional description */
-	       fscanf( InFile, "%*[,]" );
-	       fgets( Description, MAX_DESCRIPTION, InFile );
-
-	       if( Description[strlen(Description) - 1] != '\n'  && !feof(InFile) ){
-		    Print_Header( ERROR );
-		    fprintf( stderr, "Substructure_ReadCouplingNodes: Maximum description length (%d) exceeded in line %d.\n", MAX_DESCRIPTION, i+1 );
-		    exit( EXIT_FAILURE );
-	       }
-
-	       if( Description[strlen(Description) - 2] != ';' && Description[strlen(Description) - 1] != ';' ){
-		    Print_Header( ERROR );
-		    fprintf( stderr, "Substructure_ReadCouplingNodes: Line number %d should terminate with ';'.\n", i+2 );
-		    exit( EXIT_FAILURE );
-	       }
+	       Substructure_GetDescription( InFile, i, Description );
 
 	       for( j = 0; j <  Count_Type; j++ ){
 		    CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(ExpSub_t) );
@@ -227,13 +176,22 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 	       }
 	       break;
 	  case REMOTE_TCP:
-	       break;
+	       /* This is the same case as REMOTE_UDF */
 	  case REMOTE_UDP:
-	       break;
 	  case REMOTE_NSEP:
-	       break;
 	  case REMOTE_OF:
-	       break;
+	       /* Read IP Address and Port */
+	       fscanf( InFile, "%*[,] %s %[^,]", IPAddress, Port );
+	       /* Read the optional description */
+	       Substructure_GetDescription( InFile, i, Description );
+
+	       for( j = 0; j < Count_Type; j++ ){
+		    CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(Remote_t) );
+//		    Substructure_Remote_Init( IPAddress, Port, Description, (Remote_t *) CNodes->Sub[i + j].SimStruct );
+		    Print_Header( INFO );
+		    printf( "The substructure in the coupling node %d is computed is computed at %s:%s using %s.\n", CNodes->Array[i + j],
+			    IPAddress, Port, Substructure_Type[CNodes->Sub[i].Type] );
+	       }
 	  }
 	  i = i + Count_Type;
      }
@@ -270,6 +228,24 @@ void Substructure_Identify( char *const Type, int *const Identity_Num )
      }
 }
 
+void Substructure_GetDescription( FILE *const InFile, const int LineNum, char *const Description )
+{
+
+     fscanf( InFile, "%*[,]" );
+     fgets( Description, MAX_DESCRIPTION, InFile );
+     
+     if( Description[strlen(Description) - 1] != '\n'  && !feof(InFile) ){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Substructure_ReadCouplingNodes: Maximum description length (%d) exceeded in line %d.\n", MAX_DESCRIPTION, LineNum + 1 );
+	  exit( EXIT_FAILURE );
+     }
+
+     if( Description[strlen(Description) - 2] != ';' && Description[strlen(Description) - 1] != ';' ){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Substructure_ReadCouplingNodes: Line number %d should terminate with ';'.\n", LineNum + 1 );
+	  exit( EXIT_FAILURE );
+     }
+}
 
 void Substructure_DeleteCouplingNodes( CouplingNode_t *CNodes )
 {
@@ -290,12 +266,13 @@ void Substructure_DeleteCouplingNodes( CouplingNode_t *CNodes )
 	       Substructure_Experimental_Destroy( (ExpSub_t *) CNodes->Sub[i].SimStruct );
 	       break;
 	  case REMOTE_TCP:
-	       break;
+	       /* This is the same case as REMOTE_OF */
 	  case REMOTE_UDP:
-	       break;
+	       /* This is the same case as REMOTE_OF */
 	  case REMOTE_NSEP:
-	       break;
+	       /* This is the same case as REMOTE_OF */
 	  case REMOTE_OF:
+//	       Substructure_Remote_Destroy( (Remote_t *) CNodes->Sub[i].SimStruct );
 	       break;
 	  }
 	  free( CNodes->Sub[i].SimStruct );

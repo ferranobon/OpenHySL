@@ -154,13 +154,15 @@ void MatrixVector_CSR2Dense( const MatrixVector_Sp_t *const MatVec_Sp,  const in
 	  exit( EXIT_FAILURE );
      }
 
-     /* MKL: Transform the dense matrix into a CSR-three array variation matrix */
+     /* MKL: Transform the CSR-three array variation matrix into a dense matrix in
+      * general storage*/
      job[0] = 1; /* The matrix is converted to dense format. */
      job[1] = 0; /* Zero-based indexing is used for the dense matrix. */
      job[2] = 1; /* One-based indexing for the sparse matrix is used. */
 
      if ( MatVec_Type == 0 ){ /* Symmetric matrix */
-	  job[3] = 1; /* Values will contain the upper triangular part of the sparse matrix. */
+	  job[3] = 1; /* Values will contain the upper triangular part of the sparse
+		       * matrix. */
      } else if ( MatVec_Type == 1 ){ /* General matrix */
 	  job[3] = 2; /* All the elements of the sparse matrix will be considered */
      } else assert( MatVec_Type == 0 || MatVec_Type == 1 );
@@ -174,6 +176,32 @@ void MatrixVector_CSR2Dense( const MatrixVector_Sp_t *const MatVec_Sp,  const in
 	  Print_Header( ERROR );
 	  fprintf( stderr, "MatrixVector_CSR2Dense: An error occurred during the mkl_ddnscsr() operation.\n" );
 	  exit( EXIT_FAILURE );
+     }
+}
+
+void MatrixVector_CSR2Packed( const MatrixVector_Sp_t *const MatVec_Sp,  MatrixVector_t *const MatVec_PS )
+{
+     int NumZerosRow;  /* Number of non-zero elements in a row */
+     int i, j, Position;
+     int RowIndex, ColIndex;
+     double Value;
+
+     if( MatVec_Sp->Rows != MatVec_PS->Rows || MatVec_Sp->Cols != MatVec_PS->Cols ){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "MatrixVector_CSR2Packed: The dimensions of the matrices must match.\n" );
+	  exit( EXIT_FAILURE );
+     }
+
+     for( i = 0; i < MatVec_Sp->Rows + 1; i++ ){
+	  NumZerosRow = MatVec_Sp->RowIndex[i+1] - MatVec_Sp->RowIndex[i+1];
+	  for( j = 0; j < NumZerosRow; j++ ){
+	       RowIndex = MatVec_Sp->RowIndex[i] - 1;
+	       ColIndex = MatVec_Sp->Columns[Position + j] - 1;
+	       Value = MatVec_Sp->Values[Position + j];
+	       
+	       MatVec_PS->Array[RowIndex*(MatVec_PS->Cols - RowIndex) + (ColIndex - RowIndex)] = Value;
+	  }
+	  Position = Position + j;
      }
 }
 
