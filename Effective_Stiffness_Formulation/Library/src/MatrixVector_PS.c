@@ -62,7 +62,7 @@ void MatrixVector_ModifyElement_PS( const int RowIndex, const int ColIndex, cons
      const char *OpMult = "Multiply";
      const char *OpDiv = "Divide";
 
-     const int Position = RowIndex + (2*Matrix->Cols - ColIndex)(ColIndex -1)/2 - 1;
+     const int Position = RowIndex + (2*Matrix->Cols - ColIndex)*(ColIndex -1 )/2 - 1;
 
      if( RowIndex < ColIndex ){
 	  Print_Header( ERROR );
