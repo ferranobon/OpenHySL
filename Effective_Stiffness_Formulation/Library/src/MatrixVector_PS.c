@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>  /* For strcmp() */
+#include <string.h>          /* For strcmp() */
 
 #include "MatrixVector.h"
 #include "MatrixVector_PS.h"
@@ -54,7 +54,7 @@ void MatrixVector_Set2Value_PS( const double Value, MatrixVector_t *const Matrix
 }
 
 void MatrixVector_ModifyElement_PS( const int RowIndex, const int ColIndex, const double Alpha,
-				 const char *Operation, MatrixVector_t *const Matrix )
+				    const char *Operation, MatrixVector_t *const Matrix )
 {
 
      const char *OpSet = "Set";
@@ -62,7 +62,7 @@ void MatrixVector_ModifyElement_PS( const int RowIndex, const int ColIndex, cons
      const char *OpMult = "Multiply";
      const char *OpDiv = "Divide";
 
-     const int Position = (RowIndex - 1)*(Matrix->Cols - (RowIndex - 1)) + (ColIndex - RowIndex);
+     const int Position = RowIndex + (2*Matrix->Cols - ColIndex)(ColIndex -1)/2 - 1;
 
      if( RowIndex < ColIndex ){
 	  Print_Header( ERROR );
