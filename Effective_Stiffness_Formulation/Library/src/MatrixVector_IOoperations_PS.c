@@ -24,11 +24,11 @@ void MatrixVector_FromFile_GE2PS( const char *Filename, MatrixVector_t *const Ma
 
      }
      
-     for ( i = 0; i < MatVec->Rows; i++ ){
-	  for ( j = 0; j < MatVec->Cols; i++ ){
+     for ( i = 1; i <= MatVec->Rows; i++ ){
+	  for ( j = 1; j <= MatVec->Cols; j++ ){
 	       /* Only the values in the upper part of the matrix are stored */
-	       if( j >= i ){
-		    fscanf( InFile,"%lf", &MatVec->Array[(i-1)*(MatVec->Cols - (i - 1)) + (j-i)] );
+	       if( i >= j ){
+		    fscanf( InFile,"%lf", &MatVec->Array[i + (2*MatVec->Cols - j)*(j - 1)/2 - 1] );
 	       } else {
 		    fscanf( InFile, "%lf", &temp );
 	       }
@@ -56,21 +56,21 @@ void MatrixVector_FromFile_MM_PS( const char *Filename, MatrixVector_t *const Ma
      InFile = fopen( Filename, "r" );
      if ( InFile == NULL) {
 	  Print_Header( ERROR );
-	  fprintf( stderr, "MatrixVector_FromFile_MM: It is not possible to open %s.\n", Filename );
+	  fprintf( stderr, "MatrixVector_FromFile_MM_PS: It is not possible to open %s.\n", Filename );
 	  exit( EXIT_FAILURE );
      }
 
      /* Read the banner and identify which type of matrix is in the file */
      if( mm_read_banner( InFile, &matcode ) != 0 ){
 	  Print_Header( ERROR );
-	  fprintf( stderr, "MatrixVector_FromFile_MM: Could not process Market Matrix banner in %s\n.", Filename );
+	  fprintf( stderr, "MatrixVector_FromFile_MM_PS: Could not process Market Matrix banner in %s\n.", Filename );
 	  exit( EXIT_FAILURE );
      }
      
      /* Only sparse matrices are accepted */
      if ( !mm_is_sparse(matcode) ){
 	  Print_Header( ERROR );
-	  fprintf( stderr, "MatrixVector_FromFile_MM: the matrix or vector should be of type sparse for this application to work.\n" );
+	  fprintf( stderr, "MatrixVector_FromFile_MM_PS: the matrix or vector should be of type sparse for this application to work.\n" );
 	  Print_Header( ERROR );
 	  fprintf( stderr, "Specified Matrix Market type: %s.\n", mm_typecode_to_str(matcode) );
 	  exit( EXIT_FAILURE );
@@ -97,16 +97,11 @@ void MatrixVector_FromFile_MM_PS( const char *Filename, MatrixVector_t *const Ma
       */
      for( innz = 0; innz < nnz; innz++ ){
 	  fscanf( InFile, "%d %d %lE", &i, &j, &Value );
-	  /* Only those values that are located in the diagonal or the lower part (upper
-	   * part in C are stored. The rest are ignored. */
-	  if( i >= j ){
-	       MatVec->Array[(j-1)*(MatVec->Cols - (j - 1)) + (i-j)] = Value;
-	  }
-	       
+	  MatVec->Array[i + (2*MatVec->Cols - j)*(j - 1)/2 - 1] = Value;
      }
 
      Print_Header( SUCCESS );
-     printf( "MatrixVector_FromFile_MM: Contents of %s successfully readen.\n", Filename );
+     printf( "MatrixVector_FromFile_MM_PS: Contents of %s successfully readen.\n", Filename );
 }
 #endif /* _MATRIXMARKET_ */
 
@@ -120,14 +115,14 @@ void MatrixVector_ToFile_PS2Full( const MatrixVector_t *const MatVec, const char
 
      if ( OutFile == NULL ){
 	  Print_Header( ERROR );
-	  fprintf( stderr, "MatrixVector_ToFile: It is not possible to open %s.\n", Filename );
+	  fprintf( stderr, "MatrixVector_ToFile_PS2Full: It is not possible to open %s.\n", Filename );
 	  exit( EXIT_FAILURE );
      }
 
-     for ( i = 0; i < MatVec->Rows; i++){
-	  for( j = 0; j < MatVec->Cols; j++ ){
-	       if( j >= i ){
-		    fprintf( OutFile,"%le\t", MatVec->Array[(i-1)*(MatVec->Cols - (i - 1)) + (j-i)] );
+     for ( i = 1; i <= MatVec->Rows; i++){
+	  for( j = 1; j <= MatVec->Cols; j++ ){
+	       if( i >= j ){
+		    fprintf( OutFile,"%le\t", MatVec->Array[i + (2*MatVec->Cols - j)*(j - 1)/2 - 1] );
 	       } else {
 		    fprintf( OutFile, "%le\t", dzero );
 	       }
@@ -137,5 +132,5 @@ void MatrixVector_ToFile_PS2Full( const MatrixVector_t *const MatVec, const char
      fclose( OutFile );
      
      Print_Header( SUCCESS );
-     printf( "MatrixVector_ToFile: Matrix successfully saved to %s.\n", Filename );
+     printf( "MatrixVector_ToFile_PS2Full: Matrix successfully saved to %s.\n", Filename );
 }
