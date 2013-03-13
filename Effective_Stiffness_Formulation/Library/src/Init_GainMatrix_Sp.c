@@ -107,7 +107,9 @@ void IGainMatrix_Sp_PS( MatrixVector_t *const IGain, const MatrixVector_Sp_t *co
      /* Sparse to dense conversion. The Gain matrix will be symmetrical and only the upper
       * part (lower part in FORTRAN) will be referenced.
       */
+     MatrixVector_ToFile_Sp( &Sp_TempMat, "3Mat.txt" );
      MatrixVector_CSR2Packed( &Sp_TempMat, IGain );
+     MatrixVector_ToFile_PS2Full( IGain, "3Mat2.txt" );
      MatrixVector_Destroy_Sp( &Sp_TempMat );
 
      uplo = 'L';  /* The lower part of the matrix will be used and the upper part will

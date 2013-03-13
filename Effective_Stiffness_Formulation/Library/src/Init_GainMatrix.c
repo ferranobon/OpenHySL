@@ -3,16 +3,15 @@
  * \author Ferran Obón Santacana
  * \version 1.0 PARDISO solver for matrix inversion is deprecated.
  * \date 9th of February 2013
- * 
- * \todo Add support for packed storage to reduce memory use.
  *
  * \brief Routines to compute the gain matrix.
  *
- * Routines for calculating the gain matrix. The routines make use of the BLAS and LAPACK libraries to perform the linear
- * algebra operations, including the matrix inversion in single and double precision. Sparse BLAS operations are supported
- * through the Intel MKL library, but since matrix inversion is a dense operations they still rely on LAPACK for this
- * operation. The PARDISO solver is no longer supported since it requires more memory and time than the LAPACK equivalent
- * routines.
+ * Routines for calculating the gain matrix. The routines make use of the BLAS and LAPACK
+ * libraries to perform the linear algebra operations, including the matrix inversion in
+ * single and double precision. Sparse BLAS operations are supported through the Intel MKL
+ * library, but since matrix inversion is a dense operations they still rely on LAPACK for
+ * this operation. The PARDISO solver is no longer supported since it requires more memory
+ * and time than the LAPACK equivalent routines.
  */
 #include <stdio.h>          /* For printf(), fprintf() */
 #include <stdlib.h>         /* For exit() */
@@ -31,19 +30,21 @@
 #include "Netlib.h"
 #endif
 
-void IGainMatrix( MatrixVector_t *const IGain, const MatrixVector_t *const Mass, const MatrixVector_t *const Damp,
-		  const MatrixVector_t *const Stiff, const Scalars_t Const )
+void IGainMatrix( MatrixVector_t *const IGain, const MatrixVector_t *const Mass, 
+		  const MatrixVector_t *const Damp, const MatrixVector_t *const Stiff,
+		  const Scalars_t Const )
 {
 
      char uplo;    
-     int lda, info; /* Leading dimension of the matrix, LAPACK error handling variable */
+     int lda, info;    /* Leading dimension of the matrix, LAPACK error handling
+			* variable */
 
      int ione = 1;     /* Integer of value one */
      double one = 1.0; /* Double precision one for dlascl() parameter cfrom */
      double Scalar;    /* Double precision scalar */
 
-     uplo = 'L';  /* The lower part of the matrix will be used and the upper part will strictly
-		   * not be referenced */
+     uplo = 'L';       /* The lower part of the matrix will be used and the upper part
+			* will strictly not be referenced */
      lda = Max( 1, IGain->Rows );
 
      /* IGain = Const.Alpha*M + Const.Beta*C + Const.Gamma*K */
@@ -55,8 +56,7 @@ void IGainMatrix( MatrixVector_t *const IGain, const MatrixVector_t *const Mass,
      if ( info == 0 ){
 	  Print_Header( SUCCESS );
 	  printf( "Cholesky factorization successfully completed.\n" );
-     }
-     else if (info < 0){
+     } else if (info < 0){
 	  Print_Header( ERROR );
 	  fprintf( stderr, "Cholesky factorization: the %d-th argument has an illegal value.\n", -info );
 	  exit( EXIT_FAILURE );
@@ -67,8 +67,8 @@ void IGainMatrix( MatrixVector_t *const IGain, const MatrixVector_t *const Mass,
 	  exit( EXIT_FAILURE );
      }
 
-     /* LAPACK: Compute the inverse of the IGain matrix using the Cholesky factorization computed
-      * by dpotrf_( ) */
+     /* LAPACK: Compute the inverse of the IGain matrix using the Cholesky factorization
+      * computed by dpotrf_( ) */
      dpotri_( &uplo, &IGain->Rows, IGain->Array, &lda, &info );
 
      if ( info == 0 ){
@@ -86,7 +86,8 @@ void IGainMatrix( MatrixVector_t *const IGain, const MatrixVector_t *const Mass,
      }
 
      Scalar = Const.Lambda;
-     dlascl_( &uplo, &ione, &ione, &one, &Scalar, &IGain->Rows, &IGain->Cols, IGain->Array, &lda, &info );
+     dlascl_( &uplo, &ione, &ione, &one, &Scalar, &IGain->Rows, &IGain->Cols,
+	      IGain->Array, &lda, &info );
 
      if( info < 0 ){
 	  Print_Header( ERROR );
@@ -99,8 +100,9 @@ void IGainMatrix( MatrixVector_t *const IGain, const MatrixVector_t *const Mass,
 
 }
 
-void IGainMatrix_PS( MatrixVector_t *const IGain, const MatrixVector_t *const Mass, const MatrixVector_t *const Damp,
-		  const MatrixVector_t *const Stiff, const Scalars_t Const )
+void IGainMatrix_PS( MatrixVector_t *const IGain, const MatrixVector_t *const Mass,
+		     const MatrixVector_t *const Damp, const MatrixVector_t *const Stiff,
+		     const Scalars_t Const )
 {
      char uplo;
      int info;         /* LAPACK error handling variable */
@@ -108,8 +110,8 @@ void IGainMatrix_PS( MatrixVector_t *const IGain, const MatrixVector_t *const Ma
      int incx, Length;
 
      incx = 1;
-     uplo = 'L';  /* The lower part of the matrix will be used and the upper part will
-		   * strictly not be referenced */
+     uplo = 'L';       /* The lower part of the matrix will be used and the upper part
+			* will strictly not be referenced */
 
      /* IGain = Const.Alpha*M + Const.Beta*C + Const.Gamma*K */
      MatrixVector_Add3Mat_PS( Mass, Damp, Stiff, Const, IGain );
@@ -120,8 +122,7 @@ void IGainMatrix_PS( MatrixVector_t *const IGain, const MatrixVector_t *const Ma
      if ( info == 0 ){
 	  Print_Header( SUCCESS );
 	  printf( "Cholesky factorization successfully completed.\n" );
-     }
-     else if (info < 0){
+     } else if (info < 0){
 	  Print_Header( ERROR );
 	  fprintf( stderr, "Cholesky factorization: the %d-th argument has an illegal value.\n", -info );
 	  exit( EXIT_FAILURE );
