@@ -257,4 +257,12 @@ void Algorithm_ReadDataEarthquake_AbsValues( const unsigned int NumSteps, const 
 void Algorithm_ReadDataEarthquake_RelValues( const unsigned int NumSteps, const char *Filename,
 					     double *Acceleration );
 
+/**
+ * \brief Prints a help text with the different options available when launching the
+ * program.
+ *
+ * \param[in] Program_Name Name of the executable.
+ */
+void Algorithm_PrintHelp( const char *Program_Name );
+
 #endif /* _ALGORITHM_AUX_H_ */
