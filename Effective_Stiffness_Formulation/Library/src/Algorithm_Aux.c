@@ -241,3 +241,12 @@ void Algorithm_ReadDataEarthquake_RelValues( const unsigned int NumSteps, const 
      /* Close File */
      fclose( InFile );
 }
+
+void Algorithm_PrintHelp( const char *Program_Name )
+{
+
+     fprintf( stderr, "Usage: %s [-h] -c <ConfFile>\n", Program_Name );
+     fprintf( stderr,
+	      "  -h  --help           This help text.\n"
+	      "  -c  --config-file    The name of the configuration file. Default value: ConfFile.conf\n" );
+}

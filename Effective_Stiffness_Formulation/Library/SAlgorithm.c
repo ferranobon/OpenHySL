@@ -28,8 +28,6 @@
 #include "Netlib.h"
 #endif
 
-void Print_Help( const char *Program_Name );
-
 int main( int argc, char **argv ){
 
      unsigned int istep;
@@ -105,16 +103,17 @@ int main( int argc, char **argv ){
 	       FileConf = optarg;
 	       break;
 	  case 'h':
-	       Print_Help( argv[0] );
+	       Algorithm_PrintHelp( argv[0] );
 	       return EXIT_FAILURE;
 	       break;
 	  case '?':
 	       /* Long options already prints an error message telling that there is an unrecognised option */
-	       Print_Help( argv[0] );
+	       Algorithm_PrintHelp( argv[0] );
 	       return EXIT_FAILURE;
 	  case ':':
-	       /* Long options already prints an error message telling that the option requieres an argument */
-	       Print_Help( argv[0] );
+	       /* Long options already prints an error message telling that the option requieres an
+		* argument */
+	       Algorithm_PrintHelp( argv[0] );
 	       return EXIT_FAILURE;
 	  }
      }
@@ -125,8 +124,8 @@ int main( int argc, char **argv ){
      /* Read the coupling nodes from a file */
      Substructure_ReadCouplingNodes( &CNodes, InitCnt.NStep, InitCnt.NSubstep, InitCnt.OrderSub, InitCnt.DeltaT_Sub, InitCnt.FileCNodes );
 
-     /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will
-      * be used during the test */
+     /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will be used
+      * during the test */
      if( InitCnt.Use_Absolute_Values ){
 	  AccAll = NULL;
 	  VelAll = (double *) calloc( (size_t) InitCnt.NStep, sizeof(double) );
@@ -142,8 +141,8 @@ int main( int argc, char **argv ){
 	  (!InitCnt.Use_Sparse && InitCnt.Read_Sparse)) && !InitCnt.Use_Packed ){
 	  MatrixVector_Create( InitCnt.Order, InitCnt.Order, &M );
 	  MatrixVector_Create( InitCnt.Order, InitCnt.Order, &K );
-     } else if( ((!InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (InitCnt.Use_Sparse && !InitCnt.Read_Sparse) ||
-	  (!InitCnt.Use_Sparse && InitCnt.Read_Sparse)) && InitCnt.Use_Packed ){
+     } else if( ((!InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (InitCnt.Use_Sparse && !InitCnt.Read_Sparse)
+		 || (!InitCnt.Use_Sparse && InitCnt.Read_Sparse)) && InitCnt.Use_Packed ){
 	  MatrixVector_Create_PS( InitCnt.Order, InitCnt.Order, &M );
 	  MatrixVector_Create_PS( InitCnt.Order, InitCnt.Order, &K );
      } else if ( InitCnt.Use_Sparse && InitCnt.Read_Sparse ){
@@ -286,8 +285,8 @@ int main( int argc, char **argv ){
 	  Algorithm_ReadDataEarthquake_RelValues( InitCnt.NStep, InitCnt.FileData, AccAll );
      }
 
-     /* Open Output file. If the file cannot be opened, the program will exit, since the results cannot be stored. */
-
+     /* Open Output file. If the file cannot be opened, the program will exit, since the results cannot be
+      * stored. */
      hdf5_file = HDF5_CreateFile( InitCnt.FileOutput );
      HDF5_CreateGroup_Parameters( hdf5_file, &InitCnt, &CNodes );
      HDF5_CreateGroup_TimeIntegration( hdf5_file, &InitCnt );
@@ -331,8 +330,7 @@ int main( int argc, char **argv ){
      printf( "Starting stepping process.\n" );
      while ( istep <= InitCnt.NStep ){
 
-	  /* Calculate the effective force vector
-	     Fe = M*(a0*u + a2*v + a3*a) + C*(a1*u + a4*v + a5*a) */
+	  /* Calculate the effective force vector Fe = M*(a0*u + a2*v + a3*a) + C*(a1*u + a4*v + a5*a) */
 	  if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
 	       EffK_EffectiveForce( &M, &C, &DispT, &VelT, &AccT, &tempvec, InitCnt.a0, InitCnt.a1, InitCnt.a2,
 				    InitCnt.a3, InitCnt.a4, InitCnt.a5, &EffT );
@@ -361,13 +359,13 @@ int main( int argc, char **argv ){
 
 	  /* Perform substepping */
 	  if( CNodes.Order >= 1 ){
-	       Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(double) istep, InitCnt.NSubstep,
-					 InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array, fcprevsub.Array, fc.Array );
+	       Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(double) istep,
+					 InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array,
+					 fcprevsub.Array, fc.Array );
 	  }
 
 	  if ( istep < InitCnt.NStep ){
-	       /* Calculate the input load for the next step during the
-		  sub-stepping process. */
+	       /* Calculate the input load for the next step during the sub-stepping process. */
 	       if( InitCnt.Use_Absolute_Values ){
 		    /* Copy the diagonal elements of M */
 		    InputLoad_Apply_LoadVectorForm( &LoadVectorForm, DispAll[istep], &Disp );		    
@@ -396,8 +394,9 @@ int main( int argc, char **argv ){
 	       }
 	  }
 
-	  /* Join the non-coupling part. DispTdT_m = Keinv_m*fc + DispTdT0_m. Although DispTdT0_m is what has been received from the other computer,
-	     it has the name of DispTdT_m to avoid further operations if using the NETLIB libraries. */
+	  /* Join the non-coupling part. DispTdT_m = Keinv_m*fc + DispTdT0_m. Although DispTdT0_m is what has
+	   * been received from the other computer, it has the name of DispTdT_m to avoid further operations
+	   * if using the NETLIB libraries. */
 	  if( CNodes.Order >= 1 ){
 	       Substructure_JoinNonCouplingPart( &DispTdT0_m, &Keinv_m, &fcprevsub, &CNodes,  &DispTdT );
 	  } else {
@@ -440,11 +439,6 @@ int main( int argc, char **argv ){
      HDF5_StoreTime( hdf5_file, &Time );
      Print_Header( SUCCESS );
      printf( "The time integration process has finished in %lf ms.\n", Time.Elapsed_time );
-
-     /* Close the Connection */
-//     if( InitCnt.Remote.Type != NO_PROTOCOL ){
-//	  Close_Connection( &Socket, hdf5_file, InitCnt.Remote.Type, (unsigned int) CNodes.Order, InitCnt.NStep, 4 );
-//     }
 
      HDF5_CloseFile( hdf5_file );
 
@@ -530,13 +524,4 @@ int main( int argc, char **argv ){
      Substructure_DeleteCouplingNodes( &CNodes );
 
      return 0;
-}
-
-void Print_Help( const char *Program_Name )
-{
-
-     fprintf( stderr, "Usage: %s [-h] -c <ConfFile", Program_Name );
-     fprintf( stderr,
-	      "  -h  --help           This help text.\n"
-	      "  -c  --config-file    The name of the configuration file. Default value: ConfFile.conf\n" );
 }
