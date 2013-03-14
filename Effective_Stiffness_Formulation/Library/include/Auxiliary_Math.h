@@ -54,4 +54,50 @@ int Min ( const int a, const int b );
  */
 MatrixVector_t Generate_IdentityMatrix( int Rows, int Cols );
 
+/**
+ * \brief Returns a 0-based index of a matrix in packed storage containing the upper
+ * triangular part and in row major order given its coordinates.
+ *
+ * Given the coordinates of an element (1-based index), it returns the position (0-based
+ * index) where the element is stored assuming that the upper triangular part is packed in
+ * rows. Therefore:
+ *
+ * If \f$i \geq j\f$, \f$\mathcal a_{ij}\f$ is stored in \f$\mathcal A(i + (2n-j)(j-1)/2)\f$ or in
+ * \f$\mathcal A(j + (2n-i)(i-1)/2)\f$ if \f$i < j\f$
+ *
+ * \pre
+ * - \f$1 \leq RowIndex \geq n\f$ and \f$1 \leq ColIndex \geq n\f$.
+ * - \em n is the number of rows or columns of the matrix in packed storage.
+ *
+ * \param[in] RowIndex Row coordinate \em i.
+ * \param[in] ColIndex Column coordinate \em j.
+ * \param[in] n        Number of rows or columns of the matrix in packed storage.
+ * \returns   Position (0-based index) where \f$a_{ij}\f$ is stored in the packed matrix
+ *            \f$\mathcal A\f$.
+ */ 
+unsigned int MatrixVector_ReturnIndex_UPS( const unsigned int RowIndex, const unsigned int ColIndex, const int n );
+
+/**
+ * \brief Returns a 0-based index of a matrix in packed storage containing the lower
+ * triangular part and in row major order given its coordinates.
+ *
+ * Given the coordinates of an element (1-based index), it returns the position (0-based
+ * index) where the element is stored assuming that the lower triangular part is packed in
+ * rows. Therefore:
+ *
+ * If \f$j \geq i\f$, \f$\mathcal a_{ij}\f$ is stored in \f$\mathcal A(i + j*(j-1)/2)\f$ or in
+ * \f$\mathcal A(j + i*(i-1)/2)\f$ if \f$j < i\f$
+ *
+ * \pre
+ * - \f$1 \leq RowIndex \geq n\f$ and \f$1 \leq ColIndex \geq n\f$.
+ * - \em n is the number of rows or columns of the matrix in packed storage.
+ *
+ * \param[in] RowIndex Row coordinate \em i.
+ * \param[in] ColIndex Column coordinate \em j.
+ * \param[in] n        Number of rows or columns of the matrix in packed storage.
+ * \returns   Position (0-based index) where \f$a_{ij}\f$ is stored in the packed matrix
+ *            \f$\mathcal A\f$.
+ */
+unsigned int MatrixVector_ReturnIndex_LPS( const unsigned int RowIndex, const unsigned int ColIndex, const int n );
+
 #endif /* AUXILIARY_MATH_H_ */

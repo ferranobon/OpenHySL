@@ -64,7 +64,33 @@ void Substructure_MatrixXc( const MatrixVector_t *const Mat, const CouplingNode_
 	       /* Now add the elements belonging to the same row as the current coupling
 		* node but also belonging to the same column as the rest of the coupling
 		* nodes */
-	       MatCouple->Array[jcoup*CNodes->Order + icoup] = MatCouple->Array[icoup*CNodes->Order + jcoup];
+	       if( icoup != jcoup ){
+		    MatCouple->Array[jcoup*CNodes->Order + icoup] = MatCouple->Array[icoup*CNodes->Order + jcoup];
+	       }
+	  }
+     }
+}
+
+void Substructure_MatrixXc_PS( const MatrixVector_t *const Mat, const CouplingNode_t *const CNodes, MatrixVector_t *const MatCouple )
+{
+
+     int icoup;       /* Counter for the coupling nodes */
+     int jcoup;       /* Another counter */
+     unsigned int Index_PS; /* Index of the matrix in packed storage */    
+
+
+     for( icoup = 0; icoup < CNodes->Order; icoup++ ){
+
+	  for (jcoup = icoup; jcoup < CNodes->Order; jcoup++){
+	       Index_PS = MatrixVector_ReturnIndex_UPS( (unsigned int) CNodes->Array[icoup], (unsigned int) CNodes->Array[jcoup], Mat->Rows );
+
+	       MatCouple->Array[icoup*CNodes->Order + jcoup] = Mat->Array[Index_PS];
+	       /* Now add the elements belonging to the same row as the current coupling
+		* node but also belonging to the same column as the rest of the coupling
+		* nodes */
+	       if( icoup != jcoup ){
+		    MatCouple->Array[jcoup*CNodes->Order + icoup] = Mat->Array[Index_PS];
+	       }
 	  }
      }
 }
@@ -125,6 +151,38 @@ void Substructure_MatrixXcm( const MatrixVector_t *const Mat, const CouplingNode
 	       dcopy( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1)*Mat->Rows + (CNodes->Array[icoup])], &incx, &MatXcm->Array[PosXcm], &incy );
 	  }
 	  Acumulated_Length = Acumulated_Length + Length;
+     }
+}
+
+void Substructure_MatrixXcm_PS( const MatrixVector_t *const Mat, const CouplingNode_t *const CNodes, MatrixVector_t *const MatXcm )
+{
+     int icoup, jcoup, kcoup;  /* Counters for the coupling nodes */
+     int IndexXcm;             /* Index of the Xcm matrix */
+     unsigned int RowIndex, ColIndex;   /* Row and column indixes for the full matrix in packedwwwma
+				* storage */
+     unsigned int Index;       /* Index of the matrix in packed storage: Mat */
+
+     /* Since the matrix is symmetric and only a part of it is stored, this routine has to
+      * be splitted into two parts. The first will copy the elements above the coupling
+      * node, while the second will focus on the other part */
+
+
+     IndexXcm = 0;
+     for( icoup = 0; icoup < CNodes->Order; icoup++ ){
+	  ColIndex = (unsigned int) CNodes->Array[icoup];
+	  RowIndex = 1;
+	  jcoup = 0; kcoup = 0;
+	  while( RowIndex <= (unsigned int) Mat->Rows ){
+	       if ( RowIndex == (unsigned int) CNodes->Array[kcoup] ){
+		    kcoup = kcoup + 1;
+	       } else {
+		    IndexXcm = icoup*MatXcm->Rows + jcoup;
+		    Index = MatrixVector_ReturnIndex_UPS( RowIndex, ColIndex, Mat->Rows );
+		    MatXcm->Array[IndexXcm] = Mat->Array[Index];
+		    jcoup = jcoup + 1;
+	       }
+	       RowIndex = RowIndex + 1;
+	  }
      }
 }
 

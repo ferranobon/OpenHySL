@@ -267,8 +267,13 @@ int main( int argc, char **argv ){
      } else assert(0);
 
      if( CNodes.Order >= 1 ){
-	  Substructure_MatrixXc( &Keinv, &CNodes, &Keinv_c );
-	  Substructure_MatrixXcm( &Keinv, &CNodes, &Keinv_m );
+	  if( !InitCnt.Use_Packed ){
+	       Substructure_MatrixXc( &Keinv, &CNodes, &Keinv_c );
+	       Substructure_MatrixXcm( &Keinv, &CNodes, &Keinv_m );
+	  } else {
+	       Substructure_MatrixXc_PS( &Keinv, &CNodes, &Keinv_c );
+	       Substructure_MatrixXcm_PS( &Keinv, &CNodes, &Keinv_m );
+	  }
   
 	  /* Send the coupling part of the effective matrix if we are performing a distributed test */
 //	  Send_Effective_Matrix( Keinv_c.Array, (unsigned int) CNodes.Order, &Socket, InitCnt.Remote );

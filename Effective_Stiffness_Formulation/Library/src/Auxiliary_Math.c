@@ -37,3 +37,27 @@ MatrixVector_t Generate_IdentityMatrix( int Rows, int Cols )
 
      return Identity;
 }
+
+unsigned int MatrixVector_ReturnIndex_UPS( const unsigned int RowIndex, const unsigned int ColIndex, const int n )
+{
+     unsigned int Index;
+
+     if( RowIndex >= ColIndex ){
+	  Index = RowIndex + (2*(unsigned int) n - ColIndex)*(ColIndex - 1)/2 - 1;
+     } else {
+	  Index = ColIndex + (2*(unsigned int) n - RowIndex)*(RowIndex - 1)/2 - 1;
+     }
+     return Index;
+}
+
+unsigned int MatrixVector_ReturnIndex_LPS( const unsigned int RowIndex, const unsigned int ColIndex, const int n )
+{
+     unsigned int Index;
+
+     if( ColIndex >= RowIndex ){
+	  Index = RowIndex + ColIndex*(ColIndex - 1)/2 - 1;
+     } else {
+	  Index = ColIndex + RowIndex*(RowIndex - 1)/2 - 1;
+     }
+     return Index;
+}
