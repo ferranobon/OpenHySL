@@ -22,8 +22,9 @@ const char *Substructure_Type[] = {"Sim_Exact",
 				   "Remote_OF" };
 
 
-void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigned int NSteps, const unsigned int NSubsteps,
-				     const int OrderSub, const double DeltaTSub, const char *Filename )
+void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigned int NSteps,
+				     const unsigned int NSubsteps, const int OrderSub, const double DeltaTSub,
+				     const char *Filename )
 {
      FILE *InFile;
      int Count_Type;
@@ -71,7 +72,8 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 	       Print_Header( ERROR );
 	       fprintf( stderr, "Substructure_ReadCouplingNodes: Number of substructures exceeded.\n" );
 	       Print_Header( ERROR );
-	       fprintf( stderr, "Substructure_ReadCouplingNodes: Specified %d but read %d.\n", CNodes->Order, i + Count_Type );
+	       fprintf( stderr, "Substructure_ReadCouplingNodes: Specified %d but read %d.\n", CNodes->Order,
+			i + Count_Type );
 	       exit( EXIT_FAILURE );
 	  }
 	  Substructure_Identify( Type, &CNodes->Sub[i].Type );
@@ -88,7 +90,8 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 			 fprintf( stderr, "Substructure_ReadCouplingNodes: There is already a substructure assigned to coupling node %d.\n",
 				  CNodes->Array[k]);
 			 Print_Header( ERROR );
-			 fprintf( stderr, "Substructre_ReadCouplingNodes: Error when reading line %d.\n", i + 1 );
+			 fprintf( stderr, "Substructre_ReadCouplingNodes: Error when reading line %d.\n",
+				  i + 1 );
 			 exit( EXIT_FAILURE );
 		    }
 	       }
@@ -116,7 +119,8 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 		 
 		    for( j = 0; j < Count_Type; j++ ){
 			 CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(ExactSim_t) );
-			 Substructure_ExactSolution_Init( ftemp[0], ftemp[1], ftemp[2], DeltaTSub, Description, (ExactSim_t *) CNodes->Sub[i + j].SimStruct );
+			 Substructure_ExactSolution_Init( ftemp[0], ftemp[1], ftemp[2], DeltaTSub, Description,
+							  (ExactSim_t *) CNodes->Sub[i + j].SimStruct );
 			 Print_Header( INFO );
 			 printf( "Simulating the substructure in the coupling node %d as an exact integration method.\n", CNodes->Array[i + j] );
 		    }
@@ -144,7 +148,8 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 
 		    for( j = 0; j < Count_Type; j++ ){			
 			 CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(UHYDEfbrSim_t) );
-			 Substructure_SimUHYDE_1D_Init( ftemp[0], ftemp[1], ftemp[2], Description, (UHYDEfbrSim_t *) CNodes->Sub[i + j].SimStruct );
+			 Substructure_SimUHYDE_1D_Init( ftemp[0], ftemp[1], ftemp[2], Description,
+							(UHYDEfbrSim_t *) CNodes->Sub[i + j].SimStruct );
 			 Print_Header( INFO );
 			 printf( "Simulating the substructure in the coupling node %d as a UHYDE-fbr device.\n", CNodes->Array[i + j] );
 		    }
@@ -159,7 +164,8 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 
 	       for( j = 0; j <  Count_Type; j++ ){    
 		    CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(MeasuredSim_t) );
-		    Substructure_SimMeasured_Init( FileMeas, NSteps, NSubsteps, Description, (MeasuredSim_t *) CNodes->Sub[i + j].SimStruct );
+		    Substructure_SimMeasured_Init( FileMeas, NSteps, NSubsteps, Description,
+						   (MeasuredSim_t *) CNodes->Sub[i + j].SimStruct );
 		    Print_Header( INFO );
 		    printf( "Simulating the substructure in the coupling node %d using time history measured forces.\n", CNodes->Array[i + j] );
 	       }
@@ -172,7 +178,8 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 		    CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(ExpSub_t) );
 		    Substructure_Experimental_Init( Description, (ExpSub_t *) CNodes->Sub[i + j].SimStruct );
 		    Print_Header( INFO );
-		    printf( "The substructure in the coupling node %d is computed in ADwin.\n", CNodes->Array[i + j] );
+		    printf( "The substructure in the coupling node %d is computed in ADwin.\n",
+			    CNodes->Array[i + j] );
 	       }
 	       break;
 	  case REMOTE_TCP:
@@ -187,7 +194,8 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 
 	       for( j = 0; j < Count_Type; j++ ){
 		    CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(Remote_t) );
-//		    Substructure_Remote_Init( IPAddress, Port, Description, (Remote_t *) CNodes->Sub[i + j].SimStruct );
+		    Substructure_Remote_Init( IPAddress, Port, Description,
+					      (Remote_t *) CNodes->Sub[i + j].SimStruct );
 		    Print_Header( INFO );
 		    printf( "The substructure in the coupling node %d is computed is computed at %s:%s using %s.\n", CNodes->Array[i + j],
 			    IPAddress, Port, Substructure_Type[CNodes->Sub[i].Type] );
@@ -242,7 +250,8 @@ void Substructure_GetDescription( FILE *const InFile, const int LineNum, char *c
 
      if( Description[strlen(Description) - 2] != ';' && Description[strlen(Description) - 1] != ';' ){
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Substructure_ReadCouplingNodes: Line number %d should terminate with ';'.\n", LineNum + 1 );
+	  fprintf( stderr, "Substructure_ReadCouplingNodes: Line number %d should terminate with ';'.\n",
+		   LineNum + 1 );
 	  exit( EXIT_FAILURE );
      }
 }
@@ -272,7 +281,7 @@ void Substructure_DeleteCouplingNodes( CouplingNode_t *CNodes )
 	  case REMOTE_NSEP:
 	       /* This is the same case as REMOTE_OF */
 	  case REMOTE_OF:
-//	       Substructure_Remote_Destroy( (Remote_t *) CNodes->Sub[i].SimStruct );
+	       Substructure_Remote_Destroy( (Remote_t *) CNodes->Sub[i].SimStruct );
 	       break;
 	  }
 	  free( CNodes->Sub[i].SimStruct );
