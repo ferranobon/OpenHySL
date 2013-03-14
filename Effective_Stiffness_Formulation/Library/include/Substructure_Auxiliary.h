@@ -53,14 +53,15 @@ void Substructure_JoinNonCouplingPart( MatrixVector_t *const VecTdT_m, const Mat
 			   MatrixVector_t *const VecTdT );
 
 /**
- * \brief Construction of the coupling matrix.
+ * \brief Construction of the coupling matrix. General storage version.
  *
- * This routine copies the values in the coupling positions of a symmetric matrix constructing a sub-matrix of
- * \f$ Size = Number~of~coupling~nodes^2\f$. Since this matrix may have to be sent to the experimental
- * facility in order to perform the sub-stepping process, it is treated as a full matrix (although it is
- * symmetrical). Therefore, all elements are copied if \f$Number~of~coupling~nodes \geq 1\f$. For example,
- * given the symmetric matrix \f$\mathcal{A}\f$ and coupling positions in 2 and 5, the resulting
- * \f$\mathcal{A}_{Couple}\f$ would be as follows:
+ * This routine copies the values in the coupling positions of a symmetric matrix
+ * constructing a sub-matrix of \f$ Size = Number~of~coupling~nodes^2\f$. Since this
+ * matrix may have to be sent to the experimental facility in order to perform the
+ * sub-stepping process, it is treated as a full matrix (although it is
+ * symmetrical). Therefore, all elements are copied if \f$Number~of~coupling~nodes \geq
+ * 1\f$. For example, given the symmetric matrix \f$\mathcal{A}\f$ and coupling positions
+ * in 2 and 5, the resulting \f$\mathcal{A}_{Couple}\f$ would be as follows:
  *
  * \f[ \mathcal{A} = \begin{pmatrix}
  *   1 & -1 & 3  & 4  & 5\\
@@ -74,20 +75,28 @@ void Substructure_JoinNonCouplingPart( MatrixVector_t *const VecTdT_m, const Mat
  * 2 & 8\\
  * \end{pmatrix}\f]
  *
- * \pre
- * - All elements of type \c MatrixVector_t must be properly initialised through the MatrixVector_Create() routine.
- * - \c Mat has to be a symmetrical matrix containing at least the upper part (lower part in FORTRAN
- * routines) in general storage.
- * - The size of \c MatCouple should be \f$Size \geq Number~of~coupling~nodes^2\f$.
- * - The coupling nodes have to be properly initialised through the Substructure_ReadCouplingNodes() routine.
- * - The coupling nodes are assumed to be in increasing order of rows and in one based index.
+ * If \c Mat is in packed storage, the routine Substructure_MatrixXc_PS() should be used
+ * instead.
  *
- * \param[in] Mat The matrix that will be decoupled.
- * \param[in] CNodes Structure containing the coupling nodes in increasing order of rows.
+ * \pre
+ * - All elements of type \c MatrixVector_t must be properly initialised through the
+ *   MatrixVector_Create() routine.
+ * - \c Mat has to be a symmetrical matrix containing at least the upper part (lower part
+ *   in FORTRAN routines) in general storage.
+ * - The size of \c MatCouple should be \f$Size \geq Number~of~coupling~nodes^2\f$.
+ * - The coupling nodes have to be properly initialised through the
+ *   Substructure_ReadCouplingNodes() routine.
+ * - The coupling nodes are assumed to be in increasing order of rows and in one based
+ *   index.
+ *
+ * \param[in]  Mat       The matrix that will be decoupled.
+ * \param[in]  CNodes    Structure containing the coupling nodes in increasing order of
+ *                       rows.
  * \param[out] MatCouple The matrix where the coupling nodes are saved.
  *
- * \post \c MatCouple is a symmetrical matrix \f$Size = Number~of~coupling~nodes^2\f$ in general storage that
- * contains the values in the coupling position of the specified matrix. All the values are referenced.
+ * \post \c MatCouple is a symmetrical matrix \f$Size = Number~of~coupling~nodes^2\f$ in
+ * general storage that contains the values in the coupling position of the specified
+ * matrix. All the values are referenced.
  *
  * \sa MatrixVector_t and CouplingNode_t.
  *
@@ -95,16 +104,71 @@ void Substructure_JoinNonCouplingPart( MatrixVector_t *const VecTdT_m, const Mat
 void Substructure_MatrixXc( const MatrixVector_t *const Mat, const CouplingNode_t *const CNodes, MatrixVector_t *const MatCouple );
 
 /**
- * \brief Construction of the non-coupling part of a given matrix.
+ * \brief Construction of the coupling matrix. General storage version.
  *
- * This routine copies the non-coupling values of a column with coupling degrees of freedom of the symmetric matrix Mat,
- * constructing a matrix of \f$Size = (Order - Order_C)\cdot Order_C\f$. Where:
+ * This routine copies the values in the coupling positions of a symmetric matrix in
+ * packed storage constructing a sub-matrix of \f$ Size =
+ * Number~of~coupling~nodes^2\f$. Since this matrix may have to be sent to the
+ * experimental facility in order to perform the sub-stepping process, it is treated as a
+ * full matrix (although it is symmetrical). Therefore, all elements are copied if
+ * \f$Number~of~coupling~nodes \geq 1\f$. For example, given the symmetric matrix
+ * \f$\mathcal{A}\f$ and coupling positions in 2 and 5, the resulting
+ * \f$\mathcal{A}_{Couple}\f$ would be as follows:
+ *
+ * \f[ \mathcal{A} = \begin{pmatrix}
+ *   1 & -1 & 3  & 4  & 5\\
+ *     & \mathbf{5}  & 4  & -3 & \mathbf{2}\\
+ *     &    & 3  & 6  & 7\\
+ *     &    &    & 11 & 4\\
+ *     &    &    &    & \mathbf{8}\\
+ * \end{pmatrix}
+ * \Longrightarrow \mathcal{A}_{Couple} = \begin{pmatrix}
+ * 5 & 2\\
+ * 2 & 8\\
+ * \end{pmatrix}\f]
+ *
+ * If \c Mat is in general storage, the routine Substructure_MatrixXc() should be used
+ * instead.
+ *
+ * \pre
+ * - \c Mat must be initialised through the MatrixVector_Create_PS() routine.
+ * - \c Mat must be symmetrical and in packed storage. The upper triangular part packed in
+ *   rows (lower triangular part packed in columns in FORTRAN) must be present.
+ * - \c Matcouple must be in general storage and properly initialised through the
+ *   MatrixVector_Create() routine.
+ * - The size of \c MatCouple should be \f$Size \geq Number~of~coupling~nodes^2\f$.
+ * - The coupling nodes have to be properly initialised through the
+ *   Substructure_ReadCouplingNodes() routine.
+ * - The coupling nodes are assumed to be in increasing order of rows and in one based
+ *   index.
+ *
+ * \param[in]  Mat       The matrix that will be decoupled in packed storage.
+ * \param[in]  CNodes    Structure containing the coupling nodes in increasing order of
+ *                       rows.
+ * \param[out] MatCouple The matrix where the coupling nodes are saved.
+ *
+ * \post \c MatCouple is a symmetrical matrix \f$Size = Number~of~coupling~nodes^2\f$ in
+ * general storage that contains the values in the coupling position of the specified
+ * matrix. All the values are referenced.
+ *
+ * \sa MatrixVector_t and CouplingNode_t.
+ *
+ */
+void Substructure_MatrixXc_PS( const MatrixVector_t *const Mat, const CouplingNode_t *const CNodes, MatrixVector_t *const MatCouple );
+
+/**
+ * \brief Construction of the non-coupling part of a given matrix. General storage
+ * version.
+ *
+ * This routine copies the non-coupling values of a column with coupling degrees of
+ * freedom of the symmetric matrix \c Mat, constructing a matrix of \f$Size = (Order -
+ * Order_C)\cdot Order_C\f$. Where:
  *
  * - \f$Order\f$ is the number of rows and columns of the input matrix.
  * - \f$Order_C\f$ is the number of coupling degrees of freedom.
  *
- * For example, given the given the symmetric matrix \f$\mathcal{A}\f$ and coupling positions in 2 and 5, the resulting \f$\mathcal{A}_{cm}\f$ would
- * be as follows:
+ * For example, given the given the symmetric matrix \f$\mathcal{A}\f$ and coupling
+ * positions in 2 and 5, the resulting \f$\mathcal{A}_{cm}\f$ would be as follows:
  * 
  * \f[ \mathcal{A} = \begin{pmatrix}
  *   1 & \mathbf{-1} & 3  & 4  & \mathbf{5}\\
@@ -119,25 +183,91 @@ void Substructure_MatrixXc( const MatrixVector_t *const Mat, const CouplingNode_
  * -3 & 4\\
  * \end{pmatrix}\f]
  *
- * It makes use of BLAS routines to perform the linear algebra operations.
+ * It makes use of BLAS routines to perform the linear algebra operations. If \c Mat is in
+ * packed storage, the routine Substructure_MatrixXcm_PS() should be used instead.
  *
  * \pre
- * - All elements of type \c MatrixVector_t must be properly initialised through the MatrixVector_Create() routine.
- * - \c Mat has to be a symmetrical matrix containing at least the upper part (lower part in FORTRAN routines) in general storage.
+ * - All elements of type \c MatrixVector_t must be properly initialised through the
+ *   MatrixVector_Create() routine.
+ * - \c Mat has to be a symmetrical matrix containing at least the upper part (lower part
+ *   in FORTRAN routines) in general storage.
  * - \f$Order > Order_C\f$.
- * - \c Matcm must be of \f$Size = (Order - Order_C)\cdot Order_C\f$.
- * - The coupling nodes have to be properly initialised through the Substructure_ReadCouplingNodes() routine.
- * - The coupling nodes are assumed to be in increasing order of rows and in one based index.
+ * - \c Mat must be of \f$Size = Order\cdot Order\f$.
+ * - \c MatXcm must be of \f$Size = (Order - Order_C)\cdot Order_C\f$.
+ * - The coupling nodes have to be properly initialised through the
+ *   Substructure_ReadCouplingNodes() routine.
+ * - The coupling nodes are assumed to be in increasing order of rows and in one based
+ *   index.
  *
- * \param[in] Mat The matrix that will be decoupled.
- * \param[in] CNodes Structure containing the coupling nodes in increasing order of rows.
- * \param[in,out] Matcm The matrix where the non-coupling elemets of a column with a coupling node are stored.
+ * \param[in]     Mat     The matrix that will be decoupled in general storage.
+ * \param[in]     CNodes  Structure containing the coupling nodes in increasing order of
+ *                        rows.
+ * \param[in,out] MatXcm  The matrix where the non-coupling elemets of a column with a
+ *                        coupling node are stored.
  *
- * \post \c Matcm is a general matrix of \f$Size = (Order - Order_C)\cdot Order_C\f$ with the non-coupling elements of the columns with coupling nodes.
+ * \post \c MatXcm is a general matrix of \f$Size = (Order - Order_C)\cdot Order_C\f$ with
+ * the non-coupling elements of the columns with coupling nodes.
  *
  * \sa MatrixVector_t and CouplingNode_t.
  */
 void Substructure_MatrixXcm( const MatrixVector_t *const Mat, const CouplingNode_t *const CNodes, MatrixVector_t *const MatXcm );
+
+/**
+ * \brief Construction of the non-coupling part of a given matrix. Packed storage version.
+ *
+ * This routine copies the non-coupling values of a column with coupling degrees of
+ * freedom of the symmetric matrix \c Mat in packed storage, constructing a matrix of
+ * \f$Size = (Order - Order_C)\cdot Order_C\f$. Where:
+ *
+ * - \f$Order\f$ is the number of rows and columns of the input matrix.
+ * - \f$Order_C\f$ is the number of coupling degrees of freedom.
+ *
+ * For example, given the given the symmetric matrix \f$\mathcal{A}\f$ in packed storage
+ * and coupling positions in 2 and 5, the resulting \f$\mathcal{A}_{cm}\f$ would be as
+ * follows:
+ * 
+ * \f[ \mathcal{A} = \begin{pmatrix}
+ *   1 & \mathbf{-1} & 3  & 4  & \mathbf{5}\\
+ *     & 5  & \mathbf{4}  & \mathbf{-3} & 2\\
+ *     &    & 3  & 6  & \mathbf{7}\\
+ *     &    &    & 11 & \mathbf{4}\\
+ *     &    &    &    & 8\\
+ * \end{pmatrix}
+ * \Longrightarrow \mathcal{A}_{cm} = \begin{pmatrix}
+ * -1 & 5\\
+ *  4 & 7\\
+ * -3 & 4\\
+ * \end{pmatrix}\f]
+ *
+ * If \c Mat is in general storage, the routine Substructure_MatrixXcm() should be used
+ * instead.
+ *
+ * \pre
+ * - \c Mat must be initialised through the MatrixVector_Create_PS() routine.
+ * - \c Mat must be symmetrical and in packed storage. The upper triangular part packed in
+ *   rows (lower triangular part packed in columns in FORTRAN) must be present.
+ * - \c MatXcm must be in general storage and properly initialised through the
+ *   MatrixVector_Create() routine.
+ * - \f$Order > Order_C\f$.
+ * - \c Mat must be of \f$Size = Order\cdot Order\f$.
+ * - \c MatXcm must be of \f$Size = (Order - Order_C)\cdot Order_C\f$.
+ * - The coupling nodes have to be properly initialised through the
+ *   Substructure_ReadCouplingNodes() routine.
+ * - The coupling nodes are assumed to be in increasing order of rows and in one based
+ *   index.
+ *
+ * \param[in]     Mat     The matrix that will be decoupled in packed storage.
+ * \param[in]     CNodes  Structure containing the coupling nodes in increasing order of
+ *                        rows.
+ * \param[in,out] MatXcm  The matrix where the non-coupling elemets of a column with a
+ *                        coupling node are stored.
+ *
+ * \post \c MatXcm is a general matrix of \f$Size = (Order - Order_C)\cdot Order_C\f$ with
+ * the non-coupling elements of the columns with coupling nodes.
+ *
+ * \sa MatrixVector_t and CouplingNode_t.
+ */
+void Substructure_MatrixXcm_PS( const MatrixVector_t *const Mat, const CouplingNode_t *const CNodes, MatrixVector_t *const MatXcm );
 
 /**
  * \brief Copies the non-coupling part a vector.
