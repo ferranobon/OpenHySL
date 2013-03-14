@@ -20,9 +20,10 @@
 #include "Netlib.h"
 #endif
 
-void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, const double Time, const unsigned int NSubstep,
-			       const double DeltaT_Sub, CouplingNode_t *const CNodes, double *const DispTdT,
-			       double *const fcprevsub, double *const fc )
+void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, const double Time,
+			       const unsigned int NSubstep, const double DeltaT_Sub,
+			       CouplingNode_t *const CNodes, double *const DispTdT, double *const fcprevsub,
+			       double *const fc )
 {
 
      int i;
@@ -34,14 +35,14 @@ void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, co
      for( i = 0; i < CNodes->Order; i++ ){
 	  switch ( CNodes->Sub[i].Type ){
 	  case SIM_EXACT:
-	       /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together in
-		* the same routine.*/
+	       /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
+		* in the same routine.*/
 	  case SIM_UHYDE:
-	       /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together in
-		* the same routine.*/
+	       /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
+		* in the same routine.*/
 	  case SIM_MEASURED:
-	       /* Call the Simulate_Substructures() function only once. All the simulated substructures are handled
-		* together in this routine */
+	       /* Call the Simulate_Substructures() function only once. All the simulated substructures are
+		* handled together in this routine */
 	       if( !Called_Sub ){
 		    Substructure_Simulate( CNodes, IGain, DispTdT0_c, NSubstep, DeltaT_Sub, &Recv[0], &Recv[CNodes->Order], &Recv[2*CNodes->Order] );
 		    Called_Sub = true;
@@ -97,7 +98,9 @@ void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, co
      free( Recv );
 }
 
-void Substructure_Simulate( CouplingNode_t *const CNodes, double *IGain, double *const VecTdT0_c, const unsigned int NSubstep, const double DeltaT_Sub, double *const VecTdT_c, double *const fcprev, double *const fc )
+void Substructure_Simulate( CouplingNode_t *const CNodes, double *IGain, double *const VecTdT0_c,
+			    const unsigned int NSubstep, const double DeltaT_Sub, double *const VecTdT_c,
+			    double *const fcprev, double *const fc )
 {
 
      unsigned int i, Substep;
