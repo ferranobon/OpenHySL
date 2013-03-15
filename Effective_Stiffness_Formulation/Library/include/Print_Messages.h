@@ -6,17 +6,17 @@
  *
  * \brief Routines to print formated messages to the screen. Color definition.
  *
- * Functions to print formated messages to the standard ouptut, including stderr if the message in question
- * is an error. The ansi colors are also defined.
+ * Functions to print formated messages to the standard ouptut, including stderr if the message in question is
+ * an error. The ansi colors are also defined.
  */
 
 #ifndef PRINT_MESSAGES_H_
 #define PRINT_MESSAGES_H_
 
-#define ERROR   0  /*!< Error message type.*/
-#define SUCCESS 1  /*!< Success message type.*/
-#define INFO    2  /*!< Informative message type.*/
-#define WARNING 3  /*!< Warning message type.*/
+#define ERROR   0                      /*!< Error message type.*/
+#define SUCCESS 1                      /*!< Success message type.*/
+#define INFO    2                      /*!< Informative message type.*/
+#define WARNING 3                      /*!< Warning message type.*/
 
 #define RESET   "\033[0m"              /*!< Reset to default lettering.*/
 #define BLACK   "\033[30m"             /*!< Black color.*/
@@ -41,8 +41,8 @@
 /**
  * \brief Prints a formated header to the screen.
  *
- * The desired formated header is printed either to \c stdout or \c stderr depending on the type of message \c ERROR
- * (stderr), \c WARNING (stderr), \c SUCCESS (stdout) or \c INFO (stdout). The resulting output is:
+ * The desired formated header is printed either to \c stdout or \c stderr depending on the type of message \c
+ * ERROR (stderr), \c WARNING (stderr), \c SUCCESS (stdout) or \c INFO (stdout). The resulting output is:
  *
  * - "[FAILED] " if the specified type is \c ERROR in \c stderr.
  * - "[ WARN ] " if the specified type is \c WARNING in \c stderr.
