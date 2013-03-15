@@ -55,6 +55,18 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 				     const int OrderSub, const double DeltaTSub, const char *Filename );
 
 /**
+ * \brief Sort the coupling nodes in ascending order.
+ *
+ * \param[in,out] CNodes Structure containing information regarding the coupling nodes. On output, the
+ *                       coupling nodes are sorted in ascending order.
+ *
+ * \post \f$\forall i \in [1..N]~A(i-1) \leq A(i)\f$ where:
+ * - \f$N\f$ is the number of coupling nodes.
+ * - \f$A\f$ is the array containing the coupling nodes in <tt>struct CNodes (CNodes.Array)</tt>.
+ */
+ void Substructure_SortCouplingNodes( CouplingNode_t *const CNodes );
+
+/**
  * \brief Perform */
 void Substructure_SimMeasuredValues( const char *FileName, const double *const IGain, const double *const VecTdT0_c, double *const VecTdT_c, double *const fcprev, double *const fc, const unsigned int OrderC, const unsigned int NSub );
 

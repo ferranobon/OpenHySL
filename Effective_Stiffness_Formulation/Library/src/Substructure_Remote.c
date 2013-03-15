@@ -1,15 +1,37 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
+#if WIN32
+#include <winsock2.h> /* For send(), recv(), sockadrr... */
+#include <WS2tcpip.h> /* For socklen_t */
+#else
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <unistd.h>
+#endif
+
+#include "Substructure.h"
 #include "Substructure_Remote.h"
+#include "Print_Messages.h"
 
-void Substructure_Remote_Init( const char *IPAddress, const char *Port, const char *Description,
-			       Remote_t *const Sub )
+void Substructure_Remote_Init( const char *IPAddress, const char *Port, const int NSub, const int *const DOF,
+			       const char *Description, Remote_t *const Sub )
 {
+
+     int i;   /* A counter */
      
      Sub->IP = strdup( IPAddress );
      Sub->Port = strdup( Port );
+     Sub->NSub = NSub;
+
+     Sub->DOFs = (int *) calloc( (size_t) NSub, sizeof(int) );
+     for( i = 0; i < NSub; i++ ){
+	  Sub->DOFs[i] = DOF[i];
+     }
 
      Sub->Description = strdup( Description );
 
@@ -43,27 +65,32 @@ void Substructure_Remote_Connect( Remote_t *const RemoteNode, const int Type )
      rtnVal = getaddrinfo( RemoteNode->IP, RemoteNode->Port, &addrCriteria, &Server_Addr );
      if ( rtnVal != 0 ){
 	  Print_Header( ERROR );
-	  fprintf( stderr, "getaddrinfo() failed", gai_strerror( rtnVal ) );
+	  fprintf( stderr, "getaddrinfo() failed: %s", gai_strerror( rtnVal ) );
      }
      
      RemoteNode->Socket = -1;
      for ( addr = Server_Addr; addr != NULL; addr = addr->ai_next ) {
 	  /* Create the TCP/UDP socket */
 	  RemoteNode->Socket = socket( addr->ai_family, addr->ai_socktype, addr->ai_protocol );
-	  if ( Socket < 0 ){
-	       continue;           /* Socket creation failed; try next address */
+	  if ( RemoteNode->Socket < 0 ){
+	       continue;               /* Socket creation failed; try next address */
 	  }
 
 	  /* Establish the connection with the Server to start the simulation */
 	  if ( connect( RemoteNode->Socket, addr->ai_addr, addr->ai_addrlen ) == 0 ){
-	       Print_Hdeader( SUCCESS );
-	       printf( "Successfully connected to Server: %s on port %s.\n", Type, RemoteNode->IP,
-		       RemoteNode->Port );
-	       break;              /* The socket has been successfully created, break and return Socket */
+	       Print_Header( SUCCESS );
+	       if( Type == REMOTE_TCP ){
+		    printf( "Successfully connected to the TCP Server: %s on port %s.\n", RemoteNode->IP,
+			    RemoteNode->Port );
+	       } else {
+		    printf( "Successfully connected to the UDP Server: %s on port %s.\n", RemoteNode->IP,
+			    RemoteNode->Port );
+	       }
+	       break;                  /* The socket has been successfully created, break and return Socket */
 	  }
 	  
-	  close( Remote->Socket ); /* The creation of the socket has failed. Try the next address */
-	  Remote->Socket = -1;
+	  close( RemoteNode->Socket ); /* The creation of the socket has failed. Try the next address */
+	  RemoteNode->Socket = -1;
      }
      
      /* Free the address list allocated by getaddrinfo() */
@@ -74,5 +101,9 @@ void Substructure_Remote_Destroy( Remote_t *const Sub )
 {
      free( Sub->IP );
      free( Sub->Port );
+
+     Sub->NSub = 0;
+     free( Sub->DOFs );
+
      free( Sub->Description );
 }

@@ -122,7 +122,8 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 			 Substructure_ExactSolution_Init( ftemp[0], ftemp[1], ftemp[2], DeltaTSub, Description,
 							  (ExactSim_t *) CNodes->Sub[i + j].SimStruct );
 			 Print_Header( INFO );
-			 printf( "Simulating the substructure in the coupling node %d as an exact integration method.\n", CNodes->Array[i + j] );
+			 printf( "Simulating the substructure in the coupling node %d as an exact integration method.\n",
+				 CNodes->Array[i + j] );
 		    }
 		    free( ftemp );
 	       }
@@ -191,10 +192,10 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 	       fscanf( InFile, "%*[,] %s %[^,]", IPAddress, Port );
 	       /* Read the optional description */
 	       Substructure_GetDescription( InFile, i, Description );
-
-	       for( j = 0; j < Count_Type; j++ ){
+	       
+	       for( j = 0; j <  Count_Type; j++ ){
 		    CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(Remote_t) );
-		    Substructure_Remote_Init( IPAddress, Port, Description,
+		    Substructure_Remote_Init( IPAddress, Port, Count_Type, &CNodes->Array[i], Description,
 					      (Remote_t *) CNodes->Sub[i + j].SimStruct );
 		    Print_Header( INFO );
 		    printf( "The substructure in the coupling node %d is computed is computed at %s:%s using %s.\n", CNodes->Array[i + j],
@@ -203,8 +204,34 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 	  }
 	  i = i + Count_Type;
      }
+
      /* Close the file */
      fclose( InFile );
+    
+     /* Sort the coupling nodes in ascending order */
+     Substructure_SortCouplingNodes( CNodes );
+}
+
+void Substructure_SortCouplingNodes( CouplingNode_t *const CNodes )
+{
+
+     int i, j, Tmp;
+     Substructure_t TmpSub;
+
+     for( i = 0; i < CNodes->Order; i++ ){
+	  for( j = 0; j < CNodes->Order - 1 ; j++ ){
+	       if( CNodes->Array[j] > CNodes->Array[j+1] ){
+		    Tmp = CNodes->Array[j+1];
+		    TmpSub = CNodes->Sub[j+1];
+
+		    CNodes->Array[j+1] = CNodes->Array[j];
+		    CNodes->Sub[j+1] = CNodes->Sub[j];
+
+		    CNodes->Array[j] = Tmp;
+		    CNodes->Sub[j] = TmpSub;
+	       }
+	  }
+     }
 }
 
 void Substructure_Identify( char *const Type, int *const Identity_Num )
