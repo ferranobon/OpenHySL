@@ -88,7 +88,7 @@ set(CMAKE_REQUIRED_LIBRARIES ${MATH_LIBS})
 Find_Package(HDF5)
 
 # Build the core library
-file(GLOB CORE_SRCS src/Common_Formulation.c src/Conf_Parser.c src/EffK_Formulation.c src/Err_PID.c src/Init_GainMatrix.c src/Rayleigh.c src/Input_Load.c src/MatrixVector.c src/MatrixVector_IOoperations.c src/Print_Messages.c src/Auxiliary_Math.c src/MatrixVector_PS.c src/MatrixVector_IOoperations_PS.c)
+file(GLOB CORE_SRCS src/Common_Formulation.c src/Conf_Parser.c src/EffK_Formulation.c src/Err_PID.c src/GainMatrix.c src/Rayleigh.c src/Input_Load.c src/MatrixVector.c src/MatrixVector_IOoperations.c src/Print_Messages.c src/Auxiliary_Math.c src/MatrixVector_PS.c src/MatrixVector_IOoperations_PS.c)
 
 set( MMPATH "Extern/MatrixMarket" )
 find_file( MMIOSRC mmio.c ${MMPATH})

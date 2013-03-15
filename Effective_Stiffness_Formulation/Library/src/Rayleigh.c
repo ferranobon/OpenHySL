@@ -62,7 +62,7 @@ void Rayleigh_Damping( const MatrixVector_t *const Mass, const MatrixVector_t *c
 }
 
 void Rayleigh_Damping_PS( const MatrixVector_t *const Mass, const MatrixVector_t *const Stiff, MatrixVector_t *const Damp,
-		       const Rayleigh_t *const Rayleigh )
+			  const Rayleigh_t *const Rayleigh )
 {
      int incx, incy;
      int Length;
