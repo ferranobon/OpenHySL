@@ -98,6 +98,6 @@ unsigned int MatrixVector_ReturnIndex_UPS( const unsigned int RowIndex, const un
  * \returns   Position (0-based index) where \f$a_{ij}\f$ is stored in the packed matrix
  *            \f$\mathcal A\f$.
  */
-unsigned int MatrixVector_ReturnIndex_LPS( const unsigned int RowIndex, const unsigned int ColIndex, const int n );
+unsigned int MatrixVector_ReturnIndex_LPS( const unsigned int RowIndex, const unsigned int ColIndex );
 
 #endif /* AUXILIARY_MATH_H_ */
