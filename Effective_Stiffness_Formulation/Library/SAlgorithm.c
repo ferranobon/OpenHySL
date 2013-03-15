@@ -11,6 +11,7 @@
 #include "Common_Formulation.h"
 #include "EffK_Formulation.h"
 #include "Error_Compensation.h"
+#include "Rayleigh.h"
 #include "Initiation.h"
 #include "Substructure.h"
 #include "Substructure_Auxiliary.h"  /* For Substructure_VectorXm(), Substructure_VectorXc(), ... */

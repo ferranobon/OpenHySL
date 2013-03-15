@@ -1,12 +1,10 @@
 #include <stdio.h>            /* For printf(), fprintf() */
 #include <stdlib.h>           /* For exit() */
 
-#include "Initiation.h"
-#include "Initiation_Sp.h"    /* Header files for the initiation phase */
-
 #include "MatrixVector.h"     /* MatrixVector definition */
 #include "MatrixVector_Sp.h"
 #include "Print_Messages.h"   /* For Print_Header() */
+#include "Rayleigh.h"         /* Rayleigh damping routines */
 
 #include <mkl_blas.h>
 #include <mkl_spblas.h>

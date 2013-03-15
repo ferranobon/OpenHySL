@@ -1,7 +1,7 @@
 #ifndef _ALGORITHM_AUX_H_
 #define _ALGORITHM_AUX_H_
 
-#include "Initiation.h"         /* For Rayleigh_t */
+#include "Rayleigh.h"           /* For Rayleigh_t */
 #include "Error_Compensation.h" /* For PID_t */
 #include "Conf_Parser.h"        /* For ConfFile_t */
 
