@@ -1,25 +1,10 @@
-/**
- * \file Init_Rayleigh.c
- * \author Ferran Obón Santacana
- * \version 1.0
- * \date 9th of February 2013
- * 
- * \todo Add support for packed storage to reduce memory use.
- *
- * \brief Rayleigh damping routines.
- *
- * Routines for calculating the proportional viscous damping matrix using Rayleigh Damping. The routines
- * make use of the BLAS library to perform the linear algebra operations and they support both single and
- * double precision. Sparse BLAS operations are supported through the Intel MKL library.
- */
 #include <stdio.h>          /* For printf(), fprintf() */
 #include <stdlib.h>         /* For exit() */
 
-#include "Initiation.h"     /* Header files for the initiation phase */
+#include "Auxiliary_Math.h" /* For Max() */
 #include "MatrixVector.h"   /* MatrixVector definition */
 #include "Print_Messages.h" /* For Print_Header() */
-
-#include "Auxiliary_Math.h" /* For Max() */
+#include "Rayleigh.h"       /* Rayleigh damping routines */
 
 #if _MKL_
 #include <mkl_blas.h>
