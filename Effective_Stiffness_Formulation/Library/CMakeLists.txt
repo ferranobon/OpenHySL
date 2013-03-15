@@ -143,7 +143,7 @@ else(NOT USE_MPI)
 endif()
 
 # Build Substructure Library
-file( GLOB SUBS_SRCS src/Substructure.c src/Substructure_Exact.c src/Substructure_UHYDEfbr.c src/Substructure_SimMeasured.c src/Substructure_Experimental.c src/Substructure_CouplingNodes.c src/Substructure_Auxiliary.c src/Substructure_Remote.c)
+file( GLOB SUBS_SRCS src/Substructure*c)
 add_library( substructure ${SUBS_SRCS})
 target_link_libraries( substructure -lm core )
 
