@@ -94,7 +94,6 @@ unsigned int MatrixVector_ReturnIndex_UPS( const unsigned int RowIndex, const un
  *
  * \param[in] RowIndex Row coordinate \em i.
  * \param[in] ColIndex Column coordinate \em j.
- * \param[in] n        Number of rows or columns of the matrix in packed storage.
  * \returns   Position (0-based index) where \f$a_{ij}\f$ is stored in the packed matrix
  *            \f$\mathcal A\f$.
  */
