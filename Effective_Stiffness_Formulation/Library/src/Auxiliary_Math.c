@@ -50,7 +50,7 @@ unsigned int MatrixVector_ReturnIndex_UPS( const unsigned int RowIndex, const un
      return Index;
 }
 
-unsigned int MatrixVector_ReturnIndex_LPS( const unsigned int RowIndex, const unsigned int ColIndex, const int n )
+unsigned int MatrixVector_ReturnIndex_LPS( const unsigned int RowIndex, const unsigned int ColIndex )
 {
      unsigned int Index;
 

@@ -6,12 +6,11 @@
  *
  * \brief Routines to compute the gain matrix.
  *
- * Routines for calculating the gain matrix. The routines make use of the BLAS and LAPACK
- * libraries to perform the linear algebra operations, including the matrix inversion in
- * single and double precision. Sparse BLAS operations are supported through the Intel MKL
- * library, but since matrix inversion is a dense operations they still rely on LAPACK for
- * this operation. The PARDISO solver is no longer supported since it requires more memory
- * and time than the LAPACK equivalent routines.
+ * Routines for calculating the gain matrix. The routines make use of the BLAS and LAPACK libraries to perform
+ * the linear algebra operations, including the matrix inversion in single and double precision. Sparse BLAS
+ * operations are supported through the Intel MKL library, but since matrix inversion is a dense operations
+ * they still rely on LAPACK for this operation. The PARDISO solver is no longer supported since it requires
+ * more memory and time than the LAPACK equivalent routines.
  */
 #include <stdio.h>          /* For printf(), fprintf() */
 #include <stdlib.h>         /* For exit() */
@@ -43,8 +42,8 @@ void IGainMatrix( MatrixVector_t *const IGain, const MatrixVector_t *const Mass,
      double one = 1.0; /* Double precision one for dlascl() parameter cfrom */
      double Scalar;    /* Double precision scalar */
 
-     uplo = 'L';       /* The lower part of the matrix will be used and the upper part
-			* will strictly not be referenced */
+     uplo = 'L';       /* The lower part of the matrix will be used and the upper part will strictly not be
+			* referenced */
      lda = Max( 1, IGain->Rows );
 
      /* IGain = Const.Alpha*M + Const.Beta*C + Const.Gamma*K */
@@ -67,8 +66,8 @@ void IGainMatrix( MatrixVector_t *const IGain, const MatrixVector_t *const Mass,
 	  exit( EXIT_FAILURE );
      }
 
-     /* LAPACK: Compute the inverse of the IGain matrix using the Cholesky factorization
-      * computed by dpotrf_( ) */
+     /* LAPACK: Compute the inverse of the IGain matrix using the Cholesky factorization computed by
+      * dpotrf() */
      dpotri_( &uplo, &IGain->Rows, IGain->Array, &lda, &info );
 
      if ( info == 0 ){
@@ -110,8 +109,8 @@ void IGainMatrix_PS( MatrixVector_t *const IGain, const MatrixVector_t *const Ma
      int incx, Length;
 
      incx = 1;
-     uplo = 'L';       /* The lower part of the matrix will be used and the upper part
-			* will strictly not be referenced */
+     uplo = 'L';       /* The lower part of the matrix will be used and the upper part will strictly not be
+			* referenced */
 
      /* IGain = Const.Alpha*M + Const.Beta*C + Const.Gamma*K */
      MatrixVector_Add3Mat_PS( Mass, Damp, Stiff, Const, IGain );
@@ -133,8 +132,8 @@ void IGainMatrix_PS( MatrixVector_t *const IGain, const MatrixVector_t *const Ma
 	  exit( EXIT_FAILURE );
      }
 
-     /* LAPACK: Compute the inverse of the IGain matrix using the Cholesky factorization
-      * computed by dpptrf_( ) */
+     /* LAPACK: Compute the inverse of the IGain matrix using the Cholesky factorization computed by
+      *	dpptrf() */
      dpptri_( &uplo, &IGain->Rows, IGain->Array, &info );
 
      if ( info == 0 ){
