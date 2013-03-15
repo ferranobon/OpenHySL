@@ -1,24 +1,10 @@
-/**
- * \file Init_GainMatrix.c
- * \author Ferran Obón Santacana
- * \version 1.0 PARDISO solver for matrix inversion is deprecated.
- * \date 9th of February 2013
- *
- * \brief Routines to compute the gain matrix.
- *
- * Routines for calculating the gain matrix. The routines make use of the BLAS and LAPACK libraries to perform
- * the linear algebra operations, including the matrix inversion in single and double precision. Sparse BLAS
- * operations are supported through the Intel MKL library, but since matrix inversion is a dense operations
- * they still rely on LAPACK for this operation. The PARDISO solver is no longer supported since it requires
- * more memory and time than the LAPACK equivalent routines.
- */
 #include <stdio.h>          /* For printf(), fprintf() */
 #include <stdlib.h>         /* For exit() */
 
-#include "Print_Messages.h" /* For Print_Header() */
-#include "Initiation.h"
+#include "GainMatrix.h"
 #include "MatrixVector.h"
 #include "MatrixVector_PS.h"
+#include "Print_Messages.h"  /* For Print_Header() */
 
 #include "Auxiliary_Math.h"
 

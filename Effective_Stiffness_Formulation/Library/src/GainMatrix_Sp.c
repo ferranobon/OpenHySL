@@ -1,14 +1,10 @@
 #include <stdio.h>          /* For printf(), fprintf() */
 #include <stdlib.h>         /* For exit() */
 
+#include "Auxiliary_Math.h"
+#include "GainMatrix.h"
 #include "MatrixVector.h"
 #include "MatrixVector_Sp.h"
-
-#include "Initiation.h"
-#include "Initiation_Sp.h"
-
-#include "Auxiliary_Math.h"
-
 #include "Print_Messages.h"
 
 #include <mkl_blas.h>
@@ -20,19 +16,19 @@ void IGainMatrix_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const
 {
 
      char uplo;
-     int lda, info;              /* Leading dimension of the gain matrix, LAPACK error handling variable */
+     int lda, info;                /* Leading dimension of the gain matrix, LAPACK error handling variable */
      MatrixVector_Sp_t Sp_TempMat; /* Temporal sparse matrix */
 
-     int ione = 1;     /* Integer of value one */
-     double one = 1.0; /* Double precision one for dlascl() parameter cfrom */
-     double Scalar;    /* Double precision scalar */
+     int ione = 1;                 /* Integer of value one */
+     double one = 1.0;             /* Double precision one for dlascl() parameter cfrom */
+     double Scalar;                /* Double precision scalar */
 
      MatrixVector_Create_Sp( Damp->Rows, Damp->Cols, Damp->Num_Nonzero, &Sp_TempMat );
      /* Gain = Const.Alpha*M + Const.Beta*C + Const.Gamma*K */
      MatrixVector_Add3Mat_Sp( Mass, Damp, Stiff, Const, &Sp_TempMat );
 
-     /* Sparse to dense conversion. The Gain matrix will be symmetrical and only the upper part (lower part
-      * in FORTRAN) will be referenced.
+     /* Sparse to dense conversion. The Gain matrix will be symmetrical and only the upper part (lower part in
+      * FORTRAN) will be referenced.
       */
      MatrixVector_CSR2Dense( &Sp_TempMat, 0, IGain );
      MatrixVector_Destroy_Sp( &Sp_TempMat );
@@ -59,8 +55,8 @@ void IGainMatrix_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const
 	  exit( EXIT_FAILURE );
      }
 
-     /* LAPACK: Compute the inverse of the Gain matrix using the Cholesky factorization computed
-      * by dpotrf_( ) */
+     /* LAPACK: Compute the inverse of the Gain matrix using the Cholesky factorization computed by
+      * dpotrf_() */
      dpotri_( &uplo, &IGain->Rows, IGain->Array, &lda, &info );
 
      if ( info == 0 ){
@@ -104,14 +100,13 @@ void IGainMatrix_Sp_PS( MatrixVector_t *const IGain, const MatrixVector_Sp_t *co
      /* Gain = Const.Alpha*M + Const.Beta*C + Const.Gamma*K */
      MatrixVector_Add3Mat_Sp( Mass, Damp, Stiff, Const, &Sp_TempMat );
 
-     /* Sparse to dense conversion. The Gain matrix will be symmetrical and only the upper
-      * part (lower part in FORTRAN) will be referenced.
-      */
+     /* Sparse to dense conversion. The Gain matrix will be symmetrical and only the upper part (lower part in
+      * FORTRAN) will be referenced. */
      MatrixVector_CSR2Packed( &Sp_TempMat, IGain );
      MatrixVector_Destroy_Sp( &Sp_TempMat );
 
-     uplo = 'L';  /* The lower part of the matrix will be used and the upper part will
-		   * strictly not be referenced */
+     uplo = 'L';  /* The lower part of the matrix will be used and the upper part will strictly not be
+		   * referenced */
 
      /* LAPACK: Compute the Cholesky factorization */
      dpptrf_( &uplo, &IGain->Rows, IGain->Array, &info );
@@ -131,8 +126,8 @@ void IGainMatrix_Sp_PS( MatrixVector_t *const IGain, const MatrixVector_Sp_t *co
 	  exit( EXIT_FAILURE );
      }
 
-     /* LAPACK: Compute the inverse of the Gain matrix using the Cholesky factorization
-      * computed by dpptrf_( ) */
+     /* LAPACK: Compute the inverse of the Gain matrix using the Cholesky factorization computed by
+      * dpptrf_() */
      dpptri_( &uplo, &IGain->Rows, IGain->Array, &info );
 
      if ( info == 0 ){
@@ -166,7 +161,7 @@ void IGainMatrix_Pardiso( MatrixVector_t *const IGain, const MatrixVector_t *con
      int iparm[64];
      void *pt[64];
      int maxfct, mnum, msglvl, error;
-     int mtype = 2;                   /* Real symmetric matrix */
+     int mtype = 2;                     /* Real symmetric matrix */
      int phase;
      MatrixVector_t IdentMatrix;
      MatrixVector_t TempMat;
@@ -175,14 +170,14 @@ void IGainMatrix_Pardiso( MatrixVector_t *const IGain, const MatrixVector_t *con
      int idum;                          /* Dummy integer */
      char uplo;                         /* Used in dlascl() */
      int info, lda;                     /* Error handling and Leading dimension for dlascl() */
-     double Scalar;    /* Double precision scalar */
+     double Scalar;                     /* Double precision scalar */
 
      MatrixVector_Create( IGain->Rows, IGain->Cols, &TempMat );
 
      MatrixVector_Add3Mat( Mass, Damp, Stiff, Const, &TempMat );
 
      MatrixVector_Dense2CSR( &TempMat, 0, &Sp_TempMat );   /* Transform into CSR format */
-     MatrixVector_Destroy( &TempMat );           /* Destroy the dense matrix */
+     MatrixVector_Destroy( &TempMat );                     /* Destroy the dense matrix */
 
      /* Setup the Pardiso control parameters */
      for (i = 0; i < 64; i++){
@@ -197,8 +192,8 @@ void IGainMatrix_Pardiso( MatrixVector_t *const IGain, const MatrixVector_t *con
      iparm[9] = 13;	/* Perturb the pivot elements with 1E-13 */
      iparm[10] = 1;	/* Use nonsymmetric permutation and scaling MPS */
      iparm[11] = 2;
-     iparm[12] = 1;	/* Maximum weighted matching algorithm is switched-off (default for symmetric).
-			 * Try iparm[12] = 1 in case of inappropriate accuracy */
+     iparm[12] = 1;	/* Maximum weighted matching algorithm is switched-off (default for symmetric).  Try
+			 * iparm[12] = 1 in case of inappropriate accuracy */
      iparm[13] = 0;	/* Output: Number of perturbed pivots */
      iparm[17] = -1;	/* Output: Number of nonzeros in the factor LU */
      iparm[18] = -1;	/* Output: Mflops for LU factorization */
@@ -308,7 +303,7 @@ void IGainMatrix_Pardiso_Sp( MatrixVector_t *const IIGain, const MatrixVector_Sp
      int iparm[64];
      void *pt[64];
      int maxfct, mnum, msglvl, error;
-     int mtype = 2;                   /* Real symmetric matrix */
+     int mtype = 2;                     /* Real symmetric matrix */
      int phase;
      MatrixVector_t IdentMatrix;
      MatrixVector_Sp_t Sp_TempMat;
@@ -316,7 +311,7 @@ void IGainMatrix_Pardiso_Sp( MatrixVector_t *const IIGain, const MatrixVector_Sp
      int idum;                          /* Dummy integer */
      char uplo;                         /* Used in dlascl() */
      int info, lda;                     /* Error handling and Leading dimension for dlascl() */
-     double Scalar;    /* Double precision scalar */
+     double Scalar;                     /* Double precision scalar */
 
      MatrixVector_Create_Sp( Damp->Rows, Damp->Cols, Damp->Num_Nonzero, &Sp_TempMat );
 
@@ -335,8 +330,8 @@ void IGainMatrix_Pardiso_Sp( MatrixVector_t *const IIGain, const MatrixVector_Sp
      iparm[9] = 13;	/* Perturb the pivot elements with 1E-13 */
      iparm[10] = 1;	/* Use nonsymmetric permutation and scaling MPS */
      iparm[11] = 2;
-     iparm[12] = 1;	/* Maximum weighted matching algorithm is switched-off (default for symmetric).
-			 *  Try iparm[12] = 1 in case of inappropriate accuracy */
+     iparm[12] = 1;	/* Maximum weighted matching algorithm is switched-off (default for symmetric).  Try
+			 *  iparm[12] = 1 in case of inappropriate accuracy */
      iparm[13] = 0;	/* Output: Number of perturbed pivots */
      iparm[17] = -1;	/* Output: Number of nonzeros in the factor LU */
      iparm[18] = -1;	/* Output: Mflops for LU factorization */

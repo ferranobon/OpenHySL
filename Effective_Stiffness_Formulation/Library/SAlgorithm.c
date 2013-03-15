@@ -12,7 +12,7 @@
 #include "EffK_Formulation.h"
 #include "Error_Compensation.h"
 #include "Rayleigh.h"
-#include "Initiation.h"
+#include "GainMatrix.h"
 #include "Substructure.h"
 #include "Substructure_Auxiliary.h"  /* For Substructure_VectorXm(), Substructure_VectorXc(), ... */
 
@@ -23,7 +23,6 @@
 #include "Common_Formulation_Sp.h"
 #include "EffK_Formulation_Sp.h"
 #include "Error_Compensation_Sp.h"
-#include "Initiation_Sp.h"
 #include <mkl_blas.h>
 #else
 #include "Netlib.h"
