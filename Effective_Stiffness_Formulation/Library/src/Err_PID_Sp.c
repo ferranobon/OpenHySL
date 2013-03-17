@@ -1,5 +1,4 @@
 #include "Error_Compensation.h"
-#include "Error_Compensation_Sp.h"
 
 #include "MatrixVector.h"
 #include "MatrixVector_Sp.h"
@@ -16,9 +15,9 @@ void ErrorForce_PID_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVector_
      double Alpha, Beta;        /* Constants to use in the Sparse BLAS routines */
      char trans = 'N';          /* No transpose operation */
      char matdescra[6] = {'S',  /* The matrix is symmetric */
-				 'U',  /* The upper part is referenced */
-				 'N',  /* Non-unit values in the diagonal */
-				 'F'}; /* One based index */
+			  'U',  /* The upper part is referenced */
+			  'N',  /* Non-unit values in the diagonal */
+			  'F'}; /* One based index */
 
      /* BLAS: fe = fc */
      dcopy( &fe->Rows, fc->Array, &incx, fe->Array, &incy );
