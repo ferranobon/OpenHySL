@@ -1,4 +1,4 @@
-#include "Common_Formulation.h"
+#include "Input_Load.h"
 #include "MatrixVector.h"
 
 #if _MKL_
@@ -18,8 +18,8 @@ void InputLoad_AbsValues( const MatrixVector_t *const Stiff, const MatrixVector_
 
      incx = 1; incy = 1;
      Alpha = 1.0; Beta = 0.0;
-     uplo = 'L';                  /* The lower part (FORTRAN) of the symmetric matrix is
-				   * referenced (upper part in C) */
+     uplo = 'L';                  /* The lower part (FORTRAN) of the symmetric matrix is referenced (upper
+				   * part in C) */
 
 
      /* BLAS: li = K*ug */
@@ -43,8 +43,8 @@ void InputLoad_AbsValues_PS( const MatrixVector_t *const Stiff, const MatrixVect
 
      incx = 1; incy = 1;
      Alpha = 1.0; Beta = 0.0;
-     uplo = 'L';                  /* The lower part (FORTRAN) of the symmetric matrix is
-				   * referenced (upper part in C) */
+     uplo = 'L';                  /* The lower part (FORTRAN) of the symmetric matrix is referenced (upper
+				   * part in C) */
 
 
      /* BLAS: li = K*ug */
@@ -63,9 +63,8 @@ void InputLoad_RelValues( const MatrixVector_t *const Mass, const MatrixVector_t
 
      int incx = 1, incy = 1;           /* Stride in the vectors for BLAS library */
      double Alpha = -1.0, Beta = 0.0;  /* Constants to use in the BLAS library */
-     char uplo = 'L';                  /* Character defining that the lower part (FORTRAN)
-					* of the symmetric matrix is referenced (upper
-					* part in C) */
+     char uplo = 'L';                  /* Character defining that the lower part (FORTRAN) of the symmetric
+					* matrix is referenced (upper part in C) */
 
      /* BLAS: li = -M*ag */
      dsymv( &uplo, &InLoad->Rows, &Alpha, Mass->Array, &InLoad->Rows, GAcc->Array, &incx, &Beta,
@@ -78,9 +77,8 @@ void InputLoad_RelValues_PS( const MatrixVector_t *const Mass, const MatrixVecto
 
      int incx = 1, incy = 1;           /* Stride in the vectors for BLAS library */
      double Alpha = -1.0, Beta = 0.0;  /* Constants to use in the BLAS library */
-     char uplo = 'L';                  /* Character defining that the lower part (FORTRAN)
-					* of the symmetric matrix is referenced (upper
-					* part in C) */
+     char uplo = 'L';                  /* Character defining that the lower part (FORTRAN) of the symmetric
+					* matrix is referenced (upper part in C) */
 
      /* BLAS: li = -M*ag */
      dspmv( &uplo, &InLoad->Rows, &Alpha, Mass->Array, GAcc->Array, &incx, &Beta,

@@ -1,4 +1,4 @@
-#include "EffK_Formulation_Sp.h"
+#include "EffK_Formulation.h"
 #include "MatrixVector_Sp.h"
 
 #if _MKL_

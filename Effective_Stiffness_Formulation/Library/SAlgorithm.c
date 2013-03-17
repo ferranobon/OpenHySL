@@ -8,7 +8,8 @@
 #include "Algorithm_Aux.h"
 
 #include "MatrixVector.h"
-#include "Common_Formulation.h"
+#include "Input_Load.h"
+#include "New_State.h"
 #include "EffK_Formulation.h"
 #include "Error_Compensation.h"
 #include "Rayleigh.h"
@@ -20,9 +21,6 @@
 
 #if _SPARSE_
 #include "MatrixVector_Sp.h"
-#include "Common_Formulation_Sp.h"
-#include "EffK_Formulation_Sp.h"
-#include "Error_Compensation_Sp.h"
 #include <mkl_blas.h>
 #else
 #include "Netlib.h"
