@@ -22,12 +22,13 @@ set(CMAKE_BUILD_TYPE "${CMAKE_BUILD_TYPE}" CACHE STRING
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 option(PROFILING      "Enable profiling using gprof"            OFF)
-option(USE_THREADS    "Use thread implementation when possible" OFF)
-option(USE_MKL        "Use Intel MKL libraries"                 OFF)
 option(USE_ATLAS      "Use ATLAS implementation"                OFF)
 option(USE_GOTOBLAS   "Use GOTOBLAS implementation"             OFF)
+option(USE_MKL        "Use Intel MKL libraries"                 OFF)
 option(USE_MPI        "Build the parallel implementation"       OFF)
+option(USE_OPENMP     "Use OpenMP to speed-up for loops"        OFF)
 option(USE_SPARSE     "Build with sparse matrix support"        OFF)
+option(USE_THREADS    "Use thread implementation when possible" OFF)
 option(BUILD_REALTIME "Build also realtime application"         OFF)
 option(WITH_ADWIN     "Build with ADwin support"                OFF)
 option(WITH_MM        "Build with MatrixMarket suppoert"        OFF)
@@ -86,6 +87,14 @@ set(CMAKE_REQUIRED_LIBRARIES ${MATH_LIBS})
 
 # Check for HDF5
 Find_Package(HDF5)
+if (HDF5_FOUND)
+  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${HDF5_C_FLAGS}")
+endif()
+
+if( USE_OPENMP )
+Find_Package(OpenMP)
+  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+endif()
 
 # Build the core library
 file(GLOB CORE_SRCS src/New_State.c src/Conf_Parser.c src/EffK_Formulation.c src/Err_PID.c src/GainMatrix.c src/Rayleigh.c src/Input_Load.c src/MatrixVector.c src/MatrixVector_IOoperations.c src/Print_Messages.c src/Auxiliary_Math.c src/MatrixVector_PS.c src/MatrixVector_IOoperations_PS.c)
@@ -138,17 +147,17 @@ else(NOT USE_MPI)
     add_definitions(-D_SPARSE_)
     file( GLOB SPARSE_SRCS src/*_Sp.c )
     add_library( core_sp ${SPARSE_SRCS})
-    target_link_libraries(core_sp ${MATH_LIBS} -lm core )
+    target_link_libraries(core_sp ${MATH_LIBS} -lm core)
   endif()
 endif()
 
 # Build Substructure Library
 file( GLOB SUBS_SRCS src/Substructure*c)
 add_library( substructure ${SUBS_SRCS})
-target_link_libraries( substructure -lm core )
+target_link_libraries( substructure -lm core)
 
 add_executable( SAlgorithm SAlgorithm.c src/Algorithm_Aux.c src/HDF5_Operations.c)# ${CORE_SRCS} ${SPARSE_SRCS} ${SUBS_SRCS})
-target_link_libraries(SAlgorithm core core_sp substructure -lhdf5 -lhdf5_hl)
+target_link_libraries(SAlgorithm core core_sp substructure hdf5 hdf5_hl)
 # Rules to build the programs related to the substructure. Each program will
 # be compliant with one of the different protocols: Custom, NSEP and OpenFresco
 
