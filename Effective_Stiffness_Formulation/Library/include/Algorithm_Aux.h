@@ -8,7 +8,8 @@
  *
  * This file includes routines that depend and vary with the implementation or purpose of the algorithm, like
  * reading earthquake records, configuration files, command line options, etc. Since these routines are
- * implementation dependant, they are not included in the main libraries and should be added to the compile line.
+ * implementation dependant, they are not included in the main libraries and should be added to the compile
+ * line.
  */
 #ifndef _ALGORITHM_AUX_H_
 #define _ALGORITHM_AUX_H_
@@ -29,6 +30,14 @@ typedef struct TIntegration{
 } TIntegration_t;
 
 /**
+ * \brief Structure to handle grid and block sizes in the MPI version of the Library.
+ */
+typedef struct MPIInfo {
+     int Rows;     /*!< \brief Number of rows.*/
+     int Cols;     /*!< \brief Number of columns.*/
+} MPIInfo_t;
+
+/**
  * \brief Structure to wrap constants and filenames.
  *
  * This structure stores several constants that will be used in different parts of the substructure algorithm,
@@ -39,6 +48,11 @@ typedef struct TIntegration{
  */
 typedef struct AlgConst{
 
+     MPIInfo_t ProcessGrid;   /*!< \brief Stores information regarding the process grid that will be used by
+			       * BLACS/ScaLAPACK/PBLAS routines. Only referenced if MPI is used.*/
+     MPIInfo_t BlockSize;     /*!< \brief Sizes of the blocks that will be used in order to distribute a
+			       * matrix or a vector across the diferent processes within a grid. Only
+			       * referenced if MPI is used.*/
      int Order;               /*!< \brief Order of the matrices */
      int OrderSub;            /*!< \brief Number of substructures */
 
@@ -128,6 +142,19 @@ typedef struct AlgConst{
  * \sa AlgoConst_t, PID_t, Rayleigh_t and TIntegration_t.
  */
 void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst );
+
+/**
+ * \brief Broadcasts the AlgConst_t struct to the rest of the MPI processes.
+ *
+ * \warning This routine requires MPI.
+ *
+ * \pre InitConst must be properly initialised through Algorithm_Init() in MPI process 0.
+ *
+ * \param[in] InitConst Struct to be broadcasted.
+ *
+ * \sa AlgConst_t.
+ */
+void Algorithm_BroadcastConfFile( const AlgConst_t *const InitConst );
 
 /**
  * \brief Frees the memory allocated during the Algorithm_Init() routine.

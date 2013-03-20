@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "Auxiliary_Math.h" /* For Max() */
 #include "MatrixVector.h"
 #include "Print_Messages.h" /* For Print_Header() */
 

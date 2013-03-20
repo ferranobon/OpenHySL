@@ -71,5 +71,7 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 void Substructure_SimMeasuredValues( const char *FileName, const double *const IGain, const double *const VecTdT0_c, double *const VecTdT_c, double *const fcprev, double *const fc, const unsigned int OrderC, const unsigned int NSub );
 
 
+void Substructure_BroadCastCouplingNodes( CouplingNode_t *const CNodes );
+
 #endif /* SUBSTRUCTURE_COUPLINGNODES_H_ */
 

@@ -161,6 +161,9 @@ target_link_libraries(SAlgorithm core core_sp substructure hdf5 hdf5_hl)
 # Rules to build the programs related to the substructure. Each program will
 # be compliant with one of the different protocols: Custom, NSEP and OpenFresco
 
+file( GLOB MPI_SRCS src/*MPI.c )
+add_library( core_mpi ${MPI_SRCS} )
+target_link_libraries( core_mpi ${MATH_LIBS} -lm core)
 
 Find_Package(Doxygen)
 if (DOXYGEN_FOUND)

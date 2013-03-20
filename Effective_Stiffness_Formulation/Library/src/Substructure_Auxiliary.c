@@ -12,8 +12,8 @@
 #endif
 
 void Substructure_JoinNonCouplingPart( MatrixVector_t *const VecTdT_m, const MatrixVector_t *const Gain_m,
-			   const MatrixVector_t *const fcprevsub, const CouplingNode_t *const CNodes,
-			   MatrixVector_t *const VecTdT )			  
+				       const MatrixVector_t *const fcprevsub,
+				       const CouplingNode_t *const CNodes, MatrixVector_t *const VecTdT )			  
 {
      int icoup;                 /* Counter for the coupling nodes */
      int incx, incy;            /* Stride in the vectors */
@@ -44,13 +44,14 @@ void Substructure_JoinNonCouplingPart( MatrixVector_t *const VecTdT_m, const Mat
 	  PosXm = PosXm + Length;
      }
 
-     /* Add the elements between the final coupling node and the final element of the
-      * complete displacement vector */
+     /* Add the elements between the final coupling node and the final element of the complete displacement
+      * vector */
      Length = VecTdT->Rows - CNodes->Array[CNodes->Order -1];
      dcopy( &Length, &VecTdT_m->Array[PosXm], &incx, &VecTdT->Array[PosX], &incy );	
 }
 
-void Substructure_MatrixXc( const MatrixVector_t *const Mat, const CouplingNode_t *const CNodes, MatrixVector_t *const MatCouple )
+void Substructure_MatrixXc( const MatrixVector_t *const Mat, const CouplingNode_t *const CNodes,
+			    MatrixVector_t *const MatCouple )
 {
 
      int icoup;    /* Counter for the coupling nodes */
@@ -61,9 +62,8 @@ void Substructure_MatrixXc( const MatrixVector_t *const Mat, const CouplingNode_
 	  for (jcoup = icoup; jcoup < CNodes->Order; jcoup++){
 	       
 	       MatCouple->Array[icoup*CNodes->Order + jcoup] = Mat->Array[(CNodes->Array[icoup]-1)*Mat->Cols + CNodes->Array[jcoup] - 1];
-	       /* Now add the elements belonging to the same row as the current coupling
-		* node but also belonging to the same column as the rest of the coupling
-		* nodes */
+	       /* Now add the elements belonging to the same row as the current coupling node but also
+		* belonging to the same column as the rest of the coupling nodes */
 	       if( icoup != jcoup ){
 		    MatCouple->Array[jcoup*CNodes->Order + icoup] = MatCouple->Array[icoup*CNodes->Order + jcoup];
 	       }
@@ -71,7 +71,8 @@ void Substructure_MatrixXc( const MatrixVector_t *const Mat, const CouplingNode_
      }
 }
 
-void Substructure_MatrixXc_PS( const MatrixVector_t *const Mat, const CouplingNode_t *const CNodes, MatrixVector_t *const MatCouple )
+void Substructure_MatrixXc_PS( const MatrixVector_t *const Mat, const CouplingNode_t *const CNodes,
+			       MatrixVector_t *const MatCouple )
 {
 
      int icoup;       /* Counter for the coupling nodes */
@@ -82,12 +83,12 @@ void Substructure_MatrixXc_PS( const MatrixVector_t *const Mat, const CouplingNo
      for( icoup = 0; icoup < CNodes->Order; icoup++ ){
 
 	  for (jcoup = icoup; jcoup < CNodes->Order; jcoup++){
-	       Index_PS = MatrixVector_ReturnIndex_UPS( (unsigned int) CNodes->Array[icoup], (unsigned int) CNodes->Array[jcoup], Mat->Rows );
+	       Index_PS = MatrixVector_ReturnIndex_UPS( (unsigned int) CNodes->Array[icoup],
+							(unsigned int) CNodes->Array[jcoup], Mat->Rows );
 
 	       MatCouple->Array[icoup*CNodes->Order + jcoup] = Mat->Array[Index_PS];
-	       /* Now add the elements belonging to the same row as the current coupling
-		* node but also belonging to the same column as the rest of the coupling
-		* nodes */
+	       /* Now add the elements belonging to the same row as the current coupling node but also
+		* belonging to the same column as the rest of the coupling nodes */
 	       if( icoup != jcoup ){
 		    MatCouple->Array[jcoup*CNodes->Order + icoup] = Mat->Array[Index_PS];
 	       }
@@ -95,7 +96,8 @@ void Substructure_MatrixXc_PS( const MatrixVector_t *const Mat, const CouplingNo
      }
 }
 
-void Substructure_MatrixXcm( const MatrixVector_t *const Mat, const CouplingNode_t *const CNodes, MatrixVector_t *const MatXcm )
+void Substructure_MatrixXcm( const MatrixVector_t *const Mat, const CouplingNode_t *const CNodes,
+			     MatrixVector_t *const MatXcm )
 {
 
      int Length;
@@ -105,13 +107,12 @@ void Substructure_MatrixXcm( const MatrixVector_t *const Mat, const CouplingNode
      int PosXcm, Acumulated_Length;
 
      incx = Mat->Rows;
-     incy = 1;          /* The values in the Xm matrix are stored in columns. Therefore
-			 * the stride has to be 1 because of the way FORTRAN handles
-			 * arrays (major column ordering) */
+     incy = 1;          /* The values in the Xm matrix are stored in columns. Therefore the stride has to be 1
+			 * because of the way FORTRAN handles arrays (major column ordering) */
 
-     /* Since the matrix is symmetric and only a part of it is stored, this routine has to
-      * be splitted into two parts. The first will copy the elements above the coupling
-      * node, while the second will focus on the other part */
+     /* Since the matrix is symmetric and only a part of it is stored, this routine has to be splitted into
+      * two parts. The first will copy the elements above the coupling node, while the second will focus on
+      * the other part */
 
      /* Copy until the first coupling node */
      PosXcm = 0;
@@ -130,7 +131,8 @@ void Substructure_MatrixXcm( const MatrixVector_t *const Mat, const CouplingNode
 	 
 	       PosXcm = jcoup*MatXcm->Rows + Acumulated_Length;
 	       
-	       dcopy( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1) + (CNodes->Array[icoup-1])*Mat->Rows], &incx, &MatXcm->Array[PosXcm], &incy );
+	       dcopy( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1) + (CNodes->Array[icoup-1])*Mat->Rows],
+		      &incx, &MatXcm->Array[PosXcm], &incy );
 	  }
 	  Acumulated_Length = Acumulated_Length + Length;
      }
@@ -140,7 +142,8 @@ void Substructure_MatrixXcm( const MatrixVector_t *const Mat, const CouplingNode
      Length = Mat->Rows - CNodes->Array[CNodes->Order -1];
      for ( jcoup = CNodes->Order - 1; jcoup >= 0; jcoup = jcoup - 1 ){
 	  PosXcm = MatXcm->Rows*(jcoup+1) - Length;
-	  dcopy( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1)*Mat->Rows + (CNodes->Array[CNodes->Order-1])], &incx, &MatXcm->Array[PosXcm], &incy );
+	  dcopy( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1)*Mat->Rows + (CNodes->Array[CNodes->Order-1])],
+		 &incx, &MatXcm->Array[PosXcm], &incy );
      }
      Acumulated_Length = Length;
      incx = 1;
@@ -148,23 +151,24 @@ void Substructure_MatrixXcm( const MatrixVector_t *const Mat, const CouplingNode
 	  Length = CNodes->Array[icoup + 1] - CNodes->Array[icoup] - 1;
 	  for( jcoup = icoup; jcoup >= 0; jcoup = jcoup - 1){
 	       PosXcm = (jcoup+1)*MatXcm->Rows - Acumulated_Length - Length;
-	       dcopy( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1)*Mat->Rows + (CNodes->Array[icoup])], &incx, &MatXcm->Array[PosXcm], &incy );
+	       dcopy( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1)*Mat->Rows + (CNodes->Array[icoup])],
+		      &incx, &MatXcm->Array[PosXcm], &incy );
 	  }
 	  Acumulated_Length = Acumulated_Length + Length;
      }
 }
 
-void Substructure_MatrixXcm_PS( const MatrixVector_t *const Mat, const CouplingNode_t *const CNodes, MatrixVector_t *const MatXcm )
+void Substructure_MatrixXcm_PS( const MatrixVector_t *const Mat, const CouplingNode_t *const CNodes,
+				MatrixVector_t *const MatXcm )
 {
      int icoup, jcoup, kcoup;  /* Counters for the coupling nodes */
      int IndexXcm;             /* Index of the Xcm matrix */
-     unsigned int RowIndex, ColIndex;   /* Row and column indixes for the full matrix in packedwwwma
-				* storage */
+     unsigned int RowIndex, ColIndex;   /* Row and column indixes for the full matrix in packed storage */
      unsigned int Index;       /* Index of the matrix in packed storage: Mat */
 
-     /* Since the matrix is symmetric and only a part of it is stored, this routine has to
-      * be splitted into two parts. The first will copy the elements above the coupling
-      * node, while the second will focus on the other part */
+     /* Since the matrix is symmetric and only a part of it is stored, this routine has to be splitted into
+      * two parts. The first will copy the elements above the coupling node, while the second will focus on
+      * the other part */
 
 
      IndexXcm = 0;
@@ -186,13 +190,14 @@ void Substructure_MatrixXcm_PS( const MatrixVector_t *const Mat, const CouplingN
      }
 }
 
-void Substructure_VectorXm( const MatrixVector_t *const VectorX, const CouplingNode_t *const CNodes, MatrixVector_t *const VectorXm )
+void Substructure_VectorXm( const MatrixVector_t *const VectorX, const CouplingNode_t *const CNodes,
+			    MatrixVector_t *const VectorXm )
 {
 
-	static int incx, incy;
-	static int Length;
-	static int PosX, PosXm;
-	static int icoup;    /* Counter for the coupling nodes */
+	int incx, incy;
+	int Length;
+	int PosX, PosXm;
+	int icoup;    /* Counter for the coupling nodes */
 
 	incx = 1; incy = 1;
 	PosX = 0; PosXm = 0;
@@ -211,9 +216,10 @@ void Substructure_VectorXm( const MatrixVector_t *const VectorX, const CouplingN
 	dcopy( &Length, &VectorX->Array[PosX], &incx, &VectorXm->Array[PosXm], &incy );
 }
 
-void Substructure_VectorXc( const MatrixVector_t *const VecX, const CouplingNode_t *const CNodes, MatrixVector_t *const VecXc )
+void Substructure_VectorXc( const MatrixVector_t *const VecX, const CouplingNode_t *const CNodes,
+			    MatrixVector_t *const VecXc )
 {
-     static int icoup;    /* Counter for the coupling nodes */
+     int icoup;    /* Counter for the coupling nodes */
 
 #pragma omp parallel for
      for( icoup = 0; icoup < CNodes->Order; icoup++ ){

@@ -6,7 +6,6 @@
 #include "Conf_Parser.h"
 #include "Print_Messages.h"
 
-
 void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
 {
 
@@ -17,7 +16,7 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
      ConfFile_ReadFile( FileName, Config );
 
      /* Use Relative or absolute values */
-     (*InitConst).Use_Absolute_Values = ConfFile_GetInt( Config, "General:Use_Absolute_Values" );
+     InitConst->Use_Absolute_Values = ConfFile_GetInt( Config, "General:Use_Absolute_Values" );
      if ( InitConst->Use_Absolute_Values != 0 && InitConst->Use_Absolute_Values != 1 ){
 	  Print_Header( ERROR );
 	  fprintf( stderr, "Invalid option for Use_Absolute_Values.\n" );
@@ -49,7 +48,7 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
      }
 
      /* Order of the matrices */
-     (*InitConst).Order = ConfFile_GetInt( Config, "General:Order" );
+     InitConst->Order = ConfFile_GetInt( Config, "General:Order" );
      if ( InitConst->Order <= 0 ){
 	  Print_Header( ERROR );
 	  fprintf( stderr, "Invalid option for the order of the matrices.\n" );
@@ -63,14 +62,14 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
      }
 
      /* Number of steps and Time step */
-     (*InitConst).NStep = (unsigned int) ConfFile_GetInt( Config, "General:Num_Steps" );
+     InitConst->NStep = (unsigned int) ConfFile_GetInt( Config, "General:Num_Steps" );
      if ( InitConst->NStep <= 0 ){
 	  Print_Header( ERROR );
 	  fprintf( stderr, "Invalid number of steps.\n" );
 	  exit( EXIT_FAILURE );
      }
 
-     (*InitConst).Delta_t = ConfFile_GetDouble( Config, "General:Delta" );
+     InitConst->Delta_t = ConfFile_GetDouble( Config, "General:Delta" );
      if ( InitConst->Delta_t <= 0.0 ){
 	  Print_Header( ERROR );
 	  fprintf( stderr, "Invalid time step.\n" );
@@ -78,51 +77,51 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
      }
 
      /* Rayleigh values */
-     (*InitConst).Rayleigh.Alpha = ConfFile_GetDouble( Config, "Rayleigh:Alpha" );
-     (*InitConst).Rayleigh.Beta = ConfFile_GetDouble( Config, "Rayleigh:Beta" );
+     InitConst->Rayleigh.Alpha = ConfFile_GetDouble( Config, "Rayleigh:Alpha" );
+     InitConst->Rayleigh.Beta = ConfFile_GetDouble( Config, "Rayleigh:Beta" );
 
      /* Newmark integration constants */
-     (*InitConst).Newmark.Gamma = ConfFile_GetDouble( Config, "Newmark:Gamma" );
-     (*InitConst).Newmark.Beta = ConfFile_GetDouble( Config, "Newmark:Beta" );
+     InitConst->Newmark.Gamma = ConfFile_GetDouble( Config, "Newmark:Gamma" );
+     InitConst->Newmark.Beta = ConfFile_GetDouble( Config, "Newmark:Beta" );
 
      /* PID Constants */
-     (*InitConst).PID.P = ConfFile_GetDouble( Config, "PID:P" );
-     (*InitConst).PID.I = ConfFile_GetDouble( Config, "PID:I" );
-     (*InitConst).PID.D = ConfFile_GetDouble( Config, "PID:D" );
+     InitConst->PID.P = ConfFile_GetDouble( Config, "PID:P" );
+     InitConst->PID.I = ConfFile_GetDouble( Config, "PID:I" );
+     InitConst->PID.D = ConfFile_GetDouble( Config, "PID:D" );
 
      /* Several constants to multiply the vectors */
-     (*InitConst).Const1 = (*InitConst).Newmark.Beta*(*InitConst).Delta_t*(*InitConst).Delta_t;
-     (*InitConst).Const2 = (0.5 - 2.0*(*InitConst).Newmark.Beta + (*InitConst).Newmark.Gamma)*(*InitConst).Delta_t*(*InitConst).Delta_t;
-     (*InitConst).Const3 = (0.5 + (*InitConst).Newmark.Beta - (*InitConst).Newmark.Gamma)*(*InitConst).Delta_t*(*InitConst).Delta_t;
+     InitConst->Const1 = InitConst->Newmark.Beta*InitConst->Delta_t*InitConst->Delta_t;
+     InitConst->Const2 = (0.5 - 2.0*InitConst->Newmark.Beta + InitConst->Newmark.Gamma)*InitConst->Delta_t*InitConst->Delta_t;
+     InitConst->Const3 = (0.5 + InitConst->Newmark.Beta - InitConst->Newmark.Gamma)*InitConst->Delta_t*InitConst->Delta_t;
 
      /* Constants for Ending Step */
-     (*InitConst).a0 = 1.0/((*InitConst).Newmark.Beta*(*InitConst).Delta_t*(*InitConst).Delta_t);
-     (*InitConst).a1 = (*InitConst).Newmark.Gamma/((*InitConst).Newmark.Beta*(*InitConst).Delta_t);
-     (*InitConst).a2 = 1.0/((*InitConst).Newmark.Beta*(*InitConst).Delta_t);
-     (*InitConst).a3 = 1.0/(2.0*(*InitConst).Newmark.Beta) - 1.0;
-     (*InitConst).a4 = (*InitConst).Newmark.Gamma/(*InitConst).Newmark.Beta - 1.0;
-     (*InitConst).a5 = ((*InitConst).Delta_t/2.0)*((*InitConst).Newmark.Gamma/(*InitConst).Newmark.Beta - 2.0);
-     (*InitConst).a6 = (1.0 - (*InitConst).Newmark.Gamma)*(*InitConst).Delta_t;
-     (*InitConst).a7 = (*InitConst).Newmark.Gamma*(*InitConst).Delta_t;
+     InitConst->a0 = 1.0/(InitConst->Newmark.Beta*InitConst->Delta_t*InitConst->Delta_t);
+     InitConst->a1 = InitConst->Newmark.Gamma/(InitConst->Newmark.Beta*InitConst->Delta_t);
+     InitConst->a2 = 1.0/(InitConst->Newmark.Beta*InitConst->Delta_t);
+     InitConst->a3 = 1.0/(2.0*InitConst->Newmark.Beta) - 1.0;
+     InitConst->a4 = InitConst->Newmark.Gamma/InitConst->Newmark.Beta - 1.0;
+     InitConst->a5 = (InitConst->Delta_t/2.0)*(InitConst->Newmark.Gamma/InitConst->Newmark.Beta - 2.0);
+     InitConst->a6 = (1.0 - InitConst->Newmark.Gamma)*InitConst->Delta_t;
+     InitConst->a7 = InitConst->Newmark.Gamma*InitConst->Delta_t;
 
      /* File Names */
-     (*InitConst).FileM = strdup( ConfFile_GetString( Config, "FileNames:Mass_Matrix" ) );
-     (*InitConst).FileK = strdup( ConfFile_GetString( Config, "FileNames:Stiffness_Matrix" ) );
-     (*InitConst).FileC = strdup( ConfFile_GetString( Config, "FileNames:Damping_Matrix" ) );
+     InitConst->FileM = strdup( ConfFile_GetString( Config, "FileNames:Mass_Matrix" ) );
+     InitConst->FileK = strdup( ConfFile_GetString( Config, "FileNames:Stiffness_Matrix" ) );
+     InitConst->FileC = strdup( ConfFile_GetString( Config, "FileNames:Damping_Matrix" ) );
      if( InitConst->Read_LVector ){
-	  (*InitConst).FileLV = strdup( ConfFile_GetString( Config, "FileNames:Load_Vector" ) );
+	  InitConst->FileLV = strdup( ConfFile_GetString( Config, "FileNames:Load_Vector" ) );
 
      } else {
 	  InitConst->FileLV = NULL;
      }
-     (*InitConst).FileCNodes = strdup( ConfFile_GetString( Config, "FileNames:Coupling_Nodes" ) );
-     (*InitConst).FileData = strdup( ConfFile_GetString( Config, "FileNames:Ground_Motion" ) );
-     (*InitConst).FileOutput = strdup( ConfFile_GetString( Config, "FileNames:OutputFile" ) );
+     InitConst->FileCNodes = strdup( ConfFile_GetString( Config, "FileNames:Coupling_Nodes" ) );
+     InitConst->FileData = strdup( ConfFile_GetString( Config, "FileNames:Ground_Motion" ) );
+     InitConst->FileOutput = strdup( ConfFile_GetString( Config, "FileNames:OutputFile" ) );
 
      /* Read the information regarding the numerical sub-structures */
 
      /* Number of substructures */
-     (*InitConst).OrderSub = ConfFile_GetInt( Config, "Substructure:Order" );
+     InitConst->OrderSub = ConfFile_GetInt( Config, "Substructure:Order" );
      if ( InitConst->OrderSub < 0 ){
 	  Print_Header( ERROR );
 	  fprintf( stderr, "Invalid option for the number of sub-structuresr of the matrices.\n" );

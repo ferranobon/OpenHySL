@@ -24,12 +24,12 @@ void InputLoad_AbsValues( const MatrixVector_t *const Stiff, const MatrixVector_
 
      /* BLAS: li = K*ug */
      dsymv( &uplo, &InLoad->Rows, &Alpha, Stiff->Array, &InLoad->Rows, GDisp->Array, &incx, &Beta,
-	     InLoad->Array, &incy );
+	    InLoad->Array, &incy );
 
      /* BLAS: li = K*ug + C*vg = li + C*vg */
      Beta = 1.0;
      dsymv( &uplo, &InLoad->Rows, &Alpha, Damp->Array, &InLoad->Rows, GVel->Array, &incx, &Beta,
-	     InLoad->Array, &incy );
+	    InLoad->Array, &incy );
 }
 
 void InputLoad_AbsValues_PS( const MatrixVector_t *const Stiff, const MatrixVector_t *const Damp,
@@ -98,7 +98,8 @@ void InputLoad_Generate_LoadVectorForm( int *DOF, MatrixVector_t *const LoadVect
      }
 }
 
-void InputLoad_Apply_LoadVectorForm( const MatrixVector_t *const LoadForm, const double Value, MatrixVector_t *const LoadVector )
+void InputLoad_Apply_LoadVectorForm( const MatrixVector_t *const LoadForm, const double Value,
+				     MatrixVector_t *const LoadVector )
 {
      int incx = 1;
      int incy = 1;
