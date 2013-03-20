@@ -7,15 +7,16 @@
 #include "Netlib.h"
 #endif
 
-void EffK_EffectiveForce( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp, const MatrixVector_t *const DispT,
-			  const MatrixVector_t *const VelT, const MatrixVector_t *const AccT, MatrixVector_t *const Tempvec,
+void EffK_EffectiveForce( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp,
+			  const MatrixVector_t *const DispT, const MatrixVector_t *const VelT,
+			  const MatrixVector_t *const AccT, MatrixVector_t *const Tempvec,
 			  const double a0, const double a1, const double a2, const double a3, const double a4,
 			  const double a5, MatrixVector_t *const Eff_ForceT )
 {
 
      int incx = 1, incy = 1;  /* Stride in the vectors */
-     char uplo = 'L';         /* The lower part (upper part in C) will be used and the upper part (lower part in C)
-				      *	will strictly not be referenced */
+     char uplo = 'L';         /* The lower part (upper part in C) will be used and the upper part (lower part
+			       * in C) will strictly not be referenced */
      double Alpha, Beta;      /* Constants for the BLAS routines */
 
      /* BLAS: tempvec = Disp */
@@ -32,7 +33,7 @@ void EffK_EffectiveForce( const MatrixVector_t *const Mass, const MatrixVector_t
      /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) = Mass*tempvec */
      Alpha = 1.0; Beta = 0.0;
      dsymv( &uplo, &Tempvec->Rows, &Alpha, Mass->Array, &Tempvec->Rows, Tempvec->Array, &incx, &Beta,
-	     Eff_ForceT->Array, &incy );
+	    Eff_ForceT->Array, &incy );
 
      /* BLAS: tempvec = Disp */
      dcopy( &Tempvec->Rows, DispT->Array, &incx, Tempvec->Array, &incy );
@@ -45,22 +46,24 @@ void EffK_EffectiveForce( const MatrixVector_t *const Mass, const MatrixVector_t
      /* BLAS: tempvec = a1*Disp + a4*Vel + a5*Acc = tempvec + a5*Acc */
      Alpha = a5;
      daxpy( &Tempvec->Rows, &Alpha, AccT->Array, &incx, Tempvec->Array, &incy );
-     /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) + Damp*(a1*Disp + a4*Vel + a5*Acc) = Eff_Force + Damp*tempvec */
+     /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) + Damp*(a1*Disp + a4*Vel + a5*Acc) = Eff_Force +
+      * Damp*tempvec */
      Alpha = 1.0; Beta = 1.0;
      dsymv( &uplo, &Tempvec->Rows, &Alpha, Damp->Array, &Tempvec->Rows, Tempvec->Array, &incx, &Beta,
-	     Eff_ForceT->Array, &incy );
+	    Eff_ForceT->Array, &incy );
      
 }
 
-void EffK_EffectiveForce_PS( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp, const MatrixVector_t *const DispT,
-			  const MatrixVector_t *const VelT, const MatrixVector_t *const AccT, MatrixVector_t *const Tempvec,
-			  const double a0, const double a1, const double a2, const double a3, const double a4,
-			  const double a5, MatrixVector_t *const Eff_ForceT )
+void EffK_EffectiveForce_PS( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp,
+			     const MatrixVector_t *const DispT, const MatrixVector_t *const VelT,
+			     const MatrixVector_t *const AccT, MatrixVector_t *const Tempvec,
+			     const double a0, const double a1, const double a2, const double a3,
+			     const double a4, const double a5, MatrixVector_t *const Eff_ForceT )
 {
 
      int incx = 1, incy = 1;  /* Stride in the vectors */
-     char uplo = 'L';         /* The lower part (upper part in C) will be used and the upper part (lower part in C)
-				      *	will strictly not be referenced */
+     char uplo = 'L';         /* The lower part (upper part in C) will be used and the upper part (lower part
+			       * in C) will strictly not be referenced */
      double Alpha, Beta;      /* Constants for the BLAS routines */
 
      /* BLAS: tempvec = Disp */
@@ -90,8 +93,8 @@ void EffK_EffectiveForce_PS( const MatrixVector_t *const Mass, const MatrixVecto
      /* BLAS: tempvec = a1*Disp + a4*Vel + a5*Acc = tempvec + a5*Acc */
      Alpha = a5;
      daxpy( &Tempvec->Rows, &Alpha, AccT->Array, &incx, Tempvec->Array, &incy );
-     /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) + Damp*(a1*Disp + a4*Vel +
-      * a5*Acc) = Eff_Force + Damp*tempvec */
+     /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) + Damp*(a1*Disp + a4*Vel + a5*Acc) = Eff_Force +
+      * Damp*tempvec */
      Alpha = 1.0; Beta = 1.0;
      dspmv( &uplo, &Tempvec->Rows, &Alpha, Damp->Array, Tempvec->Array, &incx, &Beta,
 	    Eff_ForceT->Array, &incy );
@@ -121,8 +124,9 @@ void EffK_ComputeAcceleration( const MatrixVector_t *const DispTdT, const Matrix
      daxpy( &AccTdT->Rows, &Alpha, AccT->Array, &incx, AccTdT->Array, &incy );
 }
 
-void EffK_ComputeVelocity( const MatrixVector_t *const VelT, const MatrixVector_t *const AccT, const MatrixVector_t *const AccTdT,
-			   const double a6, const double a7, MatrixVector_t *const VelTdT )
+void EffK_ComputeVelocity( const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
+			   const MatrixVector_t *const AccTdT, const double a6, const double a7,
+			   MatrixVector_t *const VelTdT )
 {
      int incx = 1, incy= 1;  /* Stride in the vectors */
      double Alpha;           /* Constant for the BLAS routines */
