@@ -6,8 +6,8 @@
  *
  * \brief Creation and manipulation of matrices that use packed storage.
  *
- * This file contains the prototypes of those functions involved in creating/destroying
- * dense matrices in packed storage.
+ * This file contains the prototypes of those functions involved in creating/destroying dense matrices in
+ * packed storage.
  */
 
 #ifndef MATRIXVECTOR_PS_H_
@@ -21,39 +21,35 @@
  * \warning The effect of using this routine on vectors is unknown.
  *
  * \pre
- * - All elements of type \c Matrix must be properly initialised through
- * MatrixVector_Create_PS().
- * - The matrices must be symmetrical and in packed storage with the upper part referenced
- * (lower part in FORTRAN routines).
+ * - All elements of type \c Matrix must be properly initialised through MatrixVector_Create_PS().
+ * - The matrices must be symmetrical and in packed storage with the upper part referenced (lower part in
+ *   FORTRAN routines).
  *
  *
- * - \f$S(\mathcal Y) \geq max(S(\mathcal A),S(\mathcal B),S(\mathcal C))\f$ where
- *   \f$S(\mathcal X) = \frac{(X.Rows*X.Cols + X.Rows)}{2}\f$ is the size of the matrix.
+ * - \f$S(\mathcal Y) \geq max(S(\mathcal A),S(\mathcal B),S(\mathcal C))\f$ where \f$S(\mathcal X) =
+ *   \frac{(X.Rows*X.Cols + X.Rows)}{2}\f$ is the size of the matrix.
  *
  * This routine adds three matrices through the operation:
  *
  * \f[\mathcal Y = \alpha \mathcal A + \beta \mathcal B + \gamma \mathcal C\f]
  *
  * where:
- * - \f$\mathcal Y\f$, \f$\mathcal A\f$, \f$\mathcal B\f$, \f$\mathcal C\f$ are symmetric
- * matrices,
+ * - \f$\mathcal Y\f$, \f$\mathcal A\f$, \f$\mathcal B\f$, \f$\mathcal C\f$ are symmetric matrices,
  * - and \f$\alpha\f$, \f$\beta\f$, \f$\gamma\f$ are real scalars.
  *
- * It makes use of BLAS routines to perform the lineal algebra operations. For the full
- * storage and sparse version use the MatrixVector_Add3Mat() and MatrixVector_Add3Mat_Sp()
- * routines respectively.
+ * It makes use of BLAS routines to perform the lineal algebra operations. For the full storage and sparse
+ * version use the MatrixVector_Add3Mat() and MatrixVector_Add3Mat_Sp() routines respectively.
  * 
- * \param[in] MatA Symmetric matrix \f$\mathcal A\f$ in packed storage with the upper part
- * referenced (lower part in FORTRAN routines).
- * \param[in] MatB Symmetric matrix \f$\mathcal B\f$ in packed storage with the upper part
- * referenced (lower part in FORTRAN routines).
- * \param[in] MatC Symmetric matrix \f$\mathcal C\f$ in packed storage with the upper part
- * referenced (lower part in FORTRAN routines).
- * \param[in] Const Scalars that multiply the matrices A (\f$\alpha\f$), \c Const.Aplha),
- * B (\f$\beta\f$), \c Const.Beta) and C (\f$\gamma\f$), \c Const.Gamma).
- * \param[in] MatY Symmetric matrix \f$\mathcal Y\f$ in packed storage with the upper part
- * referenced (lower part in FORTRAN routines). On entry only the dimensions are
- * referenced.
+ * \param[in]     MatA  Symmetric matrix \f$\mathcal A\f$ in packed storage with the upper part referenced
+ *                      (lower part in FORTRAN routines).
+ * \param[in]     MatB  Symmetric matrix \f$\mathcal B\f$ in packed storage with the upper part referenced
+ *                      (lower part in FORTRAN routines).
+ * \param[in]     MatC  Symmetric matrix \f$\mathcal C\f$ in packed storage with the upper part referenced
+ *                      (lower part in FORTRAN routines).
+ * \param[in]     Const Scalars that multiply the matrices A (\f$\alpha\f$), \c Const.Aplha), B (\f$\beta\f$),
+ *                      \c Const.Beta) and C (\f$\gamma\f$), \c Const.Gamma).
+ * \param[in,out] MatY  Symmetric matrix \f$\mathcal Y\f$ in packed storage with the upper part referenced
+ *                      (lower part in FORTRAN routines). On entry only the dimensions are referenced.
  *
  * \post \c MatY is the result of the operation:
  * \f[\mathcal Y = \alpha \mathcal A + \beta \mathcal B + \gamma \mathcal C\f]
@@ -68,20 +64,19 @@ void MatrixVector_Add3Mat_PS( const MatrixVector_t *const MatA, const MatrixVect
  *
  * \pre \f$ Rows \geq 0\f$ and \f$Cols \geq 0 \f$.
  *
- * A \c MatrixVector_t type is initialised in packed storage. The routine allocates an
- * amount of memory as a single dimenson array with length \f$L = (Rows*Cols +
- * Rows)/2\f$. The number of rows and columns is also stored and all elements of the array
- * are initialised and set to 0.0. For matrices in full storage or sparse matrices the
- * routines MatrixVector_Create() or MatrixVector_Create_Sp() should be used respectively.
+ * A \c MatrixVector_t type is initialised in packed storage. The routine allocates an amount of memory as a
+ * single dimenson array with length \f$L = (Rows*Cols + Rows)/2\f$. The number of rows and columns is also
+ * stored and all elements of the array are initialised and set to 0.0. For matrices in full storage or sparse
+ * matrices the routines MatrixVector_Create() or MatrixVector_Create_Sp() should be used respectively.
  *
- * \param[in] Rows The number of rows.
- * \param[in] Cols The number of columns.
+ * \param[in]  Rows   The number of rows.
+ * \param[in]  Cols   The number of columns.
  * \param[out] Matrix The matrix or vector to initialise.
  *
  * \post
  * - <tt>Matrix.Rows = Rows</tt> and <tt>Matrix.Cols = Cols</tt>.
- * - The length of the allocated double array is set to \f$L = Rows*Cols\f$ and all its
- * values initialised to 0.0.
+ * - The length of the allocated double array is set to \f$L = Rows*Cols\f$ and all its values initialised to
+ *   0.0.
  * - The memory should be deallocated through MatrixVector_Destroy_PS().
  *
  * \sa MatrixVector_t.
@@ -104,16 +99,16 @@ void MatrixVector_Create_PS( const int Rows, const int Cols, MatrixVector_t *con
 void MatrixVector_Destroy_PS( MatrixVector_t *const Matrix );
 
 /**
- * \brief Reads a symmetric matrix in full storage from an ASCII file and stores the
- * contents in packed storage format.
+ * \brief Reads a symmetric matrix in full storage from an ASCII file and stores the contents in packed
+ * storage format.
  * 
  * \pre
  * - \c Matrix must be properly initialised through MatrixVector_Create_PS().
- * - \c The file must contain a symmetric matrix with at least the upper part referenced.
- * The the lower part must be present but its values will not be stored.
+ * - \c The file must contain a symmetric matrix with at least the upper part referenced. The the lower part
+ *   must be present but its values will not be stored.
  *
- * \param[in] Filename Name of the ASCII file to be opened.
- * \param[in,out] Matrix On input only the number of rows and columns is referenced.
+ * \param[in]     Filename Name of the ASCII file to be opened.
+ * \param[in,out] Matrix   On input only the number of rows and columns is referenced.
  *
  * \post \c Matrix.Array have the contents of the ASCII file in packed storage.
  */
@@ -128,14 +123,13 @@ void MatrixVector_FromFile_GE2PS( const char *Filename, MatrixVector_t *const Ma
  * - \c Matrix must be properly initialised through MatrixVector_Create_PS().
  * - \c Filename must be in MatrixMarket format and stored in a sparse way.
  *
- * This routine reads a symmetric matrix from a MatrixMarket (\cite MatrixMarket)
- * formatted file and stores its contents in a packed storage format. It can handle only
- * sparse formats but the output will always be in packed storage matrix. If a sparse or a
- * full storage format is desired the routines MatrixVector_FromFile_MM_Sp() or
- * MatrixVector_FromFile_MM() should be used instead.
+ * This routine reads a symmetric matrix from a MatrixMarket (\cite MatrixMarket) formatted file and stores
+ * its contents in a packed storage format. It can handle only sparse formats but the output will always be in
+ * packed storage matrix. If a sparse or a full storage format is desired the routines
+ * MatrixVector_FromFile_MM_Sp() or MatrixVector_FromFile_MM() should be used instead.
  *
- * \param[in] Filename The file with a MatrixMarket format.
- * \param[in,out] Matrix On input only the number of rows and columns is referenced.
+ * \param[in]     Filename The file with a MatrixMarket format.
+ * \param[in,out] Matrix   On input only the number of rows and columns is referenced.
  *
  * \post \c Matrix.Array have the contents of the file always in packed storage.
  */
@@ -150,9 +144,9 @@ void MatrixVector_FromFile_MM_PS( const char *Filename, MatrixVector_t *const Ma
  * - RowIndex and ColIndex must be in one based index.
  * - \c Operation must be \c Set, \c Add, \c Multiply or \c Divide.
  * 
- * A basic linear algebra operation is performed on one of the elements of the matrix in
- * packed storage vector. The operation performed is controlled through the variable \c
- * Operation. Currently only four operations are supported.
+ * A basic linear algebra operation is performed on one of the elements of the matrix in packed storage
+ * vector. The operation performed is controlled through the variable \c Operation. Currently only four
+ * operations are supported.
  * 
  * - <tt>Operation = Set</tt>. \f$A(i,j) = \alpha\f$.
  * - <tt>Operation = Add</tt>. \f$A(i,j) = A(i,j) + \alpha\f$.
@@ -161,18 +155,16 @@ void MatrixVector_FromFile_MM_PS( const char *Filename, MatrixVector_t *const Ma
  *
  * If the operation is not supported, the routine calls <tt>exit( EXIT_FAILURE )</tt>.
  *
- * \param[in] RowIndex The row index \f$i\f$ (one based index).
- * \param[in] ColIndex The column index \f$j\f$ (one based index).
- * \param[in] Alpha The value to be set, added, multiplied and divided \f$\alpha\f$.
- * \param[in] Alpha The value to be set, added, multiplied and divided \f$\alpha\f$.
- * \param[in] Operation Controls what operation is performed: \c Set, \c Add, \c Multiply
- * or \c Divide.
- * \param[in,out] Matrix Matrix or vector to be modified. On entry only the number of
- * columns and the value (except in the case when <tt>Operation = Set</tt>) are
- * referenced. On output \f$A(i,j)\f$, is modified accordingly.
+ * \param[in]     RowIndex  The row index \f$i\f$ (one based index).
+ * \param[in]     ColIndex  The column index \f$j\f$ (one based index).
+ * \param[in]     Alpha     The value to be set, added, multiplied and divided \f$\alpha\f$.
+ * \param[in]     Operation Controls what operation is performed: \c Set, \c Add, \c Multiply or \c Divide.
+ * \param[in,out] Matrix    Matrix or vector to be modified. On entry only the number of columns and the value
+ *                          (except in the case when <tt>Operation = Set</tt>) are referenced. On output
+ *                          \f$A(i,j)\f$, is modified accordingly.
  *
- * \post One of the supported operations is performed. If the operation is not supported,
- * the routine calls <tt>exit( EXIT_FAILURE )</tt>.
+ * \post One of the supported operations is performed. If the operation is not supported, the routine calls
+ * <tt>exit( EXIT_FAILURE )</tt>.
  */
 void MatrixVector_ModifyElement_PS( const int RowIndex, const int ColIndex, const double Alpha,
 				 const char *Operation, MatrixVector_t *const Matrix );
@@ -180,32 +172,29 @@ void MatrixVector_ModifyElement_PS( const int RowIndex, const int ColIndex, cons
 /**
  * \brief Sets all the members to the specified value.
  *
- * \pre \c Matrix must be properly initialised through MatrixVector_Create_PS() and be in
- * packed storage.
+ * \pre \c Matrix must be properly initialised through MatrixVector_Create_PS() and be in packed storage.
  *
- * All the elements in \c Matrix.Array are set to the specified value. For a full
- * representation of the matrix the routine MatrixVector_Set2Value_PS() should be used
- * instead. It makes use of BLAS routines to perform the lineal algebra operations.
+ * All the elements in \c Matrix.Array are set to the specified value. For a full representation of the matrix
+ * the routine MatrixVector_Set2Value_PS() should be used instead. It makes use of BLAS routines to perform
+ * the lineal algebra operations.
  *
- * \param[in] Value All elements of the matrix or vector will be set to this value.
- * \param[in,out] Matrix Matrix in packed storage. On input only the number of rows and
- * columns is referenced. On output all its elements are set to \c Value.
-
+ * \param[in]     Value  All elements of the matrix or vector will be set to this value.
+ * \param[in,out] Matrix Matrix in packed storage. On input only the number of rows and columns is
+ *                       referenced. On output all its elements are set to \c Value.
  *
  * \post All the elements in \c Matrix.Array are set to \c Value.
  */
 void MatrixVector_Set2Value_PS( const double Value, MatrixVector_t *const Matrix );
 
 /**
- * \brief Writes a matrix in packed storage and with the upper part referenced to an ASCII
- * file in a full format.
+ * \brief Writes a matrix in packed storage and with the upper part referenced to an ASCII file in a full
+ * format.
  * 
  * \pre
  * - \c Matrix must be properly initialised through MatrixVector_Create_PS().
  * - \c Matrix must be symmetric and in packed storage with the upper part referenced.
  *
- * \param[in] Matrix The symmetric matrix in packed storage to save to the file \c
- * Filename.
+ * \param[in] Matrix   The symmetric matrix in packed storage to save to the file \c Filename.
  * \param[in] Filename Name of the ASCII file to be opened.
  *
  * \post The ASCII file \c Filename has the contents of \c Matrix.Array in a full format.
