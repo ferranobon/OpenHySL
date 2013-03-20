@@ -5,10 +5,12 @@
 #include "MatrixVector_MPI.h"
 
 #include "Substructure.h"
-#include "mpi.h"
 
+#if _MPI_
+#include "mpi.h"
 #define MATRIX_XC 0   /*!< Label for the mpi messages involved in the creation of the Xc matrix */
 #define VECTOR_XC 1   /*!< Label for the mpi messages involved in the creation of the Xc vector */
+#endif
 
 /**
  * \brief Joins the non-coupling of a vector.
@@ -216,6 +218,7 @@ void Substructure_MatrixXc( const MatrixVector_t *const Mat, const CouplingNode_
 void Substructure_MatrixXc_PS( const MatrixVector_t *const Mat, const CouplingNode_t *const CNodes,
 			       MatrixVector_t *const MatCouple );
 
+#if _MPI_
 /**
  * \brief Construction of the coupling matrix. MPI version.
  *
@@ -266,6 +269,7 @@ void Substructure_MatrixXc_PS( const MatrixVector_t *const Mat, const CouplingNo
  */
 void Substructure_MatrixXc_MPI( const MPI_Comm Comm, const CouplingNode_t *const CNodes,
 				const PMatrixVector_t *const Mat, MatrixVector_t *const MatCouple );
+#endif
 
 /**
  * \brief Construction of the non-coupling part of a given matrix. General storage version.
@@ -370,7 +374,7 @@ void Substructure_MatrixXcm( const MatrixVector_t *const Mat, const CouplingNode
  */
 void Substructure_MatrixXcm_PS( const MatrixVector_t *const Mat, const CouplingNode_t *const CNodes,
 				MatrixVector_t *const MatXcm );
-
+#if _MPI_
 /**
  * \brief Construction of the non-coupling part of a given matrix. MPI version.
  *
@@ -424,6 +428,7 @@ void Substructure_MatrixXcm_PS( const MatrixVector_t *const Mat, const CouplingN
  */
 void Substructure_MatrixXcm_MPI( const MPI_Comm Comm, const PMatrixVector_t *const Mat,
 				 const CouplingNode_t *const CNodes, PMatrixVector_t *const MatXcm );
+#endif
 
 /**
  * \brief Copies the non-coupling part a vector.
@@ -506,6 +511,7 @@ void Substructure_VectorXm_MPI(const PMatrixVector_t *const VectorX, const Coupl
  */
 void Substructure_VectorXc( const MatrixVector_t *const VecX, const CouplingNode_t *const CNodes, MatrixVector_t *const VecXc );
 
+#if _MPI_
 /**
  * \brief Copies the coupling nodes of a vector. MPI version.
  *
@@ -531,5 +537,6 @@ void Substructure_VectorXc( const MatrixVector_t *const VecX, const CouplingNode
  */
 void Substructure_VectorXc_MPI( const MPI_Comm Comm, const PMatrixVector_t *const VecX,
 				const CouplingNode_t *const CNodes, MatrixVector_t *const VecXc );
+#endif
 
 #endif /* SUBSTRUCTURE_AUXILIARY_H_ */

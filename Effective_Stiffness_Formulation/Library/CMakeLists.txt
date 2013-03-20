@@ -138,21 +138,16 @@ include_directories(include)
 add_library(core ${CORE_SRCS})
 target_link_libraries(core ${MATH_LIBS} -lm)
 
-if(USE_MPI)
-  # Rules to build the programs related to the parallel version of the algorithm
-  add_definitions(-D_MPI_)
-else(NOT USE_MPI)
-  # Rules to build the programs related to the sequential version of the algorithm.
-  if(USE_SPARSE AND USE_MKL)
-    add_definitions(-D_SPARSE_)
-    file( GLOB SPARSE_SRCS src/*_Sp.c )
-    add_library( core_sp ${SPARSE_SRCS})
-    target_link_libraries(core_sp ${MATH_LIBS} -lm core)
-  endif()
+# Rules to build the programs related to the sequential version of the algorithm.
+if(USE_SPARSE AND USE_MKL)
+  add_definitions(-D_SPARSE_)
+  file( GLOB SPARSE_SRCS src/*_Sp.c )
+  add_library( core_sp ${SPARSE_SRCS})
+  target_link_libraries(core_sp ${MATH_LIBS} -lm core)
 endif()
 
 # Build Substructure Library
-file( GLOB SUBS_SRCS src/Substructure*c)
+file( GLOB SUBS_SRCS src/Substructure.c src/Substructure_Auxiliary.c src/Substructure_CouplingNodes.c src/Substructure_Exact.c src/Substructure_Experimental.c src/Substructure_Remote.c src/Substructure_SimMeasured.c src/Substructure_UHYDEfbr.c )
 add_library( substructure ${SUBS_SRCS})
 target_link_libraries( substructure -lm core)
 
@@ -161,9 +156,12 @@ target_link_libraries(SAlgorithm core core_sp substructure hdf5 hdf5_hl)
 # Rules to build the programs related to the substructure. Each program will
 # be compliant with one of the different protocols: Custom, NSEP and OpenFresco
 
-file( GLOB MPI_SRCS src/*MPI.c )
-add_library( core_mpi ${MPI_SRCS} )
-target_link_libraries( core_mpi ${MATH_LIBS} -lm core)
+if( USE_MPI )
+  add_definitions(-D_MPI_)
+  file( GLOB MPI_SRCS src/*MPI.c )
+  add_library( core_mpi ${MPI_SRCS} )
+  target_link_libraries( core_mpi ${MATH_LIBS} -lm core)
+endif()
 
 Find_Package(Doxygen)
 if (DOXYGEN_FOUND)
