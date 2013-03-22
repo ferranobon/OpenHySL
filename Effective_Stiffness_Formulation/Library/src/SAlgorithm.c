@@ -82,7 +82,7 @@ int main( int argc, char **argv ){
      printf( "************************************************************\n" );
      printf( "*                                                          *\n" );
      printf( "*  This is Dorka's substructure algorithm as programed by  *\n" );
-     printf( "* Ferran Obón Santacana. Version alpha 0.9 'Heaven's Door' *\n" );
+     printf( "* Ferran Obón Santacana. Version alpha 0.5 'Heaven's Door' *\n" );
      printf( "*                                                          *\n" );
      printf( "************************************************************\n\n" );
      /* Set de default value for the configuration file */
