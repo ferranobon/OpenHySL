@@ -113,55 +113,37 @@ if( MMIOSRC AND MMIOHEA)
   MESSAGE( STATUS "Found MatrixMarket routines and header files in ${MMPATH}." )
   add_definitions(-D_MATRIXMARKET_)
   set( WITH_MM ON )
-  list(APPEND CORE_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/${MMPATH}/mmio.c)
   include_directories( ${MMPATH} )
 else()
   MESSAGE( STATUS "WARNING. MatrixMarket routines not found in ${MMPATH}. Please, specify the MatrixMarket path manually!" )
 endif()
 
-# Find the ADwin libraries and tag it as required
-if(WITH_ADWIN)
-  add_definitions(-D_ADWIN_)
-  include("CMakeCustomFiles/CMakeADwin.cmake")
-  set(CMAKE_REQUIRED_LIBRARIES ${ADWIN_LIBS})
-else(NOT WITH_ADWIN)
-  list(REMOVE_ITEM CORE_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/Common_Files/src/RoutinesADwin.c)
-  MESSAGE( STATUS "Cmake binary dir ${CMAKE_CURRENT_SOURCE_DIR}")
-  MESSAGE( STATUS "Compile Flags = ${COMMON_SRCS}" )
-endif()
+include_directories( include )
 
 if(USE_MKL)
   add_definitions(-D_MKL_)
+  if(USE_SPARSE)
+    add_definitions(-D_SPARSE_)
+  endif()
 endif()
 
-include_directories(include)
-add_library(core ${CORE_SRCS})
-target_link_libraries(core ${MATH_LIBS} -lm)
-
-# Rules to build the programs related to the sequential version of the algorithm.
-if(USE_SPARSE AND USE_MKL)
-  add_definitions(-D_SPARSE_)
-  file( GLOB SPARSE_SRCS src/*_Sp.c )
-  add_library( core_sp ${SPARSE_SRCS})
-  target_link_libraries(core_sp ${MATH_LIBS} -lm core)
-endif()
-
-# Build Substructure Library
-file( GLOB SUBS_SRCS src/Substructure.c src/Substructure_Auxiliary.c src/Substructure_CouplingNodes.c src/Substructure_Exact.c src/Substructure_Experimental.c src/Substructure_Remote.c src/Substructure_SimMeasured.c src/Substructure_UHYDEfbr.c )
-add_library( substructure ${SUBS_SRCS})
-target_link_libraries( substructure -lm core)
-
-add_executable( SAlgorithm SAlgorithm.c src/Algorithm_Aux.c src/HDF5_Operations.c)# ${CORE_SRCS} ${SPARSE_SRCS} ${SUBS_SRCS})
-target_link_libraries(SAlgorithm core core_sp substructure hdf5 hdf5_hl)
-# Rules to build the programs related to the substructure. Each program will
-# be compliant with one of the different protocols: Custom, NSEP and OpenFresco
+add_subdirectory(libcore)
 
 if( USE_MPI )
   add_definitions(-D_MPI_)
-  file( GLOB MPI_SRCS src/*MPI.c )
-  add_library( core_mpi ${MPI_SRCS} )
-  target_link_libraries( core_mpi ${MATH_LIBS} -lm core)
+  add_subdirectory(libcore_mpi)
 endif()
+
+if( USE_SPARSE )
+  add_subdirectory(libcore_sp)
+endif()
+
+add_subdirectory(libsubstructure)
+
+add_executable( SAlgorithm src/SAlgorithm.c src/Algorithm_Aux.c src/HDF5_Operations.c)# ${CORE_SRCS} ${SPARSE_SRCS} ${SUBS_SRCS})
+target_link_libraries(SAlgorithm core core_sp substructure hdf5 hdf5_hl)
+# Rules to build the programs related to the substructure. Each program will
+# be compliant with one of the different protocols: Custom, NSEP and OpenFresco
 
 Find_Package(Doxygen)
 if (DOXYGEN_FOUND)
