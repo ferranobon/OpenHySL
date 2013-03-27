@@ -79,22 +79,24 @@ void MatrixVector_ModifyElement( const int RowIndex, const int ColIndex, const d
 }
 
 
-void MatrixVector_Add3Mat( const MatrixVector_t *const MatA, const MatrixVector_t *const MatB, const MatrixVector_t *const MatC,
-			   const Scalars_t Const, MatrixVector_t *const MatY )
+void MatrixVector_Add3Mat( const MatrixVector_t *const MatA, const MatrixVector_t *const MatB,
+			   const MatrixVector_t *const MatC, const Scalars_t Const, MatrixVector_t *const MatY )
 {
 
-     int i;           /* A counter */
-     int Length;      /* Variable to store the size of the vector to multiply. */
-     int incx, incy;  /* Stride in the vectors for BLAS library */
+     int i;                /* A counter */
+     int Length;           /* Variable to store the size of the vector to multiply. */
+     int incx, incy;       /* Stride in the vectors for BLAS library */
      int lda, ldy;
      int ione;
-     double done, Scalar;     /* Constant to use in the BLAS library */
-     char uplo;       /* BLAS & LAPACK: Character to specify which part of the matrix has been referenced. */
-     int info;        /* LAPACK: Variable to inform if the operations of Cholesky factorization and inverse were successful or not */
+     double done, Scalar;  /* Constant to use in the BLAS library */
+     char uplo;            /* BLAS & LAPACK: Character to specify which part of the matrix has been referenced. */
+     int info;             /* LAPACK: Variable to inform if the operations of Cholesky factorization and
+			    * inverse were successful or not */
 
      ione = 1;
      incx = 1; incy = 1;
-     uplo = 'L';      /* Character defining that the lower part of the symmetric matrix is referenced (see man dpotrf) */
+     uplo = 'L';           /* Character defining that the lower part of the symmetric matrix is referenced
+			    * (see man dpotrf) */
      done = 1.0;
 
      lda = Max( 1, MatA->Rows );

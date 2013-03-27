@@ -296,9 +296,7 @@ int main( int argc, char **argv ){
      /* Calculate the input load */
      istep = 1;
      if( InitCnt.Use_Absolute_Values ){
-	  /* Copy the diagonal elements of M */
 	  InputLoad_Apply_LoadVectorForm( &LoadVectorForm, DispAll[istep - 1], &Disp );
-
 	  InputLoad_Apply_LoadVectorForm( &LoadVectorForm, VelAll[istep - 1], &Vel );
 
 	  if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
@@ -363,7 +361,6 @@ int main( int argc, char **argv ){
 	  }
 
 	  if ( istep < InitCnt.NStep ){
-	       /* Calculate the input load for the next step during the sub-stepping process. */
 	       if( InitCnt.Use_Absolute_Values ){
 		    /* Copy the diagonal elements of M */
 		    InputLoad_Apply_LoadVectorForm( &LoadVectorForm, DispAll[istep], &Disp );		    
