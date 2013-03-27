@@ -28,11 +28,13 @@ typedef struct PMatrixVector {
 	DistInfo_t BlockSize;  /* Block size (vertical, horizontal) */
 } PMatrixVector_t;
 
-void PMatrixVector_Create( int icntxt, PMatrixVector_t *const Mat, const int NumRows, const int NumCols, const int BlRows, int const BlCols );
-void PMatrixVector_Set2Value( PMatrixVector_t *const Mat, const double Value );
-void PMatrixVector_ModifyElement( PMatrixVector_t *const Mat, int GRowIndex, int GColIndex, const double Value, const char *Operation );
-void PMatrixVector_Add3Mat( const PMatrixVector_t *const MatA, const PMatrixVector_t *const MatB, const PMatrixVector_t *const MatC,
-			    PMatrixVector_t *const MatY, Scalars_t Const );
+void PMatrixVector_Create( int icntxt, const int NumRows, const int NumCols, const int BlRows, int const BlCols,
+			   PMatrixVector_t *const Mat );
+void PMatrixVector_Set2Value( const double Value, PMatrixVector_t *const Mat );
+void PMatrixVector_ModifyElement( const int GRowIndex, const int GColIndex, const double Value,
+				  const char *Operation, PMatrixVector_t *const Mat );
+void PMatrixVector_Add3Mat( const PMatrixVector_t *const MatA, const PMatrixVector_t *const MatB,
+			    const PMatrixVector_t *const MatC, const Scalars_t Const, PMatrixVector_t *const MatY );
 void PMatrixVector_FromFile( const char *Filename, PMatrixVector_t *const Mat );
 void PMatrixVector_FromFile_MM( const char *Filename, PMatrixVector_t *const Mat );
 void PMatrixVector_ToFile( PMatrixVector_t *const Mat, const char *Filename );

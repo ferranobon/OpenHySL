@@ -16,8 +16,8 @@
 #include "Netlib.h"
 #endif
 
-void PMatrixVector_Create( int icntxt, PMatrixVector_t *const Mat, const int NumRows, const int NumCols,
-			   const int BlRows, int const BlCols )
+void PMatrixVector_Create( int icntxt, const int NumRows, const int NumCols, const int BlRows, int const BlCols,
+			   PMatrixVector_t *const Mat )
 {
 
 	int myrow, mycol;  /* Variables to store row and column in the process grid */
@@ -57,7 +57,7 @@ void PMatrixVector_Create( int icntxt, PMatrixVector_t *const Mat, const int Num
 	}
 }
 
-void PMatrixVector_Set2Value( PMatrixVector_t *const Mat, const double Value )
+void PMatrixVector_Set2Value( const double Value, PMatrixVector_t *const Mat )
 {
 
      int incx, incy;
@@ -72,8 +72,8 @@ void PMatrixVector_Set2Value( PMatrixVector_t *const Mat, const double Value )
      dcopy( &Length, &Val, &incx, Mat->Array, &incy );
 }
 
-void PMatrixVector_ModifyElement( PMatrixVector_t *const Mat, int GRowIndex, int GColIndex, const double Value,
-		    const char *Operation )
+void PMatrixVector_ModifyElement( const int GRowIndex, const int GColIndex, const double Value,
+				  const char *Operation, PMatrixVector_t *const Mat )
 {
 
 	int myrow, mycol, nprow, npcol;
@@ -123,7 +123,7 @@ void PMatrixVector_ModifyElement( PMatrixVector_t *const Mat, int GRowIndex, int
 }
 
 void PMatrixVector_Add3Mat( const PMatrixVector_t *const MatA, const PMatrixVector_t *const MatB,
-			    const PMatrixVector_t *const MatC, PMatrixVector_t *const MatY, Scalars_t Const )
+			    const PMatrixVector_t *const MatC, const Scalars_t Const, PMatrixVector_t *const MatY )
 {
 
 	char uplo, trans;

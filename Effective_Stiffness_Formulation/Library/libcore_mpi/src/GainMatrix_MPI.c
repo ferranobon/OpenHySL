@@ -28,7 +28,7 @@ void IGainMatrix_MPI( PMatrixVector_t *const IGain, const PMatrixVector_t *const
 		   * referenced */
 
      /* IGain = Const.Alpha*M + Const.Beta*C + Const.Gamma*K */
-     PMatrixVector_Add3Mat( Mass, Damp, Stiff, IGain, Const );
+     PMatrixVector_Add3Mat( Mass, Damp, Stiff, Const, IGain );
 	
      /* ScaLAPACK: Compute the Cholesky factorization of the symmetric positive definite matrix IGain */
      pdpotrf_( &uplo, &IGain->GlobalSize.Row, IGain->Array, &ione, &ione, IGain->Desc, &info );
