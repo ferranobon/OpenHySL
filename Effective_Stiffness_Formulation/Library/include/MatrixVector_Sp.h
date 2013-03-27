@@ -29,7 +29,7 @@ typedef struct MatVec_Sp {
      int Rows;        /*!< \brief Number of Rows of the matrix. */
      int Cols;        /*!< \brief Number of Columns of the matrix. */
      int Num_Nonzero; /*!< \brief Number of non-zero elements. */
-     double *Values;   /*!< \brief A double precision array that contains the non-zero elements of a sparse
+     double *Values;  /*!< \brief A double precision array that contains the non-zero elements of a sparse
 		       * matrix. The non-zero elements are mapped into the values array using the row-major
 		       * upper triangular storage mapping. The lenght of the array is equal to the number of
 		       * non-zero elements in the matrix. */
