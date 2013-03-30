@@ -469,7 +469,7 @@ int main( int argc, char **argv ){
 #endif
      }
 
-     if ( InitCnt.Use_Packed ){	  
+     if ( !InitCnt.Use_Packed ){	  
 	  MatrixVector_Destroy( &Keinv );
      } else if ( InitCnt.Use_Packed ){	 
 	  MatrixVector_Destroy_PS( &Keinv );
