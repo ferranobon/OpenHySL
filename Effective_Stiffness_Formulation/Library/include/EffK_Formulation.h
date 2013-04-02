@@ -269,7 +269,7 @@ void EffK_EffectiveForce_MPI( PMatrixVector_t *const Mass, PMatrixVector_t *cons
 			      PMatrixVector_t *const DispT, PMatrixVector_t *const VelT,
 			      PMatrixVector_t *const AccT, PMatrixVector_t *const Tempvec,
 			      const double a0, const double a1, const double a2, const double a3,
-			      const double a4, const double a5, PMatrixVector_t *const Eff_Force );
+			      const double a4, const double a5, PMatrixVector_t *const Eff_ForceT );
 
 /**
  * \brief Computes the new acceleration according to the formulation using the effective stiffness matrix.

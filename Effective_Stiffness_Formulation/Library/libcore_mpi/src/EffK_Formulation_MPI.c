@@ -11,7 +11,7 @@ void EffK_EffectiveForce_MPI( PMatrixVector_t *const Mass, PMatrixVector_t *cons
 			      PMatrixVector_t *const DispT, PMatrixVector_t *const VelT,
 			      PMatrixVector_t *const AccT, PMatrixVector_t *const Tempvec,
 			      const double a0, const double a1, const double a2, const double a3,
-			      const double a4, const double a5, PMatrixVector_t *const Eff_Force )
+			      const double a4, const double a5, PMatrixVector_t *const Eff_ForceT )
 {
      int ione = 1;
      int incx = 1, incy = 1;  /* Stride in the vectors */
@@ -36,7 +36,7 @@ void EffK_EffectiveForce_MPI( PMatrixVector_t *const Mass, PMatrixVector_t *cons
      /* PBLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) = Mass*tempvec */
      Alpha = 1.0; Beta = 0.0;
      pdsymv_( &uplo, &Tempvec->GlobalSize.Row, &Alpha, Mass->Array, &ione, &ione, Mass->Desc, Tempvec->Array,
-	      &ione, &ione, Tempvec->Desc, &incx, &Beta, Eff_Force->Array, &ione, &ione, Eff_Force->Desc,
+	      &ione, &ione, Tempvec->Desc, &incx, &Beta, Eff_ForceT->Array, &ione, &ione, Eff_ForceT->Desc,
 	      &incy );
 
      /* PBLAS: tempvec = Disp */
@@ -57,7 +57,7 @@ void EffK_EffectiveForce_MPI( PMatrixVector_t *const Mass, PMatrixVector_t *cons
       * Damp*tempvec */
      Alpha = 1.0; Beta = 1.0;
      pdsymv_( &uplo, &Tempvec->GlobalSize.Row, &Alpha, Damp->Array, &ione, &ione, Damp->Desc, Tempvec->Array,
-	      &ione, &ione, Tempvec->Desc, &incx, &Beta, Eff_Force->Array, &ione, &ione, Eff_Force->Desc,
+	      &ione, &ione, Tempvec->Desc, &incx, &Beta, Eff_ForceT->Array, &ione, &ione, Eff_ForceT->Desc,
 	      &incy );
 }
 
