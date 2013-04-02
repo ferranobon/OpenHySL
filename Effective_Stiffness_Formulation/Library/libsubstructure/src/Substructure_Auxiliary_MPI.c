@@ -12,10 +12,10 @@
 #include "Netlib.h"
 #endif
 
-void Substructure_JoinCouplingPart_MPI( const PMatrixVector_t *const VecTdT_m,
-					const PMatrixVector_t *const Gain_m,
-					const PMatrixVector_t *const fcprevsub,
-					const CouplingNode_t *const CNodes, PMatrixVector_t *const VecTdT )
+void Substructure_JoinNonCouplingPart_MPI( const PMatrixVector_t *const VecTdT_m,
+					   const PMatrixVector_t *const Gain_m,
+					   const PMatrixVector_t *const fcprevsub,
+					   const CouplingNode_t *const CNodes, PMatrixVector_t *const VecTdT )
 {
 
      int incx, incy, ione;

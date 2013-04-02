@@ -33,8 +33,8 @@ void PMatrixVector_Create( int icntxt, const int NumRows, const int NumCols, con
 void PMatrixVector_Set2Value( const double Value, PMatrixVector_t *const Mat );
 void PMatrixVector_ModifyElement( const int GRowIndex, const int GColIndex, const double Value,
 				  const char *Operation, PMatrixVector_t *const Mat );
-void PMatrixVector_Add3Mat( const PMatrixVector_t *const MatA, const PMatrixVector_t *const MatB,
-			    const PMatrixVector_t *const MatC, const Scalars_t Const, PMatrixVector_t *const MatY );
+void PMatrixVector_Add3Mat( PMatrixVector_t *const MatA, PMatrixVector_t *const MatB,
+			    PMatrixVector_t *const MatC, const Scalars_t Const, PMatrixVector_t *const MatY );
 void PMatrixVector_FromFile( const char *Filename, PMatrixVector_t *const Mat );
 void PMatrixVector_FromFile_MM( const char *Filename, PMatrixVector_t *const Mat );
 void PMatrixVector_ToFile( PMatrixVector_t *const Mat, const char *Filename );

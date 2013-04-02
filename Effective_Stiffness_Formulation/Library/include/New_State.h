@@ -157,8 +157,8 @@ void Compute_NewState_PS( const MatrixVector_t *const IGain, const MatrixVector_
  *
  * \sa PMatrixVector_t and EffK_EffectiveForce_MPI().
  */
-void Compute_NewState_MPI( const PMatrixVector_t *const IGain, const PMatrixVector_t *const Eff_ForceT,
-			   const PMatrixVector_t *const In_LoadT, const PMatrixVector_t *const Err_ForceT,
+void Compute_NewState_MPI( PMatrixVector_t *const IGain, PMatrixVector_t *const Eff_ForceT,
+			   PMatrixVector_t *const In_LoadT, PMatrixVector_t *const Err_ForceT,
 			   PMatrixVector_t *const Tempvec, PMatrixVector_t *const VecTdT_0 );
 
 #endif /* NEW_STATE_H_ */

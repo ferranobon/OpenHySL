@@ -7,8 +7,8 @@
 #include "Netlib.h"
 #endif
 
-void InputLoad_AbsValues_MPI( const PMatrixVector_t *const Stiff, const PMatrixVector_t *const Damp,
-			      const PMatrixVector_t *const GDisp, const PMatrixVector_t *const GVel,
+void InputLoad_AbsValues_MPI( PMatrixVector_t *const Stiff, PMatrixVector_t *const Damp,
+			      PMatrixVector_t *const GDisp, PMatrixVector_t *const GVel,
 			      PMatrixVector_t *const InLoad )
 {
 
@@ -32,7 +32,7 @@ void InputLoad_AbsValues_MPI( const PMatrixVector_t *const Stiff, const PMatrixV
 	      &ione, &ione, GVel->Desc, &incx, &Beta, InLoad->Array, &ione, &ione, InLoad->Desc, &incy );
 }
 
-void InputLoad_RelValues_MPI( const PMatrixVector_t *const Mass, const PMatrixVector_t *const GAcc,
+void InputLoad_RelValues_MPI( PMatrixVector_t *const Mass, PMatrixVector_t *const GAcc,
 			      PMatrixVector_t *const InLoad )
 {
      int incx, incy;     /* Stride in the vectors for PBLAS library */
@@ -75,7 +75,7 @@ void InputLoad_Generate_LoadVectorForm_MPI( int *DOF, PMatrixVector_t *const Loa
      }
 }
 
-void InputLoad_Apply_LoadVectorForm_MPI( const PMatrixVector_t *const LoadForm, const double Value,
+void InputLoad_Apply_LoadVectorForm_MPI( PMatrixVector_t *const LoadForm, const double Value,
 					 PMatrixVector_t *const LoadVector )
 {
      int incx = 1;

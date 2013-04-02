@@ -265,9 +265,9 @@ void EffK_EffectiveForce_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVe
  *
  * \sa PMatrixVector_t.
  */
-void EffK_EffectiveForce_MPI( const PMatrixVector_t *const Mass, const PMatrixVector_t *const Damp,
-			      const PMatrixVector_t *const Disp, const PMatrixVector_t *const Vel,
-			      const PMatrixVector_t *const Acc, const PMatrixVector_t *const Tempvec,
+void EffK_EffectiveForce_MPI( PMatrixVector_t *const Mass, PMatrixVector_t *const Damp,
+			      PMatrixVector_t *const DispT, PMatrixVector_t *const VelT,
+			      PMatrixVector_t *const AccT, PMatrixVector_t *const Tempvec,
 			      const double a0, const double a1, const double a2, const double a3,
 			      const double a4, const double a5, PMatrixVector_t *const Eff_Force );
 
@@ -362,8 +362,8 @@ void EffK_ComputeAcceleration( const MatrixVector_t *const DispTdT, const Matrix
  *
  * \sa PMatrixVector_t.
  */
-void EffK_ComputeAcceleration_MPI( const PMatrixVector_t *const DispTdT, const PMatrixVector_t *const DispT,
-				   const PMatrixVector_t *const VelT, const PMatrixVector_t *const AccT,
+void EffK_ComputeAcceleration_MPI( PMatrixVector_t *const DispTdT, PMatrixVector_t *const DispT,
+				   PMatrixVector_t *const VelT, PMatrixVector_t *const AccT,
 				   const double a0, const double a2, const double a3,
 				   PMatrixVector_t *const AccTdT );
 
@@ -448,8 +448,8 @@ void EffK_ComputeVelocity( const MatrixVector_t *const VelT, const MatrixVector_
  *
  * \sa PMatrixVector_t.
  */
-void EffK_ComputeVelocity_MPI( const PMatrixVector_t *const VelT, const PMatrixVector_t *const AccT,
-			       const PMatrixVector_t *const AccTdT, const double a6, const double a7,
+void EffK_ComputeVelocity_MPI( PMatrixVector_t *const VelT, PMatrixVector_t *const AccT,
+			       PMatrixVector_t *const AccTdT, const double a6, const double a7,
 			       PMatrixVector_t *const VelTdT );
 
 #endif /* EFFK_FORMULATION_H_ */
