@@ -8,7 +8,7 @@
 #include "Print_Messages.h"
 
 
-void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
+void Algorithm_Init_MPI( const char *FileName, AlgConst_t *const InitConst )
 {
 
      ConfFile_t *Config;
@@ -163,13 +163,13 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
 }
 
 
-void Algorithm_BroadcastConfFile( const AlgConst_t *const InitConst )
+void Algorithm_BroadcastConfFile( AlgConst_t *const InitConst )
 {
 
      /* MPI Variables */
      int rank;
      
-     int LengthArrays;
+     size_t LengthArrays;
      int i;     /* A counter */
      
      /* Setup three blocks */
@@ -192,7 +192,7 @@ void Algorithm_BroadcastConfFile( const AlgConst_t *const InitConst )
 
      MPI_Bcast( &LengthArrays, 1, MPI_INT, 0, MPI_COMM_WORLD );
 
-     blockcounts[2] = LengthArrays;
+     blockcounts[2] = (int) LengthArrays;
 
      /* Initialize types and displs with addresses anof items */
      MPI_Address( &InitConst->ProcessGrid, &displs[0] );
