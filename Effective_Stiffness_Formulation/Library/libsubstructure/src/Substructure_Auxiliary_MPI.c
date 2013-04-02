@@ -8,6 +8,10 @@
 
 #if _MKL_
 #include <mkl_pblas.h>
+#include "mkl_blacs.h"
+#include "mkl_blacs.h"
+#include "Cblacs.h"
+#include "Scalapack_Aux.h"
 #else
 #include "Netlib.h"
 #endif

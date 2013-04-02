@@ -11,6 +11,8 @@
 
 #if _MKL_
 #include "mkl_pblas.h"
+#include "Cblacs.h"
+#include "Scalapack_Aux.h"
 #else
 #include "Netlib."
 #endif
