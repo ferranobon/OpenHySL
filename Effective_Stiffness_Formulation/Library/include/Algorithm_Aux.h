@@ -142,6 +142,7 @@ typedef struct AlgConst{
  * \sa AlgoConst_t, PID_t, Rayleigh_t and TIntegration_t.
  */
 void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst );
+void Algorithm_Init_MPI( const char *FileName, AlgConst_t *const InitConst );
 
 /**
  * \brief Broadcasts the AlgConst_t struct to the rest of the MPI processes.
@@ -154,7 +155,7 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst );
  *
  * \sa AlgConst_t.
  */
-void Algorithm_BroadcastConfFile( const AlgConst_t *const InitConst );
+void Algorithm_BroadcastConfFile( AlgConst_t *const InitConst );
 
 /**
  * \brief Frees the memory allocated during the Algorithm_Init() routine.

@@ -142,6 +142,11 @@ add_subdirectory(libsubstructure)
 
 add_executable( SAlgorithm src/SAlgorithm.c src/Algorithm_Aux.c src/HDF5_Operations.c)# ${CORE_SRCS} ${SPARSE_SRCS} ${SUBS_SRCS})
 target_link_libraries(SAlgorithm core core_sp substructure hdf5 hdf5_hl)
+
+if( USE_MPI )
+  add_executable( SAlgorithm_MPI src/SAlgorithm_MPI.c src/Algorithm_Aux.c src/Algorithm_Aux_MPI.c src/HDF5_Operations.c )# ${CORE_SRCS} ${SPARSE_SRCS} ${SUBS_SRCS})
+  target_link_libraries(SAlgorithm_MPI core core_mpi substructure hdf5 hdf5_hl)
+endif()
 # Rules to build the programs related to the substructure. Each program will
 # be compliant with one of the different protocols: Custom, NSEP and OpenFresco
 
