@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include "mpi.h"
 
 #include "Print_Messages.h"

@@ -6,8 +6,8 @@
  *
  * \brief Prototypes of the function for the BLAS and LAPACK routines.
  *
- * This file contains the prototypes of the functions for the BLAS and LAPACK routines. They are only used in the case of
- * the reference libraries or the GOTOBLAS implementation.
+ * This file contains the prototypes of the functions for the BLAS and LAPACK routines. They are only used in
+ * the case of the reference libraries or the GOTOBLAS implementation.
  */
 
 #ifndef NETLIB_H_
@@ -15,6 +15,8 @@
 
 #if _MPI_
 #include <mpi.h>
+#include "Cblacs.h"
+#include "Scalapack_Aux.h"
 #endif
 
 /* BLAS routines */
@@ -273,18 +275,6 @@ void dpptri_( char *uplo, int *n, double *a, int *info );
 
 #if _MPI_
 
-// BLACS routines
-void Cblacs_get( int icontxt, int what, int *val );
-void Cblacs_gridinit(int *icontxt, char *order, int nprow, int npcol);
-void Cblacs_gridinfo( int icontxt, int *nprow, int *npcol, int *myrow, int *mycol );
-void Cblacs_gridmap( int *icontxt, int *usermap, int ldumap, int nprow, int npcol );
-int Cblacs_pnum( int icontxt, int prow, int pcol );
-
-int Csys2blacs_handle(MPI_Comm SysCtxt);
-int Cfree_blacs_system_handle(int BlacsHandle);
-void Cblacs_barrier(int icontxt, char *scope);
-int Cblacs_gridexit( int icontxt );
-
 // PBLAS routines
 void pdscal( int *n, double *alpha, double *x, int *ix, int *jx, int *descx, int *incx );
 void pdcopy(int *n, double *x, int *ix, int *jx, int *descx, int *incx, double *y, int *iy, int *jy, int *descy, int *incy );
@@ -296,10 +286,6 @@ void pdgemv_( char *trans, int *m, int *n, double *alpha, double *a, int *ia, in
 void pdsymv( char *uplo, int *n, double *alpha, double *a, int *ia, int *ja, int *desca, double *x, int *ix, int *jx, int *descx, int *incx, double *beta, double *y, int *iy, int *jy, int *descy, int *incy );
 
 // ScaLAPACK routines
-void descinit_(int *desc, int *m, int *n, int *mb, int *nb, int *irsrc, int *icsrc, int *ictxt, int *lld, int *info);
-int numroc_(int *n, int *nb, int *iproc, int *isrcproc, int *nprocs);
-void infog2l_( int *grindx, int *gcindx, int *desc, int *nprow, int *npcol, int *myrow, int *mycol, int *lrindx, int *lcindx, int *rsrc, int *csrc );
-
 void pdlacpy_( char *uplo, int *m, int *n, double *a, int *ia, int *ja, int *desca, double *b, int *ib, int *jb, int *descb);
 void pdlascl_( char *uplo, double *cfrom, double *cto, int *m, int *n, double *a, int *ia, int *ja, int *desca, int *info);
 

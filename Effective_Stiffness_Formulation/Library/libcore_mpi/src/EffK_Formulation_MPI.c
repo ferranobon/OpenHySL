@@ -3,6 +3,7 @@
 
 #if _MKL_
 #include <mkl_pblas.h>
+#include <Cblacs.h>
 #else
 #include "Netlib.h"
 #endif

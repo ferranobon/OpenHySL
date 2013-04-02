@@ -10,8 +10,9 @@
 #if _MKL_
 #include "mkl_blas.h"
 #include "mkl_pblas.h"
-#include "mkl_blacs.h"
 #include "mkl_scalapack.h"
+#include "Cblacs.h"
+#include "Scalapack_Aux.h"
 #else
 #include "Netlib.h"
 #endif
@@ -72,8 +73,8 @@ void PMatrixVector_Set2Value( const double Value, PMatrixVector_t *const Mat )
      dcopy( &Length, &Val, &incx, Mat->Array, &incy );
 }
 
-void PMatrixVector_ModifyElement( const int GRowIndex, const int GColIndex, const double Value,
-				  const char *Operation, PMatrixVector_t *const Mat )
+void PMatrixVector_ModifyElement( int GRowIndex, int GColIndex, const double Value, const char *Operation,
+				  PMatrixVector_t *const Mat )
 {
 
 	int myrow, mycol, nprow, npcol;
