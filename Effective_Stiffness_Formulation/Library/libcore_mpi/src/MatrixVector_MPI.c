@@ -122,12 +122,13 @@ void PMatrixVector_ModifyElement( const int GRowIndex, const int GColIndex, cons
 
 }
 
-void PMatrixVector_Add3Mat( const PMatrixVector_t *const MatA, const PMatrixVector_t *const MatB,
-			    const PMatrixVector_t *const MatC, const Scalars_t Const, PMatrixVector_t *const MatY )
+void PMatrixVector_Add3Mat( PMatrixVector_t *const MatA, PMatrixVector_t *const MatB,
+			    PMatrixVector_t *const MatC, const Scalars_t Const, PMatrixVector_t *const MatY )
 {
 
 	char uplo, trans;
 	int ione;
+	double ScalarA, ScalarB;
 
 	ione = 1;
 	trans = 'N'; /* The operation will not use the transpose matrix */
@@ -135,15 +136,17 @@ void PMatrixVector_Add3Mat( const PMatrixVector_t *const MatA, const PMatrixVect
 		      * referenced */
 	/* ScaLAPACK: Perform Y = A (locally. There is no communication) */
 	pdlacpy( &uplo, &MatY->GlobalSize.Row, &MatY->GlobalSize.Col, MatA->Array, &ione, &ione,
-		  MatA->Desc, MatY->Array, &ione, &ione, MatY->Desc );
+		 MatA->Desc, MatY->Array, &ione, &ione, MatY->Desc );
 
 	/* ScaLAPACK: Perform Y = beta*B + alpha*A = beta*B + alpha*Y */
-	pdtradd_( &uplo, &trans, &MatY->GlobalSize.Row, &MatY->GlobalSize.Col, &Const.Beta, MatB->Array,
-		  &ione, &ione, MatB->Desc, &Const.Alpha, MatY->Array, &ione, &ione, MatY->Desc );
+	ScalarA = Const.Alpha; ScalarB = Const.Beta;
+	pdtradd_( &uplo, &trans, &MatY->GlobalSize.Row, &MatY->GlobalSize.Col, &ScalarB, MatB->Array,
+		  &ione, &ione, MatB->Desc, &ScalarA, MatY->Array, &ione, &ione, MatY->Desc );
 
 	/* ScaLAPACK: Perform Y = gamma*C + beta*B = gamma*C + 1.0*Y */
-	pdtradd_( &uplo, &trans, &MatY->GlobalSize.Row, &MatY->GlobalSize.Col, &Const.Gamma, MatC->Array,
-		  &ione, &ione, MatC->Desc, &Const.Gamma, MatY->Array, &ione, &ione, MatY->Desc );
+	ScalarA = 1.0; ScalarB = Const.Gamma;
+	pdtradd_( &uplo, &trans, &MatY->GlobalSize.Row, &MatY->GlobalSize.Col, &ScalarB, MatC->Array,
+		  &ione, &ione, MatC->Desc, &ScalarA, MatY->Array, &ione, &ione, MatY->Desc );
 }
 
 void PMatrixVector_Destroy( PMatrixVector_t *const Mat )

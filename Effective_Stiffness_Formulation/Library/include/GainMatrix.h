@@ -352,8 +352,8 @@ void IGainMatrix_Pardiso_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_
  *
  * \sa PMatrixVector_t and Scalars_t.
  */
-void IGainMatrix_MPI( PMatrixVector_t *const IGain, const PMatrixVector_t *const Mass,
-		      const PMatrixVector_t *const Damp, const PMatrixVector_t *const Stiff,
+void IGainMatrix_MPI( PMatrixVector_t *const IGain, PMatrixVector_t *const Mass,
+		      PMatrixVector_t *const Damp, PMatrixVector_t *const Stiff,
 		      const Scalars_t Const );
 
 #endif /* GAINMATRIX_H_ */

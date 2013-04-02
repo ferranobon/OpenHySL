@@ -13,7 +13,7 @@
 #include "Netlib.h"
 #endif
 
-void Rayleigh_Damping_MPI( const PMatrixVector_t *const Mass, const PMatrixVector_t *const Stiff, PMatrixVector_t *const Damp,
+void Rayleigh_Damping_MPI( PMatrixVector_t *const Mass, PMatrixVector_t *const Stiff, PMatrixVector_t *const Damp,
 			   const Rayleigh_t *const Rayleigh )
 {
      double alpha, beta;

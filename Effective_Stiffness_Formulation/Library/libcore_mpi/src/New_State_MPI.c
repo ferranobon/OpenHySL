@@ -7,8 +7,8 @@
 #include "Netlib.h"
 #endif
 
-void Compute_NewState_MPI( const PMatrixVector_t *const IGain, const PMatrixVector_t *const Eff_ForceT,
-			   const PMatrixVector_t *const In_LoadT, const PMatrixVector_t *const Err_ForceT,
+void Compute_NewState_MPI( PMatrixVector_t *const IGain, PMatrixVector_t *const Eff_ForceT,
+			   PMatrixVector_t *const In_LoadT, PMatrixVector_t *const Err_ForceT,
 			   PMatrixVector_t *const Tempvec, PMatrixVector_t *const VecTdT_0 )
 {
      int ione;

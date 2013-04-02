@@ -211,8 +211,8 @@ void InputLoad_AbsValues_Sp( const MatrixVector_Sp_t *const Stiff, const MatrixV
  *
  * \sa PMatrixVector_t.
  */
-void InputLoad_AbsValues_MPI( const PMatrixVector_t *const Stiff, const PMatrixVector_t *const Damp,
-			      const PMatrixVector_t *const GDisp, const PMatrixVector_t *const GVel,
+void InputLoad_AbsValues_MPI( PMatrixVector_t *const Stiff, PMatrixVector_t *const Damp,
+			      PMatrixVector_t *const GDisp, PMatrixVector_t *const GVel,
 			      PMatrixVector_t *const InLoad );
 
 /**
@@ -380,7 +380,7 @@ void InputLoad_RelValues_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVe
  *
  * \sa PMatrixVector_t.
  */
-void InputLoad_RelValues_MPI( const PMatrixVector_t *const Mass, const PMatrixVector_t *const GAcc,
+void InputLoad_RelValues_MPI( PMatrixVector_t *const Mass, PMatrixVector_t *const GAcc,
 			      PMatrixVector_t *const InLoad );
 
 /**
@@ -528,7 +528,7 @@ void InputLoad_Apply_LoadVectorForm( const MatrixVector_t *const LoadForm, const
  *
  * \sa PMatrixVector_t and InputLoad_Generate_LoadVectorForm_MPI().
  */
-void InputLoad_Apply_LoadVectorForm_MPI( const PMatrixVector_t *const LoadForm, const double Value,
-				      PMatrixVector_t *const LoadVector );
+void InputLoad_Apply_LoadVectorForm_MPI( PMatrixVector_t *const LoadForm, const double Value,
+					 PMatrixVector_t *const LoadVector );
 
 #endif /* INPUT_LOAD_H_ */

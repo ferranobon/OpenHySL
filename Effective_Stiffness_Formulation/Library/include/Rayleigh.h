@@ -123,11 +123,12 @@ void Rayleigh_Damping_PS( const MatrixVector_t *const Mass, const MatrixVector_t
  * - and \f$\alpha\f$ and \f$beta\f$ are the parameters that multiply the mass and stiffness matrices
  *   respectively.
  * 
- * It makes use of the BLAS, LAPACK and Sparse BLAS routines from the Intel Math Kernel Library (\cite MKL_2013) to
- * perform the linear algebra operations. This routine requires the MKL library.
+ * It makes use of the BLAS, LAPACK and Sparse BLAS routines from the Intel Math Kernel Library (\cite
+ * MKL_2013) to perform the linear algebra operations. This routine requires the MKL library.
  *
  * \pre 
- * - All elements of type \c MatrixVector_Sp_t must be properly intialised through the MatrixVector_Create_Sp() routine.
+ * - All elements of type \c MatrixVector_Sp_t must be properly intialised through the
+ *   MatrixVector_Create_Sp() routine.
  * - The matrices must in Intel's MKL CSR-\em three \em array \em variation and in one based index.
  * - The dimensions of the matrices must be identical.
  * - The Rayleigh constants must be properly initialised.
@@ -145,7 +146,8 @@ void Rayleigh_Damping_PS( const MatrixVector_t *const Mass, const MatrixVector_t
  *
  * \sa MatrixVector_Sp_t and Rayleigh_t.
  */
-void Rayleigh_Damping_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Stiff, MatrixVector_Sp_t *const Damp, const Rayleigh_t *const Rayleigh );
+void Rayleigh_Damping_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Stiff,
+			  MatrixVector_Sp_t *const Damp, const Rayleigh_t *const Rayleigh );
 
 /**
  * \brief Computes the proportional viscous damping matrix using Rayleigh damping. MPI version.
@@ -185,7 +187,7 @@ void Rayleigh_Damping_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVecto
  *
  * \sa PMatrixVector_t and Rayleigh_t.
  */
-void Rayleigh_Damping_MPI( const PMatrixVector_t *const Mass, const PMatrixVector_t *const Stiff, PMatrixVector_t *const Damp,
-			   const Rayleigh_t *const Rayleigh );
+void Rayleigh_Damping_MPI( PMatrixVector_t *const Mass, PMatrixVector_t *const Stiff,
+			   PMatrixVector_t *const Damp, const Rayleigh_t *const Rayleigh );
 
 #endif /* RAYLEIGH_H_ */

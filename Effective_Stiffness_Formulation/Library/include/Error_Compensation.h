@@ -295,10 +295,10 @@ void ErrorForce_PID_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVector_
  *
  * \sa PMatrixVector_t and PID_t.
  */
-void ErrorForce_PID_MPI( const PMatrixVector_t *const Mass, const PMatrixVector_t *const Damp,
-			 const PMatrixVector_t *Stiff, const PMatrixVector_t *const AccTdT,
-			 const PMatrixVector_t *const VelTdT, const PMatrixVector_t *const DispTdT,
-			 const PMatrixVector_t *const fc, PMatrixVector_t *const LoadTdT,
+void ErrorForce_PID_MPI( PMatrixVector_t *const Mass, PMatrixVector_t *const Damp,
+			 PMatrixVector_t *Stiff, PMatrixVector_t *const AccTdT,
+			 PMatrixVector_t *const VelTdT, PMatrixVector_t *const DispTdT,
+			 PMatrixVector_t *const fc, PMatrixVector_t *const LoadTdT,
 			 const PID_t *const PID, PMatrixVector_t *const fe );
 
 #endif /* ERRORCOMPENSATION_H_*/

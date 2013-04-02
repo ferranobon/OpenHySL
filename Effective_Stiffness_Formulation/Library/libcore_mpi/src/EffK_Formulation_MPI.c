@@ -7,9 +7,9 @@
 #include "Netlib.h"
 #endif
 
-void EffK_EffectiveForce_MPI( const PMatrixVector_t *const Mass, const PMatrixVector_t *const Damp,
-			      const PMatrixVector_t *const Disp, const PMatrixVector_t *const Vel,
-			      const PMatrixVector_t *const Acc, const PMatrixVector_t *const Tempvec,
+void EffK_EffectiveForce_MPI( PMatrixVector_t *const Mass, PMatrixVector_t *const Damp,
+			      PMatrixVector_t *const DispT, PMatrixVector_t *const VelT,
+			      PMatrixVector_t *const AccT, PMatrixVector_t *const Tempvec,
 			      const double a0, const double a1, const double a2, const double a3,
 			      const double a4, const double a5, PMatrixVector_t *const Eff_Force )
 {
@@ -20,18 +20,18 @@ void EffK_EffectiveForce_MPI( const PMatrixVector_t *const Mass, const PMatrixVe
      double Alpha, Beta;      /* Constants for the BLAS routines */
 
      /* PBLAS: tempvec = Disp */
-     pdcopy_( &Tempvec->GlobalSize.Row, Disp->Array, &ione, &ione, Disp->Desc, &ione, Tempvec->Array, &ione,
+     pdcopy_( &Tempvec->GlobalSize.Row, DispT->Array, &ione, &ione, DispT->Desc, &ione, Tempvec->Array, &ione,
 	      &ione, Tempvec->Desc, &ione );
      /* PBLAS: tempvec = a0*Disp = a0*tempvec */
      Alpha = a0;
      pdscal_( &Tempvec->GlobalSize.Row, &Alpha, Tempvec->Array, &ione, &ione, Tempvec->Desc, &incx );
      /* BLAS: tempvec = a0*Disp + a2*Vel = tempvec + a2*Vel */
      Alpha = a2;
-     pdaxpy_( &Tempvec->GlobalSize.Row, &Alpha, Vel->Array, &ione, &ione, Vel->Desc, &incx, Tempvec->Array,
+     pdaxpy_( &Tempvec->GlobalSize.Row, &Alpha, VelT->Array, &ione, &ione, VelT->Desc, &incx, Tempvec->Array,
 	      &ione, &ione, Tempvec->Desc, &incy );
      /* PBLAS: tempvec = a0*Disp + a2*Vel + a3*Acc = tempvec + a3*Acc */
      Alpha = a3;
-     pdaxpy_( &Tempvec->GlobalSize.Row, &Alpha, Acc->Array, &ione, &ione, Acc->Desc, &incx, Tempvec->Array,
+     pdaxpy_( &Tempvec->GlobalSize.Row, &Alpha, AccT->Array, &ione, &ione, AccT->Desc, &incx, Tempvec->Array,
 	      &ione, &ione, Tempvec->Desc, &incy );
      /* PBLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) = Mass*tempvec */
      Alpha = 1.0; Beta = 0.0;
@@ -40,18 +40,18 @@ void EffK_EffectiveForce_MPI( const PMatrixVector_t *const Mass, const PMatrixVe
 	      &incy );
 
      /* PBLAS: tempvec = Disp */
-     pdcopy_( &Tempvec->GlobalSize.Row, Disp->Array, &ione, &ione, Disp->Desc, &ione, Tempvec->Array, &ione,
+     pdcopy_( &Tempvec->GlobalSize.Row, DispT->Array, &ione, &ione, DispT->Desc, &ione, Tempvec->Array, &ione,
 	      &ione, Tempvec->Desc, &ione );
      /* PBLAS: tempvec = a1*Disp = a0*tempvec */
      Alpha = a1;
      pdscal_( &Tempvec->GlobalSize.Row, &Alpha, Tempvec->Array, &ione, &ione, Tempvec->Desc, &incx );
      /* PBLAS: tempvec = a1*Disp + a4*Vel = tempvec + a4*Vel */
      Alpha = a4;
-     pdaxpy_( &Tempvec->GlobalSize.Row, &Alpha, Vel->Array, &ione, &ione, Vel->Desc, &incx, Tempvec->Array,
+     pdaxpy_( &Tempvec->GlobalSize.Row, &Alpha, VelT->Array, &ione, &ione, VelT->Desc, &incx, Tempvec->Array,
 	      &ione, &ione, Tempvec->Desc, &incy );
      /* PBLAS: tempvec = a1*Disp + a4*Vel + a5*Acc = tempvec + a5*Acc */
      Alpha = a5;
-     pdaxpy_( &Tempvec->GlobalSize.Row, &Alpha, Acc->Array, &ione, &ione, Acc->Desc, &incx, Tempvec->Array,
+     pdaxpy_( &Tempvec->GlobalSize.Row, &Alpha, AccT->Array, &ione, &ione, AccT->Desc, &incx, Tempvec->Array,
 	      &ione, &ione, Tempvec->Desc, &incy );
      /* PBLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) + Damp*(a1*Disp + a4*Vel + a5*Acc) = Eff_Force +
       * Damp*tempvec */
@@ -61,8 +61,8 @@ void EffK_EffectiveForce_MPI( const PMatrixVector_t *const Mass, const PMatrixVe
 	      &incy );
 }
 
-void EffK_ComputeAcceleration_MPI( const PMatrixVector_t *const DispTdT, const PMatrixVector_t *const DispT,
-				   const PMatrixVector_t *const VelT, const PMatrixVector_t *const AccT,
+void EffK_ComputeAcceleration_MPI( PMatrixVector_t *const DispTdT, PMatrixVector_t *const DispT,
+				   PMatrixVector_t *const VelT, PMatrixVector_t *const AccT,
 				   const double a0, const double a2, const double a3,
 				   PMatrixVector_t *const AccTdT )
 {
@@ -91,8 +91,8 @@ void EffK_ComputeAcceleration_MPI( const PMatrixVector_t *const DispTdT, const P
 	      &ione, &ione, AccTdT->Desc, &incy );
 }
 
-void EffK_ComputeVelocity_MPI( const PMatrixVector_t *const VelT, const PMatrixVector_t *const AccT,
-			       const PMatrixVector_t *const AccTdT, const double a6, const double a7,
+void EffK_ComputeVelocity_MPI( PMatrixVector_t *const VelT, PMatrixVector_t *const AccT,
+			       PMatrixVector_t *const AccTdT, const double a6, const double a7,
 			       PMatrixVector_t *const VelTdT )
 {
      int ione = 1;
