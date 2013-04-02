@@ -121,9 +121,9 @@ void Substructure_JoinNonCouplingPart( MatrixVector_t *const VecTdT_m, const Mat
  *
  * \sa PMatrixVector_t.
  */
-void Substructure_JoinNonCouplingPart_MPI( const PMatrixVector_t *const VecTdT_m,
-					   const PMatrixVector_t *const Gain_m,
-					   const PMatrixVector_t *const fcprevsub,
+void Substructure_JoinNonCouplingPart_MPI( PMatrixVector_t *const VecTdT_m,
+					   PMatrixVector_t *const Gain_m,
+					   PMatrixVector_t *const fcprevsub,
 					   const CouplingNode_t *const CNodes, PMatrixVector_t *const VecTdT );
 
 /**
@@ -268,7 +268,7 @@ void Substructure_MatrixXc_PS( const MatrixVector_t *const Mat, const CouplingNo
  *
  */
 void Substructure_MatrixXc_MPI( const MPI_Comm Comm, const CouplingNode_t *const CNodes,
-				const PMatrixVector_t *const Mat, MatrixVector_t *const MatCouple );
+				PMatrixVector_t *const Mat, MatrixVector_t *const MatCouple );
 #endif
 
 /**
@@ -426,7 +426,7 @@ void Substructure_MatrixXcm_PS( const MatrixVector_t *const Mat, const CouplingN
  *
  * \sa PMatrixVector_t and CouplingNode_t.
  */
-void Substructure_MatrixXcm_MPI( const MPI_Comm Comm, const PMatrixVector_t *const Mat,
+void Substructure_MatrixXcm_MPI( const MPI_Comm Comm, PMatrixVector_t *const Mat,
 				 const CouplingNode_t *const CNodes, PMatrixVector_t *const MatXcm );
 #endif
 
@@ -487,7 +487,7 @@ void Substructure_VectorXm( const MatrixVector_t *const VectorX, const CouplingN
  *
  * \sa PMatrixVector_t and CouplingNode_t.
  */
-void Substructure_VectorXm_MPI(const PMatrixVector_t *const VectorX, const CouplingNode_t *const CNodes,
+void Substructure_VectorXm_MPI(PMatrixVector_t *const VectorX, const CouplingNode_t *const CNodes,
 			       PMatrixVector_t *const VectorXm );
 
 /**
@@ -535,7 +535,7 @@ void Substructure_VectorXc( const MatrixVector_t *const VecX, const CouplingNode
  *
  * \sa MatrixVector_t and CouplingNode_t.
  */
-void Substructure_VectorXc_MPI( const MPI_Comm Comm, const PMatrixVector_t *const VecX,
+void Substructure_VectorXc_MPI( const MPI_Comm Comm, PMatrixVector_t *const VecX,
 				const CouplingNode_t *const CNodes, MatrixVector_t *const VecXc );
 #endif
 

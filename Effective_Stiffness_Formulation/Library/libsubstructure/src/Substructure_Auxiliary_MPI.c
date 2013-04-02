@@ -12,9 +12,9 @@
 #include "Netlib.h"
 #endif
 
-void Substructure_JoinNonCouplingPart_MPI( const PMatrixVector_t *const VecTdT_m,
-					   const PMatrixVector_t *const Gain_m,
-					   const PMatrixVector_t *const fcprevsub,
+void Substructure_JoinNonCouplingPart_MPI( PMatrixVector_t *const VecTdT_m,
+					   PMatrixVector_t *const Gain_m,
+					   PMatrixVector_t *const fcprevsub,
 					   const CouplingNode_t *const CNodes, PMatrixVector_t *const VecTdT )
 {
 
@@ -55,15 +55,15 @@ void Substructure_JoinNonCouplingPart_MPI( const PMatrixVector_t *const VecTdT_m
 	  PosXm_Row = PosXm_Row + Length;
 	}
 
-	/* Copy the elements from the last position until the end of the vector */
-	Length = VecTdT->GlobalSize.Row - CNodes->Array[CNodes->Order-1];
-	pdcopy_( &Length, VecTdT_m->Array, &PosXm_Row, &PosXm_Col, VecTdT_m->Desc, &incx, VecTdT->Array,
-		 &PosX_Row, &PosX_Col, VecTdT->Desc, &incy );
+     /* Copy the elements from the last position until the end of the vector */
+     Length = VecTdT->GlobalSize.Row - CNodes->Array[CNodes->Order-1];
+     pdcopy_( &Length, VecTdT_m->Array, &PosXm_Row, &PosXm_Col, VecTdT_m->Desc, &incx, VecTdT->Array,
+	      &PosX_Row, &PosX_Col, VecTdT->Desc, &incy );
 
 }
 
 void Substructure_MatrixXc_MPI( const MPI_Comm Comm, const CouplingNode_t *const CNodes,
-				const PMatrixVector_t *const Mat, MatrixVector_t *const MatCouple )
+				PMatrixVector_t *const Mat, MatrixVector_t *const MatCouple )
 {
 
      int icoup, jcoup;
@@ -119,7 +119,7 @@ void Substructure_MatrixXc_MPI( const MPI_Comm Comm, const CouplingNode_t *const
      }     
 }
 
-void Substructure_MatrixXcm_MPI( const MPI_Comm Comm, const PMatrixVector_t *const Mat,
+void Substructure_MatrixXcm_MPI( const MPI_Comm Comm, PMatrixVector_t *const Mat,
 				 const CouplingNode_t *const CNodes, PMatrixVector_t *const MatXcm )
 {
 
@@ -201,7 +201,7 @@ void Substructure_MatrixXcm_MPI( const MPI_Comm Comm, const PMatrixVector_t *con
      }
 }
 
-void Substructure_VectorXm_MPI( const PMatrixVector_t *const VectorX, const CouplingNode_t *const CNodes,
+void Substructure_VectorXm_MPI( PMatrixVector_t *const VectorX, const CouplingNode_t *const CNodes,
 				PMatrixVector_t *const VectorXm )
 {
 
@@ -235,7 +235,7 @@ void Substructure_VectorXm_MPI( const PMatrixVector_t *const VectorX, const Coup
 }
 
 
-void Substructure_VectorXc_MPI( const MPI_Comm Comm, const PMatrixVector_t *const VecX,
+void Substructure_VectorXc_MPI( const MPI_Comm Comm, PMatrixVector_t *const VecX,
 				const CouplingNode_t *const CNodes, MatrixVector_t *const VecXc )
 {
      int icoup;
