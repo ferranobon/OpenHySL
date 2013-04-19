@@ -154,7 +154,7 @@ Find_Package(Doxygen)
 if (DOXYGEN_FOUND)
 
   set(SOURCE_DOXYGEN_PATH ${CMAKE_BINARY_DIR}/..)
-  set(SOURCE_DOXYGEN "${SOURCE_DOXYGEN_PATH}/include ${SOURCE_DOXYGEN_PATH}/src")
+  set(SOURCE_DOXYGEN "${SOURCE_DOXYGEN_PATH}/include ${SOURCE_DOXYGEN_PATH}/src ${SOURCE_DOXYGEN_PATH}/libcore/src ${SOURCE_DOXYGEN_PATH}/libcore_mpi/src ${SOURCE_DOXYGEN_PATH}/libcore_sp/src ${SOURCE_DOXYGEN_PATH}/libsubstructure/src")
 
   configure_file( ${CMAKE_BINARY_DIR}/../Documentation/SAlgorithm.doxyfile ${CMAKE_BINARY_DIR}/Doxyfile @ONLY)
 
