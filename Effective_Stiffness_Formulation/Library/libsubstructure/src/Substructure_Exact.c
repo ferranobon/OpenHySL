@@ -69,7 +69,7 @@ void Substructure_ExactSolution_Init( const double Mass, const double Damp, cons
 	  }
      } else {
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Exact Solution: Negative vibration frerquency.\n" );
+	  fprintf( stderr, "Exact Solution: Negative vibration frequency.\n" );
 	  exit( EXIT_FAILURE );
      }
 }
