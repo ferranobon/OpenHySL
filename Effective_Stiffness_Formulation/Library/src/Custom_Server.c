@@ -18,12 +18,12 @@
 #include "Custom_Server.h"
 
 #if _ADWIN_
-#include "RoutinesADwin.h"
+#include "ADwin_Routines.h"
 #endif
 
 int main( int argc, char **argv )
 {
-     int i,j;
+     int i;
      bool Called_Sub;
      const char* FileConf;
      AlgConst_t InitCnt;
@@ -237,7 +237,7 @@ int main( int argc, char **argv )
 #if _ADWIN_
 		    case EXP_ADWIN:
 			 /* Tell ADwin to perform the substepping process */
-			 ADWIN_Substep( DispTdT0_c, DispTdT_c, fcprev, fc, CNodes.Order );
+			 ADwin_Substep( DispTdT0_c, (unsigned int) CNodes.Order, 0.75, DispTdT_c, fcprev, fc );
 			 break;
 #endif
 		    }

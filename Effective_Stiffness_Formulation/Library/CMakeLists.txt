@@ -88,12 +88,20 @@ set(CMAKE_REQUIRED_LIBRARIES ${MATH_LIBS})
 # Check for HDF5
 Find_Package(HDF5)
 if (HDF5_FOUND)
+    add_definitions(-D_HDF5_)
   set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${HDF5_C_FLAGS}")
 endif()
 
 if( USE_OPENMP )
 Find_Package(OpenMP)
   set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+endif()
+
+# Find the ADwin libraries and tag it as required
+if(WITH_ADWIN)
+  add_definitions(-D_ADWIN_)
+  include("CMakeCustomFiles/CMakeADwin.cmake")
+  set(CMAKE_REQUIRED_LIBRARIES ${ADWIN_LIBS})
 endif()
 
 # Build the core library

@@ -14,7 +14,7 @@
 #include "Substructure_CouplingNodes.h"
 
 #if _ADWIN_
-#include "ADwinRoutines.h"
+#include "ADwin_Routines.h"
 #endif
 
 #if _MKL_
@@ -30,12 +30,12 @@ void Substructure_SendGainMatrix( double *Gain, unsigned int Order, const Substr
      if( Substructure->Type == EXP_ADWIN ){
 #if _ADWIN_
 
-	  /* Send matrix Gc to ADwin */
-	  ADWIN_SetGc( Gain, Order*Order );
+	  /* Send matrix Gc to ADwin. */
+	  /* In the code of ADWIN, the variable G is stored in DATA_1 */
+	  ADwin_SendArray( 1, Gain, Order*Order );
 	  
 	  Print_Header( SUCCESS );
 	  printf("Gain Matrix successfully sent to ADwin system.\n" );
-	  break;
 #else
 	  Print_Header( ERROR );
 	  fprintf( stderr, "The support for ADwin was disabled at runtime.\n");
@@ -129,7 +129,7 @@ void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, co
 #if _ADWIN_
 	  case EXP_ADWIN:
 	       /* Tell ADwin to perform the substepping process */
-	       ADWIN_Substep( DispTdT0_c, &Recv[0], &Recv[1], &Recv[2], CNodes->Order );
+	       ADwin_Substep( DispTdT0_c, (unsigned int) CNodes->Order, 0.75, &Recv[0], &Recv[1], &Recv[2] );
 	       break;
 #endif
 	  case REMOTE:
@@ -142,9 +142,9 @@ void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, co
 		    }
 		    Send[CNodes->Order] = GAcc;
 
-		    Substructure_Remote_Send( Send, CNodes->Order + 1, Remote->Socket );
+		    Substructure_Remote_Send( Send, (unsigned int) CNodes->Order + 1, Remote->Socket );
 
-		    Substructure_Remote_Receive( Recv, 3*CNodes->Order, Remote->Socket );
+		    Substructure_Remote_Receive( Recv, 3*(unsigned int) CNodes->Order, Remote->Socket );
 		    free( Send );
 	       } else if( Remote->Type == REMOTE_NCREE ){
 		    /* Using NSEP Protocol */

@@ -1,6 +1,8 @@
 #ifndef SUBSTRUCTURE_REMOTE_H_
 #define SUBSTRUCTURE_REMOTE_H_
 
+#include <sys/socket.h>  /* For struct sockaddr */
+
 #define NUM_REMOTE_TYPE 5
 #define MAXPENDING      5    /* Maximum outstanding connection requests */
 

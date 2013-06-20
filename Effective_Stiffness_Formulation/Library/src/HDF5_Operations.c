@@ -6,6 +6,8 @@
 #include "MatrixVector.h"
 #include "Algorithm_Aux.h"
 
+#include "Print_Messages.h"
+
 #include "Substructure.h"
 #include "Substructure_Exact.h"
 #include "Substructure_UHYDEfbr.h"
@@ -13,6 +15,8 @@
 #include "Substructure_Experimental.h"
 
 #if _ADWIN_
+#include <libadwin.h>        /* ADwin routines Boot(), Set_DeviceNo(), ... */
+#include <libadwin/errno.h>  /* ADwin error handling */
 #include "ADwin_Routines.h"
 #endif
 
@@ -393,35 +397,11 @@ void HDF5_StoreTime( const int hdf5_file, const HDF5time_t *Time )
 }
 
 #if _ADWIN_
-void HDF5_StoreADwinData( const int hdf5_file, const double *Array, const int Length )
+void HDF5_StoreADwinData( const int hdf5_file, const double *Array, const char **Entry_Names, const int Length )
 {
      int i;
      hid_t file_id;
-     const char *Entry_Names[NUM_CHANNELS] = { "Sub-step",
-				     "Control displacement actuator 1 [m]",
-				     "Control displacement actuator 2 [m]",
-				     "Measured displacement actuator 1 [m]",
-				     "Measured displacement actuator 2 [m]",
-				     "Control acceleration Actuator 1 [m/s^2]",
-				     "Control acceleration Actuator 2 [m/s^2]",
-				     "Measured acceleration actuator 1 [m/s^2]",
-				     "Measured acceleration actuator 2 [m/s^2]",
-				     "Acceleration TMD (y-direction) [m/s^2]",
-				     "Acceleration TMD (x-direction) [m/s^2]",
-				     "Acceleration Base-Frame (x-direction) [m/s^2]",
-				     "Coupling Force 1 (y-direction) [N]",
-				     "Coupling Force 2 (y-direction) [N]",
-				     "Coupling Force 3 (x-direction) [N]",
-				     "Displacement TMD (x-direction) [m]",
-				     "Displacement TMD (y-direction) [m]",
-				     "Control pressure [Pa]",
-				     "Measured pressure [Pa]",
-				     "Displacement at the coupling node [m]",
-				     "Time spent doing the sub-step [ms]", 
-				     "Sub-step time [ms]",
-				     "Synchronisation time between PC and ADwin [ms]",
-				     "Time between the first sub-step and arrival of the new update [ms]"
-     };
+
      size_t *Offset;
      hid_t *Field_types;
      hsize_t Chunk_size;
@@ -445,6 +425,29 @@ void HDF5_StoreADwinData( const int hdf5_file, const double *Array, const int Le
      free( Offset );
      free( Field_types );
 
+}
+
+void ADwin_SaveData_HDF5( const int hdf5_file, const unsigned int Num_Steps, const unsigned int Num_Sub,
+			  const unsigned short int Num_Channels, const char **Chan_Names, const int DataIndex )
+{
+     int Length;
+     double *Data;
+
+     Length = Num_Sub*Num_Steps*Num_Channels;
+     Data = (double *) calloc( (size_t) Length, sizeof( double ) );
+     if( Data == NULL ){
+	  Print_Header( WARNING );
+	  fprintf( stderr, "ADwin_SaveData_HDF5: Out of memory. Manual extraction of the data required.\n" );
+     }
+
+     /* Get the data from ADwin */
+     GetData_Double( (int32_t) DataIndex, Data, 1, (int32_t) Length );
+  
+     /* Save the data into an HDF5 file */
+     HDF5_StoreADwinData( hdf5_file, Data, Chan_Names, Length );
+
+     /* Free allocated memory */
+     free( Data );
 }
 #endif
 

@@ -10,4 +10,4 @@ if( NOT WITH_ADWIN )
 endif()
 
 add_library( substructure ${SUBS_SRCS} )
-target_link_libraries(substructure ${MATH_LIBS} -lm core)
+target_link_libraries(substructure ${MATH_LIBS} ${ADWIN_LIBS} -lm core)
