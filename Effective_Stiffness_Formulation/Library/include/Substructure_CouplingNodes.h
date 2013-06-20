@@ -2,6 +2,7 @@
 #define SUBSTRUCTURE_COUPLINGNODES_H_
 
 #include <stdio.h>
+#include "Algorithm_Aux.h"
 #include "Substructure.h"
 
 #define MAX_LINE 200          /*!< Maximum input line length. */
@@ -51,8 +52,7 @@ void Substructure_Identify( char *const Type, int *const Identity_Num );
 
 void Substructure_GetDescription( FILE *const InFile, const int LineNum, char *const Description );
 
-void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigned int NSteps, const unsigned int NSubsteps,
-				     const int OrderSub, const double DeltaTSub, const char *Filename );
+void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNode_t *const CNodes );
 
 /**
  * \brief Sort the coupling nodes in ascending order.

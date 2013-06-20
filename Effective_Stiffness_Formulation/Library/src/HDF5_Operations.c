@@ -54,7 +54,7 @@ void HDF5_CreateGroup_Parameters( int hdf5_file, AlgConst_t *const InitCnt, Coup
      dArray[0] = InitCnt->Newmark.Beta; dArray[1] = InitCnt->Newmark.Gamma;
      dArray[2] = InitCnt->Delta_t;
      HDF5_AddDoubleArray_AsTable( file_id, "/Test Parameters/Time Integration", Entry_Names,
-				    dArray, 3 );
+				  dArray, 3 );
      free( Entry_Names[0] ); free( Entry_Names[1] ); free( Entry_Names[2] );
 
      /* Add Rayleigh damping values */
@@ -138,7 +138,7 @@ void Save_InformationCNodes( hid_t file_id, const char *Name_path, CouplingNode_
 	       if ( i == EXP_ADWIN && CNodes->Sub[j].Type == EXP_ADWIN ){
 		    count = count + 1;
 		    is_adwin = 1;	
-	       } else if ( i == SIM_EXACT && CNodes->Sub[j].Type == SIM_EXACT ){
+	       } else if ( i == SIM_EXACT_MDOF && CNodes->Sub[j].Type == SIM_EXACT_MDOF ){
 		    count = count + 1;
 		    is_exact = 1;
 	       } else if ( i == SIM_UHYDE && CNodes->Sub[j].Type == SIM_UHYDE ){
@@ -153,9 +153,9 @@ void Save_InformationCNodes( hid_t file_id, const char *Name_path, CouplingNode_
 	  /* Allocate space */
 	  Nodes = NULL;
 	  if( is_uhyde || is_exact ){
-	       Nodes = (HDF5_Exact_UHYDE_t *) malloc( (size_t) count*sizeof( HDF5_Exact_UHYDE_t ) );
+	       Nodes = (HDF5_Exact_UHYDE_t *) calloc( (size_t) count, sizeof( HDF5_Exact_UHYDE_t ) );
 	  } else {
-	       Nodes_Exp = (HDF5_Exp_Meas_t *) malloc( (size_t) count*sizeof( HDF5_Exp_Meas_t ) );
+	       Nodes_Exp = (HDF5_Exp_Meas_t *) calloc( (size_t) count, sizeof( HDF5_Exp_Meas_t ) );
 	  }
 
 	  /* Copy the matching entries into the newly created structure */
@@ -167,13 +167,13 @@ void Save_InformationCNodes( hid_t file_id, const char *Name_path, CouplingNode_
 		    Experimental = (ExpSub_t *) CNodes->Sub[j].SimStruct;
 		    Nodes_Exp[k].Description = strdup( Experimental->Description );
 		    k = k + 1;
-	       } else if ( i == SIM_EXACT && CNodes->Sub[j].Type == SIM_EXACT ){
+	       } else if ( i == SIM_EXACT_MDOF && CNodes->Sub[j].Type == SIM_EXACT_MDOF ){
 		    Nodes[k].Position = CNodes->Array[j];
 
 		    TMD = (ExactSim_t *) CNodes->Sub[j].SimStruct;
-		    Nodes[k].InitValues[0] = TMD->Mass;
-		    Nodes[k].InitValues[1] = TMD->Damp;
-		    Nodes[k].InitValues[2] = TMD->Stiff;
+//		    Nodes[k].InitValues[0] = TMD->Mass[0];
+//		    Nodes[k].InitValues[1] = TMD->Damp[0];
+//		    Nodes[k].InitValues[2] = TMD->Stiff[0];
 
 		    Nodes[k].Description = strdup( TMD->Description );		
 		    k = k + 1;
@@ -195,7 +195,7 @@ void Save_InformationCNodes( hid_t file_id, const char *Name_path, CouplingNode_
 	       }
 	  }
 
-	  if ( (i == SIM_EXACT) && is_exact ){
+	  if ( (i == SIM_EXACT_MDOF) && is_exact ){
 	       memtype = H5Tcreate (H5T_COMPOUND, sizeof( HDF5_Exact_UHYDE_t) );
 	       H5Tinsert( memtype, "Eq. column (0-based index)", HOFFSET( HDF5_Exact_UHYDE_t, Position), H5T_NATIVE_INT );
 	       H5Tinsert( memtype, "Mass [kg]", HOFFSET( HDF5_Exact_UHYDE_t, InitValues[0]), H5T_NATIVE_DOUBLE );

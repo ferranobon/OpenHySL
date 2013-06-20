@@ -28,7 +28,7 @@
 
 int main( int argc, char **argv ){
 
-     unsigned int istep;
+     unsigned int istep, i;
      AlgConst_t InitCnt;
      const char *FileConf;
      
@@ -120,7 +120,7 @@ int main( int argc, char **argv ){
      Algorithm_Init( FileConf, &InitCnt );
 
      /* Read the coupling nodes from a file */
-     Substructure_ReadCouplingNodes( &CNodes, InitCnt.NStep, InitCnt.NSubstep, InitCnt.OrderSub, InitCnt.DeltaT_Sub, InitCnt.FileCNodes );
+     Substructure_ReadCouplingNodes( &InitCnt, &CNodes );
 
      /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will be used
       * during the test */
@@ -271,11 +271,14 @@ int main( int argc, char **argv ){
 	       Substructure_MatrixXc_PS( &Keinv, &CNodes, &Keinv_c );
 	       Substructure_MatrixXcm_PS( &Keinv, &CNodes, &Keinv_m );
 	  }
-  
-	  /* Send the coupling part of the effective matrix if we are performing a distributed test */
-//	  Send_Effective_Matrix( Keinv_c.Array, (unsigned int) CNodes.Order, &Socket, InitCnt.Remote );
-     }
 
+	  /* Send the coupling part of the effective matrix if we are performing a distributed test */
+	  for( i = 0; i < CNodes.Order; i++ ){
+	       if( CNodes.Sub[i].Type == EXP_ADWIN || CNodes.Sub[i].Type == REMOTE ){
+		    Substructure_SendGainMatrix( Keinv_c.Array, (unsigned int) CNodes.Order, &CNodes.Sub[i] );
+	       }
+	  }
+     }
      /* Read the earthquake data from a file */
      if( InitCnt.Use_Absolute_Values ){
 	  Algorithm_ReadDataEarthquake_AbsValues( InitCnt.NStep, InitCnt.FileData, VelAll, DispAll );
@@ -355,8 +358,11 @@ int main( int argc, char **argv ){
 
 	  /* Perform substepping */
 	  if( CNodes.Order >= 1 ){
+/*	       Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(double) istep,
+					 AccAll[istep - 1], InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array,
+					 fcprevsub.Array, fc.Array );*/
 	       Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(double) istep,
-					 InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array,
+					 AccAll[istep-1], InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array,
 					 fcprevsub.Array, fc.Array );
 	  }
 
@@ -434,6 +440,7 @@ int main( int argc, char **argv ){
      HDF5_StoreTime( hdf5_file, &Time );
      Print_Header( SUCCESS );
      printf( "The time integration process has finished in %lf ms.\n", Time.Elapsed_time );
+
 
      HDF5_CloseFile( hdf5_file );
 
@@ -515,7 +522,7 @@ int main( int argc, char **argv ){
      MatrixVector_Destroy( &Vel );
      MatrixVector_Destroy( &Acc );
 
-     /* Free the coupling nodes memory */
+     /* Free the coupling nodes memory and close sockets if appropiate */
      Substructure_DeleteCouplingNodes( &CNodes );
 
      return 0;
