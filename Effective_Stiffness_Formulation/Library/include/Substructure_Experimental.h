@@ -3,7 +3,7 @@
 
 #include "Substructure.h"
 
-#define NUM_CHANNELS 25  /*!< Number of channels of recorded data in ADwin */
+#define NUM_CHANNELS 24  /*!< Number of channels of recorded data in ADwin */
 
 typedef struct ExpSub{
      char *Description;

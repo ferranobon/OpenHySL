@@ -15,9 +15,12 @@
 #include "Rayleigh.h"
 #include "GainMatrix.h"
 #include "Substructure.h"
+#include "Substructure_Experimental.h"
 #include "Substructure_Auxiliary.h"  /* For Substructure_VectorXm(), Substructure_VectorXc(), ... */
 
 #include "HDF5_Operations.h"
+
+#include "ADwin_Routines.h"
 
 #if _SPARSE_
 #include "MatrixVector_Sp.h"
@@ -25,6 +28,32 @@
 #else
 #include "Netlib.h"
 #endif
+
+const char *Entry_Names[NUM_CHANNELS] = { "Sub-step",
+				     "Control displacement actuator 1 [m]",
+				     "Control displacement actuator 2 [m]",
+				     "Measured displacement actuator 1 [m]",
+				     "Measured displacement actuator 2 [m]",
+				     "Control acceleration Actuator 1 [m/s^2]",
+				     "Control acceleration Actuator 2 [m/s^2]",
+				     "Measured acceleration actuator 1 [m/s^2]",
+				     "Measured acceleration actuator 2 [m/s^2]",
+				     "Acceleration TMD (y-direction) [m/s^2]",
+				     "Acceleration TMD (x-direction) [m/s^2]",
+				     "Acceleration Base-Frame (x-direction) [m/s^2]",
+				     "Coupling Force 1 (y-direction) [N]",
+				     "Coupling Force 2 (y-direction) [N]",
+				     "Coupling Force 3 (x-direction) [N]",
+				     "Displacement TMD (x-direction) [m]",
+				     "Displacement TMD (y-direction) [m]",
+				     "Control pressure [Pa]",
+				     "Measured pressure [Pa]",
+				     "Displacement at the coupling node [m]",
+				     "Time spent doing the sub-step [ms]", 
+				     "Sub-step time [ms]",
+				     "Synchronisation time between PC and ADwin [ms]",
+				     "Time between the first sub-step and arrival of the new update [ms]"
+     };
 
 int main( int argc, char **argv ){
 
@@ -273,7 +302,7 @@ int main( int argc, char **argv ){
 	  }
 
 	  /* Send the coupling part of the effective matrix if we are performing a distributed test */
-	  for( i = 0; i < CNodes.Order; i++ ){
+	  for( i = 0; i < (unsigned int) CNodes.Order; i++ ){
 	       if( CNodes.Sub[i].Type == EXP_ADWIN || CNodes.Sub[i].Type == REMOTE ){
 		    Substructure_SendGainMatrix( Keinv_c.Array, (unsigned int) CNodes.Order, &CNodes.Sub[i] );
 	       }
@@ -361,8 +390,9 @@ int main( int argc, char **argv ){
 /*	       Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(double) istep,
 					 AccAll[istep - 1], InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array,
 					 fcprevsub.Array, fc.Array );*/
+
 	       Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(double) istep,
-					 AccAll[istep-1], InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array,
+					 0.0, InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array,
 					 fcprevsub.Array, fc.Array );
 	  }
 
@@ -424,8 +454,11 @@ int main( int argc, char **argv ){
 	  }
 
 	  /* Save the result in a HDF5 file format */
+#if _HDF5_
 	  HDF5_Store_TimeHistoryData( hdf5_file, &AccTdT, &VelTdT, &DispTdT, &LoadTdT, &fc, &fu, (int) istep, &InitCnt );
-
+#else
+	  
+#endif
 	  /* Backup vectors */
 	  dcopy( &LoadTdT1.Rows, LoadTdT1.Array, &incx, LoadTdT.Array, &incy ); /* li = li1 */
 	  dcopy( &DispTdT.Rows, DispTdT.Array, &incx, DispT.Array, &incy ); /* ui = ui1 */
@@ -441,6 +474,17 @@ int main( int argc, char **argv ){
      Print_Header( SUCCESS );
      printf( "The time integration process has finished in %lf ms.\n", Time.Elapsed_time );
 
+#if _ADWIN_
+     /* Save the data in ADwin into the HDF5 File */
+     if( CNodes.Order >= 1 ){
+	  for( i = 0; i < (unsigned int) CNodes.Order; i++ ){
+	       if( CNodes.Sub[i].Type == EXP_ADWIN ){
+		   ADwin_SaveData_HDF5( hdf5_file, InitCnt.NStep, InitCnt.NSubstep,
+					NUM_CHANNELS, Entry_Names, 97 );
+	       }
+	  }
+     }
+#endif
 
      HDF5_CloseFile( hdf5_file );
 

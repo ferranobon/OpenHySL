@@ -64,8 +64,6 @@ void Substructure_ExactSolutionSDOF_Init( const double Mass, const double Damp, 
 					  const double a6, const double a7, const char *Description,
 					  ExactSim_t *const Sub )
 {
-     int i;
-
      Sub->Description = strdup( Description );
 
      MatrixVector_Create( 1, 1, &Sub->Mass );

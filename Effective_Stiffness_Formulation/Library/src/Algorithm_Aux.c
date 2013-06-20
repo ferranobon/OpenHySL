@@ -232,8 +232,8 @@ void Algorithm_ReadDataEarthquake_RelValues( const unsigned int NumSteps, const 
      }
 
      for ( i = 0; i < NumSteps; i++ ){
-	  fscanf( InFile, "%lE %lE", &unnecessary, &temp1 );
-//	  fscanf( InFile, "%lE %lE %lE %lE", &unnecessary, &temp1, &temp2, &temp3 );
+//	  fscanf( InFile, "%lE %lE", &unnecessary, &temp1 );
+	  fscanf( InFile, "%lE %lE %lE %lE", &unnecessary, &temp1, &temp2, &temp3 );
 	  Acceleration[i] = temp1/1000.0;
      }
 
