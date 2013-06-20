@@ -89,7 +89,7 @@ int main( int argc, char **argv )
 	       if ( Mode < 0 || Mode > 3 ){
 		    Print_Header( ERROR );
 		    fprintf( stderr, "Mode %d is not a valid mode value.\n", Mode );
-		    Print_Help_Server( argv[0] );
+		    CustomServer_PrintHelp( argv[0] );
 		    return EXIT_FAILURE;
 	       }
 	       break;
@@ -102,21 +102,21 @@ int main( int argc, char **argv )
 	       if ( Socket_Type != REMOTE_TCP && Socket_Type != REMOTE_UDP ){
 		    Print_Header( ERROR );
 		    fprintf( stderr, "Socket type %d is not a valid.\n", Socket_Type );
-		    Print_Help_Server( argv[0] );
+		    CustomServer_PrintHelp( argv[0] );
 		    return EXIT_FAILURE;
 	       }
 	       break;		    
 	  case 'h':
-	       Print_Help_Server( argv[0] );
+	       CustomServer_PrintHelp( argv[0] );
 	       return EXIT_FAILURE;
 	       break;
 	  case '?':
 	       /* Long options already prints an error message telling that there is an unrecognised option */
-	       Print_Help_Server( argv[0] );
+	       CustomServer_PrintHelp( argv[0] );
 	       return EXIT_FAILURE;
 	  case ':':
 	       /* Long options already prints an error message telling that the option requieres an argument */
-	       Print_Help_Server( argv[0] );
+	       CustomServer_PrintHelp( argv[0] );
 	       return EXIT_FAILURE;
 	  }
      }
@@ -294,12 +294,10 @@ int main( int argc, char **argv )
 void CustomServer_PrintHelp( const char *Program_Name )
 {
 
-     Print_Header( INFO );
-     fprintf( stderr, "Usage: %s [-h] -m <Mode> -p <Port>", Program_Name );
-     Print_Header( INFO );
+     fprintf( stderr, "Usage: %s [-h] -m <Mode> -p <Port>\n", Program_Name );
      fprintf( stderr,
 	      "  -h  --help           This help text.\n"
-	      "  -c  --config-file    The name of the configuration file. Default value: ConfFile_Remote.conf\n" );
+	      "  -c  --config-file    The name of the configuration file. Default value: ConfFile_Remote.conf\n"
 	      "  -m  --mode           The mode used by the program. Default value 1.\n"
 	      "                            0 - ADwin will be used to perform the sub-stepping process.\n"
 	      "                            1 - The Substructure will be simulated using an exact solution (default).\n"
