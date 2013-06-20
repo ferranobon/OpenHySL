@@ -95,4 +95,6 @@ unsigned int MatrixVector_ReturnIndex_UPS( const unsigned int RowIndex, const un
  */
 unsigned int MatrixVector_ReturnIndex_LPS( const unsigned int RowIndex, const unsigned int ColIndex );
 
+void Compute_EigenValues_EigenVectors ( MatrixVector_t *const MatrixA, MatrixVector_t *const MatrixB, MatrixVector_t *const Eigen_Values, MatrixVector_t *const Eigen_Vectors );
+
 #endif /* AUXILIARY_MATH_H_ */

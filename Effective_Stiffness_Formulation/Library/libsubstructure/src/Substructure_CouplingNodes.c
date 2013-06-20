@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "MatrixVector.h"
+#include "Algorithm_Aux.h"
 #include "Print_Messages.h"
 #include "Substructure_Exact.h"
 #include "Substructure_Remote.h"
@@ -12,34 +14,37 @@
 #include "Substructure_CouplingNodes.h"
 
 
-const char *Substructure_Type[] = {"Sim_Exact",
+const char *Substructure_Type[] = {"Sim_Exact_MDOF",
+				   "Sim_Exact_SDOF",
+				   "Sim_Exact_ESP",
 				   "Sim_UHYDEfbr",
 				   "Sim_Measured",
 				   "Exp_ADwin",
-				   "Remote_TCP",
-				   "Remote_UDP",
-				   "Remote_NSEP",
-				   "Remote_OF" };
+				   "Remote" };
 
 
-void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigned int NSteps,
-				     const unsigned int NSubsteps, const int OrderSub, const double DeltaTSub,
-				     const char *Filename )
+void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNode_t *const CNodes )
 {
      FILE *InFile;
      int Count_Type;
      int i, j, k;
-     int itemp;
-     double *ftemp;
+     int itemp, ndof;
+     double *ftemp, *rayleigh;
+     char *ctemp;
+     MatrixVector_t mass, stiff;
      char Type[MAX_SUBTYPE], Description[MAX_DESCRIPTION], FileMeas[MAX_FILENAME];
+     char RemoteType[MAX_SUBTYPE];
      char InLine[MAX_LINE];
      char IPAddress[20], Port[20];
+     double DeltaTSub;
 
-     InFile = fopen( Filename, "r" );
+     DeltaTSub = InitCnt->Delta_t/(double) InitCnt->NSubstep;
+
+     InFile = fopen( InitCnt->FileCNodes, "r" );
 
      if( InFile == NULL ){
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Substructure_ReadCouplingNodes: could not open file %s.\n", Filename );
+	  fprintf( stderr, "Substructure_ReadCouplingNodes: could not open file %s.\n", InitCnt->FileCNodes );
 	  exit( EXIT_FAILURE );
      }
 
@@ -47,7 +52,7 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
      fscanf( InFile, "%i", &CNodes->Order );
      fgets( InLine, MAX_LINE, InFile );
 
-     if( CNodes->Order != OrderSub ){
+     if( CNodes->Order != InitCnt->OrderSub ){
 	  fclose( InFile );
 	  Print_Header( ERROR );
 	  fprintf( stderr, "Substructure_ReadCouplingNodes: Invalid number of substructures.\n" );
@@ -96,33 +101,121 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 		    }
 	       }
 	  }
-
 	  switch (CNodes->Sub[i].Type) {
-	  case SIM_EXACT:
+	  case SIM_EXACT_MDOF:
 	       /* Ignore coma */
 	       fscanf( InFile, "%*[,] %i", &itemp );
-	       if ( itemp != UHYDE_NUMPARAM_INIT ){
+	       if ( itemp != EXACTMDOF_NUMPARAM_INIT ){
 		    Print_Header( ERROR );
-		    fprintf( stderr, "Wrong number of parameters for the substructue number %i of type Exact.\n", i );
-		    fprintf( stderr, "The number of init parameters should be %i\n", EXACT_NUMPARAM_INIT );
+		    fprintf( stderr, "Wrong number of parameters for the substructue number %i of type Exact_MDOF.\n", i );
+		    fprintf( stderr, "The number of init parameters should be %i\n", EXACTMDOF_NUMPARAM_INIT );
+		    exit( EXIT_FAILURE );
+	       } else {
+		    ftemp = NULL; ctemp = NULL;
+		    ftemp = (double *) calloc( (size_t) EXACTMDOF_NUMPARAM_INIT, sizeof( double ) );
+		    ctemp = (char *) calloc( (size_t) 20, sizeof( char ) );
+		    rayleigh = (double *) calloc ( 2, sizeof(double) );
+
+		    /* Read the number of degrees of freedom */
+		    fscanf( InFile, "%i", &ndof );
+		    MatrixVector_Create( ndof, ndof, &mass );
+		    MatrixVector_Create( ndof, ndof, &stiff );
+
+		    /* Read the matrices from a MM file */
+		    fscanf( InFile, "%s", ctemp );
+		    MatrixVector_FromFile_MM( ctemp, &mass );
+		    fscanf( InFile, "%s", ctemp );
+		    MatrixVector_FromFile_MM( ctemp, &stiff );
+		    fscanf( InFile, "%lf %lf", &rayleigh[0], &rayleigh[1] );
+
+		    /* Read the optional description */
+		    Substructure_GetDescription( InFile, i, Description );
+		    
+		    for( j = 0; j < Count_Type; j++ ){
+			 CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(ExactSim_t) );
+
+/*			 mass.Array[0] = 600.0; mass.Array[1] = 0.0; mass.Array[2] = 0.0; mass.Array[3] = 285.0;
+			 stiff.Array[0] = 150000; stiff.Array[1] = -68000.0; stiff.Array[2] = -68000.0; stiff.Array[3] = 68000.0;
+			 ray[0] = 0.900; ray[1] = 0.000015;*/
+			 Substructure_ExactSolutionMDOF_Init( mass.Array, stiff.Array, ndof, InitCnt->Rayleigh.Alpha, InitCnt->Rayleigh.Beta,
+							      rayleigh[0], rayleigh[1], InitCnt->a0, InitCnt->a2, InitCnt->a3, InitCnt->a6,
+							      InitCnt->a7, Description, (ExactSim_t *) CNodes->Sub[i + j].SimStruct );
+			 
+			 /*Substructure_ExactSolutionSDOF_Init( ftemp[0], ftemp[1], ftemp[2], InitCnt->a0, InitCnt->a2, InitCnt->a3, InitCnt->a6, InitCnt->a7, Description,
+			   (ExactSim_t *) CNodes->Sub[i + j].SimStruct );*/
+			 Print_Header( INFO );
+			 printf( "Simulating the substructure in the coupling node %d as an exact integration method (MDOF).\n",
+				 CNodes->Array[i + j] );
+		    }
+		    MatrixVector_Destroy( &mass );
+		    MatrixVector_Destroy( &stiff );
+		    free( rayleigh );
+		    free( ftemp );
+		    free( ctemp );
+	       }
+	       break;
+	  case SIM_EXACT_SDOF:
+	       /* Ignore coma */
+	       fscanf( InFile, "%*[,] %i", &itemp );
+	       if ( itemp != EXACTSDOF_NUMPARAM_INIT ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Wrong number of parameters for the substructue number %i of type Exact_SDOF.\n", i );
+		    fprintf( stderr, "The number of init parameters should be %i\n", EXACTSDOF_NUMPARAM_INIT );
 		    exit( EXIT_FAILURE );
 	       } else {
 		    ftemp = NULL;
-		    ftemp = (double *) calloc( (size_t) EXACT_NUMPARAM_INIT, sizeof( double ) );
+		    ftemp = (double *) calloc( (size_t) EXACTSDOF_NUMPARAM_INIT, sizeof( double ) );
 
-		    for( j = 0; j < EXACT_NUMPARAM_INIT; j++ ){
+		    /* Read the input parameters */
+		    for( j = 0; j < EXACTSDOF_NUMPARAM_INIT; j++ ){
 			 fscanf( InFile, "%lf", &ftemp[j] );
 		    }
 
 		    /* Read the optional description */
 		    Substructure_GetDescription( InFile, i, Description );
-		 
+		    
 		    for( j = 0; j < Count_Type; j++ ){
 			 CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(ExactSim_t) );
-			 Substructure_ExactSolution_Init( ftemp[0], ftemp[1], ftemp[2], DeltaTSub, Description,
-							  (ExactSim_t *) CNodes->Sub[i + j].SimStruct );
+			 
+			 Substructure_ExactSolutionSDOF_Init( ftemp[0], ftemp[1], ftemp[2],
+							      InitCnt->a0, InitCnt->a2, InitCnt->a3, InitCnt->a6,
+							      InitCnt->a7, Description,
+							      (ExactSim_t *) CNodes->Sub[i + j].SimStruct );
+
 			 Print_Header( INFO );
-			 printf( "Simulating the substructure in the coupling node %d as an exact integration method.\n",
+			 printf( "Simulating the substructure in the coupling node %d as an exact integration method (SDOF).\n",
+				 CNodes->Array[i + j] );
+		    }
+		    free( ftemp );
+	       }
+	       break;
+	  case SIM_EXACT_ESP:
+	       /* Ignore coma */
+	       fscanf( InFile, "%*[,] %i", &itemp );
+	       if ( itemp != EXACTSDOF_NUMPARAM_INIT ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Wrong number of parameters for the substructue number %i of type Exact_ESP.\n", i );
+		    fprintf( stderr, "The number of init parameters should be %i\n", EXACTSDOF_NUMPARAM_INIT );
+		    exit( EXIT_FAILURE );
+	       } else {
+		    ftemp = NULL;
+		    ftemp = (double *) calloc( (size_t) EXACTSDOF_NUMPARAM_INIT, sizeof( double ) );
+
+		    /* Read the input parameters */
+		    for( j = 0; j < EXACTSDOF_NUMPARAM_INIT; j++ ){
+			 fscanf( InFile, "%lf", &ftemp[j] );
+		    }
+
+		    /* Read the optional description */
+		    Substructure_GetDescription( InFile, i, Description );
+		    
+		    for( j = 0; j < Count_Type; j++ ){
+			 CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(ExactSim_t) );
+			 
+			 Substructure_ExactSolutionESP_Init( ftemp[0], ftemp[1], ftemp[2], DeltaTSub, Description, (ExactSimESP_t *) CNodes->Sub[i + j].SimStruct );
+
+			 Print_Header( INFO );
+			 printf( "Simulating the substructure in the coupling node %d as an exact integration method (ESP).\n",
 				 CNodes->Array[i + j] );
 		    }
 		    free( ftemp );
@@ -165,7 +258,7 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 
 	       for( j = 0; j <  Count_Type; j++ ){    
 		    CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(MeasuredSim_t) );
-		    Substructure_SimMeasured_Init( FileMeas, NSteps, NSubsteps, Description,
+		    Substructure_SimMeasured_Init( FileMeas, InitCnt->NStep, InitCnt->NSubstep, Description,
 						   (MeasuredSim_t *) CNodes->Sub[i + j].SimStruct );
 		    Print_Header( INFO );
 		    printf( "Simulating the substructure in the coupling node %d using time history measured forces.\n", CNodes->Array[i + j] );
@@ -183,24 +276,22 @@ void Substructure_ReadCouplingNodes( CouplingNode_t *const CNodes, const unsigne
 			    CNodes->Array[i + j] );
 	       }
 	       break;
-	  case REMOTE_TCP:
-	       /* This is the same case as REMOTE_UDF */
-	  case REMOTE_UDP:
-	  case REMOTE_NSEP:
-	  case REMOTE_OF:
+	  case REMOTE:
 	       /* Read IP Address and Port */
-	       fscanf( InFile, "%*[,] %s %[^,]", IPAddress, Port );
+	       fscanf( InFile, "%*[,] %s %s %[^,]", RemoteType, IPAddress, Port );
+
 	       /* Read the optional description */
 	       Substructure_GetDescription( InFile, i, Description );
 	       
 	       for( j = 0; j <  Count_Type; j++ ){
 		    CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(Remote_t) );
-		    Substructure_Remote_Init( IPAddress, Port, Count_Type, &CNodes->Array[i], Description,
+		    Substructure_Remote_Init( RemoteType, IPAddress, Port, Count_Type, &CNodes->Array[i], Description,
 					      (Remote_t *) CNodes->Sub[i + j].SimStruct );
 		    Print_Header( INFO );
-		    printf( "The substructure in the coupling node %d is computed is computed at %s:%s using %s.\n", CNodes->Array[i + j],
-			    IPAddress, Port, Substructure_Type[CNodes->Sub[i].Type] );
+		    printf( "The substructure in the coupling node %d is computed is computed at %s:%s using %s protocol.\n", CNodes->Array[i + j],
+			    IPAddress, Port, RemoteType );
 	       }
+	       break;
 	  }
 	  i = i + Count_Type;
      }
@@ -289,8 +380,14 @@ void Substructure_DeleteCouplingNodes( CouplingNode_t *CNodes )
 
      for( i = 0; i < CNodes->Order; i++ ){
 	  switch( CNodes->Sub[i].Type ){
-	  case SIM_EXACT:
-	       Substructure_ExactSolution_Destroy( (ExactSim_t *) CNodes->Sub[i].SimStruct );
+	  case SIM_EXACT_MDOF:
+	       Substructure_ExactSolutionMDOF_Destroy( (ExactSim_t *) CNodes->Sub[i].SimStruct );
+	       break;
+	  case SIM_EXACT_SDOF:
+	       Substructure_ExactSolutionSDOF_Destroy( (ExactSim_t *) CNodes->Sub[i].SimStruct );
+	       break;
+	  case SIM_EXACT_ESP:
+	       Substructure_ExactSolutionESP_Destroy( (ExactSimESP_t *) CNodes->Sub[i].SimStruct );
 	       break;
 	  case SIM_UHYDE:
 	       Substructure_SimUHYDE_Destroy( (UHYDEfbrSim_t *) CNodes->Sub[i].SimStruct );
@@ -301,14 +398,8 @@ void Substructure_DeleteCouplingNodes( CouplingNode_t *CNodes )
 	  case EXP_ADWIN:
 	       Substructure_Experimental_Destroy( (ExpSub_t *) CNodes->Sub[i].SimStruct );
 	       break;
-	  case REMOTE_TCP:
-	       /* This is the same case as REMOTE_OF */
-	  case REMOTE_UDP:
-	       /* This is the same case as REMOTE_OF */
-	  case REMOTE_NSEP:
-	       /* This is the same case as REMOTE_OF */
-	  case REMOTE_OF:
-	       Substructure_Remote_Destroy( (Remote_t *) CNodes->Sub[i].SimStruct );
+	  case REMOTE:
+	       Substructure_Remote_Destroy( (Remote_t *) CNodes->Sub[i].SimStruct, CNodes->Order );
 	       break;
 	  }
 	  free( CNodes->Sub[i].SimStruct );

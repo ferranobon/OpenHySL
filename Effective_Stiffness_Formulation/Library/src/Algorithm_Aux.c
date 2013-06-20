@@ -124,7 +124,7 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
      InitConst->OrderSub = ConfFile_GetInt( Config, "Substructure:Order" );
      if ( InitConst->OrderSub < 0 ){
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Invalid option for the number of sub-structuresr of the matrices.\n" );
+	  fprintf( stderr, "Invalid option for the number of sub-structures of the matrices.\n" );
 	  exit( EXIT_FAILURE );
      }
      
@@ -228,12 +228,12 @@ void Algorithm_ReadDataEarthquake_RelValues( const unsigned int NumSteps, const 
 
      if ( InFile == NULL ){
 	  Print_Header( ERROR );
-	  fprintf( stderr, "The earthquake data cannot be read because it was not possible to open %s.\n",
-		   Filename );
+	  fprintf( stderr, "The earthquake data cannot be read because it was not possible to open %s.\n", Filename );
      }
 
      for ( i = 0; i < NumSteps; i++ ){
-	  fscanf( InFile, "%lE %lE %lE %lE", &unnecessary, &temp1, &temp2, &temp3 );
+	  fscanf( InFile, "%lE %lE", &unnecessary, &temp1 );
+//	  fscanf( InFile, "%lE %lE %lE %lE", &unnecessary, &temp1, &temp2, &temp3 );
 	  Acceleration[i] = temp1/1000.0;
      }
 

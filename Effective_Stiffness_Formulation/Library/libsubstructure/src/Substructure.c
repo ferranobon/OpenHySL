@@ -3,8 +3,11 @@
 #include <assert.h>
 #include <stdbool.h>
 
+#include "Print_Messages.h"
+
 #include "Substructure.h"
 #include "Substructure_Exact.h"
+#include "Substructure_Remote.h"
 #include "Substructure_UHYDEfbr.h"
 #include "Substructure_SimMeasured.h"
 #include "Substructure_Experimental.h"
@@ -20,7 +23,70 @@
 #include "Netlib.h"
 #endif
 
-void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, const double Time,
+void Substructure_SendGainMatrix( double *Gain, unsigned int Order, const Substructure_t *const Substructure )
+{
+     Remote_t *Remote = NULL;
+  
+     if( Substructure->Type == EXP_ADWIN ){
+#if _ADWIN_
+
+	  /* Send matrix Gc to ADwin */
+	  ADWIN_SetGc( Gain, Order*Order );
+	  
+	  Print_Header( SUCCESS );
+	  printf("Gain Matrix successfully sent to ADwin system.\n" );
+	  break;
+#else
+	  Print_Header( ERROR );
+	  fprintf( stderr, "The support for ADwin was disabled at runtime.\n");
+	  exit( EXIT_FAILURE );
+#endif
+     } else if ( Substructure->Type == REMOTE ){
+	  Remote = (Remote_t *) Substructure->SimStruct;
+
+	  if( Remote->Type == REMOTE_TCP || Remote->Type == REMOTE_UDP || Remote->Type == REMOTE_CELESTINA ){
+	       Substructure_Remote_Send( Gain, Order*Order, Remote->Socket );
+	       Print_Header( SUCCESS );
+	       printf("Gain Matrix successfully sent to Remote site %s:%s (%s protocol).\n", Remote->IP, Remote->Port,
+		      Substructure_RemoteType[Remote->Type] );
+	  } else if( Remote->Type == REMOTE_NCREE ){
+	  /* Using NSEP Protocol */
+	  /* Open the Socket */
+//	  printf( "Establishing connection with PNSE server.\n" );
+//	  Communicate_With_PNSE( 0, 0.0, Send, Recv, 0 );
+	  
+	  /* Send the matrix Gc to the PNSE server in order to reach the FCM */
+	  /*
+	   * Note that the CGM can only send a NSEP_CMD message with the size of order, therefore it is needed
+	   * to send the matrix Gc per rows to fullfill this requisite. This also means, that the FCM must
+	   * send as many NSEP_CSIG packets as the number of rows to keep everything synchronised
+	   */
+
+//	  for ( i = 0; i < OrderC; i++ ){
+//	       for ( j = 0; j < OrderC; j++ ){
+//		    Send[j] = Eff_Mat[i*OrderC + j];
+//	       }
+	       /* Send the matrix Keinv_c to PNSE Server */
+//	       Communicate_With_PNSE( 1, 0.0, Send, Recv, OrderC );
+	       /* This is done so that PNSE do not overtake the first step */
+//	       Communicate_With_PNSE( 2, 0.0,  Send, Recv, OrderC );
+//	  }
+
+	  } else if( Remote->Type == REMOTE_OF ){
+	       /* Using OpenFresco. Exit with failure if the connection could not be established */
+//	  if ( Communicate_With_OpenFresco( Eff_Mat, Recv, OrderC*OrderC, 1 ) < 0 ){
+//	       exit( EXIT_FAILURE );
+//	  }
+//	  if ( Communicate_With_OpenFresco( Eff_Mat, Recv, OrderC*OrderC, 3 ) < 0 ){
+//	       exit( EXIT_FAILURE );
+//	  }
+	  /* TODO Implement Send the Matrix G in OpenFresco. Wait for the answer from Andreas */
+	  } else assert( Remote->Type >= 0 || Remote->Type < NUM_REMOTE_TYPE );
+     } else assert( Substructure->Type == EXP_ADWIN || Substructure->Type == REMOTE );
+}
+
+
+void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, const double Time, const double GAcc,
 			       const unsigned int NSubstep, const double DeltaT_Sub,
 			       CouplingNode_t *const CNodes, double *const DispTdT, double *const fcprevsub,
 			       double *const fc )
@@ -29,14 +95,26 @@ void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, co
      int i;
      bool Called_Sub = false;
      double *Recv = NULL;
+     double *Send = NULL;
+
+     Remote_t *Remote;
 
      Recv = (double *) calloc( (size_t) 3*(size_t)CNodes->Order, sizeof(double) );
 
+     /* Copy the older coupling force. This is necessary for simulations */
+     for( i = 0; i < CNodes->Order; i++ ){
+	  Recv[2*CNodes->Order + i] = fc[CNodes->Array[i] - 1];
+     }
+
      for( i = 0; i < CNodes->Order; i++ ){
 	  switch ( CNodes->Sub[i].Type ){
-	  case SIM_EXACT:
+	  case SIM_EXACT_MDOF:
 	       /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
 		* in the same routine.*/
+	  case SIM_EXACT_SDOF:
+	       /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
+		* in the same routine.*/
+	  case SIM_EXACT_ESP:
 	  case SIM_UHYDE:
 	       /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
 		* in the same routine.*/
@@ -44,7 +122,7 @@ void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, co
 	       /* Call the Simulate_Substructures() function only once. All the simulated substructures are
 		* handled together in this routine */
 	       if( !Called_Sub ){
-		    Substructure_Simulate( CNodes, IGain, DispTdT0_c, NSubstep, DeltaT_Sub, &Recv[0], &Recv[CNodes->Order], &Recv[2*CNodes->Order] );
+		    Substructure_Simulate( CNodes, IGain, DispTdT0_c, GAcc, NSubstep, DeltaT_Sub, &Recv[0], &Recv[CNodes->Order], &Recv[2*CNodes->Order] );
 		    Called_Sub = true;
 	       }
 	       break;
@@ -54,29 +132,29 @@ void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, co
 	       ADWIN_Substep( DispTdT0_c, &Recv[0], &Recv[1], &Recv[2], CNodes->Order );
 	       break;
 #endif
-	  case REMOTE_TCP:
-	       /* Using TCP communication protocol */
-//	       Send_Data( DispTdT0_c, CNodes->Order, Socket );
+	  case REMOTE:
+	       Remote = (Remote_t *) CNodes->Sub[i].SimStruct;
 
-//	       Receive_Data( Recv, 3*CNodes->Order, Socket );
-	       break;
-	  case REMOTE_UDP:
-	       /* Using UDP communication protocol */
+	       if( Remote->Type == REMOTE_TCP || Remote->Type == REMOTE_UDP || Remote->Type == REMOTE_CELESTINA ){
+		    Send = (double *) calloc( (size_t) 1+(size_t)CNodes->Order, sizeof(double) );
+		    for( i = 0; i < CNodes->Order; i++ ){
+			 Send[i] = DispTdT0_c[i];
+		    }
+		    Send[CNodes->Order] = GAcc;
 
-//	       Send_Data( DispTdT0_c, CNodes->Order, Socket );
-//	       if ( recv( Socket, Recv, sizeof(double)*3*(size_t) CNodes->Order,0) != (int) sizeof(double)*3*CNodes->Order ){    /* sizeof returns an unsigned integer ? */
-//		    PrintErrorAndExit( "recv() failed in connected UDP mode" );
-//	       }
-	       break;
-	  case REMOTE_NSEP:
-	       /* Using NSEP Protocol */
-//	       Communicate_With_PNSE( 1, Time, DispTdT0_c, Recv, CNodes->Order );
-	       /* Receive the force from the PNSE server. WhatToDo = 2 */
-//	       Communicate_With_PNSE( 2, Time, DispTdT0_c, Recv, 3*CNodes->Order );
-	       break;
-	  case REMOTE_OF:
-	       /* Using OpenFresco */
-//	       Communicate_With_OpenFresco( DispTdT0_c, Recv, CNodes->Order, 3 ); 
+		    Substructure_Remote_Send( Send, CNodes->Order + 1, Remote->Socket );
+
+		    Substructure_Remote_Receive( Recv, 3*CNodes->Order, Remote->Socket );
+		    free( Send );
+	       } else if( Remote->Type == REMOTE_NCREE ){
+		    /* Using NSEP Protocol */
+		    //Communicate_With_PNSE( 1, Time, DispTdT0_c, Recv, OrderC );
+		    /* Receive the force from the PNSE server. WhatToDo = 2 */
+		    //Communicate_With_PNSE( 2, Time, DispTdT0_c, Recv, 3*OrderC );
+	       } else if( Remote->Type == REMOTE_OF ){
+		    /* Using OpenFresco */
+		    //Communicate_With_OpenFresco( DispTdT0_c, Recv, OrderC, 3 );
+	       } else assert( Remote->Type >= 0 || Remote->Type < NUM_REMOTE_TYPE );
 	       break;
 	  }
      }
@@ -84,7 +162,6 @@ void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, co
 #pragma omp parallel for
      for ( i = 0; i < CNodes->Order; i++ ){
 #if _MPI_
-
 	  DispTdT[i] = Recv[i];
 	  fcprevsub[i] = Recv[CNodes->Order + i];
 	  fc[i] = Recv[2*CNodes->Order + i];
@@ -98,7 +175,7 @@ void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, co
      free( Recv );
 }
 
-void Substructure_Simulate( CouplingNode_t *const CNodes, double *IGain, double *const VecTdT0_c,
+void Substructure_Simulate( CouplingNode_t *const CNodes, double *IGain, double *const VecTdT0_c, const double GAcc, 
 			    const unsigned int NSubstep, const double DeltaT_Sub, double *const VecTdT_c,
 			    double *const fcprev, double *const fc )
 {
@@ -110,6 +187,7 @@ void Substructure_Simulate( CouplingNode_t *const CNodes, double *IGain, double 
      int Length;
      char uplo = 'L';
      ExactSim_t *Exact;
+     ExactSimESP_t *ExactEsp;
      UHYDEfbrSim_t *UHYDE;  
      MeasuredSim_t *Measured;
 
@@ -137,9 +215,17 @@ void Substructure_Simulate( CouplingNode_t *const CNodes, double *IGain, double 
 	  /* Compute the new fc */
 	  for( i = 0; i < (unsigned int) CNodes->Order; i ++ ){
 	       switch( CNodes->Sub[i].Type ){
-	       case SIM_EXACT:
+	       case SIM_EXACT_MDOF:
 		    Exact = (ExactSim_t *) CNodes->Sub[i].SimStruct;
-		    Substructure_ExactSolution_SDOF( VecTdT0_c[i], DeltaT_Sub, Exact, &fc[i] );
+		    Substructure_ExactSolutionMDOF( VecTdT_c[i], ramp, GAcc, DeltaT_Sub, Exact, &fc[i] );
+		    break;
+	       case SIM_EXACT_SDOF:
+		    Exact = (ExactSim_t *) CNodes->Sub[i].SimStruct;
+		    Substructure_ExactSolutionSDOF( VecTdT_c[i], ramp, GAcc, DeltaT_Sub, Exact, &fc[i] );
+		    break;
+	       case SIM_EXACT_ESP:
+		    ExactEsp = (ExactSimESP_t *) CNodes->Sub[i].SimStruct;
+		    Substructure_ExactSolutionESP_SDOF( VecTdT_c[i], DeltaT_Sub, ExactEsp, &fc[i] );
 		    break;
 	       case SIM_UHYDE:
 		    UHYDE = (UHYDEfbrSim_t *) CNodes->Sub[i].SimStruct;
@@ -150,10 +236,26 @@ void Substructure_Simulate( CouplingNode_t *const CNodes, double *IGain, double 
 		    Substructure_SimMeasured( Measured, &fc[i] );
 		    break;
 	       }
-	  }
-	  
+	  }	  
      }
 
      /* Backup VecTdT0_c */
      dcopy( &Length, VecTdT0_c, &incx, CNodes->VecTdT0_c0, &incy );
+     for( i = 0; i < (unsigned int) CNodes->Order; i ++ ){
+	  switch( CNodes->Sub[i].Type ){
+	  case SIM_EXACT_MDOF:
+	       /* Same as SIM_EXACT_SDOF */
+	  case SIM_EXACT_SDOF:
+	       Exact->Acc0 = Exact->AccT; Exact->AccT = Exact->AccTdT;
+	       Exact->Vel0 = Exact->VelT; Exact->VelT = Exact->VelTdT;
+	       Exact->Disp0 = Exact->DispT; Exact->DispT = VecTdT_c[0];
+	       break;
+	  case SIM_EXACT_ESP:
+	       break;
+	  case SIM_UHYDE:
+	       break;
+	  case SIM_MEASURED:
+	       break;
+	  }
+     }
 }

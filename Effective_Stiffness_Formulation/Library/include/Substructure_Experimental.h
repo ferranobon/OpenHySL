@@ -3,8 +3,7 @@
 
 #include "Substructure.h"
 
-#define EXACT_NUMPARAM_INIT 3  /*!< Subber of required parameters in order to initialise a substructure of
-			        * type Exact fbr */
+#define NUM_CHANNELS 25  /*!< Number of channels of recorded data in ADwin */
 
 typedef struct ExpSub{
      char *Description;

@@ -320,7 +320,7 @@ int main( int argc, char **argv ){
 
 	  /* Calculate the effective force vector Fe = M*(a0*u + a2*v + a3*a) + C*(a1*u + a4*v + a5*a) */
 	  EffK_EffectiveForce_MPI( &M, &C, &DispT, &VelT, &AccT, &tempvec, InitCnt.a0, InitCnt.a1, InitCnt.a2,
-				    InitCnt.a3, InitCnt.a4, InitCnt.a5, &EffT );
+				   InitCnt.a3, InitCnt.a4, InitCnt.a5, &EffT );
 
 	  Compute_NewState_MPI( &Keinv, &EffT, &LoadTdT, &fu, &tempvec, &DispTdT0 );
 
