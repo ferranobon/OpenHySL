@@ -318,7 +318,7 @@ int main( int argc, char **argv ){
      /* Open Output file. If the file cannot be opened, the program will exit, since the results cannot be
       * stored. */
      hdf5_file = HDF5_CreateFile( InitCnt.FileOutput );
-     HDF5_CreateGroup_Parameters( hdf5_file, &InitCnt, &CNodes );
+     HDF5_CreateGroup_Parameters( hdf5_file, &InitCnt, &CNodes, AccAll, VelAll, DispAll );
      HDF5_CreateGroup_TimeIntegration( hdf5_file, &InitCnt );
 
      Time.Date_start = time( NULL );
@@ -479,7 +479,7 @@ int main( int argc, char **argv ){
      if( CNodes.Order >= 1 ){
 	  for( i = 0; i < (unsigned int) CNodes.Order; i++ ){
 	       if( CNodes.Sub[i].Type == EXP_ADWIN ){
-		   ADwin_SaveData_HDF5( hdf5_file, InitCnt.NStep, InitCnt.NSubstep,
+		    ADwin_SaveData_HDF5( hdf5_file, (int) InitCnt.NStep, (int) InitCnt.NSubstep,
 					NUM_CHANNELS, Entry_Names, 97 );
 	       }
 	  }

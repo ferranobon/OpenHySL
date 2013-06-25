@@ -35,9 +35,10 @@ int HDF5_CreateFile( const char *Filename )
      return (int) file_id;
 }
 
-void HDF5_CreateGroup_Parameters( int hdf5_file, AlgConst_t *const InitCnt, CouplingNode_t *const CNodes )
+void HDF5_CreateGroup_Parameters( int hdf5_file, AlgConst_t *const InitCnt, CouplingNode_t *const CNodes, const double *const Acc, const double *const Vel, const double *const Disp )
 {
-     hid_t    file_id, group_id;
+     hid_t    file_id, group_id, dataset_id, dataspace_id;
+     hsize_t  dims[2];
      herr_t   status;
      double   *dArray;
      int      *iArray, i;
@@ -50,6 +51,45 @@ void HDF5_CreateGroup_Parameters( int hdf5_file, AlgConst_t *const InitCnt, Coup
      /* Create a group named "/Time History" in the file. */
      group_id = H5Gcreate(file_id, "/Test Parameters", H5P_DEFAULT,
 			  H5P_DEFAULT, H5P_DEFAULT);     
+     status = H5Gclose(group_id);
+     if( status < 0 ){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Error creating group Test Parameters in HDF5 file.\n" );
+	  exit( EXIT_FAILURE );
+     }
+     
+     /* Add input load */
+     group_id = H5Gcreate(file_id, "/Test Parameters/Input", H5P_DEFAULT,
+			  H5P_DEFAULT, H5P_DEFAULT);
+     dims[0] = InitCnt->NStep;
+     dims[1] = 1;
+     dataspace_id = H5Screate_simple(2, dims, NULL);
+     if( Acc != NULL ){
+	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input/Acceleration", H5T_NATIVE_DOUBLE, dataspace_id, H5P_DEFAULT,
+				   H5P_DEFAULT, H5P_DEFAULT);
+	  status = H5LTset_attribute_string( file_id, "Test Parameters/Input/Acceleration",
+					     "Units", "m/s^2" );
+	  status = H5Dwrite(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, Acc );
+	  status = H5Dclose(dataset_id);
+     }
+
+     if( Vel != NULL ){
+	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input/Velocity", H5T_NATIVE_DOUBLE, dataspace_id, H5P_DEFAULT,
+				   H5P_DEFAULT, H5P_DEFAULT);
+	  status = H5LTset_attribute_string( file_id, "Test Parameters/Input/Velocity",
+					     "Units", "m/s" );
+	  status = H5Dwrite(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, Vel );
+	  status = H5Dclose(dataset_id);
+     }
+
+     if( Disp != NULL ){
+	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input/Displacement", H5T_NATIVE_DOUBLE, dataspace_id, H5P_DEFAULT,
+				   H5P_DEFAULT, H5P_DEFAULT);
+	  status = H5LTset_attribute_string( file_id, "Test Parameters/Input/Displacement",
+					     "Units", "m" );
+	  status = H5Dwrite(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, Disp );
+	  status = H5Dclose(dataset_id);
+     }
      status = H5Gclose(group_id);
 
      /* Add Integration parameters */
@@ -104,6 +144,8 @@ void HDF5_CreateGroup_Parameters( int hdf5_file, AlgConst_t *const InitCnt, Coup
      free( Entry_Names );
 }
 
+
+
 typedef struct{
      int Position;
      double InitValues[3];
@@ -128,11 +170,16 @@ void Save_InformationCNodes( hid_t file_id, const char *Name_path, CouplingNode_
      ExpSub_t *Experimental;
 
    
-     group_id = H5Gcreate(file_id, "/Test Parameters/Substructures", H5P_DEFAULT,
-			  H5P_DEFAULT, H5P_DEFAULT);     
+     group_id = H5Gcreate(file_id, Name_path, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);     
 
      strtype = H5Tcopy( H5T_C_S1 );
      status = H5Tset_size( strtype, H5T_VARIABLE );
+
+     if( status < 0 ){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Error during H5Tset_size().\n" );
+	  exit( EXIT_FAILURE );
+     }
 
      for( i = 0; i <= NUM_TYPE_SUB; i++ ){
 	  count = 0;
@@ -213,6 +260,11 @@ void Save_InformationCNodes( hid_t file_id, const char *Name_path, CouplingNode_
 	       dset = H5Dcreate ( group_id, "/Test Parameters/Substructures/Exact", memtype, space, H5P_DEFAULT,
 				  H5P_DEFAULT, H5P_DEFAULT);
 	       status = H5Dwrite ( dset, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Nodes );
+	       if( status < 0 ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Error writing to HDF5 file.\n" );
+		    exit( EXIT_FAILURE );
+	       }
 	       
 	       for( j = 0; j < count; j++ ){
 		    free( Nodes[j].Description );	     
@@ -220,8 +272,23 @@ void Save_InformationCNodes( hid_t file_id, const char *Name_path, CouplingNode_
 	       free( Nodes );
 
 	       status = H5Dclose( dset );
+	       if( status < 0 ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Error closing dataset in HDF5 file.\n" );
+		    exit( EXIT_FAILURE );
+	       }
 	       status = H5Sclose( space );
+	       if( status < 0 ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Error closing dataspace in HDF5 file.\n" );
+		    exit( EXIT_FAILURE );
+	       }
 	       status = H5Tclose( memtype );
+	       if( status < 0 ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Error closing memtype in HDF5 file.\n" );
+		    exit( EXIT_FAILURE );
+	       }
 
 	  } else if ( (i == SIM_UHYDE) && is_uhyde ){
 	       memtype = H5Tcreate (H5T_COMPOUND, sizeof( HDF5_Exact_UHYDE_t) );
@@ -345,8 +412,7 @@ void HDF5_Store_TimeHistoryData( int hdf5_file, MatrixVector_t *const Acc, Matri
 				 MatrixVector_t *const fc, MatrixVector_t *const fu, int istep, AlgConst_t *InitCnt )
 {
 
-     hid_t    file_id, group_id;
-     herr_t   status;
+     hid_t    file_id;
 
      file_id = (hid_t) hdf5_file;
      /* Create the Time integration group */
@@ -371,7 +437,7 @@ void HDF5_Store_TimeHistoryData( int hdf5_file, MatrixVector_t *const Acc, Matri
 void HDF5_StoreTime( const int hdf5_file, const HDF5time_t *Time )
 {
 
-     hid_t    file_id, memtype, filetype, space, dset, strtype;
+     hid_t    file_id, memtype, space, dset, strtype;
      hsize_t  dims[1] = {1};
      herr_t   status;
 
@@ -399,9 +465,7 @@ void HDF5_StoreTime( const int hdf5_file, const HDF5time_t *Time )
 #if _ADWIN_
 void HDF5_StoreADwinData( const int hdf5_file, const double *Array, const char **Entry_Names, const int Length )
 {
-     int i;
      hid_t file_id, group_id;
-
      herr_t   status;
 
      file_id = (hid_t) hdf5_file;
@@ -410,12 +474,12 @@ void HDF5_StoreADwinData( const int hdf5_file, const double *Array, const char *
 			  H5P_DEFAULT, H5P_DEFAULT);     
      status = H5Gclose(group_id);
 
-     HDF5_AddDoubleArray_AsTable( file_id, "/ADwin measurements/data", Entry_Names,
+     HDF5_AddDoubleArray_AsTable( file_id, "/ADwin measurements/Recorded data", Entry_Names,
 				  Array, 24, Length );
 }
 
-void ADwin_SaveData_HDF5( const int hdf5_file, const unsigned int Num_Steps, const unsigned int Num_Sub,
-			  const unsigned short int Num_Channels, const char **Chan_Names, const int DataIndex )
+void ADwin_SaveData_HDF5( const int hdf5_file, const int Num_Steps, const int Num_Sub,
+			  const int Num_Channels, const char **Chan_Names, const int DataIndex )
 {
      int Length;
      double *Data = NULL;
@@ -428,7 +492,7 @@ void ADwin_SaveData_HDF5( const int hdf5_file, const unsigned int Num_Steps, con
      }
 
      /* Get the data from ADwin */
-     GetData_Double( (int32_t) DataIndex, Data, 1, (int32_t)  Length);
+     GetData_Double( (int32_t) DataIndex, Data, 1, (int32_t) Length);
   
      /* Save the data into an HDF5 file */
      HDF5_StoreADwinData( hdf5_file, Data, Chan_Names, Num_Sub*Num_Steps );
@@ -438,17 +502,17 @@ void ADwin_SaveData_HDF5( const int hdf5_file, const unsigned int Num_Steps, con
 }
 #endif
 
-void HDF5_AddDoubleArray_AsTable( hid_t file_id, const char *Name_path, char **Names, const double *Array, int Num_param, int Length )
+void HDF5_AddDoubleArray_AsTable( hid_t file_id, const char *Name_path, const char **Names, const double *Array, const int Num_param, const int Length )
 {
      int      i;
      hid_t    memtype, filetype, space, dset;
-     hsize_t  dims[1] = {Length};
+     hsize_t  dims[1] = { (hsize_t) Length};
      herr_t   status;
 
 
      /* Create the compound datatype for memory. */
      memtype = H5Tcreate (H5T_COMPOUND,
-			  Num_param*H5Tget_size(H5T_NATIVE_DOUBLE));
+			  (size_t) Num_param*H5Tget_size(H5T_NATIVE_DOUBLE));
      for( i = 0; i < Num_param; i++ ){
 	  status = H5Tinsert (memtype, Names[i],
 			      (size_t) i*H5Tget_size(H5T_NATIVE_DOUBLE),
@@ -457,7 +521,7 @@ void HDF5_AddDoubleArray_AsTable( hid_t file_id, const char *Name_path, char **N
     
      /* Create the compound datatype for the file.*/
      filetype = H5Tcreate (H5T_COMPOUND,
-			   Num_param*H5Tget_size(H5T_NATIVE_DOUBLE));
+			   (size_t) Num_param*H5Tget_size(H5T_NATIVE_DOUBLE));
      for( i = 0; i < Num_param; i++ ){
 	  status = H5Tinsert (filetype, Names[i],
 			      (size_t) i*H5Tget_size(H5T_NATIVE_DOUBLE),
@@ -482,7 +546,7 @@ void HDF5_AddDoubleArray_AsTable( hid_t file_id, const char *Name_path, char **N
      status = H5Sclose (space);
 }
 
-void HDF5_AddIntArray_AsTable( hid_t file_id, const char *Name_path, char **Names, const int *Array, int Num_param )
+void HDF5_AddIntArray_AsTable( hid_t file_id, const char *Name_path, const char **Names, const int *Array, const int Num_param )
 {
      int      i;
      hid_t    memtype, filetype, space, dset;
@@ -492,7 +556,7 @@ void HDF5_AddIntArray_AsTable( hid_t file_id, const char *Name_path, char **Name
 
      /* Create the compound datatype for memory. */
      memtype = H5Tcreate (H5T_COMPOUND,
-			  Num_param*H5Tget_size(H5T_NATIVE_INT));
+			  (size_t) Num_param*H5Tget_size(H5T_NATIVE_INT));
      for( i = 0; i < Num_param; i++ ){
 	  status = H5Tinsert (memtype, Names[i],
 			      (size_t) i*H5Tget_size(H5T_NATIVE_INT),
@@ -502,7 +566,7 @@ void HDF5_AddIntArray_AsTable( hid_t file_id, const char *Name_path, char **Name
     
      /* Create the compound datatype for the file.*/
      filetype = H5Tcreate (H5T_COMPOUND,
-			   Num_param*H5Tget_size(H5T_NATIVE_INT));
+			   (size_t) Num_param*H5Tget_size(H5T_NATIVE_INT));
      for( i = 0; i < Num_param; i++ ){
 	  status = H5Tinsert (filetype, Names[i],
 			      (size_t) i*H5Tget_size(H5T_NATIVE_INT),
@@ -525,7 +589,7 @@ void HDF5_AddIntArray_AsTable( hid_t file_id, const char *Name_path, char **Name
      status = H5Sclose (space);
 }
 
-void HDF5_Create_Dataset( hid_t file_id, const char *Path_name, int NStep, int Order )
+void HDF5_Create_Dataset( hid_t file_id, const char *Path_name, const int NStep, const int Order )
 {
      hsize_t dims[2] = {1, (hsize_t) Order };
      hsize_t max_dims[2] = {(hsize_t) NStep, (hsize_t) Order };
@@ -555,7 +619,7 @@ void HDF5_Create_Dataset( hid_t file_id, const char *Path_name, int NStep, int O
      status = H5Sclose( dataspace_id );
 }
 
-void HDF5_AddResults_to_Dataset( hid_t file_id, const char *Path_name, MatrixVector_t *const Data, int Step_count )
+void HDF5_AddResults_to_Dataset( hid_t file_id, const char *Path_name, MatrixVector_t *const Data, const int Step_count )
 {
      hid_t   dataset_id, filespace_id, memspace_id;
      herr_t  status;
@@ -569,7 +633,7 @@ void HDF5_AddResults_to_Dataset( hid_t file_id, const char *Path_name, MatrixVec
      H5Dextend( dataset_id, size );
 
      filespace_id = H5Dget_space( dataset_id );
-     offset[0] = (Step_count - 1);
+     offset[0] = ((hsize_t) Step_count - 1);
      offset[1] = 0;
      dims[0] = 1; dims[1] = (hsize_t) Data->Rows;
      status = H5Sselect_hyperslab( filespace_id, H5S_SELECT_SET, offset, NULL, dims, NULL );
