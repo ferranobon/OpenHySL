@@ -58,14 +58,14 @@ void HDF5_CreateGroup_Parameters( int hdf5_file, AlgConst_t *const InitCnt, Coup
      dArray[0] = InitCnt->Newmark.Beta; dArray[1] = InitCnt->Newmark.Gamma;
      dArray[2] = InitCnt->Delta_t;
      HDF5_AddDoubleArray_AsTable( file_id, "/Test Parameters/Time Integration", Entry_Names,
-				  dArray, 3 );
+				  dArray, 3, 1 );
      free( Entry_Names[0] ); free( Entry_Names[1] ); free( Entry_Names[2] );
 
      /* Add Rayleigh damping values */
      Entry_Names[0] = strdup( "Alpha" ); Entry_Names[1] = strdup( "Beta" );
      dArray[0] = InitCnt->Rayleigh.Alpha; dArray[1] = InitCnt->Rayleigh.Beta;
      HDF5_AddDoubleArray_AsTable( file_id, "/Test Parameters/Rayleigh", Entry_Names,
-				    dArray, 2 );
+				  dArray, 2, 1 );
      free( Entry_Names[0] ); free( Entry_Names[1] );
 
      /* Add PID parameters */
@@ -74,7 +74,7 @@ void HDF5_CreateGroup_Parameters( int hdf5_file, AlgConst_t *const InitCnt, Coup
      dArray[0] = InitCnt->PID.P; dArray[1] = InitCnt->PID.I;
      dArray[2] = InitCnt->PID.D;
      HDF5_AddDoubleArray_AsTable( file_id, "/Test Parameters/PID", Entry_Names,
-				    dArray, 3 );
+				  dArray, 3, 1 );
      for( i = 0; i < 3; i++ ){
 	  free( Entry_Names[i] );
      }
@@ -400,38 +400,25 @@ void HDF5_StoreTime( const int hdf5_file, const HDF5time_t *Time )
 void HDF5_StoreADwinData( const int hdf5_file, const double *Array, const char **Entry_Names, const int Length )
 {
      int i;
-     hid_t file_id;
+     hid_t file_id, group_id;
 
-     size_t *Offset;
-     hid_t *Field_types;
-     hsize_t Chunk_size;
+     herr_t   status;
 
      file_id = (hid_t) hdf5_file;
-     Offset = (size_t *) malloc( (size_t) NUM_CHANNELS*sizeof(size_t) );
-     Field_types = (hid_t *) malloc( (size_t) NUM_CHANNELS*sizeof(hid_t) );
 
-     /* Chunk size will have the length of 100 sub-steps */
-     Chunk_size = (hsize_t) 100*sizeof(double)*(hsize_t) NUM_CHANNELS;
+     group_id = H5Gcreate(file_id, "/ADwin measurements", H5P_DEFAULT,
+			  H5P_DEFAULT, H5P_DEFAULT);     
+     status = H5Gclose(group_id);
 
-     /* There are 24 channels defined in RoutinesADwin.h */
-     
-     for ( i = 0; i < NUM_CHANNELS; i++ ){
-	  Offset[i] = (size_t) i*H5Tget_size(H5T_NATIVE_DOUBLE);
-	  Field_types = H5T_NATIVE_DOUBLE;
-     }
-
-     H5TBmake_table( "/ADwin measurements", file_id, "Measurements", (hsize_t) NUM_CHANNELS, (hsize_t) Length, sizeof(double)*(size_t) NUM_CHANNELS, Entry_Names, Offset, Field_types, Chunk_size, NULL, 0, Array );
-
-     free( Offset );
-     free( Field_types );
-
+     HDF5_AddDoubleArray_AsTable( file_id, "/ADwin measurements/data", Entry_Names,
+				  Array, 24, Length );
 }
 
 void ADwin_SaveData_HDF5( const int hdf5_file, const unsigned int Num_Steps, const unsigned int Num_Sub,
 			  const unsigned short int Num_Channels, const char **Chan_Names, const int DataIndex )
 {
      int Length;
-     double *Data;
+     double *Data = NULL;
 
      Length = Num_Sub*Num_Steps*Num_Channels;
      Data = (double *) calloc( (size_t) Length, sizeof( double ) );
@@ -441,21 +428,21 @@ void ADwin_SaveData_HDF5( const int hdf5_file, const unsigned int Num_Steps, con
      }
 
      /* Get the data from ADwin */
-     GetData_Double( (int32_t) DataIndex, Data, 1, (int32_t) Length );
+     GetData_Double( (int32_t) DataIndex, Data, 1, (int32_t)  Length);
   
      /* Save the data into an HDF5 file */
-     HDF5_StoreADwinData( hdf5_file, Data, Chan_Names, Length );
+     HDF5_StoreADwinData( hdf5_file, Data, Chan_Names, Num_Sub*Num_Steps );
 
      /* Free allocated memory */
      free( Data );
 }
 #endif
 
-void HDF5_AddDoubleArray_AsTable( hid_t file_id, const char *Name_path, char **Names, const double *Array, int Num_param )
+void HDF5_AddDoubleArray_AsTable( hid_t file_id, const char *Name_path, char **Names, const double *Array, int Num_param, int Length )
 {
      int      i;
      hid_t    memtype, filetype, space, dset;
-     hsize_t  dims[1] = {1};
+     hsize_t  dims[1] = {Length};
      herr_t   status;
 
 
