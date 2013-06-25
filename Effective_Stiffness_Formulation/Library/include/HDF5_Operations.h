@@ -29,7 +29,7 @@ typedef struct {
 } HDF5time_t;
 
 int HDF5_CreateFile( const char *Filename );
-void HDF5_CreateGroup_Parameters( int hdf5_file, AlgConst_t *const InitCnt, CouplingNode_t *const CNode );
+void HDF5_CreateGroup_Parameters( int hdf5_file, AlgConst_t *const InitCnt, CouplingNode_t *const CNode, const double *const Acc, const double *const Vel, const double *const Disp );
 void Save_InformationCNodes( hid_t file_id, const char *Name_path, CouplingNode_t *const CNodes );
 void HDF5_CreateGroup_TimeIntegration( int hdf5_file, AlgConst_t *const InitCnt );
 void HDF5_Store_TimeHistoryData( int hdf5_file, MatrixVector_t *const Acc, MatrixVector_t *const Vel, MatrixVector_t *const Disp, MatrixVector_t *const InLoad, MatrixVector_t *const fc, MatrixVector_t *const fu, int istep, AlgConst_t *InitCnt );
@@ -61,13 +61,13 @@ void HDF5_StoreADwinData( const int hdf5_file, const double *Array, const char *
  * - Number of columns equal to the number of channels.
  * - Number of rows equal to \f$N_{step}\cdot N_{substep}\f$.
  */
-void ADwin_SaveData_HDF5( const int hdf5_file, const unsigned int Num_Steps, const unsigned int Num_Sub,
-			  const unsigned short int Num_Channels, const char **Chan_Names, const int DataIndex );
+void ADwin_SaveData_HDF5( const int hdf5_file, const int Num_Steps, const int Num_Sub,
+			  const int Num_Channels, const char **Chan_Names, const int DataIndex );
 
-void HDF5_AddDoubleArray_AsTable( hid_t file_id, const char *Name_path, char **Names, const double *Array, int Num_param, int Length );
-void HDF5_AddIntArray_AsTable( hid_t file_id, const char *Name_path, char **Names, const int *Array, int Num_param );
+void HDF5_AddDoubleArray_AsTable( hid_t file_id, const char *Name_path, const char **Names, const double *Array, const int Num_param, const int Length );
+void HDF5_AddIntArray_AsTable( hid_t file_id, const char *Name_path, const char **Names, const int *Array, const int Num_param );
 
-void HDF5_Create_Dataset( hid_t file_id, const char *Path_name, int Nstep, int Order );
-void HDF5_AddResults_to_Dataset( hid_t file_id, const char *Path_name, MatrixVector_t *const Data, int Step_count );
+void HDF5_Create_Dataset( hid_t file_id, const char *Path_name, const int Nstep, const int Order );
+void HDF5_AddResults_to_Dataset( hid_t file_id, const char *Path_name, MatrixVector_t *const Data, const int Step_count );
 void HDF5_CloseFile( int hdf5_file );
 #endif
