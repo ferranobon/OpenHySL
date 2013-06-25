@@ -81,7 +81,7 @@ void ADwin_Substep( const double *const VecTdT_0c, const unsigned int OrderC, co
      unsigned int i;
      unsigned int Length_Receive, Length_Send;
      
-     double *Send_ADwin, *ReceiveADwin;
+     double *Send_ADwin = NULL, *ReceiveADwin = NULL;
      int ADWinReady;
 
      struct timeval t1;

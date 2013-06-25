@@ -64,7 +64,7 @@ void HDF5_StoreADwinData( const int hdf5_file, const double *Array, const char *
 void ADwin_SaveData_HDF5( const int hdf5_file, const unsigned int Num_Steps, const unsigned int Num_Sub,
 			  const unsigned short int Num_Channels, const char **Chan_Names, const int DataIndex );
 
-void HDF5_AddDoubleArray_AsTable( hid_t file_id, const char *Name_path, char **Names, const double *Array, int Num_param );
+void HDF5_AddDoubleArray_AsTable( hid_t file_id, const char *Name_path, char **Names, const double *Array, int Num_param, int Length );
 void HDF5_AddIntArray_AsTable( hid_t file_id, const char *Name_path, char **Names, const int *Array, int Num_param );
 
 void HDF5_Create_Dataset( hid_t file_id, const char *Path_name, int Nstep, int Order );
