@@ -95,6 +95,37 @@ unsigned int MatrixVector_ReturnIndex_UPS( const unsigned int RowIndex, const un
  */
 unsigned int MatrixVector_ReturnIndex_LPS( const unsigned int RowIndex, const unsigned int ColIndex );
 
-void Compute_EigenValues_EigenVectors ( MatrixVector_t *const MatrixA, MatrixVector_t *const MatrixB, MatrixVector_t *const Eigen_Values, MatrixVector_t *const Eigen_Vectors );
+/**
+ * \brief Computes the Eigenvalues and Eigenvectors the problem \f$\mathcal A*\mathcal B*\vec x = \lambda \vec
+ * x\f$.
+ *
+ * The routine computes de eigenvalues and eigenvectors of a real symmetric-definite eigenproblem, of the form
+ * \f$\mathcal A*\mathcal B*\vec x = \lambda \vec x\f$. The eigenvalues and the corresponding eigenvectors are
+ * sorted in ascendent order.
+ *
+ * It makes use of BLAS and LAPACK routines to perform the linear algebra operations.
+ *
+ * \pre
+ * - All elements of type \c MatrixVector_t must be properly intialised through the MatrixVector_Create()
+ *   routine.
+ * - The matrices must be symmetrical and only the upper part will be referenced (lower part in FORTRAN
+ *   routines).
+ * - The dimensions of the vectors and matrices must be coherent since it will not be checked in the routine.
+ *
+ * \param[in]  MatrixA       Matrix \f$\mathcal A\f$.
+ * \param[in]  MatrixB       Matrix \f$\mathcal B\f$.
+ * \param[out] Eigenvalues  Vector containing the eigenvalues of the \f$\mathcal A*\mathcal B*\vec x =
+ *                           \lambda \vec x\f$ problem in ascendant order.
+ * \param[out] Eigenvectors Matrix containing the eigenvectors of the \f$\mathcal A*\mathcal B*\vec x =
+ *                           \lambda \vec x\f$ problem in ascendant order.
+ *
+ * \post
+ * - \c Eigenvalues and \c Eigenvectors contain the eigenvalues and eigenvectors of the symmetric-definite
+ *   eigen problem of the form \f$\mathcal A*\mathcal B*\vec x = \lambda \vec x\f$. They are sorted in
+ *   increasing order.
+ * 
+ * \sa MatrixVector_t.
+ */
+void Compute_EigenValues_EigenVectors ( MatrixVector_t *const MatrixA, MatrixVector_t *const MatrixB, MatrixVector_t *const Eigenvalues, MatrixVector_t *const Eigenvectors );
 
 #endif /* AUXILIARY_MATH_H_ */
