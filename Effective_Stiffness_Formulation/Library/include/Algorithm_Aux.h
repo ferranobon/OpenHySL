@@ -42,7 +42,7 @@ typedef struct MPIInfo {
  *
  * This structure stores several constants that will be used in different parts of the substructure algorithm,
  * such as the order of the matrices, the position of the coupling nodes, number of steps filenames and other
- * contants. It act as a configuration file and it has to be modified by hand before compiling.
+ * contants.
  *
  * \sa Rayleigh_t, Newmark_t, PID_t and Algorithm_Init().
  */
