@@ -5,7 +5,6 @@
  * \date 19th of June 2013
  *
  * \brief Routines that depend on the implementation of the custom server.
- *
  */
 #ifndef _CUSTOM_SEVER_H_
 #define _CUSTOM_SEVER_H_

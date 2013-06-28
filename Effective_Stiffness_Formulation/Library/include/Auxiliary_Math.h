@@ -126,6 +126,6 @@ unsigned int MatrixVector_ReturnIndex_LPS( const unsigned int RowIndex, const un
  * 
  * \sa MatrixVector_t.
  */
-void Compute_EigenValues_EigenVectors ( MatrixVector_t *const MatrixA, MatrixVector_t *const MatrixB, MatrixVector_t *const Eigenvalues, MatrixVector_t *const Eigenvectors );
+void Compute_Eigenvalues_Eigenvectors ( MatrixVector_t *const MatrixA, MatrixVector_t *const MatrixB, MatrixVector_t *const Eigenvalues, MatrixVector_t *const Eigenvectors );
 
 #endif /* AUXILIARY_MATH_H_ */
