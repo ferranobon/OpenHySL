@@ -70,7 +70,7 @@ unsigned int MatrixVector_ReturnIndex_LPS( const unsigned int RowIndex, const un
 }
 
 
-void Compute_EigenValues_EigenVectors ( MatrixVector_t *const MatrixA, MatrixVector_t *const MatrixB, MatrixVector_t *const Eigen_Values, MatrixVector_t *const Eigen_Vectors )
+void Compute_Eigenvalues_Eigenvectors ( MatrixVector_t *const MatrixA, MatrixVector_t *const MatrixB, MatrixVector_t *const EigenValues, MatrixVector_t *const EigenVectors )
 {
      int i, j;   /* Counters */
      int one = 1, Length;
@@ -80,7 +80,7 @@ void Compute_EigenValues_EigenVectors ( MatrixVector_t *const MatrixA, MatrixVec
 
      if( MatrixA->Rows != MatrixB->Rows || MatrixA->Cols != MatrixB->Cols ){
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Compute_EigenValues_EigenVectors: The matrices must be identical.\n" );
+	  fprintf( stderr, "Compute_Eigenvalues_Eigenvectors: The matrices must be identical.\n" );
 	  exit( EXIT_FAILURE );
      }
 
@@ -93,26 +93,26 @@ void Compute_EigenValues_EigenVectors ( MatrixVector_t *const MatrixA, MatrixVec
      TempMat = (double*) calloc( (size_t) Length, sizeof (double) );
      work = (double*) calloc( (size_t) lwork, sizeof (double) );
 
-     /* DSYGV_:On Entry Eigen_Vectors must contain the Matrix A */
-     dcopy( &Length, MatrixA->Array, &one, Eigen_Vectors->Array, &one );
+     /* DSYGV_:On Entry EigenVectors must contain the Matrix A */
+     dcopy( &Length, MatrixA->Array, &one, EigenVectors->Array, &one );
      dcopy( &Length, MatrixB->Array, &one, TempMat, &one );
 
      Length = MatrixA->Rows;
-     dsygv_( &one, "V", "L", &Length, Eigen_Vectors->Array, &lda, TempMat, &ldb, Eigen_Values->Array, work, &lwork, &info );
+     dsygv_( &one, "V", "L", &Length, EigenVectors->Array, &lda, TempMat, &ldb, EigenValues->Array, work, &lwork, &info );
 
      for ( i = 0; i < Length - 1; i++){
 	  
 	  /* Order the Eigenvalues and eigenvectors in ascendent order */
-	  if ( Eigen_Values->Array[i] > Eigen_Values->Array[i+1] ){
+	  if ( EigenValues->Array[i] > EigenValues->Array[i+1] ){
 	       /* Swap Eigenvalues */
-	       temp = Eigen_Values->Array[i];
-	       Eigen_Values->Array[i] = Eigen_Values->Array[i+1];
-	       Eigen_Values->Array[i+1] = temp;
-	       /* Now Swap EigenVectors */
+	       temp = EigenValues->Array[i];
+	       EigenValues->Array[i] = EigenValues->Array[i+1];
+	       EigenValues->Array[i+1] = temp;
+	       /* Now Swap Eigenvectors */
 	       for( j = 0; j < Length; j++ ){
-		    temp = Eigen_Vectors->Array[Length*(i+1) + j];
-		    Eigen_Vectors->Array[Length*i + j] = Eigen_Vectors->Array[Length*(i+1) + j];
-		    Eigen_Vectors->Array[Length*(i+1) + j] = temp;
+		    temp = EigenVectors->Array[Length*(i+1) + j];
+		    EigenVectors->Array[Length*i + j] = EigenVectors->Array[Length*(i+1) + j];
+		    EigenVectors->Array[Length*(i+1) + j] = temp;
 	       }
 	  }
      }

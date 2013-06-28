@@ -44,7 +44,7 @@ void Substructure_ExactSolutionMDOF_Init( const double *const Mass, const double
 	  Sub->Stiff.Array[i] = Stiff[i];
      }
 
-     Compute_EigenValues_EigenVectors( &Sub->Stiff, &Sub->Mass, &Sub->EValues, &Sub->EVectors );
+     Compute_Eigenvalues_Eigenvectors( &Sub->Stiff, &Sub->Mass, &Sub->EValues, &Sub->EVectors );
      Compute_DampingRatios_Rayleigh( RayS_Alpha, RayS_Beta, Sub->EValues.Rows, Sub->EValues.Array,
 				     Sub->Damping_Ratios.Array );
 
@@ -85,7 +85,7 @@ void Substructure_ExactSolutionSDOF_Init( const double Mass, const double Damp, 
      Sub->Stiff.Array[0] = Stiff;
      Sub->Damp.Array[0] = Damp;
      
-     Compute_EigenValues_EigenVectors( &Sub->Stiff, &Sub->Mass, &Sub->EValues, &Sub->EVectors );
+     Compute_Eigenvalues_Eigenvectors( &Sub->Stiff, &Sub->Mass, &Sub->EValues, &Sub->EVectors );
      Sub->Damping_Ratios.Array[0] = Sub->Damp.Array[0]/(2.0*sqrt(Sub->EValues.Array[0])*Sub->Mass.Array[0]);
 
      Sub->Disp0 = 0.0; Sub->DispT = 0.0;
