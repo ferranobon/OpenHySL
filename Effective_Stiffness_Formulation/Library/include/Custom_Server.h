@@ -12,37 +12,43 @@
 
 #include "Algorithm_Aux.h" /* For TIntegration_t */
 
-typedef struct CustomSever{
-
-     int Order_Couple;        /*!< \brief Order of the coupling degrees of freedom */
-
-     unsigned int NSubstep;   /*!< \brief Number of sub-steps */
-
-     double Delta_t;          /*!< \brief Time increment \f$\Delta t\f$ */
-     double DeltaT_Sub;       /*!< \brief Time increment for the sub-stepping process */
-
-     TIntegration_t Newmark;  /*!< \brief Stores Newmark Constants gamma (\c Newmark.Gamma or \f$\gamma_N\f$)
-			       * and (\c Newmark.Beta or \f$\beta_N\f$)
-			       */
-
-     /* Constants for Step ending */
-     double a0;               /*!< \brief \f$a_0 = \frac{1}{\beta_N\Delta t^2}\f$ */
-     double a1;               /*!< \brief \f$a_1 = \frac{\gamma_N}{\beta_N\Delta t}\f$ */
-     double a2;               /*!< \brief \f$a_2 = \frac{1}{\beta_N\Delta t}\f$ */
-     double a3;               /*!< \brief \f$a_3 = \frac{1}{2\beta_N\Delta t} - 1\f$ */
-     double a4;               /*!< \brief \f$a_4 = \frac{\gamma_N}{\beta_N} - 1\f$ */
-     double a5;               /*!< \brief \f$a_5 =
-			       * \Delta_t\biggl(\frac{\gamma_N}{2\beta_N} - 1\biggr)\f$ */
-     double a6;               /*!< \brief \f$a_6= \frac{1 - \gamma_N}{\Delta t}\f$ */
-     double a7;               /*!< \brief \f$a_7 = \gamma_N\Delta t\f$ */
-
-     /* Files where data are located */
-     char* FileCNodes;       /*!< \brief Stores the name of the file that contains the vector of coupling
-			      * nodes. */
-} CustomServer_t;
-
+/**
+ * \brief Definition of constant values and filenames that will be used during the Custom-Server program execution.
+ *
+ * This routine reads the values specified in a configuration file, such as the order of the sub-matrices, the
+ * number of sub-steps and file names, and are stored for further use.
+ *
+ *
+ * \pre The values of the Newmark integration must be coherent/feasible. The routine will not perform checks
+ * on them.
+ *
+ * \param[in]  FileName  Name of the configuration file.
+ * \param[out] InitConst A structure that comprises of several constants.
+ *
+ * \post
+ * - The size of the matrices will determine the memory that will be allocated when defining a \c
+ *   MatrixVector_t type and also also how many elements will be read/written from/to the files.
+ *
+ * \sa AlgConst_t, PID_t, Rayleigh_t and TIntegration_t.
+ */
 void CustomServer_Init( const char *FileName, AlgConst_t *const InitConst );
+
+/**
+ * \brief Frees the memory allocated during the CustomServer_Init() routine.
+ *
+ * \pre InitConst must be properly initialised through CustomServer_Init().
+ * 
+ * \param[out] InitConst Structure containing the data to be deallocated.
+ *
+ * \sa AlgConst_t.
+ */
 void CustomServer_Destroy( AlgConst_t *const InitConst );
+
+/**
+ * \brief Prints a help text with the different options available when launching the program.
+ *
+ * \param[in] Program_Name Name of the executable.
+ */
 void CustomServer_PrintHelp( const char *Program_Name );
 
 #endif /* _CUSTOM_SEVER_H_ */
