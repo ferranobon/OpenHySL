@@ -173,8 +173,10 @@ int main( int argc, char **argv ){
 	  MatrixVector_Create_PS( InitCnt.Order, InitCnt.Order, &M );
 	  MatrixVector_Create_PS( InitCnt.Order, InitCnt.Order, &K );
      } else if ( InitCnt.Use_Sparse && InitCnt.Read_Sparse ){
+#if _SPARSE_
 	  MatrixVector_SetRowsCols_Sp( InitCnt.Order, InitCnt.Order, &Sp_M );
 	  MatrixVector_SetRowsCols_Sp( InitCnt.Order, InitCnt.Order, &Sp_K );
+#endif
      } else assert(0);
 
      if( !InitCnt.Use_Packed ){
@@ -232,6 +234,7 @@ int main( int argc, char **argv ){
 	  MatrixVector_FromFile_GE2PS( InitCnt.FileM, &M );
 	  MatrixVector_FromFile_GE2PS( InitCnt.FileK, &K );
      } else if ( !InitCnt.Read_Sparse && InitCnt.Use_Sparse ){
+#if _SPARSE_
 	  MatrixVector_FromFile( InitCnt.FileM, &M );
 	  MatrixVector_Dense2CSR( &M, 0, &Sp_M );        /* Transform into CSR format */
 	  MatrixVector_Destroy( &M );                    /* Destroy the dense matrix */
@@ -239,6 +242,7 @@ int main( int argc, char **argv ){
 	  MatrixVector_FromFile( InitCnt.FileK, &K );
 	  MatrixVector_Dense2CSR( &K, 0, &Sp_K );        /* Transform into CSR format */
 	  MatrixVector_Destroy( &K );                    /* Destroy the dense matrix */
+#endif
      } else if ( InitCnt.Read_Sparse && !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
 	  MatrixVector_FromFile_MM( InitCnt.FileM, &M );
 	  MatrixVector_FromFile_MM( InitCnt.FileK, &K );
