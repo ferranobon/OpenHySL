@@ -123,15 +123,14 @@ typedef struct AlgConst{
 /**
  * \brief Definition of constant values and filenames that will be used during the Algorithm.
  *
- * This routine reads the values specified in a configuration file. In it, several constants like the order of
- * the matrices, the number of steps and file names where the Mass and Stiffness matrices are stored (the
- * damping matrix is optional).
- *
+ * This routine reads the values specified in a configuration file, such as the order of the matrices, the
+ * number of steps and file names of the Mass and Stiffness matrices (the damping matrix is optional), and are
+ * stored for further reference.
  *
  * \pre The values of the Newmark integration, PID and Rayleigh constants must be coherent/feasible. The
  * algorithm will not perform checks on them.
  *
- * \param[in] FileName Name of the configuration file.
+ * \param[in]  FileName  Name of the configuration file.
  * \param[out] InitConst A structure that comprises of several constants.
  *
  * \post
@@ -142,6 +141,7 @@ typedef struct AlgConst{
  * \sa AlgoConst_t, PID_t, Rayleigh_t and TIntegration_t.
  */
 void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst );
+
 void Algorithm_Init_MPI( const char *FileName, AlgConst_t *const InitConst );
 
 /**
