@@ -54,18 +54,17 @@ int main( int argc, char **argv )
      double *ADWIN_DATA = NULL;
 
      /* Variables to deal with arguments */
-     int Mode, Selected_Option;
+     int Selected_Option;
 
      struct option long_options[] = {
 	  {"help", no_argument, 0, 'h'},
 	  {"config-file", required_argument, 0, 'c'},
-	  {"mode", required_argument, 0, 'm'},
 	  {"server-port", required_argument, 0, 'p'},
 	  {"socket-type", required_argument, 0, 's'},
 	  {0, 0, 0, 0}
      };
 
-     Mode = REMOTE_TCP;
+     Socket_Type = REMOTE_TCP;
      Port = "3333";
      FileConf = "ConfFile_Remote.conf";
 
@@ -78,20 +77,10 @@ int main( int argc, char **argv )
      }
 
      /* Assign each argument to the correct variable */
-     while( (Selected_Option = getopt_long( argc, argv, "c:m:p:s:h", long_options, NULL )) != -1 ){
+     while( (Selected_Option = getopt_long( argc, argv, "c:p:s:h", long_options, NULL )) != -1 ){
 	  switch( Selected_Option ){
 	  case 'c':
 	       FileConf = optarg;
-	       break;
-	  case 'm':
-	       Mode = atoi( optarg );
-
-	       if ( Mode < 0 || Mode > 3 ){
-		    Print_Header( ERROR );
-		    fprintf( stderr, "Mode %d is not a valid mode value.\n", Mode );
-		    CustomServer_PrintHelp( argv[0] );
-		    return EXIT_FAILURE;
-	       }
 	       break;
 	  case 'p':
 	       Port = optarg;
@@ -294,14 +283,10 @@ int main( int argc, char **argv )
 void CustomServer_PrintHelp( const char *Program_Name )
 {
 
-     fprintf( stderr, "Usage: %s [-h] -m <Mode> -p <Port>\n", Program_Name );
+     fprintf( stderr, "Usage: %s [-h] -c <ConfFile> -p <Port> -s <SoketType>\n", Program_Name );
      fprintf( stderr,
 	      "  -h  --help           This help text.\n"
 	      "  -c  --config-file    The name of the configuration file. Default value: ConfFile_Remote.conf\n"
-	      "  -m  --mode           The mode used by the program. Default value 1.\n"
-	      "                            0 - ADwin will be used to perform the sub-stepping process.\n"
-	      "                            1 - The Substructure will be simulated using an exact solution (default).\n"
-	      "                            2 - The Substructure will be simulated using measured values.\n"
 	      "  -p  --server-port    Port used for communication with the client program. Default value 3333.\n"
 	      "  -s  --socket-type    Type of socket to use. Default value 1.\n"
 	      "                            1 - Use TCP socket.\n"
