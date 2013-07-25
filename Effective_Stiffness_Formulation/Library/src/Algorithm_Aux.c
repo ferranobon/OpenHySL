@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include "Algorithm_Aux.h"
@@ -10,52 +11,58 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
 {
 
      ConfFile_t *Config;
-     
+     bool Error = false;
+
      Config = ConfFile_Create( 70 );
 
      ConfFile_ReadFile( FileName, Config );
 
      /* Use Relative or absolute values */
      InitConst->Use_Absolute_Values = ConfFile_GetInt( Config, "General:Use_Absolute_Values" );
-     if ( InitConst->Use_Absolute_Values != 0 && InitConst->Use_Absolute_Values != 1 ){
+     if ( !Valid_Value( InitConst->Use_Absolute_Values ) ){
+	  Error = true;
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Invalid option for Use_Absolute_Values.\n" );
-	  exit( EXIT_FAILURE );
+	  fprintf( stderr, "Algorith_Init(): Invalid option for Use_Absolute_Values.\n" );
      }
 
      InitConst->Read_Sparse = ConfFile_GetInt( Config, "General:Read_Sparse" );
-     if ( InitConst->Read_Sparse != 0 && InitConst->Read_Sparse != 1 ){
+     if ( !Valid_Value( InitConst->Read_Sparse) ){
+	  Error = true;
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Invalid option for Read_Sparse.\n" );
+	  fprintf( stderr, "Algorith_Init(): Invalid option for Read_Sparse.\n" );
      }
 
      InitConst->Use_Sparse = ConfFile_GetInt( Config, "General:Use_Sparse" );
-     if ( InitConst->Use_Sparse != 0 && InitConst->Use_Sparse != 1 ){
+     if ( !Valid_Value( InitConst->Use_Sparse ) ){
+	  Error = true;
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Invalid option for Use_Sparse.\n" );
+	  fprintf( stderr, "Algorith_Init(): Invalid option for Use_Sparse.\n" );
      }
 
      InitConst->Use_Packed = ConfFile_GetInt( Config, "General:Use_Packed" );
-     if ( InitConst->Use_Packed != 0 && InitConst->Use_Packed != 1 ){
+     if ( !Valid_Value( InitConst->Use_Packed) ){
+	  Error = true;
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Invalid option for Use_Packed.\n" );
+	  fprintf( stderr, "Algorith_Init(): Invalid option for Use_Packed.\n" );
      }
 
      InitConst->Read_LVector = ConfFile_GetInt( Config, "General:Read_LVector" );
-     if ( InitConst->Read_LVector != 0 && InitConst->Read_LVector != 1 ){
+     if ( !Valid_Value( InitConst->Read_LVector )){
+	  Error = true;
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Invalid option for Read_LVector.\n" );
+	  fprintf( stderr, "Algorith_Init(): Invalid option for Read_LVector.\n" );
      }
 
      /* Order of the matrices */
      InitConst->Order = ConfFile_GetInt( Config, "General:Order" );
      if ( InitConst->Order <= 0 ){
+	  Error = true;
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Invalid option for the order of the matrices.\n" );
-	  exit( EXIT_FAILURE );
+	  fprintf( stderr, "Algorith_Init(): Invalid order of the matrices.\n" );
      }
 
-     if( !InitConst->Read_LVector ){
+     /* Do nothing if there is also an error */
+     if( !InitConst->Read_LVector && !Error ){
 	  InitConst->ExcitedDOF = Algorithm_GetExcitedDOF( Config, "General:Excited_DOF" );
      } else {
 	  InitConst->ExcitedDOF = NULL;
@@ -64,16 +71,16 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
      /* Number of steps and Time step */
      InitConst->NStep = (unsigned int) ConfFile_GetInt( Config, "General:Num_Steps" );
      if ( InitConst->NStep <= 0 ){
+	  Error = true;
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Invalid number of steps.\n" );
-	  exit( EXIT_FAILURE );
+	  fprintf( stderr, "Algorith_Init(): Invalid number of steps.\n" );
      }
 
      InitConst->Delta_t = ConfFile_GetDouble( Config, "General:Delta" );
      if ( InitConst->Delta_t <= 0.0 ){
+	  Error = true;
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Invalid time step.\n" );
-	  exit( EXIT_FAILURE );
+	  fprintf( stderr, "Algorith_Init(): Invalid time step.\n" );
      }
 
      /* Rayleigh values */
@@ -106,26 +113,66 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
 
      /* File Names */
      InitConst->FileM = strdup( ConfFile_GetString( Config, "FileNames:Mass_Matrix" ) );
+     if( !Valid_File( InitConst->FileM ) ){
+	  Error = true;
+	  Print_Header( ERROR );
+	  fprintf( stderr, "%s: No such file or directory.\n", InitConst->FileM );
+     }
+
      InitConst->FileK = strdup( ConfFile_GetString( Config, "FileNames:Stiffness_Matrix" ) );
+     if( !Valid_File( InitConst->FileK ) ){
+	  Error = true;
+	  Print_Header( ERROR );
+	  fprintf( stderr, "%s: No such file or directory.\n", InitConst->FileK );
+     }
+
      InitConst->FileC = strdup( ConfFile_GetString( Config, "FileNames:Damping_Matrix" ) );
+
      if( InitConst->Read_LVector ){
 	  InitConst->FileLV = strdup( ConfFile_GetString( Config, "FileNames:Load_Vector" ) );
-
+	  if( !Valid_File( InitConst->FileLV ) ){
+	       Error = true;
+	       Print_Header( ERROR );
+	       fprintf( stderr, "%s: No such file or directory.\n", InitConst->FileLV );
+	  }
      } else {
 	  InitConst->FileLV = NULL;
      }
      InitConst->FileCNodes = strdup( ConfFile_GetString( Config, "FileNames:Coupling_Nodes" ) );
+     if( !Valid_File( InitConst->FileCNodes ) ){
+	  Error = true;
+	  Print_Header( ERROR );
+	  fprintf( stderr, "%s: No such file or directory.\n", InitConst->FileCNodes);
+     }
+
      InitConst->FileData = strdup( ConfFile_GetString( Config, "FileNames:Ground_Motion" ) );
+     if( !Valid_File( InitConst->FileData ) ){
+	  Error = true;
+	  Print_Header( ERROR );
+	  fprintf( stderr, "%s: No such file or directory.\n", InitConst->FileData );
+     }
+
+     /* Since this is a write operation, a warning should be issued and the filename should be changed so that
+      * it does not overwrite. */
      InitConst->FileOutput = strdup( ConfFile_GetString( Config, "FileNames:OutputFile" ) );
+     if( Valid_File( InitConst->FileOutput ) ){
+	  Print_Header( WARNING );
+	  fprintf( stderr, "Output data file %s would have been overwritten. ", InitConst->FileOutput );
+	  
+	  Change_Filename( InitConst->FileOutput );
+
+	  fprintf( stderr, "Renaming it to: %s\n", InitConst->FileOutput );
+
+     }
 
      /* Read the information regarding the numerical sub-structures */
 
      /* Number of substructures */
      InitConst->OrderSub = ConfFile_GetInt( Config, "Substructure:Order" );
      if ( InitConst->OrderSub < 0 ){
+	  Error = true;
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Invalid option for the number of sub-structures of the matrices.\n" );
-	  exit( EXIT_FAILURE );
+	  fprintf( stderr, "Algorith_Init(): Invalid option for the number of sub-structures.\n" );
      }
      
      /* Number of substructures */
@@ -135,8 +182,74 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
 
      ConfFile_Destroy( Config );
 
-     Print_Header( SUCCESS );
-     printf( "Initialisation succcessfully completed.\n" );
+     if( Error ){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Algorith_Init(): Initialisation errors. Aborting.\n" );
+	  exit( EXIT_FAILURE );
+     } else {
+	  Print_Header( SUCCESS );
+	  printf( "Algorith_Init(): Initialisation succcessfully completed.\n" );
+     }
+}
+
+bool Valid_Value( const int Value )
+{
+     if ( Value != 0 && Value != 1 ){
+	  return false;
+     } else {
+	  return true;
+     }
+}
+
+bool Valid_File( const char *Filename )
+{
+     FILE *TheFile = NULL;
+
+     TheFile = fopen( Filename, "r" );
+
+     if ( TheFile == NULL ){
+	  return false;
+     } else {
+	  fclose( TheFile );
+	  return true;
+     }
+}
+
+void Change_Filename( char *Name )
+{
+
+     char NewName[80];
+     char HelpChar[4];
+     char Extension[6];
+     short unsigned int i;
+     bool Found;
+     size_t Pos;
+
+     Found = false;
+
+     Pos = strcspn( Name, "." );
+
+     i = 0;
+     while( Name[Pos + i] != '\0' && i < 6){
+	  Extension[i] = Name[Pos + i];
+	  i = i + 1;
+     }
+
+     strcpy( NewName, Name );
+     i = 1;
+     while( Valid_File( NewName )){
+	  /* Reset the name */
+	  memset(NewName, 0, sizeof(NewName));
+	  sprintf( HelpChar, "%hu", i );
+	  strncpy( NewName, Name, Pos );
+	  strcat( NewName, "_" );
+	  strcat( NewName, HelpChar );	  
+	  strcat( NewName, Extension );
+	  i = i + 1;
+     }
+
+     free( Name );
+     Name =  strdup( NewName );
 }
 
 void Algorithm_Destroy( AlgConst_t *const InitConst )

@@ -14,6 +14,8 @@
 #ifndef _ALGORITHM_AUX_H_
 #define _ALGORITHM_AUX_H_
 
+#include <stdbool.h>
+
 #include "Rayleigh.h"           /* For Rayleigh_t */
 #include "Error_Compensation.h" /* For PID_t */
 #include "Conf_Parser.h"        /* For ConfFile_t */
@@ -141,6 +143,32 @@ typedef struct AlgConst{
  * \sa AlgoConst_t, PID_t, Rayleigh_t and TIntegration_t.
  */
 void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst );
+
+/**
+ * \brief Checks if the given value is correct.
+ * 
+ * \param[in] Value Integer to be checked.
+ *
+ * \return \c true if \c Value is 0 or 1, \c false otherwise.
+ */
+bool Valid_Value( const int Value );
+
+/**
+ * \brief Checks if a file exists and can be opened.
+ * 
+ * \param[in] Filename Name of the file to be opened.
+ * 
+ * \return \c true if the file can be opened in read mode, \c false otherwise.
+ */
+bool Valid_File( const char *Filename );
+
+/**
+ * \brief Changes the name of the file so that it does not overwrite an existing file.
+ *
+ * \param[in,out] Name On input it contains the conflicting name file. On output, a non-conflicting file name
+ *                     is given.
+ */
+void Change_Filename( char *Name );
 
 void Algorithm_Init_MPI( const char *FileName, AlgConst_t *const InitConst );
 
