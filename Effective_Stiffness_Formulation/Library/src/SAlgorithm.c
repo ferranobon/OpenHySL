@@ -314,9 +314,11 @@ int main( int argc, char **argv ){
      }
      /* Read the earthquake data from a file */
      if( InitCnt.Use_Absolute_Values ){
-	  Algorithm_ReadDataEarthquake_AbsValues( InitCnt.NStep, InitCnt.FileData, VelAll, DispAll );
+	  Algorithm_ReadDataEarthquake_AbsValues( InitCnt.NStep, InitCnt.FileData, InitCnt.Scale_Factor,
+						  VelAll, DispAll );
      } else {
-	  Algorithm_ReadDataEarthquake_RelValues( InitCnt.NStep, InitCnt.FileData, AccAll );
+	  Algorithm_ReadDataEarthquake_RelValues( InitCnt.NStep, InitCnt.FileData, InitCnt.Scale_Factor,
+						  AccAll );
      }
 
      /* Open Output file. If the file cannot be opened, the program will exit, since the results cannot be
@@ -393,8 +395,8 @@ int main( int argc, char **argv ){
 	  if( CNodes.Order >= 1 ){
 /*	       Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(double) istep,
 					 AccAll[istep - 1], InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array,
-					 fcprevsub.Array, fc.Array );*/
-
+					 fcprevsub.Array, fc.Array );
+*/
 	       Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(double) istep,
 					 0.0, InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array,
 					 fcprevsub.Array, fc.Array );
