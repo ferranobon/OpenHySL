@@ -83,6 +83,8 @@ typedef struct AlgConst{
      double Delta_t;          /*!< \brief Time increment \f$\Delta t\f$ */
      double DeltaT_Sub;       /*!< \brief Time increment for the sub-stepping process */
 
+     double Scale_Factor;     /*!< \brief Scale factor for the time history of the input load */
+
      Rayleigh_t Rayleigh;     /*!< \brief Stores Rayleigh Constants alpha (\c Rayleigh.Alpha or
 			       * \f$\alpha_R\f$) and beta (\c Rayleigh.Beta or \f$\beta_R\f$)
 			       */
@@ -170,7 +172,28 @@ bool Valid_File( const char *Filename );
  */
 void Change_Filename( char *Name );
 
-void Algorithm_Init_MPI( const char *FileName, AlgConst_t *const InitConst );
+
+/**
+ * \brief Definition of constant values and filenames that will be used during the Algorithm. MPI version.
+ *
+ * This routine reads the values specified in a configuration file, such as the order of the matrices, the
+ * number of steps and file names of the Mass and Stiffness matrices (the damping matrix is optional), and are
+ * stored for further reference. This is the MPI version.
+ *
+ * \pre The values of the Newmark integration, PID and Rayleigh constants must be coherent/feasible. The
+ * algorithm will not perform checks on them.
+ *
+ * \param[in]  FileName  Name of the configuration file.
+ * \param[out] InitConst A structure that comprises of several constants.
+ *
+ * \post
+ * - The size of the matrices will determine the memory that will be allocated when defining a \c
+ *   MatrixVector_t type and also also how many elements will be read/written from/to the files.
+ * - The number of steps must be equal to the number of rows of the file "DataFile".
+ *
+ * \sa AlgoConst_t, PID_t, Rayleigh_t and TIntegration_t, MPIInfo_t.
+ */
+void Algorithm_Init_MPI( coasnst char *FileName, AlgConst_t *const InitConst );
 
 /**
  * \brief Broadcasts the AlgConst_t struct to the rest of the MPI processes.
@@ -255,6 +278,7 @@ int* Algorithm_GetExcitedDOF( const ConfFile_t *const Config, const char *Expres
  *
  * \param[in]  NumSteps     The number of steps in which the earthquake is divided.
  * \param[in]  Filename     The name of the file where the earthquake is recorded.
+ * \param[in]  Scale_Factor Factor that will be multiplied to the readen values.
  * \param[out] Velocity     Array that will store the third column of the data file, that is, the velocity of
  *                          the recorded earthquake converted to \f$[m/s]\f$.
  * \param[out] Displacement Array that will store the fourth column of the data file, that is, the
@@ -266,7 +290,8 @@ int* Algorithm_GetExcitedDOF( const ConfFile_t *const Config, const char *Expres
  * \sa Algorithm_Initnit().
  */
 void Algorithm_ReadDataEarthquake_AbsValues( const unsigned int NumSteps, const char *Filename,
-					     double *Velocity, double *Displacement );
+					     const double Scale_Factor, double *const Velocity,
+					     double *const Displacement );
 
 /**
  * \brief Reads the accelerations of an earthquake from a file.
@@ -288,6 +313,7 @@ void Algorithm_ReadDataEarthquake_AbsValues( const unsigned int NumSteps, const 
  *
  * \param[in]  NumSteps     The number of steps in which the earthquake is divided.
  * \param[in]  Filename     The name of the file where the earthquake is recorded.
+ * \param[in]  Scale_Factor Factor that will be multiplied to the readen values.
  * \param[out] Acceleration Array that will store the second column of the data file, that is, the
  *                          acceleration of the recorder earthquake converted to \f$[mm/s^2]\f$.
  *
@@ -296,7 +322,7 @@ void Algorithm_ReadDataEarthquake_AbsValues( const unsigned int NumSteps, const 
  * \sa Algorithm_Init().
  */
 void Algorithm_ReadDataEarthquake_RelValues( const unsigned int NumSteps, const char *Filename,
-					     double *Acceleration );
+					     const double Scale_Factor, double *const Acceleration );
 
 /**
  * \brief Prints a help text with the different options available when launching the program.

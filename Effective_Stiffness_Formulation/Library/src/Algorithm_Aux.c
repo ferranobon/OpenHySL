@@ -83,6 +83,8 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
 	  fprintf( stderr, "Algorith_Init(): Invalid time step.\n" );
      }
 
+     InitConst->Scale_Factor = ConfFile_GetDouble( Config, "General:Scale_Factor" );
+
      /* Rayleigh values */
      InitConst->Rayleigh.Alpha = ConfFile_GetDouble( Config, "Rayleigh:Alpha" );
      InitConst->Rayleigh.Beta = ConfFile_GetDouble( Config, "Rayleigh:Beta" );
@@ -222,17 +224,14 @@ void Change_Filename( char *Name )
      char HelpChar[4];
      char Extension[6];
      short unsigned int i;
-     bool Found;
      size_t Pos;
-
-     Found = false;
 
      Pos = strcspn( Name, "." );
 
      i = 0;
      while( Name[Pos + i] != '\0' && i < 6){
 	  Extension[i] = Name[Pos + i];
-	  i = i + 1;
+	  i = i + (unsigned short int) 1;
      }
 
      strcpy( NewName, Name );
@@ -245,7 +244,7 @@ void Change_Filename( char *Name )
 	  strcat( NewName, "_" );
 	  strcat( NewName, HelpChar );	  
 	  strcat( NewName, Extension );
-	  i = i + 1;
+	  i = i + (unsigned short int) 1;
      }
 
      free( Name );
@@ -302,11 +301,12 @@ int* Algorithm_GetExcitedDOF( const ConfFile_t *const Config, const char *Expres
 }
 
 void Algorithm_ReadDataEarthquake_AbsValues( const unsigned int NumSteps, const char *Filename,
-					     double *Velocity, double *Displacement )
+					     const double Scale_Factor, double *const Velocity,
+					     double *const Displacement )
 {
 
-     unsigned int i;					/* A counter */
-     double unnecessary;		/* Variable to store unnecessary data */
+     unsigned int i;		    /* A counter */
+     double unnecessary;	    /* Variable to store unnecessary data */
      double temp1, temp2, temp3;
      FILE *InFile;
 
@@ -321,20 +321,20 @@ void Algorithm_ReadDataEarthquake_AbsValues( const unsigned int NumSteps, const 
 
      for ( i = 0; i < NumSteps; i++ ){
 	  fscanf( InFile, "%lE %lE %lE %lE", &unnecessary, &temp1, &temp2, &temp3 );
-	  Velocity[i] = temp2/1000.0;
-	  Displacement[i] = temp3/1000.0;
+	  Velocity[i] = temp2*Scale_Factor;
+	  Displacement[i] = temp3*Scale_Factor;
      }
 
      /* Close File */
      fclose( InFile );
 }
 
-void Algorithm_ReadDataEarthquake_RelValues( const unsigned int NumSteps, const char *Filename,
-					     double *Acceleration )
+void Algorithm_ReadDataEarthquake_RelValues( const unsigned int NumSteps, const char *Filename, 
+					     const double Scale_Factor, double *const Acceleration )
 {
 
-     unsigned int i;					/* A counter */
-     double unnecessary;		/* Variable to store unnecessary data */
+     unsigned int i;		    /* A counter */
+     double unnecessary;	    /* Variable to store unnecessary data */
      double temp1, temp2, temp3;
      FILE *InFile;
 
@@ -342,14 +342,15 @@ void Algorithm_ReadDataEarthquake_RelValues( const unsigned int NumSteps, const 
 
      if ( InFile == NULL ){
 	  Print_Header( ERROR );
-	  fprintf( stderr, "The earthquake data cannot be read because it was not possible to open %s.\n", Filename );
+	  fprintf( stderr, "The earthquake data cannot be read because it was not possible to open %s.\n",
+		   Filename );
 	  exit( EXIT_FAILURE );
      }
 
      for ( i = 0; i < NumSteps; i++ ){
-	  fscanf( InFile, "%lE %lE", &unnecessary, &temp1 );
-//	  fscanf( InFile, "%lE %lE %lE %lE", &unnecessary, &temp1, &temp2, &temp3 );
-	  Acceleration[i] = temp1/1000.0;
+//	  fscanf( InFile, "%lE %lE", &unnecessary, &temp1 );
+	  fscanf( InFile, "%lE %lE %lE %lE", &unnecessary, &temp1, &temp2, &temp3 );
+	  Acceleration[i] = temp1*Scale_Factor;
      }
 
      /* Close File */
