@@ -28,6 +28,17 @@ typedef struct {
      struct timeval end;
 } HDF5time_t;
 
+typedef struct{
+     int Position;
+     double InitValues[3];
+     char *Description;
+} HDF5_Exact_UHYDE_t;
+
+typedef struct{
+     int Position;
+     char *Description;
+} HDF5_Exp_Meas_t;
+
 int HDF5_CreateFile( const char *Filename );
 void HDF5_CreateGroup_Parameters( int hdf5_file, AlgConst_t *const InitCnt, CouplingNode_t *const CNode, const double *const Acc, const double *const Vel, const double *const Disp );
 void Save_InformationCNodes( hid_t file_id, const char *Name_path, CouplingNode_t *const CNodes );

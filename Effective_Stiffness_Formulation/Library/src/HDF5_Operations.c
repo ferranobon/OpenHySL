@@ -145,18 +145,6 @@ void HDF5_CreateGroup_Parameters( int hdf5_file, AlgConst_t *const InitCnt, Coup
 }
 
 
-
-typedef struct{
-     int Position;
-     double InitValues[3];
-     char *Description;
-} HDF5_Exact_UHYDE_t;
-
-typedef struct{
-     int Position;
-     char *Description;
-} HDF5_Exp_Meas_t;
-
 void Save_InformationCNodes( hid_t file_id, const char *Name_path, CouplingNode_t *const CNodes )
 {
      int i, j, k, count, is_adwin, is_exact, is_uhyde, is_measured;
@@ -214,12 +202,12 @@ void Save_InformationCNodes( hid_t file_id, const char *Name_path, CouplingNode_
 	  for( j = 0; j < CNodes->Order; j++ ){
 	       if ( i == EXP_ADWIN && CNodes->Sub[j].Type == EXP_ADWIN ){
 
-		    Nodes_Exp[k].Position = CNodes->Array[j];
+		    Nodes_Exp[k].Position = CNodes->Array[j] - 1;  /* 0-based index */
 		    Experimental = (ExpSub_t *) CNodes->Sub[j].SimStruct;
 		    Nodes_Exp[k].Description = strdup( Experimental->Description );
 		    k = k + 1;
 	       } else if ( i == SIM_EXACT_MDOF && CNodes->Sub[j].Type == SIM_EXACT_MDOF ){
-		    Nodes[k].Position = CNodes->Array[j];
+		    Nodes[k].Position = CNodes->Array[j] - 1;      /* 0-based index */
 
 		    TMD = (ExactSim_t *) CNodes->Sub[j].SimStruct;
 //		    Nodes[k].InitValues[0] = TMD->Mass[0];
@@ -229,7 +217,7 @@ void Save_InformationCNodes( hid_t file_id, const char *Name_path, CouplingNode_
 		    Nodes[k].Description = strdup( TMD->Description );		
 		    k = k + 1;
 	       } else if ( i == SIM_UHYDE && CNodes->Sub[j].Type == SIM_UHYDE ){
-		    Nodes[k].Position = CNodes->Array[j];
+		    Nodes[k].Position = CNodes->Array[j] - 1;      /* 0-based index */
 
 		    UHYDE = (UHYDEfbrSim_t *) CNodes->Sub[j].SimStruct;
 		    Nodes[k].InitValues[0] = UHYDE->qyield;
@@ -239,7 +227,7 @@ void Save_InformationCNodes( hid_t file_id, const char *Name_path, CouplingNode_
 		    Nodes[k].Description = strdup( UHYDE->Description );
 		    k = k + 1;
 	       } else if ( i == SIM_MEASURED && CNodes->Sub[j].Type == SIM_MEASURED ){
-		    Nodes_Exp[k].Position = CNodes->Array[j];
+		    Nodes_Exp[k].Position = CNodes->Array[j] - 1; /* 0-based index */
 		    Experimental = (ExpSub_t *) CNodes->Sub[j].SimStruct;
 		    Nodes_Exp[k].Description = strdup( Experimental->Description );
 		    k = k + 1;
@@ -390,6 +378,10 @@ void HDF5_CreateGroup_TimeIntegration( int hdf5_file, AlgConst_t *const InitCnt 
      status = H5LTset_attribute_string( file_id, "Time Integration/Displacement",
 					"Units", "m" );
 
+     HDF5_Create_Dataset( file_id, "/Time Integration/Input Load", (int) InitCnt->NStep, (int) InitCnt->Order );
+     status = H5LTset_attribute_string( file_id, "Time Integration/Input Load",
+					"Units", "N" );
+
      /* If the number of substructures is greater than zero, store the results */
      if( InitCnt->OrderSub > 0 ){
 	  HDF5_Create_Dataset( file_id, "/Time Integration/Coupling force", (int) InitCnt->NStep, (int) InitCnt->Order );
@@ -421,7 +413,7 @@ void HDF5_Store_TimeHistoryData( int hdf5_file, MatrixVector_t *const Acc, Matri
      HDF5_AddResults_to_Dataset( file_id, "/Time Integration/Velocity", Vel, istep );
      HDF5_AddResults_to_Dataset( file_id, "/Time Integration/Displacement", Disp, istep );
 
-     //HDF5_AddResults_to_Dataset( file_id, "/Time Integration/Input Load", InLoad, istep );
+     HDF5_AddResults_to_Dataset( file_id, "/Time Integration/Input Load", InLoad, istep );
 
      /* If the number of substructures is greater than zero, store the results */
      if( InitCnt->OrderSub > 0 ){
