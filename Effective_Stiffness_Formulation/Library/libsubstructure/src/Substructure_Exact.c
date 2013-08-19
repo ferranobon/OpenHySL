@@ -334,7 +334,7 @@ void Substructure_ExactSolutionESP_Init( const double Mass, const double Damp, c
 	  omega = sqrt( omega2 );
 
 	  /* Calculate the damping ratio */
-	  xi = Damp/(2*Mass*omega);
+	  xi = Damp/(2.0*Mass*omega);
 	  
 	  /* Check the value of xi */
 	  if ( xi >= 0.0 && xi < 1.0 ){

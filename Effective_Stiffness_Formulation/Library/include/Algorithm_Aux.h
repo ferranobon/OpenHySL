@@ -193,7 +193,7 @@ void Change_Filename( char *Name );
  *
  * \sa AlgoConst_t, PID_t, Rayleigh_t and TIntegration_t, MPIInfo_t.
  */
-void Algorithm_Init_MPI( coasnst char *FileName, AlgConst_t *const InitConst );
+void Algorithm_Init_MPI( const char *FileName, AlgConst_t *const InitConst );
 
 /**
  * \brief Broadcasts the AlgConst_t struct to the rest of the MPI processes.
