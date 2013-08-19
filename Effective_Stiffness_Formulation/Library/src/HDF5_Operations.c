@@ -378,9 +378,11 @@ void HDF5_CreateGroup_TimeIntegration( int hdf5_file, AlgConst_t *const InitCnt 
      status = H5LTset_attribute_string( file_id, "Time Integration/Displacement",
 					"Units", "m" );
 
+/*
      HDF5_Create_Dataset( file_id, "/Time Integration/Input Load", (int) InitCnt->NStep, (int) InitCnt->Order );
      status = H5LTset_attribute_string( file_id, "Time Integration/Input Load",
 					"Units", "N" );
+*/
 
      /* If the number of substructures is greater than zero, store the results */
      if( InitCnt->OrderSub > 0 ){
@@ -413,7 +415,7 @@ void HDF5_Store_TimeHistoryData( int hdf5_file, MatrixVector_t *const Acc, Matri
      HDF5_AddResults_to_Dataset( file_id, "/Time Integration/Velocity", Vel, istep );
      HDF5_AddResults_to_Dataset( file_id, "/Time Integration/Displacement", Disp, istep );
 
-     HDF5_AddResults_to_Dataset( file_id, "/Time Integration/Input Load", InLoad, istep );
+     // HDF5_AddResults_to_Dataset( file_id, "/Time Integration/Input Load", InLoad, istep );
 
      /* If the number of substructures is greater than zero, store the results */
      if( InitCnt->OrderSub > 0 ){
