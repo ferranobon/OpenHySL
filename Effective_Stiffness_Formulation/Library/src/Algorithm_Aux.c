@@ -22,35 +22,35 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
      if ( !Valid_Value( InitConst->Use_Absolute_Values ) ){
 	  Error = true;
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Algorith_Init(): Invalid option for Use_Absolute_Values.\n" );
+	  fprintf( stderr, "Algorithm_Init(): Invalid option for Use_Absolute_Values.\n" );
      }
 
      InitConst->Read_Sparse = ConfFile_GetInt( Config, "General:Read_Sparse" );
      if ( !Valid_Value( InitConst->Read_Sparse) ){
 	  Error = true;
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Algorith_Init(): Invalid option for Read_Sparse.\n" );
+	  fprintf( stderr, "Algorithm_Init(): Invalid option for Read_Sparse.\n" );
      }
 
      InitConst->Use_Sparse = ConfFile_GetInt( Config, "General:Use_Sparse" );
      if ( !Valid_Value( InitConst->Use_Sparse ) ){
 	  Error = true;
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Algorith_Init(): Invalid option for Use_Sparse.\n" );
+	  fprintf( stderr, "Algorithm_Init(): Invalid option for Use_Sparse.\n" );
      }
 
      InitConst->Use_Packed = ConfFile_GetInt( Config, "General:Use_Packed" );
      if ( !Valid_Value( InitConst->Use_Packed) ){
 	  Error = true;
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Algorith_Init(): Invalid option for Use_Packed.\n" );
+	  fprintf( stderr, "Algorithm_Init(): Invalid option for Use_Packed.\n" );
      }
 
      InitConst->Read_LVector = ConfFile_GetInt( Config, "General:Read_LVector" );
      if ( !Valid_Value( InitConst->Read_LVector )){
 	  Error = true;
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Algorith_Init(): Invalid option for Read_LVector.\n" );
+	  fprintf( stderr, "Algorithm_Init(): Invalid option for Read_LVector.\n" );
      }
 
      /* Order of the matrices */
@@ -58,7 +58,7 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
      if ( InitConst->Order <= 0 ){
 	  Error = true;
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Algorith_Init(): Invalid order of the matrices.\n" );
+	  fprintf( stderr, "Algorithm_Init(): Invalid order of the matrices.\n" );
      }
 
      /* Do nothing if there is also an error */
@@ -73,14 +73,14 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
      if ( InitConst->NStep <= 0 ){
 	  Error = true;
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Algorith_Init(): Invalid number of steps.\n" );
+	  fprintf( stderr, "Algorithm_Init(): Invalid number of steps.\n" );
      }
 
      InitConst->Delta_t = ConfFile_GetDouble( Config, "General:Delta" );
      if ( InitConst->Delta_t <= 0.0 ){
 	  Error = true;
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Algorith_Init(): Invalid time step.\n" );
+	  fprintf( stderr, "Algorithm_Init(): Invalid time step.\n" );
      }
 
      InitConst->Scale_Factor = ConfFile_GetDouble( Config, "General:Scale_Factor" );
@@ -174,7 +174,7 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
      if ( InitConst->OrderSub < 0 ){
 	  Error = true;
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Algorith_Init(): Invalid option for the number of sub-structures.\n" );
+	  fprintf( stderr, "Algorithm_Init(): Invalid option for the number of sub-structures.\n" );
      }
      
      /* Number of substructures */
@@ -186,11 +186,11 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
 
      if( Error ){
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Algorith_Init(): Initialisation errors. Aborting.\n" );
+	  fprintf( stderr, "Algorithm_Init(): Initialisation errors. Aborting.\n" );
 	  exit( EXIT_FAILURE );
      } else {
 	  Print_Header( SUCCESS );
-	  printf( "Algorith_Init(): Initialisation succcessfully completed.\n" );
+	  printf( "Algorithm_Init(): Initialisation succcessfully completed.\n" );
      }
 }
 
