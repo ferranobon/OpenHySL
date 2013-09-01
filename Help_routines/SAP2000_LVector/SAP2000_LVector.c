@@ -68,10 +68,11 @@ int main ( int argc, char **argv )
 		    fprintf( stderr, "The input number of degrees of freedom must be between 1 and 6.\n" );
 		    fprintf( stderr, "Exiting.\n" );
 	       }
+
 	       if( strlen(FullString) != (size_t)(DOF_Table[0]*2 + 1) ){
 		    fprintf( stderr, "Invalid desired DOF format. The correct format should be something like \n" );
-		    fprintf( stderr, "3 1 0 0\t For a 3-degrees of freedom system where only x direction is desired or, \n" );
-		    fprintf( stderr, "6 1 0 0 1 0 0\t For a 6-degrees of freedom system where only x direction and x rotation are desired\n" );
+		    fprintf( stderr, "\"3 1 0 0\"\t For a 3-degrees of freedom system where only x direction is desired or, \n" );
+		    fprintf( stderr, "\"6 1 0 0 1 0 0\"\t For a 6-degrees of freedom system where only x direction and x rotation are desired\n" );
 		    fprintf( stderr, "Exiting.\n" );
 		    exit( EXIT_FAILURE );
 	       }
@@ -92,6 +93,7 @@ int main ( int argc, char **argv )
 	       break;
 	  case 'h':
 	       print_help( argv, long_options );
+	       exit( EXIT_FAILURE );
 	       break;
 	  case '?':
 	       /* Long options already prints an error message telling that there is an unrecognised option */
