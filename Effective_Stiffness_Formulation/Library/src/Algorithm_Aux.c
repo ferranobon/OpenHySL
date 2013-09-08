@@ -254,12 +254,12 @@ void Change_Filename( char *Name )
 void Algorithm_Destroy( AlgConst_t *const InitConst )
 {
 
-    if( InitConst->ExcitedDOF != NULL ){
+     if( InitConst->ExcitedDOF != NULL ){
 	  free( InitConst->ExcitedDOF );
      }
      free( InitConst->FileM );
      free( InitConst->FileK );
-
+     
      if( InitConst->FileC != NULL ){
 	  free( InitConst->FileC );
      }

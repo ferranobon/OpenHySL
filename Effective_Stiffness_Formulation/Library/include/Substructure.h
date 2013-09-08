@@ -5,14 +5,18 @@
 
 #define NUM_TYPE_SUB  7  /*!< Number of recognized sub-structure types */
 
+/**
+ * \brief Supported sub-structure types.
+ */
 enum Substructure_Id { SIM_EXACT_MDOF, /*!< Simulate the substructure using the exact solution. MDOF. */
 		       SIM_EXACT_SDOF, /*!< Simulate the substructure using the exact solution. SDOF. */
-		       SIM_EXACT_ESP,
+		       SIM_EXACT_ESP,  /*!< Simulate the sub-structure using an exact integration method \cite */
 		       SIM_UHYDE,      /*!< Simulate the substructure using the UHYDE-fbr device. */
 		       SIM_MEASURED,   /*!< Simulate the substructure using measured values. */
 		       EXP_ADWIN,      /*!< Run using ADwin */
-		       REMOTE,         /*!< Remote node using TCP/IP connection. */
+		       REMOTE,         /*!< Remote substructure. */
 };
+
 
 void Substructure_SendGainMatrix( double *Gain, unsigned int Order, const Substructure_t *const Substructure );
 

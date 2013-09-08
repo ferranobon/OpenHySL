@@ -3,7 +3,6 @@
  * \author Ferran Obón Santacana
  * \version 1.0
  * \date 28th of February 2013
- * \todo Add support for packaged storages to decrease the memory use
  *
  * \brief MatrixVector_t creation and manipulation prototypes.
  *

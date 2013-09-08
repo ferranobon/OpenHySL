@@ -3,8 +3,6 @@
  * \author Ferran Obón Santacana
  * \version 1.0
  * \date 9th of February 2013
- * 
- * \todo Add support for packed storage to reduce memory use.
  *
  * \brief Routines specific to the effective stiffness matrix formulation of the algorithm.
  *
