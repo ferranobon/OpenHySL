@@ -38,7 +38,7 @@
  * - \f$\vec u_g\f$ is a vector with the ground displacement values,
  *
  * It makes use of BLAS routines to perform the linear algebra operations. For the packed storage or the
- * sparse version the routines InputLoad_AbsValues_PS() or InputLoad_AbsValues_Sp() shoudl be used instead.
+ * sparse version the routines InputLoad_AbsValues_PS() or InputLoad_AbsValues_Sp() should be used instead.
  *
  * \pre 
  * - All elements of type \c MatrixVector_t must be properly initialised through the MatrixVector_Create()
@@ -70,7 +70,7 @@ void InputLoad_AbsValues( const MatrixVector_t *const Stiff, const MatrixVector_
 			  MatrixVector_t *const InLoad );
 
 /**
- * \brief Calculates the input load as absolute values. General storage version.
+ * \brief Calculates the input load as absolute values. Packed storage version.
  *
  * This routine calculates the input load as absolute values that is required at the beginning of each step
  * through:
@@ -85,7 +85,7 @@ void InputLoad_AbsValues( const MatrixVector_t *const Stiff, const MatrixVector_
  * - \f$\vec u_g\f$ is a vector with the ground displacement values,
  *
  * It makes use of BLAS routines to perform the linear algebra operations. For the general storage or the
- * sparse version the routines InputLoad_AbsValues() or InputLoad_AbsValues_Sp() shoudl be used instead.
+ * sparse version the routines InputLoad_AbsValues() or InputLoad_AbsValues_Sp() should be used instead.
  *
  * \pre
  * - \c Stiff and \c Damp should be symmetrical matrices in packed storage format with the upper triangular
@@ -133,7 +133,8 @@ void InputLoad_AbsValues_PS( const MatrixVector_t *const Stiff, const MatrixVect
  * - \f$\vec u_g\f$ is a vector with the ground displacement values,
  *
  * It makes use of the BLAS and Sparse BLAS routines from the Intel Math Kernel Library (\cite MKL_2013) to
- * perform the linear algebra operations.
+ * perform the linear algebra operations. For the general or packed storage version the routines
+ * InputLoad_AbsValues() or InputLoad_AbsValues_PS() should be used instead.
  *
  * \pre
  * - All elements of type \c MatrixVector_t must be properly initialised through the MatrixVector_Create()
@@ -184,7 +185,7 @@ void InputLoad_AbsValues_Sp( const MatrixVector_Sp_t *const Stiff, const MatrixV
  *
  * It makes use of PBLAS routines to perform the linear algebra operations. For the, general, packed storage
  * or  the sparse version the routines InputLoad_AbsValues(), InputLoad_AbsValues_PS() or
- * InputLoad_AbsValues_Sp() shoudl be used instead.
+ * InputLoad_AbsValues_Sp() should be used instead.
  *
  * \pre 
  * - All elements of type \c PMatrixVector_t must be properly initialised through the PMatrixVector_Create()
@@ -229,7 +230,7 @@ void InputLoad_AbsValues_MPI( PMatrixVector_t *const Stiff, PMatrixVector_t *con
  * - \f$\ddot{\vec u}_g\f$ is a vector with the ground acceleration values,
  *
  * It makes use of BLAS routines to perform the linear algebra operations. For the packed storage or the
- * sparse version the routines InputLoad_RelValues_PS() or InputLoad_RelValues_Sp() shoudl be used instead.
+ * sparse version the routines InputLoad_RelValues_PS() or InputLoad_RelValues_Sp() should be used instead.
  *
  * \pre
  * - All elements of type \c MatrixVector_t must be properly initialised through the MatrixVector_Create()
@@ -270,7 +271,7 @@ void InputLoad_RelValues( const MatrixVector_t *const Mass, const MatrixVector_t
  * - \f$\ddot{\vec u}_g\f$ is a vector with the ground acceleration values,
  *
  * It makes use of BLAS routines to perform the linear algebra operations. For the general storage or the
- * sparse version the routines InputLoad_RelValues() or InputLoad_RelValues_Sp() shoudl be used instead.
+ * sparse version the routines InputLoad_RelValues() or InputLoad_RelValues_Sp() should be used instead.
  *
  * \pre
  * - \c Mass should be a symmetrical matrix in packed storage format with the upper triangular part referenced
@@ -314,7 +315,8 @@ void InputLoad_RelValues_PS( const MatrixVector_t *const Mass, const MatrixVecto
  * - \f$\ddot{\vec u}_g\f$ is a vector with the ground acceleration values,
  *
  * It makes use of the BLAS and Sparse BLAS routines from the Intel Math Kernel Library (\cite MKL_2013) to
- * perform the linear algebra operations.
+ * perform the linear algebra operations. For the general or packed storage version the routines
+ * InputLoad_RelValues() or InputLoad_RelValues_PS() should be used instead.
  *
  * \pre
  * - All elements of type \c MatrixVector_t must be properly initialised through the MatrixVector_Create()
@@ -355,7 +357,7 @@ void InputLoad_RelValues_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVe
  * - \f$\ddot{\vec u}_g\f$ is a vector with the ground acceleration values,
  *
  * It makes use of PBLAS routines to perform the linear algebra operations. For the general, packed or sparse
- * formats the routines InputLoad_RelValues(), InputLoad_RelValues_PS() or InputLoad_RelValues_Sp() shoudl be
+ * formats, the routines InputLoad_RelValues(), InputLoad_RelValues_PS() or InputLoad_RelValues_Sp() should be
  * used instead.
  *
  * \pre
