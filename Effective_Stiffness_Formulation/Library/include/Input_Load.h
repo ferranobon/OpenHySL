@@ -31,7 +31,7 @@
  * \f[\vec l_i^t = \mathcal{C} \dot{\vec u}_g + \mathcal{K} \vec u_g\f]
  *
  * where:
- * - \f$\vec l_i^t\f$ is the input load vector at time \f$t\f$
+ * - \f$\vec l_i^t\f$ is the input load vector at time \f$t\f$,
  * - \f$\mathcal{C}\f$ is the viscous damping matrix,
  * - \f$\dot{\vec u}_g\f$ is a vector with the ground velocity values,
  * - \f$\mathcal{K}\f$ is the stiffness matrix,
@@ -78,7 +78,7 @@ void InputLoad_AbsValues( const MatrixVector_t *const Stiff, const MatrixVector_
  * \f[\vec l_i^t = \mathcal{C} \dot{\vec u}_g + \mathcal{K} \vec u_g\f]
  *
  * where:
- * - \f$\vec l_i^t\f$ is the input load vector at time \f$t\f$
+ * - \f$\vec l_i^t\f$ is the input load vector at time \f$t\f$,
  * - \f$\mathcal{C}\f$ is the viscous damping matrix,
  * - \f$\dot{\vec u}_g\f$ is a vector with the ground velocity values,
  * - \f$\mathcal{K}\f$ is the stiffness matrix,
@@ -126,7 +126,7 @@ void InputLoad_AbsValues_PS( const MatrixVector_t *const Stiff, const MatrixVect
  * \f[\vec l_i^t = \mathcal{C} \dot{\vec u}_g + \mathcal{K} \vec u_g\f]
  *
  * where:
- * - \f$\vec l_i^t\f$ is the input load vector at time \f$t\f$
+ * - \f$\vec l_i^t\f$ is the input load vector at time \f$t\f$,
  * - \f$\mathcal{C}\f$ is the viscous damping matrix,
  * - \f$\dot{\vec u}_g\f$ is a vector with the ground velocity values,
  * - \f$\mathcal{K}\f$ is the stiffness matrix,
@@ -176,7 +176,7 @@ void InputLoad_AbsValues_Sp( const MatrixVector_Sp_t *const Stiff, const MatrixV
  * \f[\vec l_i^t = \mathcal{C} \dot{\vec u}_g + \mathcal{K} \vec u_g\f]
  *
  * where:
- * - \f$\vec l_i^t\f$ is the input load vector at time \f$t\f$
+ * - \f$\vec l_i^t\f$ is the input load vector at time \f$t\f$,
  * - \f$\mathcal{C}\f$ is the viscous damping matrix,
  * - \f$\dot{\vec u}_g\f$ is a vector with the ground velocity values,
  * - \f$\mathcal{K}\f$ is the stiffness matrix,
@@ -224,7 +224,7 @@ void InputLoad_AbsValues_MPI( PMatrixVector_t *const Stiff, PMatrixVector_t *con
  * \f[\vec l_i^t = -\mathcal{M} \ddot{\vec u}_g\f]
  *
  * where:
- * - \f$\vec l_i^t\f$ is the input load vector at time \f$t\f$
+ * - \f$\vec l_i^t\f$ is the input load vector at time \f$t\f$,
  * - \f$\mathcal{M}\f$ is the mass matrix,
  * - \f$\ddot{\vec u}_g\f$ is a vector with the ground acceleration values,
  *
@@ -265,7 +265,7 @@ void InputLoad_RelValues( const MatrixVector_t *const Mass, const MatrixVector_t
  * \f[\vec l_i^t = -\mathcal{M} \ddot{\vec u}_g\f]
  *
  * where:
- * - \f$\vec l_i^t\f$ is the input load vector at time \f$t\f$
+ * - \f$\vec l_i^t\f$ is the input load vector at time \f$t\f$,
  * - \f$\mathcal{M}\f$ is the mass matrix,
  * - \f$\ddot{\vec u}_g\f$ is a vector with the ground acceleration values,
  *
@@ -309,7 +309,7 @@ void InputLoad_RelValues_PS( const MatrixVector_t *const Mass, const MatrixVecto
  * \f[\vec l_i^t = -\mathcal{M} \ddot{\vec u}_g\f]
  *
  * where:
- * - \f$\vec l_i^t\f$ is the input load vector at time \f$t\f$
+ * - \f$\vec l_i^t\f$ is the input load vector at time \f$t\f$,
  * - \f$\mathcal{M}\f$ is the mass matrix,
  * - \f$\ddot{\vec u}_g\f$ is a vector with the ground acceleration values,
  *
@@ -350,7 +350,7 @@ void InputLoad_RelValues_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVe
  * \f[\vec l_i^t = -\mathcal{M} \ddot{\vec u}_g\f]
  *
  * where:
- * - \f$\vec l_i^t\f$ is the input load vector at time \f$t\f$
+ * - \f$\vec l_i^t\f$ is the input load vector at time \f$t\f$,
  * - \f$\mathcal{M}\f$ is the mass matrix,
  * - \f$\ddot{\vec u}_g\f$ is a vector with the ground acceleration values,
  *
