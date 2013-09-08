@@ -1,16 +1,29 @@
+/**
+ * \file Substructure_Remote.h
+ * \author Ferran Obón Santacana
+ * \version 1.0 
+ * \date 24th of August 2013
+ *
+ * \brief Routines to deal with remote substructures.
+ *
+ * These routines deal with the creation and destriction of remote substructures.
+ */
 #ifndef SUBSTRUCTURE_REMOTE_H_
 #define SUBSTRUCTURE_REMOTE_H_
 
 #include <sys/socket.h>  /* For struct sockaddr */
 
-#define NUM_REMOTE_TYPE 5
-#define MAXPENDING      5    /* Maximum outstanding connection requests */
+#define NUM_REMOTE_TYPE 5   /*!< \brief Number of recognised remote sub-structure types. */
+#define MAXPENDING      5   /*!< \brief Maximum outstanding connection requests */
 
-enum Substructure_Remote_ID { REMOTE_TCP,
-			      REMOTE_UDP,
-			      REMOTE_NCREE,
-			      REMOTE_OF,
-			      REMOTE_CELESTINA
+/**
+ * \brief Supported sub-structure types
+*/
+enum Substructure_Remote_ID { REMOTE_TCP,       /*!< Standard TCP/IP connection */
+			      REMOTE_UDP,       /*!< Standard UDP connection */
+			      REMOTE_NCREE,     /*!< NSEP protocol */
+			      REMOTE_OF,        /*!< OpenFresco protocol */
+			      REMOTE_CELESTINA  /*!< Celestina protocol */
 };
 
 static const char *Substructure_RemoteType[] = {"TCP",
@@ -30,10 +43,11 @@ typedef struct Remote{
      char *Port;             /*!< Port that will be used for TCP/IP communication. */
      char *Account_Name;     /*!< Account information */
      char *Account_Password; /*!< Account password */
-     int   Socket;
-     int   NSub;
-     int  *DOFs;
-     char *Description;
+     int   Socket;           /*!< Socket */
+     int   NSub;             /*!< Number of substructures to be simulated in the remote site */
+     int  *DOFs;             /*!< Degrees of freedom that are affected by the substructures. Position of the
+			      *   substructures in the global matrix */
+     char *Description;      /*!< \brief Description of the experimental sub-structure.*/
      int Type;               /* Type of remote substructures */
 } Remote_t;
 

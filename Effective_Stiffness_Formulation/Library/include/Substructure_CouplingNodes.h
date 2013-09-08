@@ -1,3 +1,14 @@
+/**
+ * \file Substructure_CouplingNodes.h
+ * \author Ferran Obón Santacana
+ * \version 1.0 
+ * \date 21st of June 2013
+ *
+ * \brief Routines to deal with coupling nodes.
+ *
+ * These routines deal with the creation and destriction of experimental substructures. They do not depend on
+ * specific hardware (eg. ADwin).
+ */
 #ifndef SUBSTRUCTURE_COUPLINGNODES_H_
 #define SUBSTRUCTURE_COUPLINGNODES_H_
 
@@ -22,10 +33,11 @@ typedef struct Substructure{
  * during a test. The nodes are stored sequentially and in increasing order.
  */
 typedef struct CouplingNode {
-     int *Array;  /*!< \brief Array containing the coupling nodes */
-     int Order;   /*!< \brief Number of coupling nodes */
-     double *VecTdT0_c0;
-     Substructure_t *Sub;
+     int *Array;             /*!< \brief Array containing the coupling nodes of length \c Order.*/
+     int Order;              /*!< \brief Number of coupling nodes. */
+     double *VecTdT0_c0;     /*!< \brief Previous values of the explicit displacement. They are used in the
+			      * sub-stepping process (ramp function). */
+     Substructure_t *Sub;    /*!< \brief Array of substructures of length \c Order.*/
 } CouplingNode_t;
 
 
@@ -43,7 +55,7 @@ void Substructure_DeleteCouplingNodes( CouplingNode_t *CNodes );
 /**
  * \brief Identifies the type of substructure.
  *
- * \param[in] Type Substructure type to be validated/identified.
+ * \param[in]  Type         Substructure type to be validated/identified.
  * \param[out] Identity_Num Substructure identifier.
  *
  * \post If the input substructure type in \c Type is not recognised. The program will terminate.

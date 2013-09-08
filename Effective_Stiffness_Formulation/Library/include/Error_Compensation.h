@@ -3,8 +3,6 @@
  * \author Ferran Obón Santacana
  * \version 1.0 
  * \date 18th of February 2013
- * 
- * \todo Add support for packed storage to reduce memory use.
  *
  * \brief Error compensation routines.
  *
