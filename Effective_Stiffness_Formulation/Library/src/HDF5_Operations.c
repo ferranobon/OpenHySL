@@ -154,6 +154,7 @@ void Save_InformationCNodes( hid_t file_id, const char *Name_path, CouplingNode_
      HDF5_Exact_UHYDE_t *Nodes;
      HDF5_Exp_Meas_t *Nodes_Exp;
      ExactSim_t *TMD;
+     ExactSimESP_t *ExSim;
      UHYDEfbrSim_t *UHYDE;
      ExpSub_t *Experimental;
 
@@ -177,7 +178,7 @@ void Save_InformationCNodes( hid_t file_id, const char *Name_path, CouplingNode_
 	       if ( i == EXP_ADWIN && CNodes->Sub[j].Type == EXP_ADWIN ){
 		    count = count + 1;
 		    is_adwin = 1;	
-	       } else if ( i == SIM_EXACT_MDOF && CNodes->Sub[j].Type == SIM_EXACT_MDOF ){
+	       } else if ( i == SIM_EXACT_ESP && CNodes->Sub[j].Type == SIM_EXACT_ESP ){
 		    count = count + 1;
 		    is_exact = 1;
 	       } else if ( i == SIM_UHYDE && CNodes->Sub[j].Type == SIM_UHYDE ){
@@ -206,15 +207,15 @@ void Save_InformationCNodes( hid_t file_id, const char *Name_path, CouplingNode_
 		    Experimental = (ExpSub_t *) CNodes->Sub[j].SimStruct;
 		    Nodes_Exp[k].Description = strdup( Experimental->Description );
 		    k = k + 1;
-	       } else if ( i == SIM_EXACT_MDOF && CNodes->Sub[j].Type == SIM_EXACT_MDOF ){
+	       } else if ( i == SIM_EXACT_ESP && CNodes->Sub[j].Type == SIM_EXACT_ESP ){
 		    Nodes[k].Position = CNodes->Array[j] - 1;      /* 0-based index */
 
-		    TMD = (ExactSim_t *) CNodes->Sub[j].SimStruct;
-//		    Nodes[k].InitValues[0] = TMD->Mass[0];
-//		    Nodes[k].InitValues[1] = TMD->Damp[0];
-//		    Nodes[k].InitValues[2] = TMD->Stiff[0];
+		    ExSim = (ExactSimESP_t *) CNodes->Sub[j].SimStruct;
+		    Nodes[k].InitValues[0] = ExSim->Mass;
+		    Nodes[k].InitValues[1] = ExSim->Damp;
+		    Nodes[k].InitValues[2] = ExSim->Stiff;
 
-		    Nodes[k].Description = strdup( TMD->Description );		
+		    Nodes[k].Description = strdup( ExSim->Description );		
 		    k = k + 1;
 	       } else if ( i == SIM_UHYDE && CNodes->Sub[j].Type == SIM_UHYDE ){
 		    Nodes[k].Position = CNodes->Array[j] - 1;      /* 0-based index */
@@ -234,7 +235,7 @@ void Save_InformationCNodes( hid_t file_id, const char *Name_path, CouplingNode_
 	       }
 	  }
 
-	  if ( (i == SIM_EXACT_MDOF) && is_exact ){
+	  if ( (i == SIM_EXACT_ESP) && is_exact ){
 	       memtype = H5Tcreate (H5T_COMPOUND, sizeof( HDF5_Exact_UHYDE_t) );
 	       H5Tinsert( memtype, "Eq. column (0-based index)", HOFFSET( HDF5_Exact_UHYDE_t, Position), H5T_NATIVE_INT );
 	       H5Tinsert( memtype, "Mass [kg]", HOFFSET( HDF5_Exact_UHYDE_t, InitValues[0]), H5T_NATIVE_DOUBLE );
