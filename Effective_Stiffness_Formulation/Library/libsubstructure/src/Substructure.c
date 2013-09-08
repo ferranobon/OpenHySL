@@ -229,7 +229,7 @@ void Substructure_Simulate( CouplingNode_t *const CNodes, double *IGain, double 
 		    break;
 	       case SIM_UHYDE:
 		    UHYDE = (UHYDEfbrSim_t *) CNodes->Sub[i].SimStruct;
-		    Substructure_SimUHYDE_1D( VecTdT0_c[i], DeltaT_Sub, UHYDE, &fc[i] );
+		    Substructure_SimUHYDE_1D( VecTdT_c[i], DeltaT_Sub, UHYDE, &fc[i] );
 		    break;
 	       case SIM_MEASURED:
 		    Measured = (MeasuredSim_t *) CNodes->Sub[i].SimStruct;
