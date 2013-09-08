@@ -112,6 +112,7 @@ void MatrixVector_CSR2Packed( const MatrixVector_Sp_t *const MatVec_Sp,  MatrixV
 	  exit( EXIT_FAILURE );
      }
 
+     Position = 0;
      for( i = 0; i < MatVec_Sp->Rows; i++ ){
 	  NumZerosRow = MatVec_Sp->RowIndex[i+1] - MatVec_Sp->RowIndex[i];
 	  for( j = 0; j < NumZerosRow; j++ ){
