@@ -256,6 +256,21 @@ int main( int argc, char **argv ){
 #endif
      } else assert(0);
 
+     if( InitCnt.Use_Sparse ){
+	  /* Vertical mass of the base frame and the TMD = 600+285 = 885. 885/4 = 221.25 (4 supports). */
+	  Sp_M.Values[Sp_M.RowIndex[442 - 1] - 1] = Sp_M.Values[Sp_M.RowIndex[442 - 1] - 1] + 221.25;
+	  Sp_M.Values[Sp_M.RowIndex[363 - 1] - 1] = Sp_M.Values[Sp_M.RowIndex[363 - 1] - 1] + 221.25;
+	  Sp_M.Values[Sp_M.RowIndex[273 - 1] - 1] = Sp_M.Values[Sp_M.RowIndex[273 - 1] - 1] + 221.25;
+	  Sp_M.Values[Sp_M.RowIndex[449 - 1] - 1] = Sp_M.Values[Sp_M.RowIndex[449 - 1] - 1] + 221.25;
+
+	  /* Horizontal mass of the base frame in the x-direction. 600 kg */
+	  Sp_M.Values[Sp_M.RowIndex[47 - 1] - 1] = Sp_M.Values[Sp_M.RowIndex[47 - 1] - 1] + 600.0;
+
+	  /* Horizontal mass of the base frame in the y-direction. 600 kg (2 supports) */
+	  Sp_M.Values[Sp_M.RowIndex[104 - 1] - 1] = Sp_M.Values[Sp_M.RowIndex[104 - 1] - 1] + 300.0;
+	  Sp_M.Values[Sp_M.RowIndex[90 - 1] - 1] = Sp_M.Values[Sp_M.RowIndex[90 - 1] - 1] + 300.0;
+     }
+
      if ( !InitCnt.Read_LVector ){
 	  InputLoad_Generate_LoadVectorForm( InitCnt.ExcitedDOF, &LoadVectorForm );
      }  else {
@@ -358,6 +373,8 @@ int main( int argc, char **argv ){
 #endif
 	  } else assert(0);
      }
+
+
 
      incx = 1; incy = 1;
      Print_Header( INFO );
