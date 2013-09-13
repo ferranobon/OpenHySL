@@ -32,19 +32,18 @@ void Cblacs_barrier(int icontxt, char *scope);
  *
  * Gets the values the BLACS are using for internal defaults (BLACS routine). The most common use is in
  * retrieving a default system context for input into CBlacs_gridinit() or CBlabs_gridmap(). The contents of
- * the output variable \c val will depend on \c what:
- *
- * - \c what = 0: Handle indicating the system context;
- * - \c what = 1: The BLACS message ID range;
- * - \c what = 2: The BLACS debug level the library was compiled with;
- * - \c what = 10: Handle indicating the system context used to define the BLACS context whose handle is \c
- *      icontxt.
- * - \c what = 11: Number of rings multiring topology is presently using;
- * - \c what = 12: Number of branches general tree topology is presently using
+ * the output variable \c val will depend on \c what.
  *
  * \param[in]  icontxt Integer handle indicating the BLACS context if a value of \c what is tied to a
  *                     particular context. It is ignored otherwise. 
  * \param[in]  what    The BLACS internal that should be returned in \c val.
+ *                     - \c what = 0: Handle indicating the system context;
+ *                     - \c what = 1: The BLACS message ID range;
+ *                     - \c what = 2: The BLACS debug level the library was compiled with;
+ *                     - \c what = 10: Handle indicating the system context used to define the BLACS context
+ *                       whose handle is \c icontxt.
+ *                     - \c what = 11: Number of rings multiring topology is presently using;
+ *                     - \c what = 12: Number of branches general tree topology is presently using
  * \param[out] val     The value of the BLACS internal.
  * 
  * For a complete documentation the reader should refer to \cite{BLACS_webpage}.
@@ -77,14 +76,12 @@ int Cblacs_gridexit( int icontxt );
  * process-to-grid mappings are unacceptable, BLACS_GRIDINIT's more complex sister routine Cblacs_gridmap()
  * must be called instead.
  *
- * Depending on the value of \c order, the processes are mapped to the BLACS grid using following ordering:
- * - \c order = 'R': row-major natural ordering;
- * - \c order = 'C': column-major natural ordering;
- * - Any other value will result in row-major natural ordering.
- *
  * \param[in,out] icontxt On input an integer handle indicating the system context to be used in creating the
  *                        BLACS context. On output, the integer handle to the created BLACS context. 
  * \param[in]     order   Indicates how to map processes to BLACS grid.
+ *                        - \c order = 'R': row-major natural ordering;
+ *                        - \c order = 'C': column-major natural ordering;
+ *                        - Any other value will result in row-major natural ordering.
  * \param[in]     nprow   Indicates how many process rows the process grid should contain.
  * \param[out]    npcol   Indicates how many process columns the processs grid should contain.
  *

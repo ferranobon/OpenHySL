@@ -35,8 +35,9 @@
  *                   \f$p\f$ processes of its process column. It can be determined using numroc_(): \f$ LOCr(
  *                   m ) = numroc_( m, mb, myrow, irsrc, nprow)\f$ Where \f$myrow\f$ is contains the local
  *                   process (local value).
- * \param[out] info  On output: if \f$info = 0\f$: successful exit, while if \f$-i = info < 0\f$ the \em i-th
- *                   argument had an illegal value.
+ * \param[out] info  On output if:
+ *                   - \f$info = 0\f$: successful exit;
+                     - \f$info < 0\f$: if \f$info = -i\f$ the \em i-th argument had an illegal value.
  *
  * For a complete documentation the reader should refer to \cite{ScaLapack_webpage}.
  */ 
