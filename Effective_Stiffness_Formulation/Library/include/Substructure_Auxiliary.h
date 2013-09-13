@@ -1,13 +1,25 @@
+/**
+ * \file Substructure_Auxiliary.h
+ * \author Ferran Obón Santacana
+ * \version 1.0 
+ * \date 13th of September 2013
+ *
+ * \brief Auxiliary routines to help dealing with the sub-stepping process.
+ *
+ * These routines are considered auxiliary since they deal with those parts of the sub-stepping process that
+ * involve manipulating the matrices/vectors: splitting them into coupling and non-coupling part, joining the
+ * results, etc. The MPI routines are also included in here.
+ */
 #ifndef SUBSTRUCTURE_AUXILIARY_H_
 #define SUBSTRUCTURE_AUXILIARY_H_
 
 #include "MatrixVector.h"
-#include "MatrixVector_MPI.h"
 
 #include "Substructure.h"
 
 #if _MPI_
 #include "mpi.h"
+#include "MatrixVector_MPI.h"
 #define MATRIX_XC 0   /*!< Label for the mpi messages involved in the creation of the Xc matrix */
 #define VECTOR_XC 1   /*!< Label for the mpi messages involved in the creation of the Xc vector */
 #endif
@@ -68,6 +80,7 @@ void Substructure_JoinNonCouplingPart( MatrixVector_t *const VecTdT_m, const Mat
 				       const MatrixVector_t *const fcprevsub,
 				       const CouplingNode_t *const CNodes, MatrixVector_t *const VecTdT );
 
+ #if _MPI_
 /**
  * \brief Joins the non-coupling of a vector. MPI version.
  *
@@ -125,6 +138,7 @@ void Substructure_JoinNonCouplingPart_MPI( PMatrixVector_t *const VecTdT_m,
 					   PMatrixVector_t *const Gain_m,
 					   PMatrixVector_t *const fcprevsub,
 					   const CouplingNode_t *const CNodes, PMatrixVector_t *const VecTdT );
+#endif /* _MPI_ */
 
 /**
  * \brief Construction of the coupling matrix. General storage version.
@@ -269,7 +283,7 @@ void Substructure_MatrixXc_PS( const MatrixVector_t *const Mat, const CouplingNo
  */
 void Substructure_MatrixXc_MPI( const MPI_Comm Comm, const CouplingNode_t *const CNodes,
 				PMatrixVector_t *const Mat, MatrixVector_t *const MatCouple );
-#endif
+#endif /* _MPI_ */
 
 /**
  * \brief Construction of the non-coupling part of a given matrix. General storage version.
@@ -428,7 +442,7 @@ void Substructure_MatrixXcm_PS( const MatrixVector_t *const Mat, const CouplingN
  */
 void Substructure_MatrixXcm_MPI( const MPI_Comm Comm, PMatrixVector_t *const Mat,
 				 const CouplingNode_t *const CNodes, PMatrixVector_t *const MatXcm );
-#endif
+#endif /* _MPI_ */
 
 /**
  * \brief Copies the non-coupling part a vector.
@@ -537,6 +551,6 @@ void Substructure_VectorXc( const MatrixVector_t *const VecX, const CouplingNode
  */
 void Substructure_VectorXc_MPI( const MPI_Comm Comm, PMatrixVector_t *const VecX,
 				const CouplingNode_t *const CNodes, MatrixVector_t *const VecXc );
-#endif
+#endif /* _MPI_ */
 
 #endif /* SUBSTRUCTURE_AUXILIARY_H_ */
