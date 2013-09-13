@@ -1,3 +1,15 @@
+/**
+ * \file Substructure_Exact.h
+ * \author Ferran Obón Santacana
+ * \version 1.0 
+ * \date 13th of September 2013
+ *
+ * \brief Routines to deal with substructures that can be solved through exact integration routines.
+ *
+ * These routines deal with the creation, destruction and simulation of those substructures that can be solved
+ * using exact integration methods. Therefore, they are used mainly for vibrating substructures like Tunned
+ * Mass Dampers (TMDs) or other structural components (like in the Arianne IV tests)
+ */
 #ifndef SUBSTRUCTURE_EXACT_H_
 #define SUBSTRUCTURE_EXACT_H_
 

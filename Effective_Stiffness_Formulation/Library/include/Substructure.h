@@ -1,3 +1,16 @@
+/**
+ * \file Substructure.h
+ * \author Ferran Obón Santacana
+ * \version 1.0
+ * \date 13th of September 2013
+ * 
+ * \brief Routines for dealing with substructures and the sub-stepping process. Definition of supported
+ * substructure types.
+ *
+ * This file contains routines that deal with the sub-stepping process or that involve substructures,
+ * including sending the gain matrix to remote facilities or to the control hardware. It defines the
+ * recognised types of substructures.
+ */
 #ifndef SUBSTRUCTURE_H_
 #define SUBSTRUCTURE_H_
 
