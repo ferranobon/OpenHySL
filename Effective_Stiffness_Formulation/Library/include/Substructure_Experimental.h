@@ -43,9 +43,9 @@ void Substructure_Experimental_Init( const char *Description, ExpSub_t *const Su
  * \param[in,out] Sub Experimental substructure.
  *
  * \post
- * - \c The memory allocated in \c Sub.Description is freed.
+ * - The memory allocated in \c Sub.Description is freed.
  *
- * \sa ExpSub_t, Substructure_Experimental_Init().
+ * \sa ExpSub_t and Substructure_Experimental_Init().
  */
 void Substructure_Experimental_Destroy( ExpSub_t *const Sub );
 
