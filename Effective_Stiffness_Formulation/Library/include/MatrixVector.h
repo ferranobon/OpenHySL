@@ -129,6 +129,8 @@ void MatrixVector_Destroy( MatrixVector_t *const MatVec );
  * \param[in,out] MatVec   On input only the number of rows and columns is referenced.
  *
  * \post \c MatVec.Array have the contents of the ASCII file.
+ *
+ * \sa MatrixVector_t.
  */
 void MatrixVector_FromFile( const char *Filename, MatrixVector_t *const MatVec );
 
@@ -150,6 +152,8 @@ void MatrixVector_FromFile( const char *Filename, MatrixVector_t *const MatVec )
  * \param[in,out] MatVec   On input only the number of rows and columns is referenced.
  *
  * \post \c MatVec.Array have the contents of the file always in dense storage.
+ *
+ * \sa MatrixVector_t.
  */
 void MatrixVector_FromFile_MM( const char *Filename, MatrixVector_t *const MatVec );
 
@@ -169,7 +173,8 @@ void MatrixVector_FromFile_MM( const char *Filename, MatrixVector_t *const MatVe
  * - <tt>Operation = Multiply</tt>. \f$A(i,j) = A(i,j)*\alpha\f$.
  * - <tt>Operation = Divide</tt>. \f$A(i,j) = frac{A(i,j)}{\alpha}\f$.
  *
- * If the operation is not supported, the routine calls <tt>exit( EXIT_FAILURE )</tt>.
+ * If the operation is not supported, the routine calls <tt>exit( EXIT_FAILURE )</tt>. For MPI support, the
+ * routine PMatrixVector_ModifyElement() should be used instead.
  *
  * \param[in]     RowIndex  The row index \f$i\f$ (one based index).
  * \param[in]     ColIndex  The column index \f$j\f$ (one based index).
@@ -181,6 +186,8 @@ void MatrixVector_FromFile_MM( const char *Filename, MatrixVector_t *const MatVe
  *
  * \post One of the supported operations is performed. If the operation is not supported, the routine calls
  * <tt>exit( EXIT_FAILURE )</tt>.
+ *
+ * \sa MatrixVector_t
  */
 void MatrixVector_ModifyElement( const int RowIndex, const int ColIndex, const double Alpha,
 				 const char *Operation, MatrixVector_t *const MatVec );
@@ -211,6 +218,8 @@ void MatrixVector_Set2Value( const double Value, MatrixVector_t *const MatVec );
  * \param[in] Filename Name of the ASCII file to be opened.
  *
  * \post The ASCII file \c Filename has the contents of \c MatVec.Array in a dense format.
+ *
+ * \sa MatrixVector_t.
  */
 void MatrixVector_ToFile( const MatrixVector_t *const MatVec, const char *Filename );
 

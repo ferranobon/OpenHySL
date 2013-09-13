@@ -20,8 +20,8 @@
 void PMatrixVector_FromFile( const char *Filename, PMatrixVector_t *const Mat )
 {
 
-     int i, j;				/* Counters */
-     int myrow, mycol;		/* Grid variables */
+     int i, j;		/* Counters */
+     int myrow, mycol;	/* Grid variables */
      int nprow, npcol;
      
      char trans = 'N';
@@ -37,9 +37,10 @@ void PMatrixVector_FromFile( const char *Filename, PMatrixVector_t *const Mat )
      
      Cblacs_gridinfo( Mat->Desc[1], &nprow, &npcol, &myrow, &mycol );
      
-     lld = Max(1, numroc_( &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &myrow, &izero, &nprow ) ); //Mat->GlobalSize.Row;
+     lld = Max(1, numroc_( &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &myrow, &izero, &nprow ) ); /* Mat->GlobalSize.Row; */
      
-     descinit_( descLocal, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &izero, &izero, &Mat->Desc[1], &lld, &info );
+     descinit_( descLocal, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &Mat->GlobalSize.Row,
+		&Mat->GlobalSize.Col, &izero, &izero, &Mat->Desc[1], &lld, &info );
      
      if ( info < 0 ){
 	  Print_Header( ERROR );
@@ -72,7 +73,8 @@ void PMatrixVector_FromFile( const char *Filename, PMatrixVector_t *const Mat )
 	  LocalMatrix = NULL;
      }
      
-     pdgeadd_( &trans, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &done, LocalMatrix, &ione, &ione, descLocal, &dzero, Mat->Array, &ione, &ione, Mat->Desc );
+     pdgeadd_( &trans, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &done, LocalMatrix, &ione, &ione,
+	       descLocal, &dzero, Mat->Array, &ione, &ione, Mat->Desc );
      
      if ( myrow == 0 && mycol == 0 ){
 	  Print_Header( SUCCESS );
@@ -107,9 +109,10 @@ void PMatrixVector_FromFile_MM( const char *Filename, PMatrixVector_t *const Mat
      
      Cblacs_gridinfo( Mat->Desc[1], &nprow, &npcol, &myrow, &mycol );
      
-     lld = Max(1, numroc_( &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &myrow, &izero, &nprow ) ); //Mat->GlobalSize.Row;
+     lld = Max(1, numroc_( &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &myrow, &izero, &nprow ) ); /* Mat->GlobalSize.Row; */
      
-     descinit_( descLocal, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &izero, &izero, &Mat->Desc[1], &lld, &info );
+     descinit_( descLocal, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &Mat->GlobalSize.Row,
+		&Mat->GlobalSize.Col, &izero, &izero, &Mat->Desc[1], &lld, &info );
      
      if ( info < 0 ){
 	  Print_Header( ERROR );
@@ -135,7 +138,8 @@ void PMatrixVector_FromFile_MM( const char *Filename, PMatrixVector_t *const Mat
 	  /* Read the banner and identify which type of matrix is in the file */
 	  if( mm_read_banner( InFile, &matcode ) != 0 ){
 	       Print_Header( ERROR );
-	       fprintf( stderr, "PMatrixVector_FromFile_MM: Could not process Market Matrix banner in %s\n.", Filename );
+	       fprintf( stderr, "PMatrixVector_FromFile_MM: Could not process Market Matrix banner in %s\n.",
+			Filename );
 	       exit( EXIT_FAILURE );
 	  }
      
@@ -156,8 +160,10 @@ void PMatrixVector_FromFile_MM( const char *Filename, PMatrixVector_t *const Mat
 	  /* Check if the dimensions of the matrices are the same */
 	  if ( Rows != Mat->GlobalSize.Row || Cols != Mat->GlobalSize.Col ){
 	       Print_Header( ERROR );
-	       fprintf( stderr, "MatrixVector_From_File_MM: The sizes of the matrix or vector (%d,%d) ", Rows, Cols );
-	       fprintf( stderr, "do not match with the specified ones in the configuration file (%d,%d)\n", Mat->GlobalSize.Row, Mat->GlobalSize.Col );
+	       fprintf( stderr, "MatrixVector_From_File_MM: The sizes of the matrix or vector (%d,%d) ",
+			Rows, Cols );
+	       fprintf( stderr, "do not match with the specified ones in the configuration file (%d,%d)\n",
+			Mat->GlobalSize.Row, Mat->GlobalSize.Col );
 	       exit( EXIT_FAILURE );
 	  }
 
@@ -174,7 +180,8 @@ void PMatrixVector_FromFile_MM( const char *Filename, PMatrixVector_t *const Mat
 	  LocalMatrix = NULL;
      }
      
-     pdgeadd_( &trans, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &done, LocalMatrix, &ione, &ione, descLocal, &dzero, Mat->Array, &ione, &ione, Mat->Desc );
+     pdgeadd_( &trans, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &done, LocalMatrix, &ione, &ione, descLocal,
+	       &dzero, Mat->Array, &ione, &ione, Mat->Desc );
      
      if ( myrow == 0 && mycol == 0 ){
 	  Print_Header( SUCCESS );
@@ -186,69 +193,71 @@ void PMatrixVector_FromFile_MM( const char *Filename, PMatrixVector_t *const Mat
 void PMatrixVector_ToFile( PMatrixVector_t *const Mat, const char *Filename )
 {
 
-	int i, j;			// Counters
-	int myrow, mycol;		// Grid variables
-	int nprow, npcol;
+     int i, j;			/* Counters */
+     int myrow, mycol;		/* Grid variables */
+     int nprow, npcol;
 
-	char trans = 'N';
-	int izero = 0, ione = 1;
-	double done = 1.0, dzero = 0.0;
-	int lld, info;
+     char trans = 'N';
+     int izero = 0, ione = 1;
+     double done = 1.0, dzero = 0.0;
+     int lld, info;
 
-	double *LocalMatrix;
-	int descLocal[9];
+     double *LocalMatrix;
+     int descLocal[9];
 
-	FILE *OutFile;
+     FILE *OutFile;
 
-	Cblacs_gridinfo( Mat->Desc[1], &nprow, &npcol, &myrow, &mycol );
+     Cblacs_gridinfo( Mat->Desc[1], &nprow, &npcol, &myrow, &mycol );
 
-	if ( Mat->GlobalSize.Col > 1 ){
-		lld = Max(1, numroc_( &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &myrow, &izero, &nprow ) );
-	} else {
-		lld = Mat->GlobalSize.Row;
-	}
-	descinit_( descLocal, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &izero, &izero, &Mat->Desc[1], &lld, &info );
-	if ( info < 0 ){
-	     Print_Header( ERROR );
-	     fprintf( stderr, "descinit: The %d-th argument had an illegal value.\n", -info );
-	     exit( EXIT_FAILURE );
-	}
+     if ( Mat->GlobalSize.Col > 1 ){
+	  lld = Max(1, numroc_( &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &myrow, &izero, &nprow ) );
+     } else {
+	  lld = Mat->GlobalSize.Row;
+     }
+     descinit_( descLocal, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col,
+		&izero, &izero, &Mat->Desc[1], &lld, &info );
+     if ( info < 0 ){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "descinit: The %d-th argument had an illegal value.\n", -info );
+	  exit( EXIT_FAILURE );
+     }
 
-	if ( myrow == 0 && mycol == 0 ){
-	     LocalMatrix = calloc( (size_t) (Mat->GlobalSize.Row*Mat->GlobalSize.Col), sizeof(double) );
-	     if( LocalMatrix == NULL ){
-		  Print_Header( ERROR );
-		  fprintf( stderr, "PMatrixVector_ToFile: Out of memory.\n");
-		  exit( EXIT_FAILURE );
-	     }
-	} else {
-		LocalMatrix = NULL;
-	}
+     if ( myrow == 0 && mycol == 0 ){
+	  LocalMatrix = calloc( (size_t) (Mat->GlobalSize.Row*Mat->GlobalSize.Col), sizeof(double) );
+	  if( LocalMatrix == NULL ){
+	       Print_Header( ERROR );
+	       fprintf( stderr, "PMatrixVector_ToFile: Out of memory.\n");
+	       exit( EXIT_FAILURE );
+	  }
+     } else {
+	  LocalMatrix = NULL;
+     }
 
-	pdgeadd_( &trans, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &done, Mat->Array, &ione, &ione, Mat->Desc, &dzero, LocalMatrix, &ione, &ione, descLocal );
+     pdgeadd_( &trans, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &done, Mat->Array, &ione, &ione, Mat->Desc,
+	       &dzero, LocalMatrix, &ione, &ione, descLocal );
 
-	if ( myrow == 0 && mycol == 0 ){
+     if ( myrow == 0 && mycol == 0 ){
 
-		OutFile = fopen( Filename, "w" );
-		if ( OutFile == NULL ){
-		     Print_Header( ERROR );
-		     fprintf( stderr, "PMatrixVector_ToFile: Could not open %s.\n", Filename );
-		     exit( EXIT_FAILURE );
-		}
+	  OutFile = fopen( Filename, "w" );
+	  if ( OutFile == NULL ){
+	       Print_Header( ERROR );
+	       fprintf( stderr, "PMatrixVector_ToFile: Could not open %s.\n", Filename );
+	       exit( EXIT_FAILURE );
+	  }
 
-		for ( i = 0; i < Mat->GlobalSize.Row; i++ ){
-		     for ( j = 0; j < Mat->GlobalSize.Col; j++ ){
-			  fprintf( OutFile, "%lE\t", LocalMatrix[i + Mat->GlobalSize.Row*j] );  //*Print in row major order */
-		     }
-		     fprintf( OutFile, "\n" );
-		}
-		fclose( OutFile );		
-	}
+	  for ( i = 0; i < Mat->GlobalSize.Row; i++ ){
+	       for ( j = 0; j < Mat->GlobalSize.Col; j++ ){
+		    fprintf( OutFile, "%lE\t", LocalMatrix[i + Mat->GlobalSize.Row*j] );  /* Print in row major order */
+	       }
+	       fprintf( OutFile, "\n" );
+	  }
+	  fclose( OutFile );		
+     }
 
-	if ( myrow == 0 && mycol == 0 ){
-		free( LocalMatrix );
-		Print_Header( SUCCESS );
-		printf( "PMatrixVector_ToFile: Matrix successfully saved to %s.\n", Filename );
-	}
+     if ( myrow == 0 && mycol == 0 ){
+	  free( LocalMatrix );
+	  Print_Header( SUCCESS );
+	  printf( "PMatrixVector_ToFile: Matrix successfully saved to %s.\n", Filename );
+     }
 
 }
