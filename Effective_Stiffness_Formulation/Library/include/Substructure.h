@@ -30,13 +30,12 @@ enum Substructure_Id { SIM_EXACT_MDOF, /*!< \brief Simulate the substructure usi
 		       REMOTE,         /*!< \brief Remote substructure. */
 };
 
+void Substructure_SendGainMatrix( const double *const Gain, const unsigned int Order, const Substructure_t *const Substructure );
 
-void Substructure_SendGainMatrix( double *Gain, unsigned int Order, const Substructure_t *const Substructure );
-
-void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, const double Time, const double GAcc, const unsigned int NSubstep,
-			       const double DeltaT_Sub, CouplingNode_t *const CNodes, double *const DispTdT,
+void Substructure_Substepping( const double *const IGain, const double *const DispTdT0_c, const double Time, const double GAcc, const unsigned int NSubstep,
+			       const double DeltaT_Sub, const CouplingNode_t *const CNodes, double *const DispTdT,
 			       double *const fcprevsub, double *const fc );
 
-void Substructure_Simulate( CouplingNode_t *const CNodes, double *IGain, double *const VecTdT0_c, const double GAcc, const unsigned int NSubstep, const double DeltaT_Sub, double *const VecTdT_c, double *const fcprev, double *const fc );
+void Substructure_Simulate( const CouplingNode_t *const CNodes, const double *const IGain, const double *const VecTdT0_c, const double GAcc, const unsigned int NSubstep, const double DeltaT_Sub, double *const VecTdT_c, double *const fcprev, double *const fc );
 
 #endif /* SUBSTRUCTURE_H_ */

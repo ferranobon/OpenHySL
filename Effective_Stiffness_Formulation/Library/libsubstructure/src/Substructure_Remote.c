@@ -199,7 +199,7 @@ void Substructure_Remote_PrintSocketAddress( struct sockaddr *const address )
 
 }
 
-int Substructure_Remote_AcceptTCPClientConnection( int Server_Socket )
+int Substructure_Remote_AcceptTCPClientConnection( const int Server_Socket )
 {
      
      int Client_Socket;                      /* Socket descriptor for client */
@@ -297,7 +297,7 @@ void Substructure_Remote_SetupClientConnection( Remote_t *const RemoteNode )
      freeaddrinfo(Server_Addr);
 }	  
 
-void Substructure_Remote_Send( double *const Data, const unsigned int Data_Length, const int Socket )
+void Substructure_Remote_Send( const double *const Data, const unsigned int Data_Length, const int Socket )
 {
      char *Msg;
      size_t Length;

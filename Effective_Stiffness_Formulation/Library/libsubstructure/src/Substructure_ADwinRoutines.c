@@ -65,7 +65,7 @@ void ADwin_ManageProcess( const char* PName, const int PNum, const int dowhat )
      } else assert( 0 );
 }
 
-void ADwin_SendArray( const unsigned int Index, double *const Array, const unsigned int Length )
+void ADwin_SendArray( const unsigned int Index, const double *const Array, const unsigned int Length )
 {
    
      Set_DeviceNo( (int32_t) 336 );
