@@ -23,7 +23,7 @@
 /**
  * \brief Stores the Rayleigh coefficients alpha and beta.
  */
-typedef struct {
+typedef struct Rayleigh {
      double Alpha; /*!< \brief Coefficient that multiplies the mass matrix.*/
      double Beta;  /*!< \brief Coefficient that multiplies the stiffness matrix.*/
 } Rayleigh_t;
@@ -32,7 +32,7 @@ typedef struct {
  * \brief Computes the proportional viscous damping matrix using Rayleigh damping. General storage version.
  *
  * This routine calculates the proportional viscous damping matrix using Rayleigh Damping. The operation
- * performed is (see \cite Clough 1975 p. 234):
+ * performed is (see \cite Clough_1975 p. 234):
  *
  * \f[\mathcal{C} = \alpha\mathcal{M} \cdot \beta \mathcal{K}\f]
  *
@@ -73,7 +73,7 @@ void Rayleigh_Damping( const MatrixVector_t *const Mass, const MatrixVector_t *c
  * \brief Computes the proportional viscous damping matrix using Rayleigh damping. Packed storage version.
  *
  * This routine calculates the proportional viscous damping matrix using Rayleigh Damping and packed
- * storage. The operation performed is (see \cite Clough 1975 p. 234):
+ * storage. The operation performed is (see \cite Clough_1975 p. 234):
  *
  * \f[\mathcal{C} = \alpha\mathcal{M} \cdot \beta \mathcal{K}\f]
  *
@@ -112,7 +112,7 @@ void Rayleigh_Damping_PS( const MatrixVector_t *const Mass, const MatrixVector_t
  * \brief Computes the proportional viscous damping matrix using Rayleigh damping. Sparse version.
  *
  * This routine calculates the proportional viscous damping matrix using Rayleigh Damping. The operation
- * performed is (see \cite Clough 1975 p. 234):
+ * performed is (see \cite Clough_1975 p. 234):
  *
  * \f[\mathcal{C} = \alpha\mathcal{M} \cdot \beta \mathcal{K}\f]
  *
@@ -123,8 +123,8 @@ void Rayleigh_Damping_PS( const MatrixVector_t *const Mass, const MatrixVector_t
  * - and \f$\alpha\f$ and \f$beta\f$ are the parameters that multiply the mass and stiffness matrices
  *   respectively.
  * 
- * It makes use of the BLAS, LAPACK and Sparse BLAS routines from the Intel Math Kernel Library (\cite
- * MKL_2013) to perform the linear algebra operations. This routine requires the MKL library.
+ * It makes use of the BLAS, LAPACK and Sparse BLAS routines from the Intel Math Kernel Library \cite MKL_2013
+ * to perform the linear algebra operations. This routine requires the MKL library.
  *
  * \pre 
  * - All elements of type \c MatrixVector_Sp_t must be properly intialised through the
@@ -153,7 +153,7 @@ void Rayleigh_Damping_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVecto
  * \brief Computes the proportional viscous damping matrix using Rayleigh damping. MPI version.
  *
  * This routine calculates the proportional viscous damping matrix using Rayleigh Damping. The operation
- * performed is (see \cite Clough 1975 p. 234):
+ * performed is (see \cite Clough_1975 p. 234):
  *
  * \f[\mathcal{C} = \alpha\mathcal{M} \cdot \beta \mathcal{K}\f]
  *

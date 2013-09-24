@@ -15,17 +15,31 @@
 
 #include "MatrixVector.h"
 
+/**
+ * \brief Structure to handle distribution information of distributed matrices.
+ */
 typedef struct DistInfo {
-  int Row;
-  int Col;
+     int Row;   /*!< \brief Vertical dimension (row) */
+     int Col;   /*!< \brief Horizontal dimension (column) */
 } DistInfo_t ;
 
+/**
+ * \brief Distributed matrix/vector.
+ * 
+ * Structure designed to represent distributed matrix and vector types within the library. It stores the
+ * number of global and local rows and columns, array descriptor for ScaLAPACK routines, block sizes and the
+ * values within the matrix. It uses a 1-dimensional array for this purpose. If a non-distributed version is
+ * desired the \c MatrixVector_t (dense) or \c MatrixVector_Sp_t (sparse) should be used instead.
+ *
+ * \sa MatrixVector_t and Matrixvector_Sp_t 
+ */
 typedef struct PMatrixVector {
-	double *Array;
-	int Desc[9];
-	DistInfo_t GlobalSize; /*!< Stores the size of the global matrix: rows, columns */
-	DistInfo_t LocalSize;  /*!< Stores the size of the local matrix: rows, columns */
-	DistInfo_t BlockSize;  /*!< Block size (vertical, horizontal) */
+     double *Array;         /*!< \brief Local array of a distributed matrix */
+     int Desc[9];           /*!< \brief Array descriptor for ScaLAPACK routines \cite ScaLAPACK_webpage
+			     * \cite SLUG */
+     DistInfo_t GlobalSize; /*!< \brief Stores the size of the global matrix: rows, columns */
+     DistInfo_t LocalSize;  /*!< \brief Stores the size of the local matrix: rows, columns */
+     DistInfo_t BlockSize;  /*!< \brief Block size (vertical, horizontal) */
 } PMatrixVector_t;
 
 /**
@@ -69,11 +83,41 @@ typedef struct PMatrixVector {
  *
  * \sa PMatrixVector_t and Scalars_t.
  */
-void PMatrixVector_Add3Mat( PMatrixVector_t *const MatVecA, PMatrixVector_t *const MatVecB,
-			    PMatrixVector_t *const MatVecC, const Scalars_t Const, PMatrixVector_t *const MatVecY );
+void PMatrixVector_Add3Mat( PMatrixVector_t *const MatA, PMatrixVector_t *const MatB,
+			    PMatrixVector_t *const MatC, const Scalars_t Const, PMatrixVector_t *const MatY );
 
-
-void PMatrixVector_Create( int icntxt, const int NumRows, const int NumCols, const int BlRows, int const BlCols,
+/**
+ * \brief Creates a distributed matrix or vector.
+ *
+ * \pre
+ * - \f$ Rows \geq 0\f$ and \f$Cols \geq 0\f$.
+ * - \f$ BlRows \geq 1\f$ and \f$BlCols \geq 1\f$.
+ *
+ * A \c PMatrixVector_t type is initialised. The routine allocates an amount of memory as a distributed array
+ * with local length automatically calculated using the numroc_() routine. It also initialises the matrix or
+ * vector descriptor required by PBLAS and ScaLAPACK routines. All elements of the array are initialised and
+ * set to 0.0. For non-distributed matrices, the routines MatrixVector_Create(), MatrixVector_Create_PS() or
+ * MatrixVector_Create_Sp() should be used instead.
+ *
+ * \param[in]  icntxt (global) The BLACS context handler.
+ * \param[in]  Rows   (global) The number of rows of the distributed matrix.
+ * \param[in]  Cols   (global) The number of columns of the distributed matrix.
+ * \param[in]  BlRows (global) Blocksize in the vertical dimension.
+ * \param[in]  BlCols (global) Blocksize in the horizontal dimension.
+ * \param[out] MatVec (local) The matrix or vector to initialise.
+ *
+ * \post
+ * - <tt>MatVec.GlobalSize.Row = Rows</tt> and <tt>MatVec.GlobalSize.Col = Cols</tt>.
+ * - <tt>MatVec.LocalSize.Row = numroc_()</tt> and <tt>MatVec.LocalSize.Col = numroc_()</tt>.
+ * - <tt>MatVec.BlockSize.Row = BlRows</tt> and <tt>MatVec.BlockSize.Col = BlCols</tt>.
+ * - <tt>MatVec.Desc = descinit_()</tt>.
+ * - The length of the allocated double array (local) is set to \f$L = LocalSize.Row*LocalSize.Col\f$ and all
+ *   its values initialised to 0.0.
+ * - The memory should be deallocated through PMatrixVector_Destroy().
+ *
+ * \sa PMatrixVector_t.
+ */
+void PMatrixVector_Create( int icntxt, const int Rows, const int Cols, const int BlRows, int const BlCols,
 			   PMatrixVector_t *const MatVec );
 
 /**
@@ -161,20 +205,20 @@ void PMatrixVector_FromFile_MM( const char *Filename, PMatrixVector_t *const Mat
  *
  * If the operation is not supported, the routine calls <tt>exit( EXIT_FAILURE )</tt>.
  *
- * \param[in]     RowIndex  The row index \f$i\f$ (one based index).
- * \param[in]     ColIndex  The column index \f$j\f$ (one based index).
- * \param[in]     Alpha     The value to be set, added, multiplied and divided \f$\alpha\f$.
- * \param[in]     Operation Controls what operation is performed: \c Set, \c Add, \c Multiply or \c Divide.
- * \param[in,out] MatVec    Matrix or vector to be modified. On entry only the number of columns and the value
- *                          (except in the case when <tt>Operation = Set</tt>) are referenced. On output
- *                          \f$A(i,j)\f$, is modified accordingly.
+ * \param[in]     GRowIndex  The row index \f$i\f$ (one based index).
+ * \param[in]     GColIndex  The column index \f$j\f$ (one based index).
+ * \param[in]     Alpha      The value to be set, added, multiplied and divided \f$\alpha\f$.
+ * \param[in]     Operation  Controls what operation is performed: \c Set, \c Add, \c Multiply or \c Divide.
+ * \param[in,out] MatVec     Matrix or vector to be modified. On entry only the number of columns and the
+ *                           value (except in the case when <tt>Operation = Set</tt>) are referenced. On
+ *                           output \f$A(i,j)\f$, is modified accordingly.
  *
  * \post One of the supported operations is performed. If the operation is not supported, the routine calls
  * <tt>exit( EXIT_FAILURE )</tt>.
  *
  * \sa PMatrixVector_t
  */
-void PMatrixVector_ModifyElement( int GRowIndex, int GColIndex, const double Value, const char *Operation,
+void PMatrixVector_ModifyElement( int GRowIndex, int GColIndex, const double Alpha, const char *Operation,
 				  PMatrixVector_t *const MatVec );
 
 /**

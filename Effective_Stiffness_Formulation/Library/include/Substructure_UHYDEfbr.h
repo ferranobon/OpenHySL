@@ -15,18 +15,18 @@
 
 #include "Substructure.h" /* For MAX_DESCRIPTION */
 
-#define UHYDE_NUMPARAM_INIT 3 /*!< Number of required parameters in order to initialise a substructure of type
-			       * UHYDE-\em fbr */
+#define UHYDE_NUMPARAM_INIT 3 /*!< \brief Number of required parameters in order to initialise a substructure
+			       * of type UHYDE-\em fbr */
 /**
  * \brief To be used with UHYDE-\em fbr substructures and routines.
  */
 typedef struct UHYDEfbrSim {
-     double u0c_old;    /*!< Old displacement (the one from the previous sub-step. */
-     double q;          /*!< Displacement in the device. */
-     double qyield;     /*!< Yield displacement. */
-     double qplastic;   /*!< Plastic displacement. */
-     double k;          /*!< Initial stiffness. */
-     char *Description; /*!< Optional description of the substructure. */
+     double u0c_old;    /*!< \brief Old displacement (the one from the previous sub-step. */
+     double q;          /*!< \brief Displacement in the device. */
+     double qyield;     /*!< \brief Yield displacement. */
+     double qplastic;   /*!< \brief Plastic displacement. */
+     double k;          /*!< \brief Initial stiffness. */
+     char *Description; /*!< \brief Optional description of the substructure. */
 } UHYDEfbrSim_t;
 
 void Substructure_SimUHYDE_1D( const double u0c, const double DeltaT, UHYDEfbrSim_t *const Sub, double *const Friction_Force );

@@ -47,8 +47,8 @@
  * - The matrices must be symmetrical and only the upper part will be referenced (lower part in FORTRAN
  *   routines).
  * - The dimensions of the matrices must be the identical.
- * - The values in scalars must be properly initialised and they depend on the used formulation (see \cite
- *   Dorka_1998).
+ * - The values in scalars must be properly initialised and they depend on the used formulation
+ *   \cite Dorka_1998.
  *
  * \param[in,out] IGain The inverse of the gain matrix. As an input, only the size of the matrix is
  *                      referenced.
@@ -65,8 +65,8 @@
  *
  * \sa MatrixVector_t and Scalars_t.
  */
-void IGainMatrix( MatrixVector_t *const IGain, const MatrixVector_t *const Mass, const MatrixVector_t *const Damp,
-		  const MatrixVector_t *const Stiff, const Scalars_t Const );
+void IGainMatrix( MatrixVector_t *const IGain, const MatrixVector_t *const Mass,
+		  const MatrixVector_t *const Damp, const MatrixVector_t *const Stiff, const Scalars_t Const );
 
 /**
  * \brief Computes the gain matrix and its inverse. Packed storage version.
@@ -92,8 +92,8 @@ void IGainMatrix( MatrixVector_t *const IGain, const MatrixVector_t *const Mass,
  * - The matrices must be symmetrical and in packed storage. The upper triangular part (lower triangular part
  *   in FORTRAN) must be present.
  * - The dimensions of the matrices must be the identical.
- * - The values in scalars must be properly initialised and they depend on the used formulation (see \cite
- *   Dorka_1998).
+ * - The values in scalars must be properly initialised and they depend on the used formulation
+ *   \cite Dorka_1998
  *
  * \param[in,out] IGain The inverse of the gain matrix in packed storage. As an input, only the size of the
  *                      matrix is referenced.
@@ -110,13 +110,14 @@ void IGainMatrix( MatrixVector_t *const IGain, const MatrixVector_t *const Mass,
  *
  * \sa MatrixVector_t and Scalars_t.
  */
-void IGainMatrix_PS( MatrixVector_t *const IGain, const MatrixVector_t *const Mass, const MatrixVector_t *const Damp,
-		  const MatrixVector_t *const Stiff, const Scalars_t Const );
+void IGainMatrix_PS( MatrixVector_t *const IGain, const MatrixVector_t *const Mass,
+		     const MatrixVector_t *const Damp, const MatrixVector_t *const Stiff,
+		     const Scalars_t Const );
 
 /**
  * \brief Computes the gain matrix and its inverse. Sparse version and general storage.
  *
- * \warning This routine requires the Intel Math Kernel Library (\cite MKL_2013).
+ * \warning This routine requires the Intel Math Kernel Library \cite MKL_2013.
  *
  * This routine calculates the so called Gain Matrix and its inverse through:
  *
@@ -130,8 +131,8 @@ void IGainMatrix_PS( MatrixVector_t *const IGain, const MatrixVector_t *const Ma
  * - and \f$\alpha\f$, \f$beta\f$, \f$\gamma\f$ and \f$\lambda\f$ are the parameters that multiply the mass,
  *   damping, stiffness and matrices and the result of the matrix inversion respectively.
  *
- * It makes use of the BLAS, LAPACK and Sparse BLAS routines from the Intel Math Kernel Library (\cite
- * MKL_2013) to perform the linear algebra operations.
+ * It makes use of the BLAS, LAPACK and Sparse BLAS routines from the Intel Math Kernel Library \cite MKL_2013
+ * to perform the linear algebra operations.
  *
  * \pre 
  * - The gain matrix must be properly initialised through the MatrixVector_Create() routine.
@@ -142,8 +143,8 @@ void IGainMatrix_PS( MatrixVector_t *const IGain, const MatrixVector_t *const Ma
  * - The dimensions of the matrices must be the identical.
  * - The maximum number or non zero elements of the proportional viscous damping matrix must be equal to the
  *   number of non zero elements in the stiffness matrix.
- * - The values in scalars must be properly initialised and they depend on the used formulation (see \cite
- *   Dorka_1998).
+ * - The values in scalars must be properly initialised and they depend on the used formulation
+ *   \cite Dorka_1998.
  *
  * \param[in,out] IGain The gain matrix. As an input, only the size of the matrix is referenced, not its
  *                      elements.
@@ -161,13 +162,14 @@ void IGainMatrix_PS( MatrixVector_t *const IGain, const MatrixVector_t *const Ma
  *
  * \sa MatrixVector_t, MatrixVector_Sp_t and Scalars_t.
  */
-void IGainMatrix_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp,
-		    const MatrixVector_Sp_t *const Stiff, const Scalars_t Const );
+void IGainMatrix_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const Mass,
+		     const MatrixVector_Sp_t *const Damp, const MatrixVector_Sp_t *const Stiff,
+		     const Scalars_t Const );
 
 /**
  * \brief Computes the gain matrix and its inverse. Sparse version and packed storage.
  *
- * \warning This routine requires the Intel Math Kernel Library (\cite MKL_2013).
+ * \warning This routine requires the Intel Math Kernel Library \cite MKL_2013.
  *
  * This routine calculates the so called Gain Matrix and its inverse through:
  *
@@ -181,8 +183,8 @@ void IGainMatrix_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const
  * - and \f$\alpha\f$, \f$beta\f$, \f$\gamma\f$ and \f$\lambda\f$ are the parameters that multiply the mass,
  *   damping, stiffness and matrices and the result of the matrix inversion respectively.
  *
- * It makes use of the BLAS, LAPACK and Sparse BLAS routines from the Intel Math Kernel Library (\cite
- * MKL_2013) to perform the linear algebra operations.
+ * It makes use of the BLAS, LAPACK and Sparse BLAS routines from the Intel Math Kernel Library \cite MKL_2013
+ * to perform the linear algebra operations.
  *
  * \pre 
  * - The gain matrix must be in packed storage and properly initialised through the  MatrixVector_Create_PS()
@@ -195,8 +197,8 @@ void IGainMatrix_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const
  * - The dimensions of the matrices must be the identical.
  * - The maximum number or non zero elements of the proportional viscous damping matrix must be equal to the
  *   number of non zero elements in the stiffness matrix.
- * - The values in scalars must be properly initialised and they depend on the used formulation (see \cite
- *   Dorka_1998).
+ * - The values in scalars must be properly initialised and they depend on the used formulation 
+ *   \cite Dorka_1998.
  *
  * \param[in,out] IGain The gain matrix. As an input, only the size of the matrix is referenced, not its elements.
  * \param[in]     Mass  The mass matrix.
@@ -212,13 +214,14 @@ void IGainMatrix_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const
  *
  * \sa MatrixVector_t, MatrixVector_Sp_t and Scalars_t.
  */
-void IGainMatrix_Sp_PS( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp,
-		    const MatrixVector_Sp_t *const Stiff, const Scalars_t Const );
+void IGainMatrix_Sp_PS( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const Mass,
+			const MatrixVector_Sp_t *const Damp, const MatrixVector_Sp_t *const Stiff,
+			const Scalars_t Const );
 
 /**
  * \brief Computes the gain matrix and its inverse. PARDISO version.
  *
- * \warning This routine requires the Intel Math Kernel Library (\cite MKL_2013).
+ * \warning This routine requires the Intel Math Kernel Library \cite MKL_2013.
  *
  * This routine calculates the so called Gain Matrix and its inverse through:
  *
@@ -233,7 +236,7 @@ void IGainMatrix_Sp_PS( MatrixVector_t *const IGain, const MatrixVector_Sp_t *co
  *   damping, stiffness and matrices and the result of the matrix inversion respectively.
  *
  * It makes use of BLAS libraries to perform the linear algebra operations and the PARDISO solver from the
- * Intel Math Kernel Library (\cite MKL_2013) to compute the matrix inversion.
+ * Intel Math Kernel Library \cite MKL_2013 to compute the matrix inversion.
  *
  * \pre 
  * - All elements of type \c MatrixVector_t must be properly intialised through the MatrixVector_Create()
@@ -241,8 +244,8 @@ void IGainMatrix_Sp_PS( MatrixVector_t *const IGain, const MatrixVector_Sp_t *co
  * - The matrices must be symmetrical and only the upper part will be referenced (lower part in FORTRAN
  *   routines).
  * - The dimensions of the matrices must be the identical.
- * - The values in scalars must be properly initialised and they depend on the used formulation (see \cite
- *   Dorka_1998).
+ * - The values in scalars must be properly initialised and they depend on the used formulation 
+ *   \cite Dorka_1998.
  *
  * \param[in,out] IGain The gain matrix. As an input, only the size of the matrix is referenced.
  * \param[in]     Mass  The mass matrix.
@@ -258,13 +261,14 @@ void IGainMatrix_Sp_PS( MatrixVector_t *const IGain, const MatrixVector_Sp_t *co
  *
  * \sa MatrixVector_t and Scalars_t.
  */
-void IGainMatrix_Pardiso( MatrixVector_t *const IGain, const MatrixVector_t *const Mass, const MatrixVector_t *const Damp,
-			 const MatrixVector_t *const Stiff, const Scalars_t Const );
+void IGainMatrix_Pardiso( MatrixVector_t *const IGain, const MatrixVector_t *const Mass,
+			  const MatrixVector_t *const Damp, const MatrixVector_t *const Stiff,
+			  const Scalars_t Const );
 
 /**
  * \brief Computes the gain matrix and its inverse. Sparse PARDISO version.
  *
- * \warning This routine requires the Intel Math Kernel Library (\cite MKL_2013).
+ * \warning This routine requires the Intel Math Kernel Library \cite MKL_2013.
  *
  * This routine calculates the so called Gain Matrix and its inverse through:
  *
@@ -278,7 +282,7 @@ void IGainMatrix_Pardiso( MatrixVector_t *const IGain, const MatrixVector_t *con
  * - and \f$\alpha\f$, \f$beta\f$, \f$\gamma\f$ and \f$\lambda\f$ are the parameters that multiply the mass,
  *   damping, stiffness and matrices and the result of the matrix inversion respectively.
  *
- * It makes use of the BLAS and Sparse BLAS routines from the Intel Math Kernel Library (\cite MKL_2013) to
+ * It makes use of the BLAS and Sparse BLAS routines from the Intel Math Kernel Library \cite MKL_2013 to
  * perform the linear algebra operations and the PARDISO solver to compute the matrix inversion.
  *
  * \pre
@@ -290,8 +294,8 @@ void IGainMatrix_Pardiso( MatrixVector_t *const IGain, const MatrixVector_t *con
  * - The dimensions of the matrices must be the identical.
  * - The maximum number or non zero elements of the gain matrix must be equal to the number of non zero
  *   elements in the stiffness matrix.
- * - The values in scalars must be properly initialised and they depend on the used formulation (see \cite
- *   Dorka_1998).
+ * - The values in scalars must be properly initialised and they depend on the used formulation
+ *   \cite Dorka_1998.
  *
  * \param[in,out] IGain The gain matrix. As an input, only the size of the matrix is referenced, not its
  *                      elements.
@@ -307,8 +311,9 @@ void IGainMatrix_Pardiso( MatrixVector_t *const IGain, const MatrixVector_t *con
  *
  * \sa MatrixVector_t, MatrixVector_Sp_t and Scalars_t.
  */
-void IGainMatrix_Pardiso_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp,
-			     const MatrixVector_Sp_t *const Stiff, const Scalars_t Const );
+void IGainMatrix_Pardiso_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const Mass,
+			     const MatrixVector_Sp_t *const Damp, const MatrixVector_Sp_t *const Stiff,
+			     const Scalars_t Const );
 
 /**
  * \brief Computes the gain matrix and its inverse. MPI version.
@@ -334,8 +339,8 @@ void IGainMatrix_Pardiso_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_
  * - The matrices must be symmetrical and only the upper part will be referenced (lower part in FORTRAN
  *   routines).
  * - The dimensions of the matrices must be the identical.
- * - The values in scalars must be properly initialised and they depend on the used formulation (see \cite
- *   Dorka_1998).
+ * - The values in scalars must be properly initialised and they depend on the used formulation
+ *   \cite Dorka_1998.
  *
  * \param[in,out] IGain The inverse of the gain matrix. As an input, only the size of the matrix is
  *                      referenced.
@@ -352,9 +357,8 @@ void IGainMatrix_Pardiso_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_
  *
  * \sa PMatrixVector_t and Scalars_t.
  */
-void IGainMatrix_MPI( PMatrixVector_t *const IGain, PMatrixVector_t *const Mass,
-		      PMatrixVector_t *const Damp, PMatrixVector_t *const Stiff,
-		      const Scalars_t Const );
+void IGainMatrix_MPI( PMatrixVector_t *const IGain, PMatrixVector_t *const Mass, PMatrixVector_t *const Damp,
+		      PMatrixVector_t *const Stiff, const Scalars_t Const );
 
 #endif /* GAINMATRIX_H_ */
 

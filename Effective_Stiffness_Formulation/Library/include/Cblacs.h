@@ -23,7 +23,7 @@
  * \param[in] scope   Indicates whether a process row (\c scope = 'R'), column (\c scope = 'C'), or entire
  *                    grid (\c scope = 'A') will participate in the barrier.
  * 
- * For a complete documentation the reader should refer to \cite{BLACS_webpage}.
+ * For a complete documentation the reader should refer to \cite BLACS_webpage \cite Dongarra_1997.
  */
 void Cblacs_barrier(int icontxt, char *scope);
 
@@ -46,7 +46,7 @@ void Cblacs_barrier(int icontxt, char *scope);
  *                     - \c what = 12: Number of branches general tree topology is presently using
  * \param[out] val     The value of the BLACS internal.
  * 
- * For a complete documentation the reader should refer to \cite{BLACS_webpage}.
+ * For a complete documentation the reader should refer to \cite BLACS_webpage \cite Dongarra_1997.
  */
 void Cblacs_get( int icontxt, int what, int *val );
 
@@ -56,7 +56,7 @@ void Cblacs_get( int icontxt, int what, int *val );
  *
  * \param[in] icontxt Integer handle indicating the BLACS context. 
  *
- * For a complete documentation the reader should refer to \cite{BLACS_webpage}.
+ * For a complete documentation the reader should refer to \cite BLACS_webpage \cite Dongarra_1997.
  */
 int Cblacs_gridexit( int icontxt );
 
@@ -85,7 +85,7 @@ int Cblacs_gridexit( int icontxt );
  * \param[in]     nprow   Indicates how many process rows the process grid should contain.
  * \param[out]    npcol   Indicates how many process columns the processs grid should contain.
  *
- * For a complete documentation the reader should refer to \cite{BLACS_webpage}.
+ * For a complete documentation the reader should refer to \cite BLACS_webpage \cite Dongarra_1997.
  */
 void Cblacs_gridinit(int *icontxt, char *order, int nprow, int npcol);
 
@@ -99,7 +99,7 @@ void Cblacs_gridinit(int *icontxt, char *order, int nprow, int npcol);
  * \param[out] myrow   It contains the calling process's row coordinate in the process grid.
  * \param[out] mycol   It contains the calling process's column coordinate in the process grid.
  *
- * For a complete documentation the reader should refer to \cite{BLACS_webpage}.
+ * For a complete documentation the reader should refer to \cite BLACS_webpage \cite Dongarra_1997.
  */
 void Cblacs_gridinfo( int icontxt, int *nprow, int *npcol, int *myrow, int *mycol );
 
@@ -123,7 +123,7 @@ void Cblacs_gridinfo( int icontxt, int *nprow, int *npcol, int *myrow, int *myco
  * \param[in]     nprow   Indicates how many process rows the process grid should contain.
  * \param[out]    npcol   Indicates how many process columns the processs grid should contain.
  *
- * For a complete documentation the reader should refer to \cite{BLACS_webpage}.
+ * For a complete documentation the reader should refer to \cite BLACS_webpage \cite Dongarra_1997.
  */
 void Cblacs_gridmap( int *icontxt, int *usermap, int ldumap, int nprow, int npcol );
 
@@ -137,7 +137,7 @@ void Cblacs_gridmap( int *icontxt, int *usermap, int ldumap, int nprow, int npco
  *
  * \return The sustem process number of the process at \f$(prow, pcol)\f$ in the process grid.
  *
- * For a complete documentation the reader should refer to \cite{BLACS_webpage}.
+ * For a complete documentation the reader should refer to \cite BLACS_webpage \cite Dongarra_1997.
  */
 int Cblacs_pnum( int icontxt, int prow, int pcol );
 
@@ -149,7 +149,7 @@ int Cblacs_pnum( int icontxt, int prow, int pcol );
  *
  * \param[in] SysCtxt The system context to be mapped to an integer BLACS handle. 
  *
- * For a complete documentation the reader should refer to \cite{MPI_BLACS_Issues}.
+ * For a complete documentation the reader should refer to \cite Whaley_1996.
  */
 int Csys2blacs_handle(MPI_Comm SysCtxt);
 
@@ -161,7 +161,7 @@ int Csys2blacs_handle(MPI_Comm SysCtxt);
  *
  * \param[in] BlacsHandle Integer handle who's mapping is no longer needed. 
  *
- * For a complete documentation the reader should refer to \cite{BLACS_webpage}.
+ * For a complete documentation the reader should refer to \cite BLACS_webpage \cite Dongarra_1997.
  */
 int Cfree_blacs_system_handle(int BlacsHandle);
 
