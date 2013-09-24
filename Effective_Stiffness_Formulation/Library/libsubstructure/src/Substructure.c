@@ -23,7 +23,7 @@
 #include "Netlib.h"
 #endif
 
-void Substructure_SendGainMatrix( double *Gain, unsigned int Order, const Substructure_t *const Substructure )
+void Substructure_SendGainMatrix( const double *const Gain, unsigned int Order, const Substructure_t *const Substructure )
 {
      Remote_t *Remote = NULL;
   
@@ -86,9 +86,9 @@ void Substructure_SendGainMatrix( double *Gain, unsigned int Order, const Substr
 }
 
 
-void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, const double Time, const double GAcc,
+void Substructure_Substepping( const double *const IGain, const double *const DispTdT0_c, const double Time, const double GAcc,
 			       const unsigned int NSubstep, const double DeltaT_Sub,
-			       CouplingNode_t *const CNodes, double *const DispTdT, double *const fcprevsub,
+			       const CouplingNode_t *const CNodes, double *const DispTdT, double *const fcprevsub,
 			       double *const fc )
 {
 
@@ -175,7 +175,7 @@ void Substructure_Substepping( double *const IGain, double *const DispTdT0_c, co
      free( Recv );
 }
 
-void Substructure_Simulate( CouplingNode_t *const CNodes, double *IGain, double *const VecTdT0_c, const double GAcc, 
+void Substructure_Simulate( const CouplingNode_t *const CNodes, const double *IGain, const double *const VecTdT0_c, const double GAcc, 
 			    const unsigned int NSubstep, const double DeltaT_Sub, double *const VecTdT_c,
 			    double *const fcprev, double *const fc )
 {

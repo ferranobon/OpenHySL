@@ -87,7 +87,7 @@ void ADwin_ManageProcess( const char* PName, const int PNum, const int dowhat );
  *
  * \post The number of variables contained in Array and transfered to ADwin is equal to \c Length.
  */
-void ADwin_SendArray( const unsigned int Index, double *const Array, const unsigned int Length );
+void ADwin_SendArray( const unsigned int Index, const double *const Array, const unsigned int Length );
 
 /**
  * \brief Sub-stepping process in ADwin.

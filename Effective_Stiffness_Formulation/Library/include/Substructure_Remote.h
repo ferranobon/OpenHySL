@@ -51,13 +51,13 @@ typedef struct Remote{
      int Type;               /* Type of remote substructures */
 } Remote_t;
 
-int Substructure_Remote_AcceptTCPClientConnection( int Server_Socket );
+int Substructure_Remote_AcceptTCPClientConnection( const int Server_Socket );
 void Substructure_Remote_CloseSocket( int *const Socket );
 void Substructure_Remote_Destroy( Remote_t *const Remote, const int Order );
 void Substructure_Remote_Init( const char *RemoteType, const char *IPAddress, const char *Port, const int NSub,
 			       const int *const DOF, const char *Description, Remote_t *const Remote );
 void Substructure_Remote_Identify( const char *RemoteType, int *const Type );
-void Substructure_Remote_Send( double *const Data, const unsigned int Data_Length, const int Socket );
+void Substructure_Remote_Send( const double *const Data, const unsigned int Data_Length, const int Socket );
 void Substructure_Remote_SetupClientConnection( Remote_t *const RemoteNode );
 int Substructure_Remote_SetupServer( const char* Port, const int Socket_Type );
 void Substructure_Remote_Receive( double *const Data, const unsigned int Data_Length, const int Socket );
