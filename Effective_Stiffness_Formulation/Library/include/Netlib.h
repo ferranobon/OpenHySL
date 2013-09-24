@@ -39,7 +39,7 @@
  *                        0\f$. Otherwise it remains unchanged.
  * \param[in]     incx  On entry, \c incx specifies the increment for the elements of \c x. \f$incx \neq 0\f$.
  *
- * For a complete documentation the reader should refer to \cite{BLAS_webpage}.
+ * For a complete documentation the reader should refer to \cite BLAS_webpage.
  */
 void dscal( int *n, double *alpha, double *x, int *incx );
 
@@ -61,7 +61,7 @@ void dscal( int *n, double *alpha, double *x, int *incx );
  *                  copy of the vector \f$\vec x\f$. Otherwise, elements are unaltered.
  * \param[in]  incy On entry, \c incy specifies the increment for the elements of \c y. \f$incy \geq 0\f$.
  *
- * For a complete documentation the reader should refer to \cite{BLAS_webpage}.
+ * For a complete documentation the reader should refer to \cite BLAS_webpage.
  */
 void dcopy( int *n, double *x, int *incx, double *y, int *incy );
 
@@ -86,7 +86,7 @@ void dcopy( int *n, double *x, int *incx, double *y, int *incy );
  *                      - On exit, \c y is overwritten by the updated vector \f$\vec y\f$.
  * \param[in]     incy  On entry, \c incy specifies the increment for the elements of \c y. \f$incy \geq 0\f$.
  *
- * For a complete documentation the reader should refer to \cite{BLAS_webpage}.
+ * For a complete documentation the reader should refer to \cite BLAS_webpage.
  */
 void daxpy( int *n, double *alpha, double *x, int *incx, double *y, int *incy );
 
@@ -126,7 +126,7 @@ void daxpy( int *n, double *alpha, double *x, int *incx, double *y, int *incy );
  *                      - On exit, \c y is overwritten by the updated vector \f$\vec y\f$.
  * \param[in]     incy  On entry, \c incy specifies the increment for the elements of \c y. \f$incy \geq 0\f$.
  *
- * For a complete documentation the reader should refer to \cite{BLAS_webpage}.
+ * For a complete documentation the reader should refer to \cite BLAS_webpage.
  */
 void dsymv( char *uplo, int *n, double *alpha, double *a, int *lda, double *x, int *incx, double *beta,
 	    double *y, int *incy );
@@ -171,7 +171,7 @@ void dsymv( char *uplo, int *n, double *alpha, double *a, int *lda, double *x, i
  *                      - On exit, \c y is overwritten by the updated vector \f$\vec y\f$.
  * \param[in]     incy  On entry, \c incy specifies the increment for the elements of \c y. \f$incy \neq 0\f$.
  *
- * For a complete documentation the reader should refer to \cite{BLAS_webpage}.
+ * For a complete documentation the reader should refer to \cite BLAS_webpage.
  */
 void dgemv_( char *trans, int *m, int *n, double *alpha, double *a, int *lda, double *x, int *incx,
 	     double *beta, double *y, int *incy );
@@ -197,7 +197,7 @@ void dgemv_( char *trans, int *m, int *n, double *alpha, double *a, int *lda, do
  *                  specified by \c uplo.
  * \param[in]  ldb  The leading dimension of the array B.  \f$ldb \geq max(1,M)\f$.
  *
- * For a complete documentation the reader should refer to \cite{LAPACK_webpage}.
+ * For a complete documentation the reader should refer to \cite LAPACK_webpage \cite LUG.
  */
 void dlacpy_( char *uplo, int *m, int *n, double *a, int *lda, double *b, int *ldb );
 
@@ -234,7 +234,7 @@ void dlacpy_( char *uplo, int *m, int *n, double *a, int *lda, double *b, int *l
  *                      - \f$info = 0\f$: successful exit.
  *                      - \f$info < 0\f$: if \f$info = -i\f$, the \em i-th argument had an illegal value.
  *
- * For a complete documentation the reader should refer to \cite{LAPACK_webpage}.
+ * For a complete documentation the reader should refer to \cite LAPACK_webpage \cite LUG.
  */
 void dlascl_( char *type, int *kl, int *ku, double *cfrom, double *cto, int *m, int *n, double *a, int *lda,
 	      int *info );
@@ -271,7 +271,7 @@ void dlascl_( char *type, int *kl, int *ku, double *cfrom, double *cto, int *m, 
  *                     - \f$info > 0\f$: if \f$info = i\f$·, the leading minor of order \em i is not positive
  *                       definite, and the factorization could not be completed.
  *
- * For a complete documentation the reader should refer to \cite{LAPACK_webpage}.
+ * For a complete documentation the reader should refer to \cite LAPACK_webpage \cite LUG.
  */
 void dpotrf_( char *uplo, int *n, double *a, int *lda, int *info );
 
@@ -305,7 +305,7 @@ void dpotrf_( char *uplo, int *n, double *a, int *lda, int *info );
  *                     - \f$info > 0\f$: if \f$info = i\f$·, the leading minor of order \em i is not positive
  *                       definite, and the factorization could not be completed.
  *
- * For a complete documentation the reader should refer to \cite{LAPACK_webpage}.
+ * For a complete documentation the reader should refer to \cite LAPACK_webpage \cite LUG.
  */
 void dpptrf_( char *uplo, int *n, double *ap, int *info );
 
@@ -334,7 +334,7 @@ void dpptrf_( char *uplo, int *n, double *ap, int *info );
  *                     - \f$info < 0\f$: if \f$info = i\f$, the \f$(i,i)\f$ element of the factor U or L is
  *                       zero, and the inverse could not be computed.
  *
- * For a complete documentation the reader should refer to \cite{LAPACK_webpage}.
+ * For a complete documentation the reader should refer to \cite LAPACK_webpage \cite LUG.
  */
 void dpotri_( char *uplo, int *n, double *a, int *lda, int *info );
 
@@ -367,7 +367,7 @@ void dpotri_( char *uplo, int *n, double *a, int *lda, int *info );
  *                     - \f$info < 0\f$: if \f$info = i\f$, the \em i-th diagonal element of the Cholesky
  *                       factor U or L is zero, and the inverse could not be computed.
  *
- * For a complete documentation the reader should refer to \cite{LAPACK_webpage}.
+ * For a complete documentation the reader should refer to \cite LAPACK_webpage \cite LUG.
  */
 void dpptri_( char *uplo, int *n, double *ap, int *info );
 
@@ -399,7 +399,7 @@ void dpptri_( char *uplo, int *n, double *ap, int *info );
  * \param[in]     incx  (global) The global increment for the elements of \f$\mathcal X\f$. Only two values
  *                      are supported in this version, namely 1 and \f$m_x\f$.
  *
- * For a complete documentation the reader should refer to \cite{PBLAS_webpage}.
+ * For a complete documentation the reader should refer to \cite PBLAS_webpage \cite SLUG.
  */
 void pdscal( int *n, double *alpha, double *x, int *ix, int *jx, int *descx, int *incx );
 
@@ -435,7 +435,7 @@ void pdscal( int *n, double *alpha, double *x, int *ix, int *jx, int *descx, int
  * \param[in]     incy  (global) The global increment for the elements of \f$\mathcal Y\f$. Only two values
  *                      are supported in this version, namely 1 and \f$m_y\f$.
  * 
- * For a complete documentation the reader should refer to \cite{PBLAS_webpage}.
+ * For a complete documentation the reader should refer to \cite PBLAS_webpage \cite SLUG.
  */
 void pdcopy(int *n, double *x, int *ix, int *jx, int *descx, int *incx, double *y, int *iy, int *jy, int *descy, int *incy );
 
@@ -472,7 +472,7 @@ void pdcopy(int *n, double *x, int *ix, int *jx, int *descx, int *incx, double *
  * \param[in]     incy  (global) The global increment for the elements of \f$\mathcal Y\f$. Only two values
  *                      are supported in this version, namely 1 and \f$m_y\f$. 
  *
- * For a complete documentation the reader should refer to \cite{PBLAS_webpage}.
+ * For a complete documentation the reader should refer to \cite PBLAS_webpage \cite SLUG.
  */
 void pdaxpy( int *n, double *alpha, double *x, int *ix, int *jx, int *descx, int *incx, double *y, int *iy,
 	     int *jy, int *descy, int *incy);
@@ -517,7 +517,7 @@ void pdaxpy( int *n, double *alpha, double *x, int *ix, int *jx, int *descx, int
  * \param[in]     descc The array descripor of the distributed matrix \f$\mathcal C\f$.
 
  *
- * For a complete documentation the reader should refer to \cite{PBLAS_webpage}.
+ * For a complete documentation the reader should refer to \cite PBLAS_webpage \cite SLUG.
  */
 void pdgeadd_(char *trans, int *m, int *n, double *alpha, double *a, int *ia, int *ja, int *desca, double *beta,
 	      double *c, int *ic, int *jc, int *descc);
@@ -575,7 +575,7 @@ void pdgeadd_(char *trans, int *m, int *n, double *alpha, double *a, int *ia, in
  *                      C\f$ to operate on.
  * \param[in]     descc The array descripor of the distributed matrix \f$\mathcal C\f$.
  *
- * For a complete documentation the reader should refer to \cite{PBLAS_webpage}.
+ * For a complete documentation the reader should refer to \cite PBLAS_webpage \cite SLUG.
  */
 void pdtradd_( char *uplo, char *trans, int *m, int *n, double *alpha, double *a, int *ia, int *ja, int *desca,
 	       double *beta, double *c, int *ic, int *jc, int *descc );
@@ -650,7 +650,7 @@ void pdtradd_( char *uplo, char *trans, int *m, int *n, double *alpha, double *a
  * \param[in]     incy  (global) The global increment for the elements of \f$\mathcal Y\f$. Only two values
  *                      are supported in this version, namely 1 and \f$m_y\f$. 
  *
- * For a complete documentation the reader should refer to \cite{PBLAS_webpage}.
+ * For a complete documentation the reader should refer to \cite PBLAS_webpage \cite SLUG.
  */
 void pdgemv_( char *trans, int *m, int *n, double *alpha, double *a, int *ia, int *ja, int *desca, double *x,
 	      int *ix, int *jx, int *descx, int *incx, double *beta, double *y, int *iy, int *jy, int *descy,
@@ -707,7 +707,7 @@ void pdgemv_( char *trans, int *m, int *n, double *alpha, double *a, int *ia, in
  * \param[in]     incy  (global) The global increment for the elements of \f$\mathcal Y\f$. Only two values
  *                      are supported in this version, namely 1 and \f$m_y\f$. 
  *
- * For a complete documentation the reader should refer to \cite{PBLAS_webpage}.
+ * For a complete documentation the reader should refer to \cite PBLAS_webpage \cite SLUG.
  */
 void pdsymv( char *uplo, int *n, double *alpha, double *a, int *ia, int *ja, int *desca, double *x, int *ix,
 	     int *jx, int *descx, int *incx, double *beta, double *y, int *iy, int *jy, int *descy, int *incy );
@@ -754,7 +754,7 @@ void pdsymv( char *uplo, int *n, double *alpha, double *a, int *ia, int *ja, int
  *                   B\f$.
  * \param[in]  descb The array descripor of the distributed matrix \f$\mathcal X\f$.
  *
- * For a complete documentation the reader should refer to \cite{ScaLapack_webpage}.
+ * For a complete documentation the reader should refer to \cite ScaLAPACK_webpage \cite SLUG.
  */
 void pdlacpy_( char *uplo, int *m, int *n, double *a, int *ia, int *ja, int *desca, double *b, int *ib, int *jb,
 	       int *descb);
@@ -799,7 +799,7 @@ void pdlacpy_( char *uplo, int *m, int *n, double *a, int *ia, int *ja, int *des
  *                      - \f$info = 0\f$: successful exit.
  *                      - \f$info < 0\f$: if \f$info = -i\f$, the \em i-th argument had an illegal value.
  *
- * For a complete documentation the reader should refer to \cite{ScaLapack_webpage}.
+ * For a complete documentation the reader should refer to \cite ScaLAPACK_webpage \cite SLUG.
  */
 void pdlascl_( char *type, char *uplo, double *cfrom, double *cto, int *m, int *n, double *a, int *ia, int *ja,
 	       int *desca, int *info);
@@ -846,7 +846,7 @@ void pdlascl_( char *type, char *uplo, double *cfrom, double *cto, int *m, int *
  *                       (ia:ia+k-1,ja:ja+k-1)\f$ is not positive definite, and the factorization could not be
  *                       completed.
  *
- * For a complete documentation the reader should refer to \cite{ScaLapack_webpage}.
+ * For a complete documentation the reader should refer to \cite ScaLAPACK_webpage \cite SLUG.
  */
 void pdpotrf_( char *uplo, int *n, double *a, int *ia, int *ja, int *desca, int *info );
 
@@ -882,7 +882,7 @@ void pdpotrf_( char *uplo, int *n, double *a, int *ia, int *ja, int *desca, int 
  *                     - \f$info > 0\f$: if \f$info = i\f$, the \f$(i,i)\f$ element of the factor \f$\mathcal
  *                      U\f$ or \f$\mathcal L\f$ is zero, and the inverse could not be computed.
  *
- * For a complete documentation the reader should refer to \cite{ScaLapack_webpage}.
+ * For a complete documentation the reader should refer to \cite ScaLAPACK_webpage \cite SLUG.
  */
 void pdpotri_( char *uplo, int *n, double *a, int *ia, int *ja, int *desca, int *info );
 

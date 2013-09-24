@@ -20,8 +20,8 @@
 #if _MPI_
 #include "mpi.h"
 #include "MatrixVector_MPI.h"
-#define MATRIX_XC 0   /*!< Label for the mpi messages involved in the creation of the Xc matrix */
-#define VECTOR_XC 1   /*!< Label for the mpi messages involved in the creation of the Xc vector */
+#define MATRIX_XC 0   /*!< \brief Label for the mpi messages involved in the creation of the Xc matrix */
+#define VECTOR_XC 1   /*!< \brief Label for the mpi messages involved in the creation of the Xc vector */
 #endif
 
 /**

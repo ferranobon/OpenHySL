@@ -17,10 +17,10 @@
 #include "MatrixVector.h"
 #include "Rayleigh.h"
 
-#define EXACTMDOF_NUMPARAM_INIT 3  /*!< Subber of required parameters in order to initialise a substructure of
-				    * type Exact fbr */
-#define EXACTSDOF_NUMPARAM_INIT 3  /*!< Subber of required parameters in order to initialise a substructure of
-				    * type Exact fbr */
+#define EXACTMDOF_NUMPARAM_INIT 3  /*!< \brief Number of required parameters in order to initialise a
+				    * substructure of type Exact fbr */
+#define EXACTSDOF_NUMPARAM_INIT 3  /*!< \brief Number of required parameters in order to initialise a
+				    * substructure of type Exact fbr */
 typedef struct ExactSim {
      MatrixVector_t Mass, Stiff, Damp;
      MatrixVector_t EValues, EVectors;
@@ -33,7 +33,7 @@ typedef struct ExactSim {
      double Vel0, VelT, VelTdT;
      double Acc0, AccT, AccTdT;
 
-     char *Description;  /*!< Optional description of the substructure. */
+     char *Description;  /*!< \brief Optional description of the substructure. */
 
      Rayleigh_t Ray_Sub, Ray_Main;
      double a0, a2, a3, a6, a7;
@@ -49,7 +49,7 @@ typedef struct ExactSimESP {
 
      double A, B, C, D, E, F, G, H;
 
-     char *Description;  /*!< Optional description of the substructure. */
+     char *Description;  /*!< \brief Optional description of the substructure. */
 } ExactSimESP_t;
 
 void Substructure_ExactSolutionMDOF_Init( const double *const Mass, const double *const Stiff, const int NDOF,

@@ -13,30 +13,30 @@
 #ifndef PRINT_MESSAGES_H_
 #define PRINT_MESSAGES_H_
 
-#define ERROR   0                      /*!< Error message type.*/
-#define SUCCESS 1                      /*!< Success message type.*/
-#define INFO    2                      /*!< Informative message type.*/
-#define WARNING 3                      /*!< Warning message type.*/
+#define ERROR   0                      /*!< \brief Error message type.*/
+#define SUCCESS 1                      /*!< \brief Success message type.*/
+#define INFO    2                      /*!< \brief Informative message type.*/
+#define WARNING 3                      /*!< \brief Warning message type.*/
 
-#define RESET   "\033[0m"              /*!< Reset to default lettering.*/
-#define BLACK   "\033[30m"             /*!< Black color.*/
-#define RED     "\033[31m"             /*!< Red color.*/
-#define GREEN   "\033[32m"             /*!< Green color.*/
-#define YELLOW  "\033[33m"             /*!< Yellow color.*/
-#define BLUE    "\033[34m"             /*!< Blue color.*/
-#define MAGENTA "\033[35m"             /*!< Magenta color.*/
-#define CYAN    "\033[36m"             /*!< Cyan color.*/
-#define WHITE   "\033[37m"             /*!< White color.*/
+#define RESET   "\033[0m"              /*!< \brief Reset to default lettering.*/
+#define BLACK   "\033[30m"             /*!< \brief Black color.*/
+#define RED     "\033[31m"             /*!< \brief Red color.*/
+#define GREEN   "\033[32m"             /*!< \brief Green color.*/
+#define YELLOW  "\033[33m"             /*!< \brief Yellow color.*/
+#define BLUE    "\033[34m"             /*!< \brief Blue color.*/
+#define MAGENTA "\033[35m"             /*!< \brief Magenta color.*/
+#define CYAN    "\033[36m"             /*!< \brief Cyan color.*/
+#define WHITE   "\033[37m"             /*!< \brief White color.*/
 
 /* Bold colors */
-#define BOLDBLACK   "\033[1m\033[30m"  /*!< Bold Black color.*/
-#define BOLDRED     "\033[1m\033[31m"  /*!< Bold Red color.*/
-#define BOLDGREEN   "\033[1m\033[32m"  /*!< Bold Green color.*/
-#define BOLDYELLOW  "\033[1m\033[33m"  /*!< Bold Yellow color.*/
-#define BOLDBLUE    "\033[1m\033[34m"  /*!< Bold Blue color.*/
-#define BOLDMAGENTA "\033[1m\033[35m"  /*!< Bold Magenta color.*/
-#define BOLDCYAN    "\033[1m\033[36m"  /*!< Bold Cyan color.*/
-#define BOLDWHITE   "\033[1m\033[37m"  /*!< Bold White color.*/
+#define BOLDBLACK   "\033[1m\033[30m"  /*!< \brief Bold Black color.*/
+#define BOLDRED     "\033[1m\033[31m"  /*!< \brief Bold Red color.*/
+#define BOLDGREEN   "\033[1m\033[32m"  /*!< \brief Bold Green color.*/
+#define BOLDYELLOW  "\033[1m\033[33m"  /*!< \brief Bold Yellow color.*/
+#define BOLDBLUE    "\033[1m\033[34m"  /*!< \brief Bold Blue color.*/
+#define BOLDMAGENTA "\033[1m\033[35m"  /*!< \brief Bold Magenta color.*/
+#define BOLDCYAN    "\033[1m\033[36m"  /*!< \brief Bold Cyan color.*/
+#define BOLDWHITE   "\033[1m\033[37m"  /*!< \brief Bold White color.*/
 
 /**
  * \brief Prints a formated header to the screen.

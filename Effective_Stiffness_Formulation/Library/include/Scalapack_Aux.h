@@ -39,7 +39,7 @@
  *                   - \f$info = 0\f$: successful exit;
                      - \f$info < 0\f$: if \f$info = -i\f$ the \em i-th argument had an illegal value.
  *
- * For a complete documentation the reader should refer to \cite{ScaLapack_webpage}.
+ * For a complete documentation the reader should refer to \cite ScaLAPACK_webpage \cite SLUG.
  */ 
 void descinit_(int *desc, int *m, int *n, int *mb, int *nb, int *irsrc, int *icsrc, int *ictxt, int *lld,
 	       int *info);
@@ -57,7 +57,7 @@ void descinit_(int *desc, int *m, int *n, int *mb, int *nb, int *irsrc, int *ics
  * 
  * \returns Number of rows or columns of a distributed matrix that is owned by a particular process.
  *
- * For a complete documentation the reader should refer to \cite{ScaLapack_webpage}.
+ * For a complete documentation the reader should refer to \cite ScaLAPACK_webpage \cite SLUG.
  */
 int numroc_(int *n, int *nb, int *iproc, int *isrcproc, int *nprocs);
 
@@ -83,7 +83,7 @@ int numroc_(int *n, int *nb, int *iproc, int *isrcproc, int *nprocs);
  * \param[out] csrc   (global) The column coordinate of the process that possesses the first row and column of
  *                    the submatrix.
  *
- * For a complete documentation the reader should refer to \cite{ScaLapack_webpage}.
+ * For a complete documentation the reader should refer to \cite ScaLAPACK_webpage \cite SLUG.
  */
 void infog2l_( int *grindx, int *gcindx, int *desc, int *nprow, int *npcol, int *myrow, int *mycol, int *lrindx,
 	       int *lcindx, int *rsrc, int *csrc );

@@ -16,10 +16,10 @@
 #include "Algorithm_Aux.h"
 #include "Substructure.h"
 
-#define MAX_LINE 200          /*!< Maximum input line length. */
-#define MAX_SUBTYPE 20        /*!< Maximum length of the substructure type */
-#define MAX_DESCRIPTION 80    /*!< Maximum description length for a substructure. */
-#define MAX_FILENAME 20       /*!< Maximum file name length. */
+#define MAX_LINE 200          /*!< \brief Maximum input line length. */
+#define MAX_SUBTYPE 20        /*!< \brief Maximum length of the substructure type */
+#define MAX_DESCRIPTION 80    /*!< \brief Maximum description length for a substructure. */
+#define MAX_FILENAME 20       /*!< \brief Maximum file name length. */
 
 typedef struct Substructure{
      void *SimStruct;

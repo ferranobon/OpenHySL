@@ -19,12 +19,12 @@
  * Structure designed to represent matrix and vector types within the library. It stores the number of rows
  * and columns as well as the values within the matrix. It uses a 1-dimensional array for this purpose. This
  * is intended to be used only for dense matrices and vectors. If a sparse format is desired, \c
- * MatrixVector_Sp should be used instead.
+ * MatrixVector_Sp_t should be used instead.
  *
  * \sa MatrixVector_Sp_t.
  */
-typedef struct MatVect {
-     int Rows;       /*!< Number of Rows of the matrix */
+typedef struct MatrixVector {
+     int Rows;       /*!< \brief Number of Rows of the matrix */
      int Cols;       /*!< \brief Number of Columns of the matrix */
      double *Array;  /*!< \brief Array of size \f$Size = Rows*Cols\f$ */
 } MatrixVector_t;
@@ -32,7 +32,7 @@ typedef struct MatVect {
 /**
  * \brief Structure to handle constants to be used in some matrix/vector operations.
  */
-typedef struct Scal{
+typedef struct Scalars {
      double Alpha;   /*!< \brief First constant.*/
      double Beta;    /*!< \brief Second constant.*/
      double Gamma;   /*!< \brief Third constant.*/

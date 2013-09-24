@@ -21,7 +21,7 @@
 /**
  * \brief Stores the proportional, integral and derivative constant of the PID compensator.
  */
-typedef struct {
+typedef struct PID {
      double P;  /*!< \brief Proportional constant.*/
      double I;  /*!< \brief Integral constant.*/
      double D;  /*!< \brief Derivative constant.*/

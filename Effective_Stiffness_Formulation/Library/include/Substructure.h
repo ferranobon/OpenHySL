@@ -16,18 +16,18 @@
 
 #include "Substructure_CouplingNodes.h"
 
-#define NUM_TYPE_SUB  7  /*!< Number of recognized sub-structure types */
+#define NUM_TYPE_SUB  7  /*!< \brief Number of recognized sub-structure types */
 
 /**
  * \brief Supported sub-structure types.
  */
-enum Substructure_Id { SIM_EXACT_MDOF, /*!< Simulate the substructure using the exact solution. MDOF. */
-		       SIM_EXACT_SDOF, /*!< Simulate the substructure using the exact solution. SDOF. */
-		       SIM_EXACT_ESP,  /*!< Simulate the sub-structure using an exact integration method \cite */
-		       SIM_UHYDE,      /*!< Simulate the substructure using the UHYDE-fbr device. */
-		       SIM_MEASURED,   /*!< Simulate the substructure using measured values. */
-		       EXP_ADWIN,      /*!< Run using ADwin */
-		       REMOTE,         /*!< Remote substructure. */
+enum Substructure_Id { SIM_EXACT_MDOF, /*!< \brief Simulate the substructure using the exact solution. MDOF. */
+		       SIM_EXACT_SDOF, /*!< \brief Simulate the substructure using the exact solution. SDOF. */
+		       SIM_EXACT_ESP,  /*!< \brief Simulate the sub-structure using an exact integration method \cite{Exact} */
+		       SIM_UHYDE,      /*!< \brief Simulate the substructure using the UHYDE-fbr device. */
+		       SIM_MEASURED,   /*!< \brief Simulate the substructure using measured values. */
+		       EXP_ADWIN,      /*!< \brief Run using ADwin */
+		       REMOTE,         /*!< \brief Remote substructure. */
 };
 
 

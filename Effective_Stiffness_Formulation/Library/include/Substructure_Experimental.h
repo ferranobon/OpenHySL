@@ -19,7 +19,7 @@
 /**
  * \brief Definition of a experimental substructure.
  */
-typedef struct ExpSub{
+typedef struct ExpSub {
      char *Description;  /*!< \brief Description of the experimental sub-structure.*/
 } ExpSub_t;
 

@@ -17,9 +17,9 @@
 #include "Netlib.h"
 #endif
 
-void PMatrixVector_Add3Mat( PMatrixVector_t *const MatVecA, PMatrixVector_t *const MatVecB,
-			    PMatrixVector_t *const MatVecC, const Scalars_t Const,
-			    PMatrixVector_t *const MatVecY )
+void PMatrixVector_Add3Mat( PMatrixVector_t *const MatA, PMatrixVector_t *const MatB,
+			    PMatrixVector_t *const MatC, const Scalars_t Const,
+			    PMatrixVector_t *const MatY )
 {
 
      char uplo, trans;
@@ -45,7 +45,7 @@ void PMatrixVector_Add3Mat( PMatrixVector_t *const MatVecA, PMatrixVector_t *con
 	       &ione, &ione, MatC->Desc, &ScalarA, MatY->Array, &ione, &ione, MatY->Desc );
 }
 
-void PMatrixVector_Create( int icntxt, const int NumRows, const int NumCols, const int BlRows,
+void PMatrixVector_Create( int icntxt, const int Rows, const int Cols, const int BlRows,
 			   int const BlCols, PMatrixVector_t *const MatVec )
 {
 
@@ -55,11 +55,11 @@ void PMatrixVector_Create( int icntxt, const int NumRows, const int NumCols, con
      int izero = 0;     /* Zero of type integer. Used by numroc_( ) */
      int lld, info;
 
-     MatVec->GlobalSize.Row = NumRows;   /* Number of rows in the global array */
-     MatVec->GlobalSize.Col = NumCols;   /* Number of columns in the global array */
+     MatVec->GlobalSize.Row = Rows;   /* Number of rows in the global array */
+     MatVec->GlobalSize.Col = Cols;   /* Number of columns in the global array */
 	
-     MatVec->BlockSize.Row = BlRows;     /* Block size in the vertical dimension */
-     MatVec->BlockSize.Col = BlCols;     /* Block size in the horizontal dimension */
+     MatVec->BlockSize.Row = BlRows;  /* Block size in the vertical dimension */
+     MatVec->BlockSize.Col = BlCols;  /* Block size in the horizontal dimension */
 
      Cblacs_gridinfo( icntxt, &nprow, &npcol, &myrow, &mycol );  /* Get information about the grid */
 
@@ -102,7 +102,7 @@ void PMatrixVector_Destroy( PMatrixVector_t *const MatVec )
      free( MatVec->Array );
 }
 
-void PMatrixVector_ModifyElement( int GRowIndex, int GColIndex, const double Value, const char *Operation,
+void PMatrixVector_ModifyElement( int GRowIndex, int GColIndex, const double Alpha, const char *Operation,
 				  PMatrixVector_t *const MatVec )
 {
 
@@ -129,16 +129,16 @@ void PMatrixVector_ModifyElement( int GRowIndex, int GColIndex, const double Val
      if ( myrow == RowProcess && mycol == ColProcess ){
 
 	  if ( strcmp( Operation, OpSet ) == 0 ){
-	       MatVec->Array[(LRowIndex - 1)*MatVec->LocalSize.Col + (LColIndex -1)] = Value;
+	       MatVec->Array[(LRowIndex - 1)*MatVec->LocalSize.Col + (LColIndex -1)] = Alpha;
 	  }else if ( strcmp( Operation, OpAdd ) == 0 ){
 	       MatVec->Array[(LRowIndex - 1)*MatVec->LocalSize.Col + (LColIndex -1)] =
-		    MatVec->Array[(LRowIndex - 1)*MatVec->LocalSize.Col + (LColIndex -1)] + Value;
+		    MatVec->Array[(LRowIndex - 1)*MatVec->LocalSize.Col + (LColIndex -1)] + Alpha;
 	  } else if ( strcmp( Operation, OpMult ) == 0 ){
 	       MatVec->Array[(LRowIndex - 1)*MatVec->LocalSize.Col + (LColIndex -1)] =
-		    MatVec->Array[(LRowIndex - 1)*MatVec->LocalSize.Col + (LColIndex -1)]*Value;
+		    MatVec->Array[(LRowIndex - 1)*MatVec->LocalSize.Col + (LColIndex -1)]*Alpha;
 	  } else if ( strcmp( Operation, OpDiv ) == 0 ){
 	       MatVec->Array[(LRowIndex - 1)*MatVec->LocalSize.Col + (LColIndex -1)] =
-		    MatVec->Array[(LRowIndex - 1)*MatVec->LocalSize.Col + (LColIndex -1)]/Value;
+		    MatVec->Array[(LRowIndex - 1)*MatVec->LocalSize.Col + (LColIndex -1)]/Alpha;
 	  } else {
 	       Print_Header( ERROR );
 	       fprintf( stderr, "PMatrixVector_ModifyElement: Operation '%s' not identified. Valid operations are:\n",

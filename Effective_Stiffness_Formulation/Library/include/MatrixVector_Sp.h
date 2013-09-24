@@ -25,7 +25,7 @@
  *
  * \sa MatrixVector_t.
  */
-typedef struct MatVec_Sp {
+typedef struct MatrixVector_Sp {
      int Rows;        /*!< \brief Number of Rows of the matrix. */
      int Cols;        /*!< \brief Number of Columns of the matrix. */
      int Num_Nonzero; /*!< \brief Number of non-zero elements. */

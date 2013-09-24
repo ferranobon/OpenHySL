@@ -19,11 +19,11 @@
 /**
  * \brief Supported sub-structure types
 */
-enum Substructure_Remote_ID { REMOTE_TCP,       /*!< Standard TCP/IP connection */
-			      REMOTE_UDP,       /*!< Standard UDP connection */
-			      REMOTE_NCREE,     /*!< NSEP protocol */
-			      REMOTE_OF,        /*!< OpenFresco protocol */
-			      REMOTE_CELESTINA  /*!< Celestina protocol */
+enum Substructure_Remote_ID { REMOTE_TCP,       /*!< \brief Standard TCP/IP connection */
+			      REMOTE_UDP,       /*!< \brief Standard UDP connection */
+			      REMOTE_NCREE,     /*!< \brief NSEP protocol */
+			      REMOTE_OF,        /*!< \brief OpenFresco protocol */
+			      REMOTE_CELESTINA  /*!< \brief Celestina protocol */
 };
 
 static const char *Substructure_RemoteType[] = {"TCP",
