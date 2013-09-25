@@ -27,11 +27,13 @@ typedef struct ExpSub {
  * \brief Initialises the experimental substructure.
  * 
  * \param[in]  Description Brief description of the sub-structure.
- * \param[out] Sub         Experimental substructure.
+ * \param[out] Sub         Experimental substructure of type \c EXP_ADWIN.
  *
- * \post \c Sub.Description is a duplicate of the string in \c Description.
+ * \post
+ * - \c Sub.Description is a duplicate of the string in \c Description.
+ * - The memory should be deallocated through Substructure_DeleteCouplingNodes() routine.
  *
- * \sa ExpSub_t.
+ * \sa ExpSub_t, MAX_DESCRIPTION, Substructure_Id.
  */ 
 void Substructure_Experimental_Init( const char *Description, ExpSub_t *const Sub );
 

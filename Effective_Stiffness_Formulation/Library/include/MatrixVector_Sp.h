@@ -44,16 +44,6 @@ typedef struct MatrixVector_Sp {
 /**
  * \brief Adds three matrices of the same dimensions. Sparse version
  *
- * \pre
- * - All elements of type \c MatrixVector_Sp_t must be properly intialised through the
- *   MatrixVector_Create_Sp() routine.
- * - The matrices must in Intel's MKL CSR-\em three \em array \em variation and in one based index.
- * - The matrices must be symmetrical and only the upper part will be referenced (lower part in FORTRAN
- *   routines).
- * - \f$S(\mathcal Y) \geq max(S(\mathcal A),S(\mathcal B),S(\mathcal C))\f$ where \f$S(\mathcal X) =
- *   X.Rows*X.Cols\f$ is the size of the matrix.
- * - The number of non-zero elements of \f$nnz(\mathcal Y) \geq nnz(\mathcal A + \mathcal B + \mathcal C)\f$.
- *
  * This routine adds three matrices through the operation:
  *
  * \f[\mathcal Y = \alpha \mathcal A + \beta \mathcal B + \gamma \mathcal C\f]
@@ -66,6 +56,16 @@ typedef struct MatrixVector_Sp {
  * perform the linear algebra operations. For the full or packed storage cases use the MatrixVector_Add3Mat()
  * or MatrixVector_Add3Mat_PS() routines respectively.
  * 
+ * \pre
+ * - All elements of type \c MatrixVector_Sp_t must be properly intialised through the
+ *   MatrixVector_Create_Sp() routine.
+ * - The matrices must in Intel's MKL CSR-\em three \em array \em variation and in one based index.
+ * - The matrices must be symmetrical and only the upper part will be referenced (lower part in FORTRAN
+ *   routines).
+ * - \f$S(\mathcal Y) \geq max(S(\mathcal A),S(\mathcal B),S(\mathcal C))\f$ where \f$S(\mathcal X) =
+ *   X.Rows*X.Cols\f$ is the size of the matrix.
+ * - The number of non-zero elements of \f$nnz(\mathcal Y) \geq nnz(\mathcal A + \mathcal B + \mathcal C)\f$.
+ *
  * \param[in]     MatA  Symmetric matrix \f$\mathcal A\f$ with only the upper part referenced (lower part in
  *                      FORTRAN routines).
  * \param[in]     MatB  Symmetric matrix \f$\mathcal B\f$ with only the upper part referenced (lower part in
@@ -158,15 +158,6 @@ void MatrixVector_Create_Sp( const int Rows, const int Cols, const int nnz, Matr
 
 /**
  * \brief Converts a sparse matrix/vector into a dense matrix/vector
- * 
- * \pre 
- * - \c MatVec must be properly initialised through the MatrixVector_Create() routine.
- * - \c MatVec_Sp must be properly intialised through the MatrixVector_Create_Sp() routine.
- * - The sparse matrix/vector must in Intel's MKL CSR-\em three \em array \em variation and in one based
- *   index.
- * - If the sparse matrix is symmetric only the upper triangular part must be present.
- * - The dimensions of the matrices/vectors must be the same.
- * - \c Operation must be either 0 (symmetric matrix) or 1 (dense matrix/vector).
  *
  * This routine converts a sparse matrix in Intel's MKL CSR-\em three \em array \em variation (\cite MKL_2013)
  * to a dense format. Currently two operations are available and controlled by \c MatVec_Type. If:
@@ -175,6 +166,15 @@ void MatrixVector_Create_Sp( const int Rows, const int Cols, const int nnz, Matr
  *   considered to be present in the sparse matrix.
  * - \f$MatVec_Type = 0\f$ all the elements of the general matrix/vector are considered and transfered to the
  *   dense format.
+ *
+ * \pre 
+ * - \c MatVec must be properly initialised through the MatrixVector_Create() routine.
+ * - \c MatVec_Sp must be properly intialised through the MatrixVector_Create_Sp() routine.
+ * - The sparse matrix/vector must in Intel's MKL CSR-\em three \em array \em variation and in one based
+ *   index.
+ * - If the sparse matrix is symmetric only the upper triangular part must be present.
+ * - The dimensions of the matrices/vectors must be the same.
+ * - \c Operation must be either 0 (symmetric matrix) or 1 (dense matrix/vector).
  *
  * \param[in]     MatVec_Sp   Sparse matrix or vector.
  * \param[in]     MatVec_Type Type of the input sparse matrix: Symmetrical (\f$MatVec_Type=1\f$) or general
@@ -190,16 +190,16 @@ void MatrixVector_CSR2Dense( const MatrixVector_Sp_t *const MatVec_Sp,  const in
 /**
  * \brief Converts a symmetric sparse matrix in CSR-\em three \em array \em variation into a dense packed
  * storage matrix.
- * 
+ *
+ * This routine converts a sparse matrix in Intel's MKL CSR-\em three \em array \em variation (\cite MKL_2013)
+ * to a dense packed storage format.
+ *
  * \pre 
  * - \c MatVec_PS must be properly initialised through the MatrixVector_Create_PS() routine.
  * - \c MatVec_Sp must be properly intialised through the MatrixVector_Create_Sp() routine.
  * - The sparse matrix is symmetric, with only the upper triangular part present, in Intel's MKL CSR-\em three
  *   \em array \em variation and in one based index.
  * - The dimensions of the matrices/vectors must be the same.
- *
- * This routine converts a sparse matrix in Intel's MKL CSR-\em three \em array \em variation (\cite MKL_2013)
- * to a dense packed storage format.
  *
  * \param[in]     MatVec_Sp Symmetric sparse matrix.
  * \param[in,out] MatVec_PS Dense matrix in packed storage On input only the dimensions are referenced.
@@ -214,6 +214,10 @@ void MatrixVector_CSR2Packed( const MatrixVector_Sp_t *const MatVec_Sp,  MatrixV
 
 /**
  * \brief Converts a dense matrix/vector into a sparse matrix/vector.
+ *
+ * This routine converts a dense matrix/vector into a sparse matrix/vector in Intel's MKL CSR-\em three \em
+ * array \em variation (\cite MKL_2013). Currently two operations are available and controlled by \c
+ * MatVec_Type. If:
  * 
  * \pre 
  * - \c MatVec must be properly initialised through the MatrixVector_Create() routine.
@@ -221,10 +225,6 @@ void MatrixVector_CSR2Packed( const MatrixVector_Sp_t *const MatVec_Sp,  MatrixV
  * - If the dense matrix is symmetric only the upper triangular part will be referenced.
  * - The dimensions of the matrices/vectors must be the same.
  * - \c Operation must be either 0 (symmetric matrix) or 1 (dense matrix/vector).
- *
- * This routine converts a dense matrix/vector into a sparse matrix/vector in Intel's MKL CSR-\em three \em
- * array \em variation (\cite MKL_2013). Currently two operations are available and controlled by \c
- * MatVec_Type. If:
  * 
  * - \f$MatVec_Type = 1\f$ the input matrix is considered to be symmetric and only the upper will referenced.
  * - \f$MatVec_Type = 0\f$ all the elements of the dense matrix/vector are considered and transfered to the
@@ -265,13 +265,13 @@ void MatrixVector_Destroy_Sp( MatrixVector_Sp_t *const MatVec_Sp );
  *
  * \warning This routine requires the MatrixMarket header files.
  *
- * \pre
- * - \c MatVec_Sp must have the dimensions specified through MatrixVector_SetRowsCols_Sp().
- * - \c Filename must be in MatrixMarket format and stored in a sparse way.
- *
  * This routine reads a matrix or a vector from a MatrixMarket (\cite MatrixMarket) formatted file. It can
  * handle only sparse formats. If a dense matrix is desired the routine MatrixVector_FromFile_MM() should be
  * used instead.
+ *
+ * \pre
+ * - \c MatVec_Sp must have the dimensions specified through MatrixVector_SetRowsCols_Sp().
+ * - \c Filename must be in MatrixMarket format and stored in a sparse way.
  *
  * \param[in]     Filename  The file with a MatrixMarket format.
  * \param[in,out] MatVec_Sp On input only the number of rows and columns is referenced.

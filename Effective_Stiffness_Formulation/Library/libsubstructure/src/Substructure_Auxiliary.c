@@ -1,7 +1,7 @@
 #include "MatrixVector.h"
 
-#include "Substructure_Auxiliary.h"
 #include "Substructure.h"
+#include "Substructure_Auxiliary.h"
 
 #include "Auxiliary_Math.h"   /* For Max( ) */
 

@@ -16,26 +16,136 @@
 
 #include "Substructure_CouplingNodes.h"
 
-#define NUM_TYPE_SUB  7  /*!< \brief Number of recognized sub-structure types */
-
 /**
- * \brief Supported sub-structure types.
- */
-enum Substructure_Id { SIM_EXACT_MDOF, /*!< \brief Simulate the substructure using the exact solution. MDOF. */
-		       SIM_EXACT_SDOF, /*!< \brief Simulate the substructure using the exact solution. SDOF. */
-		       SIM_EXACT_ESP,  /*!< \brief Simulate the sub-structure using an exact integration method \cite{Exact} */
-		       SIM_UHYDE,      /*!< \brief Simulate the substructure using the UHYDE-fbr device. */
-		       SIM_MEASURED,   /*!< \brief Simulate the substructure using measured values. */
-		       EXP_ADWIN,      /*!< \brief Run using ADwin */
-		       REMOTE,         /*!< \brief Remote substructure. */
-};
+ * \brief Sends the Gain matrix to the corresponding facility/controller.
 
+ * \pre
+ * - The Gain matrix \f$\mathcal G_c\f$ (order \f$n_c x n_c\f$ where \f$n_c\f$ is the number of coupling DOFs)
+ *   must have been created through Substructure_MatrixXc(), Substructure_MatrixXc_PS(),
+ *   Substructure_MatrixXc_MPI() routines if the complete gain matrix \f$\mathcal G\f$ (of order \f$n\f$ where
+ *   \f$n > n_c\f$) is stored in general, packed storage or is a distributed matrix respectively. It must be a
+ *   symmetric matrix with all its elements referenced.
+ * - \c Order is the number of substructures/coupling DOFs.
+ * - \c Substructure must be properly initialised through Substructure_ReadCouplingNodes().
+ *
+ * The portion of the gain matrix \f$\mathcal G_c\f$ that is affected by substructures is sent to the remote
+ * facility or controller depending on the substructure type. Those DOFs that have a numerical substructure
+ * assigned remain untouched. 
+ * 
+ * \param[in] Gain           Symmetric matrix of order \c Order. This is usually the The part of the gain matrix
+ *                           \f$\mathcal G\f$ that affects the coupling degrees of freedom \f$\mathcal G_c\f$.
+ * \param[in] Order          Order of the matrix \f$G_c\f$.
+ * \param[in] Substructure   Array of substructures of order \c Order. Used to identify its type and act
+ *                           accordingly.
+ *
+ * \post Each remote facility or controller has received the portion of the gain matrix that they require.
+ *
+ * \sa Substructure_t
+ */
 void Substructure_SendGainMatrix( const double *const Gain, const unsigned int Order, const Substructure_t *const Substructure );
 
-void Substructure_Substepping( const double *const IGain, const double *const DispTdT0_c, const double Time, const double GAcc, const unsigned int NSubstep,
-			       const double DeltaT_Sub, const CouplingNode_t *const CNodes, double *const DispTdT,
-			       double *const fcprevsub, double *const fc );
+/**
+ * \brief Performs the sub-stepping process.
+ * 
+ * This routine arranges the sub-stepping process depending on the type of substructure and will perform a
+ * different for each type. The degrees of freedom assigned to a particular substructure may be sent to a
+ * remote site (OpenFresco, NSEP, Celestina, ...), to the controller (Experimental) or treated in a separate
+ * way if they are numerical substructures.
+ *
+ * \pre
+ * - \c CNodes must be properly initialised through Substructure_ReadCouplingNodes().
+ * - The Gain matrix \f$\mathcal G_c\f$ (order \f$n_c x n_c\f$ where \f$n_c\f$ is the number of coupling DOFs)
+ *   must have been created through Substructure_MatrixXc(), Substructure_MatrixXc_PS(),
+ *   Substructure_MatrixXc_MPI() routines if the complete gain matrix \f$\mathcal G\f$ (of order \f$n\f$ where
+ *   \f$n > n_c\f$) is stored in general, packed storage or is a distributed matrix respectively. It must be a
+ *   symmetric matrix with all its elements referenced.
+ * - \c VecTdT0_c should be generated through the Substructure_VectorXc() or Substructure_VectorXc_MPI()
+ *   routines and be of length \f$n_c\f$.
+ * - \c VecTdT, \c CoupForcePrev and \c CoupForce are of length \f$n > n_c\f$.
+ *
+ * \param[in]  CNodes        Information regarding the coupling nodes.
+ * \param[in]  IGain         Symmetric matrix of order \c CNodes.Order. The part of the gain matrix
+ *                           \f$\mathcal G\f$ that affects the coupling degrees of freedom \f$\mathcal G_c\f$.
+ * \param[in]  VecTdT0_c     Vector with the initial value problem
+ * \param[in]  Time          Only used in case of remote substructures using the NSEP protocol and it
+ *                           indicates the ellapsed time from since the start of the simulation. It does not
+ *                           indicate actual computation time but it is usually computed as \f$\Delta t*i\f$,
+ *                           where \f$i\f$ is the step count and \f$\Delta t\f$ the time increment.
+ * \param[in]  GAcc          Ground acceleration
+ * \param[in]  NSubstep      The number of sub-steps \f$n_{Sub}\f$.
+ * \param[in]  DeltaT_Sub    Time increment of a sub-step \f$\Delta t_{Sub}\f$.
+ * \param[out] VecTdT        Vector with the updated displacement, velocity or acceleration.
+ * \param[out] CoupForcePrev Vector containing the coupling force at the sub-step \f$i - 1\f$, with \f$i =
+ *                           n_{Sub}\f$.
+ * \param[out] CoupForce     Vector containing the coupling force at the sub-step \f$n_{Sub}\f$.
+ *
+ * \post The vectors \c VecTdT \c CoupForcePrev and \c CoupForce have the updated displacements at the
+ * equations with substructures acting on them.
+ *
+ * \sa CouplingNote_t.
+ */
+void Substructure_Substepping( const CouplingNode_t *const CNodes, const double *const IGain,
+			       const double *const VecTdT0_c, const double Time, const double GAcc,
+			       const unsigned int NSubstep, const double DeltaT_Sub, double *const VecTdT,
+			       double *const CoupForcePrev, double *const CoupForce );
 
-void Substructure_Simulate( const CouplingNode_t *const CNodes, const double *const IGain, const double *const VecTdT0_c, const double GAcc, const unsigned int NSubstep, const double DeltaT_Sub, double *const VecTdT_c, double *const fcprev, double *const fc );
+/**
+ * \brief Performs the sub-stepping process for those DOFs that have numerical substructures acting on them.
+ * 
+ * The sub-stepping process is performed on those substructures that involve numerical simulation. The initial
+ * value vector (displacement, velocity or acceleration) is applied in small increments as a ramp function in
+ * order to calculate the influence of the substructure in it. The process follows the next equation:
+ *
+ * \f[\vec x_c^{t + \Delta t} = \vec x_{0c}^t\biggl(1 - \frac{i}{k_{sub}}\biggr) + \vec x_{0c}^{t+\Delta
+ * t}\biggl(\frac{i}{k_{sub}}\biggr) + \mathcal G_c\vec f_{s}\f]
+ *
+ * where:
+ * - \f$\vec x_0\f$ is the explicit part of the new state vector;
+ * - \f$\mathcal G_c\f$ is the portion of the gain matrix \f$\mathcal G\f$ that affects the coupling degrees
+ * of freedom with numerical substructures;
+ * - \f$\vec x_c\f$ is the new state vector with the influence of the applied numerical substructures;
+ * - \f$k_{sub}\f$ is the number of sub-steps;
+ * - \f$i\f$ is the current sub-step \f$1\leq i\leq k_{sub}\f$.
+ *
+ * \pre 
+ * - \c CNodes must be properly initialised through Substructure_ReadCouplingNodes().
+ * - The Gain matrix \f$\mathcal G_c\f$ (order \f$n_c x n_c\f$ where \f$n_c\f$ is the number of coupling DOFs)
+ *   must have been created through Substructure_MatrixXc(), Substructure_MatrixXc_PS(),
+ *   Substructure_MatrixXc_MPI() routines if the complete gain matrix \f$\mathcal G\f$ (of order \f$n\f$ where
+ *   \f$n > n_c\f$) is stored in general, packed storage or is a distributed matrix respectively. It must be a
+ *   symmetric matrix and only the upper part will be referenced (lower part in FORTRAN routines).
+ * - \c VecTdT0_c should be generated through the Substructure_VectorXc() or Substructure_VectorXc_MPI()
+ *   routines and be of length \f$n_c\f$. It must contain only those elements of the original vector that are
+ *   being affected by a numerical substructure.
+ * - \c VecTdT_c, \c CoupForcePrev_c and \c CoupForce_c are of length \f$n_c\f$ and must contain only those
+ *   elements of the original vector that are being affected by a numerical substructure.
+ * 
+ * \param[in]  CNodes          Information regarding the coupling nodes.
+ * \param[in]  IGain           Symmetric matrix of order \c CNodes.Order. The part of the gain matrix 
+ *                             \f$\mathcal G\f$ that affects the coupling degrees of freedom \f$\mathcal
+ *                             G_c\f$.
+ * \param[in]  VecTdT0_c       Vector of length \c CNodes.Order. The initial value problem.
+ * \param[in]  GAcc            Ground acceleration.
+ * \param[in]  NSubstep        The number of sub-steps \f$n_{Sub}\f$.
+ * \param[in]  DeltaT_Sub      Time increment of a sub-step \f$\Delta t_{Sub}\f$.
+ * \param[out] VecTdT_c        Vector of length \c CNodes.Order with the updated displacement, velocity or
+ *                             acceleration.
+ * \param[out] CoupForcePrev_c Vector of length \c CNodes.Order containing the coupling force at the sub-step
+ *                             \f$i - 1\f$, with \f$i = n_{Sub}\f$.
+ * \param[out] CoupForce_c     Vector of length \c CNodes.Order containing the coupling force at the sub-step
+ *                             \f$n_{Sub}\f$.
+ *
+ * \post The vectors \c VecTdT_c \c CoupForcePrev_c and \c CoupForce_c have the updated displacements at the
+ * equations with numerical substructures acting on them as a result of the following equation:
+ * 
+ * \f[\vec x_c^{t + \Delta t} = \vec x_{0c}^t\biggl(1 - \frac{i}{k_{sub}}\biggr) + \vec x_{0c}^{t+\Delta
+ * t}\biggl(\frac{i}{k_{sub}}\biggr) + \mathcal G_c\vec f_{s}\f]
+ *
+ * \sa CouplingNode_t.
+ */
+void Substructure_Simulate( const CouplingNode_t *const CNodes, const double *const IGain,
+			    const double *const VecTdT0_c, const double GAcc, const unsigned int NSubstep,
+			    const double DeltaT_Sub, double *const VecTdT_c, double *const CoupForcePrev_c,
+			    double *const CoupForce_c );
 
 #endif /* SUBSTRUCTURE_H_ */

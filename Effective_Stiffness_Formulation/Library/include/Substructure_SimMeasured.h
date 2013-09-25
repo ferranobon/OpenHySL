@@ -46,6 +46,7 @@ typedef struct MeasuredSim {
  * - \c Sub.Values contains the first \f$N_{steps}\cdot N_{sub\-steps}\f$ entries in the file.
  * - \c Sub.Description is a duplicate of the string in \c Description.
  * - If there is not enough memory, the program exits with \c EXIT_FAILURE.
+ * - The memory should be deallocated through Substructure_DeleteCouplingNodes() routine.
  *
  * \sa MeasuredSim_t, MAX_DESCRIPTION, Substructure_Id.
  */

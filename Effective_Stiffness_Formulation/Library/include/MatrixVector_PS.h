@@ -20,15 +20,6 @@
  * 
  * \warning The effect of using this routine on vectors is unknown.
  *
- * \pre
- * - All elements of type \c Matrix must be properly initialised through MatrixVector_Create_PS().
- * - The matrices must be symmetrical and in packed storage with the upper part referenced (lower part in
- *   FORTRAN routines).
- *
- *
- * - \f$S(\mathcal Y) \geq max(S(\mathcal A),S(\mathcal B),S(\mathcal C))\f$ where \f$S(\mathcal X) =
- *   \frac{(X.Rows*X.Cols + X.Rows)}{2}\f$ is the size of the matrix.
- *
  * This routine adds three matrices through the operation:
  *
  * \f[\mathcal Y = \alpha \mathcal A + \beta \mathcal B + \gamma \mathcal C\f]
@@ -39,6 +30,13 @@
  *
  * It makes use of BLAS routines to perform the lineal algebra operations. For the full storage and sparse
  * version use the MatrixVector_Add3Mat() and MatrixVector_Add3Mat_Sp() routines respectively.
+ *
+ * \pre
+ * - All elements of type \c Matrix must be properly initialised through MatrixVector_Create_PS().
+ * - The matrices must be symmetrical and in packed storage with the upper part referenced (lower part in
+ *   FORTRAN routines).
+ * - \f$S(\mathcal Y) \geq max(S(\mathcal A),S(\mathcal B),S(\mathcal C))\f$ where \f$S(\mathcal X) =
+ *   \frac{(X.Rows*X.Cols + X.Rows)}{2}\f$ is the size of the matrix. 
  * 
  * \param[in]     MatA  Symmetric matrix \f$\mathcal A\f$ in packed storage with the upper part referenced
  *                      (lower part in FORTRAN routines).
@@ -62,12 +60,12 @@ void MatrixVector_Add3Mat_PS( const MatrixVector_t *const MatA, const MatrixVect
 /**
  * \brief Allocates the memory for the \c MatrixVector_t type.
  *
- * \pre \f$ Rows \geq 0\f$ and \f$Cols \geq 0 \f$.
- *
  * A \c MatrixVector_t type is initialised in packed storage. The routine allocates an amount of memory as a
  * single dimenson array with length \f$L = (Rows*Cols + Rows)/2\f$. The number of rows and columns is also
  * stored and all elements of the array are initialised and set to 0.0. For matrices in full storage or sparse
  * matrices the routines MatrixVector_Create() or MatrixVector_Create_Sp() should be used respectively.
+ *
+ * \pre \f$ Rows \geq 0\f$ and \f$Cols \geq 0 \f$.
  *
  * \param[in]  Rows   The number of rows.
  * \param[in]  Cols   The number of columns.
@@ -119,14 +117,15 @@ void MatrixVector_FromFile_GE2PS( const char *Filename, MatrixVector_t *const Ma
  *
  * \warning This routine requires the MatrixMarket header files.
  *
- * \pre
- * - \c Matrix must be properly initialised through MatrixVector_Create_PS().
- * - \c Filename must be in MatrixMarket format and stored in a sparse way.
- *
  * This routine reads a symmetric matrix from a MatrixMarket (\cite MatrixMarket) formatted file and stores
  * its contents in a packed storage format. It can handle only sparse formats but the output will always be in
  * packed storage matrix. If a sparse or a full storage format is desired the routines
  * MatrixVector_FromFile_MM_Sp() or MatrixVector_FromFile_MM() should be used instead.
+ *
+ * \pre
+ * - \c Matrix must be properly initialised through MatrixVector_Create_PS().
+ * - \c Filename must be in MatrixMarket format and stored in a sparse way.
+ *
  *
  * \param[in]     Filename The file with a MatrixMarket format.
  * \param[in,out] Matrix   On input only the number of rows and columns is referenced.
@@ -138,12 +137,6 @@ void MatrixVector_FromFile_MM_PS( const char *Filename, MatrixVector_t *const Ma
 /**
  * \brief Performs basic algebra operations on an element of a matrix in packed storage.
  * 
- * \pre
- * - \c Matrix must be properly initialised through MatrixVector_Create_PS().
- * - \c Matrix contains only the upper part of the whole matrix and it is in packed storage.
- * - RowIndex and ColIndex must be in one based index.
- * - \c Operation must be \c Set, \c Add, \c Multiply or \c Divide.
- * 
  * A basic linear algebra operation is performed on one of the elements of the matrix in packed storage
  * vector. The operation performed is controlled through the variable \c Operation. Currently only four
  * operations are supported.
@@ -154,6 +147,12 @@ void MatrixVector_FromFile_MM_PS( const char *Filename, MatrixVector_t *const Ma
  * - <tt>Operation = Divide</tt>. \f$A(i,j) = frac{A(i,j)}{\alpha}\f$.
  *
  * If the operation is not supported, the routine calls <tt>exit( EXIT_FAILURE )</tt>.
+ *
+ * \pre
+ * - \c Matrix must be properly initialised through MatrixVector_Create_PS().
+ * - \c Matrix contains only the upper part of the whole matrix and it is in packed storage.
+ * - RowIndex and ColIndex must be in one based index.
+ * - \c Operation must be \c Set, \c Add, \c Multiply or \c Divide.
  *
  * \param[in]     RowIndex  The row index \f$i\f$ (one based index).
  * \param[in]     ColIndex  The column index \f$j\f$ (one based index).
@@ -172,11 +171,11 @@ void MatrixVector_ModifyElement_PS( const int RowIndex, const int ColIndex, cons
 /**
  * \brief Sets all the members to the specified value.
  *
- * \pre \c Matrix must be properly initialised through MatrixVector_Create_PS() and be in packed storage.
- *
  * All the elements in \c Matrix.Array are set to the specified value. For a full representation of the matrix
  * the routine MatrixVector_Set2Value_PS() should be used instead. It makes use of BLAS routines to perform
  * the lineal algebra operations.
+ *
+ * \pre \c Matrix must be properly initialised through MatrixVector_Create_PS() and be in packed storage.
  *
  * \param[in]     Value  All elements of the matrix or vector will be set to this value.
  * \param[in,out] Matrix Matrix in packed storage. On input only the number of rows and columns is

@@ -15,7 +15,6 @@
 #include <unistd.h>
 #endif
 
-#include "Substructure.h"
 #include "Substructure_Remote.h"
 #include "Print_Messages.h"
 
