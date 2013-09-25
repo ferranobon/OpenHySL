@@ -39,16 +39,16 @@ static const char *Substructure_RemoteType[] = {"TCP",
  * algorithm is performed. The port that will be used throughout the TCP/IP communication is also stored.
  */
 typedef struct Remote{
-     char *IP;               /*!< IP address (IPv4) of the server. */
-     char *Port;             /*!< Port that will be used for TCP/IP communication. */
-     char *Account_Name;     /*!< Account information */
-     char *Account_Password; /*!< Account password */
-     int   Socket;           /*!< Socket */
-     int   NSub;             /*!< Number of substructures to be simulated in the remote site */
-     int  *DOFs;             /*!< Degrees of freedom that are affected by the substructures. Position of the
-			      *   substructures in the global matrix */
+     char *IP;               /*!< \brief IP address (IPv4) of the server. */
+     char *Port;             /*!< \brief Port that will be used for TCP/IP communication. */
+     char *Account_Name;     /*!< \brief Account information (NCREE protocol only). */
+     char *Account_Password; /*!< \brief Account password (NCREE protocol only). */
+     int   Socket;           /*!< \brief Socket. */
+     int   NSub;             /*!< \brief Number of substructures to be simulated in the remote site. */
+     int  *DOFs;             /*!< \brief Degrees of freedom that are affected by the substructures. Position
+			      * of the substructures in the global matrix. */
      char *Description;      /*!< \brief Description of the experimental sub-structure.*/
-     int Type;               /* Type of remote substructures */
+     int Type;               /*!< \brief Type of remote substructures. */
 } Remote_t;
 
 int Substructure_Remote_AcceptTCPClientConnection( const int Server_Socket );

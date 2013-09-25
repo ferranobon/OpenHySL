@@ -44,13 +44,6 @@ typedef struct Scalars {
  * 
  * \warning The effect of using this routine on vectors is unknown.
  *
- * \pre
- * - All elements of type \c MatVec must be properly initialised through MatrixVector_Create().
- * - The matrices must be symmetrical and only the upper part will be referenced (lower part in FORTRAN
- *   routines).
- * - \f$S(\mathcal Y) \geq max(S(\mathcal A),S(\mathcal B),S(\mathcal C))\f$ where \f$S(\mathcal X) =
- *   X.Rows*X.Cols\f$ is the size of the matrix.
- *
  * This routine adds three matrices through the operation:
  *
  * \f[\mathcal Y = \alpha \mathcal A + \beta \mathcal B + \gamma \mathcal C\f]
@@ -62,6 +55,13 @@ typedef struct Scalars {
  * It makes use of BLAS and LAPACK routines to perform the lineal algebra operations. For the packed storage
  * and sparse version use the MatrixVector_Add3Mat_PS() and MatrixVector_Add3Mat_Sp() routines respectively.
  * 
+ * \pre
+ * - All elements of type \c MatVec must be properly initialised through MatrixVector_Create().
+ * - The matrices must be symmetrical and only the upper part will be referenced (lower part in FORTRAN
+ *   routines).
+ * - \f$S(\mathcal Y) \geq max(S(\mathcal A),S(\mathcal B),S(\mathcal C))\f$ where \f$S(\mathcal X) =
+ *   X.Rows*X.Cols\f$ is the size of the matrix.
+ *
  * \param[in]     MatA  Symmetric matrix \f$\mathcal A\f$ in general storage with only the upper part
  *                      referenced (lower part in FORTRAN routines).
  * \param[in]     MatB  Symmetric matrix \f$\mathcal B\f$ in general storage with only the upper part
@@ -84,12 +84,13 @@ void MatrixVector_Add3Mat( const MatrixVector_t *const MatA, const MatrixVector_
 /**
  * \brief Allocates the memory for the \c MatrixVector_t type.
  *
- * \pre \f$ Rows \geq 0\f$ and \f$Cols \geq 0 \f$.
  *
  * A \c MatrixVector_t type is initialised. The routine allocates an amount of memory as a single dimenson
  * array with length \f$L = Rows*Cols\f$. The number of rows and columns is also stored and all elements of
  * the array are initialised and set to 0.0. For symmetric matrices in packed storage or sparse matrices the
  * routines MatrixVector_Create_PS() or MatrixVector_Create_Sp() should be used respectively.
+ *
+ * \pre \f$ Rows \geq 0\f$ and \f$Cols \geq 0 \f$.
  *
  * \param[in]  Rows   The number of rows.
  * \param[in]  Cols   The number of columns.
@@ -139,14 +140,14 @@ void MatrixVector_FromFile( const char *Filename, MatrixVector_t *const MatVec )
  *
  * \warning This routine requires the MatrixMarket header files.
  *
- * \pre
- * - \c MatVec must be properly initialised through MatrixVector_Create().
- * - \c Filename must be in MatrixMarket format and stored in a sparse way.
- *
  * This routine reads a matrix or a vector from a MatrixMarket (\cite MatrixMarket) formatted file. It can
  * handle only sparse formats but the output will always be a dense matrix. If a sparse or a packed storage
  * format are desired the routines MatrixVector_FromFile_MM_Sp() or MatrixVector_FromFile_MM_PS() should be
  * used instead.
+ *
+ * \pre
+ * - \c MatVec must be properly initialised through MatrixVector_Create().
+ * - \c Filename must be in MatrixMarket format and stored in a sparse way.
  *
  * \param[in]     Filename The file with a MatrixMarket format.
  * \param[in,out] MatVec   On input only the number of rows and columns is referenced.
@@ -160,11 +161,6 @@ void MatrixVector_FromFile_MM( const char *Filename, MatrixVector_t *const MatVe
 /**
  * \brief Performs basic algebra operations on an element of the matrix or vector.
  * 
- * \pre
- * - \c MatVec must be properly initialised through MatrixVector_Create().
- * - RowIndex and ColIndex must be in one based index.
- * - \c Operation must be \c Set, \c Add, \c Multiply or \c Divide.
- * 
  * A basic linear algebra operation is performed on one of the elements of the matrix or vector. The operation
  * performed is controlled through the variable \c Operation. Currently only four operations are supported.
  * 
@@ -175,6 +171,11 @@ void MatrixVector_FromFile_MM( const char *Filename, MatrixVector_t *const MatVe
  *
  * If the operation is not supported, the routine calls <tt>exit( EXIT_FAILURE )</tt>. For MPI support, the
  * routine PMatrixVector_ModifyElement() should be used instead.
+ *
+ * \pre
+ * - \c MatVec must be properly initialised through MatrixVector_Create().
+ * - RowIndex and ColIndex must be in one based index.
+ * - \c Operation must be \c Set, \c Add, \c Multiply or \c Divide.
  *
  * \param[in]     RowIndex  The row index \f$i\f$ (one based index).
  * \param[in]     ColIndex  The column index \f$j\f$ (one based index).
@@ -195,11 +196,11 @@ void MatrixVector_ModifyElement( const int RowIndex, const int ColIndex, const d
 /**
  * \brief Sets all the members to the specified value.
  *
- * \pre \c MatVec must be properly initialised through MatrixVector_Create().
- *
  * All the elements in \c MatVec.Array are set to the specified value. For a packed storage representation of
  * the matrix the routine MatrixVector_Set2Value() should be used instead. It makes use of BLAS routines to
  * perform the lineal algebra operations.
+ *
+ * \pre \c MatVec must be properly initialised through MatrixVector_Create().
  *
  * \param[in]     Value  All elements of the matrix or vector will be set to this value.
  * \param[in,out] MatVec Matrix or vector. On input only the number of rows and columns is referenced. On

@@ -85,11 +85,10 @@ void Substructure_SendGainMatrix( const double *const Gain, unsigned int Order, 
      } else assert( Substructure->Type == EXP_ADWIN || Substructure->Type == REMOTE );
 }
 
-
-void Substructure_Substepping( const double *const IGain, const double *const DispTdT0_c, const double Time, const double GAcc,
-			       const unsigned int NSubstep, const double DeltaT_Sub,
-			       const CouplingNode_t *const CNodes, double *const DispTdT, double *const fcprevsub,
-			       double *const fc )
+void Substructure_Substepping( const CouplingNode_t *const CNodes, const double *const IGain,
+			       const double *const VecTdT0_c, const double Time, const double GAcc,
+			       const unsigned int NSubstep, const double DeltaT_Sub, double *const VecTdT,
+			       double *const CoupForcePrev, double *const CoupForce )
 {
 
      int i;
@@ -103,7 +102,7 @@ void Substructure_Substepping( const double *const IGain, const double *const Di
 
      /* Copy the older coupling force. This is necessary for simulations */
      for( i = 0; i < CNodes->Order; i++ ){
-	  Recv[2*CNodes->Order + i] = fc[CNodes->Array[i] - 1];
+	  Recv[2*CNodes->Order + i] = CoupForce[CNodes->Array[i] - 1];
      }
 
      for( i = 0; i < CNodes->Order; i++ ){
@@ -122,14 +121,14 @@ void Substructure_Substepping( const double *const IGain, const double *const Di
 	       /* Call the Simulate_Substructures() function only once. All the simulated substructures are
 		* handled together in this routine */
 	       if( !Called_Sub ){
-		    Substructure_Simulate( CNodes, IGain, DispTdT0_c, GAcc, NSubstep, DeltaT_Sub, &Recv[0], &Recv[CNodes->Order], &Recv[2*CNodes->Order] );
+		    Substructure_Simulate( CNodes, IGain, VecTdT0_c, GAcc, NSubstep, DeltaT_Sub, &Recv[0], &Recv[CNodes->Order], &Recv[2*CNodes->Order] );
 		    Called_Sub = true;
 	       }
 	       break;
 #if _ADWIN_
 	  case EXP_ADWIN:
 	       /* Tell ADwin to perform the substepping process */
-	       ADwin_Substep( DispTdT0_c, (unsigned int) CNodes->Order, 0.75, &Recv[0], &Recv[1], &Recv[2] );
+	       ADwin_Substep( VecTdT0_c, (unsigned int) CNodes->Order, 0.75, &Recv[0], &Recv[1], &Recv[2] );
 	       break;
 #endif
 	  case REMOTE:
@@ -138,7 +137,7 @@ void Substructure_Substepping( const double *const IGain, const double *const Di
 	       if( Remote->Type == REMOTE_TCP || Remote->Type == REMOTE_UDP || Remote->Type == REMOTE_CELESTINA ){
 		    Send = (double *) calloc( (size_t) 1+(size_t)CNodes->Order, sizeof(double) );
 		    for( i = 0; i < CNodes->Order; i++ ){
-			 Send[i] = DispTdT0_c[i];
+			 Send[i] = VecTdT0_c[i];
 		    }
 		    Send[CNodes->Order] = GAcc;
 
@@ -148,12 +147,12 @@ void Substructure_Substepping( const double *const IGain, const double *const Di
 		    free( Send );
 	       } else if( Remote->Type == REMOTE_NCREE ){
 		    /* Using NSEP Protocol */
-		    //Communicate_With_PNSE( 1, Time, DispTdT0_c, Recv, OrderC );
+		    //Communicate_With_PNSE( 1, Time, VecTdT0_c, Recv, OrderC );
 		    /* Receive the force from the PNSE server. WhatToDo = 2 */
-		    //Communicate_With_PNSE( 2, Time, DispTdT0_c, Recv, 3*OrderC );
+		    //Communicate_With_PNSE( 2, Time, VecTdT0_c, Recv, 3*OrderC );
 	       } else if( Remote->Type == REMOTE_OF ){
 		    /* Using OpenFresco */
-		    //Communicate_With_OpenFresco( DispTdT0_c, Recv, OrderC, 3 );
+		    //Communicate_With_OpenFresco( VecTdT0_c, Recv, OrderC, 3 );
 	       } else assert( Remote->Type >= 0 || Remote->Type < NUM_REMOTE_TYPE );
 	       break;
 	  }
@@ -162,13 +161,13 @@ void Substructure_Substepping( const double *const IGain, const double *const Di
 #pragma omp parallel for
      for ( i = 0; i < CNodes->Order; i++ ){
 #if _MPI_
-	  DispTdT[i] = Recv[i];
-	  fcprevsub[i] = Recv[CNodes->Order + i];
-	  fc[i] = Recv[2*CNodes->Order + i];
+	  VecTdT[i] = Recv[i];
+	  CoupForcePrev[i] = Recv[CNodes->Order + i];
+	  CoupForce[i] = Recv[2*CNodes->Order + i];
 #else
-	  DispTdT[CNodes->Array[i] - 1] = Recv[i];
-	  fcprevsub[i] = Recv[CNodes->Order + i];
-	  fc[CNodes->Array[i] - 1] = Recv[2*CNodes->Order + i];
+	  VecTdT[CNodes->Array[i] - 1] = Recv[i];
+	  CoupForcePrev[i] = Recv[CNodes->Order + i];
+	  CoupForce[CNodes->Array[i] - 1] = Recv[2*CNodes->Order + i];
 #endif
      }
 
@@ -177,7 +176,7 @@ void Substructure_Substepping( const double *const IGain, const double *const Di
 
 void Substructure_Simulate( const CouplingNode_t *const CNodes, const double *IGain, const double *const VecTdT0_c, const double GAcc, 
 			    const unsigned int NSubstep, const double DeltaT_Sub, double *const VecTdT_c,
-			    double *const fcprev, double *const fc )
+			    double *const CoupForcePrev_c, double *const CoupForce_c )
 {
 
      unsigned int i, Substep;
@@ -196,8 +195,8 @@ void Substructure_Simulate( const CouplingNode_t *const CNodes, const double *IG
 
      for ( Substep = 1; Substep <= NSubstep; Substep++ ){
 
-	  /* Backup data so that fcprev contains always the last coupling force */
-	  dcopy( &Length, fc, &incx, fcprev, &incy );
+	  /* Backup data so that CoupForcePrev_c contains always the last coupling force */
+	  dcopy( &Length, CoupForce_c, &incx, CoupForcePrev_c, &incy );
 	       
 	  ramp = (double) Substep / (double) NSubstep;
 
@@ -207,33 +206,33 @@ void Substructure_Simulate( const CouplingNode_t *const CNodes, const double *IG
 	       dcopy( &Length, CNodes->VecTdT0_c0, &incx, VecTdT_c, &incy );
 	       dscal( &Length, &ramp0, VecTdT_c, &incx );
 	       daxpy( &Length, &ramp, VecTdT0_c, &incx, VecTdT_c, &incy );
-	       dsymv( &uplo, &Length, &One, IGain, &Length, fc, &incx, &One, VecTdT_c, &incy ); 
+	       dsymv( &uplo, &Length, &One, IGain, &Length, CoupForce_c, &incx, &One, VecTdT_c, &incy ); 
 	  } else {
-	       VecTdT_c[0] = ramp0*CNodes->VecTdT0_c0[0] + ramp*VecTdT0_c[0] + IGain[0]*fc[0];
+	       VecTdT_c[0] = ramp0*CNodes->VecTdT0_c0[0] + ramp*VecTdT0_c[0] + IGain[0]*CoupForce_c[0];
 	  }
 	  
-	  /* Compute the new fc */
+	  /* Compute the new CoupForce_c */
 	  for( i = 0; i < (unsigned int) CNodes->Order; i ++ ){
 	       switch( CNodes->Sub[i].Type ){
 	       case SIM_EXACT_MDOF:
 		    Exact = (ExactSim_t *) CNodes->Sub[i].SimStruct;
-		    Substructure_ExactSolutionMDOF( VecTdT_c[i], ramp, GAcc, DeltaT_Sub, Exact, &fc[i] );
+		    Substructure_ExactSolutionMDOF( VecTdT_c[i], ramp, GAcc, DeltaT_Sub, Exact, &CoupForce_c[i] );
 		    break;
 	       case SIM_EXACT_SDOF:
 		    Exact = (ExactSim_t *) CNodes->Sub[i].SimStruct;
-		    Substructure_ExactSolutionSDOF( VecTdT_c[i], ramp, GAcc, DeltaT_Sub, Exact, &fc[i] );
+		    Substructure_ExactSolutionSDOF( VecTdT_c[i], ramp, GAcc, DeltaT_Sub, Exact, &CoupForce_c[i] );
 		    break;
 	       case SIM_EXACT_ESP:
 		    ExactEsp = (ExactSimESP_t *) CNodes->Sub[i].SimStruct;
-		    Substructure_ExactSolutionESP_SDOF( VecTdT_c[i], DeltaT_Sub, ExactEsp, &fc[i] );
+		    Substructure_ExactSolutionESP_SDOF( VecTdT_c[i], DeltaT_Sub, ExactEsp, &CoupForce_c[i] );
 		    break;
 	       case SIM_UHYDE:
 		    UHYDE = (UHYDEfbrSim_t *) CNodes->Sub[i].SimStruct;
-		    Substructure_SimUHYDE_1D( VecTdT_c[i], DeltaT_Sub, UHYDE, &fc[i] );
+		    Substructure_SimUHYDE_1D( VecTdT_c[i], DeltaT_Sub, UHYDE, &CoupForce_c[i] );
 		    break;
 	       case SIM_MEASURED:
 		    Measured = (MeasuredSim_t *) CNodes->Sub[i].SimStruct;
-		    Substructure_SimMeasured( Measured, &fc[i] );
+		    Substructure_SimMeasured( Measured, &CoupForce_c[i] );
 		    break;
 	       }
 	  }	  

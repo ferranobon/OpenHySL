@@ -393,13 +393,13 @@ int main( int argc, char **argv ){
 
 	  /* Perform substepping */
 	  if( CNodes.Order >= 1 ){
-/*	       Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(double) istep,
-					 AccAll[istep - 1], InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array,
-					 fcprevsub.Array, fc.Array );
-*/
-	       Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(double) istep,
-					 0.0, InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array,
-					 fcprevsub.Array, fc.Array );
+/*	       Substructure_Substepping( &CNodes, Keinv_c.Array, DispTdT0_c.Array,
+	                                 InitCnt.Delta_t*(double) istep, AccAll[istep - 1],
+					 InitCnt.NSubstep, InitCnt.DeltaT_Sub, DispTdT.Array,
+					 fcprevsub.Array, fc.Arrayx); */
+	       Substructure_Substepping( &CNodes, Keinv_c.Array, DispTdT0_c.Array,
+					 InitCnt.Delta_t*(double) istep, 0.0, InitCnt.NSubstep, 
+					 InitCnt.DeltaT_Sub, DispTdT.Array, fcprevsub.Array, fc.Array );
 	  }
 
 	  if ( istep < InitCnt.NStep ){

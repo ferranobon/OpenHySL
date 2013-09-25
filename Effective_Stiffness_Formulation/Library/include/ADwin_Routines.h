@@ -48,15 +48,15 @@ void ADwin_CheckProcessStatus( const int ProcessNumber );
  *
  * \warning The graphical interface written in QT4 is recomended to manage ADwin. This function is deprecated.
  *
+ * Depending on the value of the \c dowhat variable the process will be loaded (\f$ dowhat = 1\f$), started
+ * (\f$ dowhat = 2\f$) or stopped (\f$ dowhat = 3\f$). In the case of loading a process, only the \c PName
+ * variable is referenced, while in the other cases only the \c PNum variable is used.
+ *
  * \pre 
  * - ADwin should be booted through the ADwin_Boot() routine.
  * - The variable \c dowhat must fulfill the following expression \f$ 1 \leq dowhat \leq 3\f$.
  * - When loading a process, PName should point to the ADwin binary file specifically compiled for the ADwin
  *   processor that will be run on.
- *
- * Depending on the value of the \c dowhat variable the process will be loaded (\f$ dowhat = 1\f$), started
- * (\f$ dowhat = 2\f$) or stopped (\f$ dowhat = 3\f$). In the case of loading a process, only the \c PName
- * variable is referenced, while in the other cases only the \c PNum variable is used.
  *
  * \param[in] PName  Binary file to be loaded into ADwin. Only referenced if \f$dowhat = 1\f$.
  * \param[in] PNum   Process number to be started or stopped. Only referenced if \f$dowhat = 2\f$ or \f$dowhat
@@ -108,7 +108,6 @@ void ADwin_SendArray( const unsigned int Index, const double *const Array, const
  * - If \f$ADwinReady = 0\f$ the sub-stepping process is not finished and therefore the last coupling force is
  *   not yet measured. The routine will keep asking ADwin for the last coupling force until the first received
  *   value from ADwin is equal to -1.0. When this happens the substepping process is finished.
-
  *
  * \pre
  * - ADwin must be successfully booted and the substepping process must be running.
