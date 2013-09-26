@@ -134,7 +134,7 @@ void Substructure_GetDescription( FILE *const InFile, const int LineNum, char *c
  *   \<friction_force\>,Optional Description;</tt>
  * - <tt>SIM_MEASURED: Sim_Measured, \<ndof\> \<dof1\> ... \<dofn\>, \<Input_File\>,Optional Description;</tt>
  * - <tt>EXP_ADWIN: Exp_ADwin, \<ndof\> \<dof1\> ... \<dofn\>,Optional Description;</tt>
- * - <tt>REMOTE: Remote, \<ndof\> \<dof1\> ... \<dofn\>, \<TCP|UDP|NCREE|OpenFresco|Celestina\> \<IP\>
+ * - <tt>REMOTE: Remote, \<ndof\> \<dof1\> ... \<dofn\>, \<TCP|UDP|NSEP|OpenFresco|Celestina\> \<IP\>
  *   \<Port\>,Optional Description;</tt>
  *
  * \pre 

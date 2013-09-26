@@ -156,7 +156,7 @@ int main( int argc, char **argv )
      Length = InitCnt.OrderSub*InitCnt.OrderSub;
 
      if( Socket_Type == REMOTE_TCP ){
-	  Substructure_Remote_Receive( IGain, (unsigned int) Length, Client_Socket );
+	  Substructure_Remote_Receive( Client_Socket, (unsigned int) Length, sizeof(double), (char *const) IGain );
      } else {
 	  Client_AddrLen = sizeof(Client_Addr);
 	  if ( recvfrom( Server_Socket, IGain, (size_t) Length*sizeof(double), 0, (struct sockaddr *) &Client_Addr, &Client_AddrLen) < 0 ){
@@ -184,7 +184,7 @@ int main( int argc, char **argv )
 	  /* Receive the displacement */
 	  Length = InitCnt.OrderSub;
 	  if ( Socket_Type == REMOTE_TCP ){
-	       Substructure_Remote_Receive( Recv, (unsigned int) Length + 1, Client_Socket );
+	       Substructure_Remote_Receive( Client_Socket, (unsigned int) Length + 1, sizeof(double), (char *const) Recv );
 	  } else {
 	       Client_AddrLen = sizeof(Client_Addr);
 	       if ( recvfrom( Server_Socket, Recv, (size_t) (Length+1)*sizeof(double), 0, (struct sockaddr *) &Client_Addr, &Client_AddrLen) < 0 ){
@@ -242,7 +242,7 @@ int main( int argc, char **argv )
 	       /* Send the response */
 	       Length = 3*InitCnt.OrderSub;
 	       if( Socket_Type == REMOTE_TCP ){
-		    Substructure_Remote_Send( Send, (unsigned int) Length, Client_Socket );
+		    Substructure_Remote_Send( Client_Socket, (unsigned int) Length, sizeof(double), (char *const) Send );
 	       } else{
 		    if( sendto( Server_Socket, Send, (size_t) Length*sizeof(double), 0, (struct sockaddr *) &Client_Addr, sizeof(Client_Addr) ) != (int) sizeof(double)*Length ){  /* Sizeof() returns unsigned int */
 			 Print_Header( ERROR );

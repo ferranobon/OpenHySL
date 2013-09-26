@@ -48,7 +48,8 @@ typedef struct UHYDEfbrSim {
       \frac{q_{plastic} - q_r}{q_{plastic} - q_{yield}} & \text{for $\|q_r\|> q_{yield}$ or $q_r v_r > 0$}
       \end{cases}\f]
  *
- * with \f$v_r = \dot d_x\f$
+ * with
+ * \f[v_r = \dot d_x\f]
  *
  * \pre \c Sub should be properly initialised through the Substructure_SimUHYDE_1D_Init() routine.
  *
@@ -84,7 +85,7 @@ void Substructure_SimUHYDE_1D_Init( const double qyield, const double yield_fact
  *
  * \pre \c Sub must be properly initialised through Substructure_SimUHYDE_1D_Init().
  *
- * \param[in,out] Sub Substructure representing a UHYDE-\em fbr device.
+ * \param[out] Sub Substructure representing a UHYDE-\em fbr device.
  *
  * \post
  * - The memory allocated in \c Sub.Description is freed.
