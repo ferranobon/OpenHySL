@@ -73,7 +73,7 @@ void Substructure_SimMeasured( const MeasuredSim_t *const Sub, double *const fc 
  *
  * \pre \c Sub must be properly initialised through Substructure_SimMeasured_Init().
  *
- * \param[in,out] Sub Substructure of type \c SIM_MEASURED to be destroyed.
+ * \param[out] Sub Substructure of type \c SIM_MEASURED to be destroyed.
  *
  * \post
  * - \c Sub.Length is set to 0.

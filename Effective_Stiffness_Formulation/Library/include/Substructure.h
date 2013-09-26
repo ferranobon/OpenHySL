@@ -10,6 +10,9 @@
  * This file contains routines that deal with the sub-stepping process or that involve substructures,
  * including sending the gain matrix to remote facilities or to the control hardware. It defines the
  * recognised types of substructures.
+ *
+ * \todo Implement sending the gain matrix when using OpenFresco in Substructure_SendGainMatrix(). What is
+ * coded is an ugly hack.
  */
 #ifndef SUBSTRUCTURE_H_
 #define SUBSTRUCTURE_H_

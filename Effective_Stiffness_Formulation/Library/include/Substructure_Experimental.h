@@ -42,7 +42,7 @@ void Substructure_Experimental_Init( const char *Description, ExpSub_t *const Su
  *
  * \pre \c Sub must be properly initialised through Substructure_Experimental_Init().
  *
- * \param[in,out] Sub Experimental substructure.
+ * \param[out] Sub Experimental substructure.
  *
  * \post
  * - The memory allocated in \c Sub.Description is freed.

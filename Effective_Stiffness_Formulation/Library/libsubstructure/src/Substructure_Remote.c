@@ -15,9 +15,10 @@
 #include <unistd.h>
 #endif
 
-#include "Substructure_Remote.h"
 #include "Print_Messages.h"
-
+#include "Substructure_Remote.h"
+#include "Substructure_Remote_NSEP.h"
+#include "Substructure_Remote_OpenFresco.h"
 
 void Substructure_Remote_Init( const char *RemoteType, const char *IPAddress, const char *Port, const int NSub,
 			       const int *const DOF, const char *Description, Remote_t *const Remote )
@@ -36,12 +37,17 @@ void Substructure_Remote_Init( const char *RemoteType, const char *IPAddress, co
 	  Remote->DOFs[i] = DOF[i];
      }
 
-     if( Remote->Type == REMOTE_TCP || Remote->Type == REMOTE_UDP ){
-	  Substructure_Remote_SetupClientConnection( Remote );
-     } else if ( Remote->Type == REMOTE_NCREE ){
+     if( Remote->Type >= 0 || Remote->Type < NUM_REMOTE_TYPE ){
+	  Substructure_Remote_SetupClientSocket( Remote );
+     }
+
+     if ( Remote->Type == REMOTE_NSEP ){
+	  /* Log into the PNSE server and set the client state to running */
+	  Substructure_Remote_NSEP( Remote, NSEP_LOG, 0.0, 0, NULL, NULL );
      } else if ( Remote->Type == REMOTE_OF ){
-     } else if ( Remote->Type == REMOTE_CELESTINA ){
-     } else assert(0);
+	  /* Configure the connection with OpenFresco */
+	  Substructure_Remote_OpenFresco( Remote->Socket, OF_REMOTE_SETUP, Remote->NSub, NULL, NULL );
+     }
 
      Remote->Description = strdup( Description );
 
@@ -224,7 +230,7 @@ int Substructure_Remote_AcceptTCPClientConnection( const int Server_Socket )
      return Client_Socket;
 }
 
-void Substructure_Remote_SetupClientConnection( Remote_t *const RemoteNode )
+void Substructure_Remote_SetupClientSocket( Remote_t *const RemoteNode )
 {
 
      struct addrinfo addrCriteria;    /* Create a generic address storage to handle both IPv6 and IPv4
@@ -235,14 +241,19 @@ void Substructure_Remote_SetupClientConnection( Remote_t *const RemoteNode )
 
      memset( &addrCriteria, 0, sizeof(addrCriteria) );   /* Initialise the structure */
      addrCriteria.ai_family = AF_UNSPEC;                 /* Set the value to accept any type of addresses */
-     if ( RemoteNode->Type == REMOTE_TCP ){
+     if ( RemoteNode->Type == REMOTE_TCP || RemoteNode->Type == REMOTE_NSEP ||
+	  RemoteNode->Type == REMOTE_OF || RemoteNode->Type == REMOTE_CELESTINA){
+
 	  addrCriteria.ai_socktype = SOCK_STREAM;        /* Only streaming sockets */
 	  addrCriteria.ai_protocol = IPPROTO_TCP;        /* Use TCP protocol */
+
      } else if ( RemoteNode->Type == REMOTE_UDP ){
+
 	  addrCriteria.ai_socktype = SOCK_DGRAM;         /* Only datagrams sockets will be used */
 	  addrCriteria.ai_protocol = IPPROTO_UDP;        /* Use UDP protocol */
+
      } else { 
-	  assert ( RemoteNode->Type == REMOTE_TCP || RemoteNode->Type == REMOTE_UDP );
+	  assert( RemoteNode->Type >= 0 || RemoteNode->Type < NUM_REMOTE_TYPE );
      }
 
      /* The rest of the values of the structure have already been set to "0", meaning that the fields are set
@@ -270,8 +281,11 @@ void Substructure_Remote_SetupClientConnection( Remote_t *const RemoteNode )
 	       if( RemoteNode->Type == REMOTE_TCP ){
 		    printf( "Successfully connected to the TCP Server: %s on port %s.\n", RemoteNode->IP,
 			    RemoteNode->Port );
-	       } else {
+	       } else if ( RemoteNode->Type == REMOTE_UDP ) {
 		    printf( "Successfully connected to the UDP Server: %s on port %s.\n", RemoteNode->IP,
+			    RemoteNode->Port );
+	       } else if( RemoteNode->Type == REMOTE_NSEP ){
+		    printf( "Successfully connected to the NSEP Server: %s on port %s.\n", RemoteNode->IP,
 			    RemoteNode->Port );
 	       }
 	       break;                  /* The socket has been successfully created, break and return Socket */
@@ -296,34 +310,31 @@ void Substructure_Remote_SetupClientConnection( Remote_t *const RemoteNode )
      freeaddrinfo(Server_Addr);
 }	  
 
-void Substructure_Remote_Send( const double *const Data, const unsigned int Data_Length, const int Socket )
+void Substructure_Remote_Send( const int Socket, const unsigned int Data_Length, const size_t Datatype_Size, const char *const Data )
 {
-     char *Msg;
      size_t Length;
 
-     Msg = (char *) Data;
-     Length = Data_Length*sizeof(double);
+     Length = Data_Length*Datatype_Size;
 
-     if ( send( Socket, Msg, Length, 0) != (ssize_t) Length ){
+     if ( send( Socket, Data, Length, 0) != (ssize_t) Length ){
 	  Print_Header( ERROR );
 	  fprintf( stderr, "send() sent a different number of bytes than expected.\n" );
+	  exit( EXIT_FAILURE );
      }
 
 }
 
-void Substructure_Remote_Receive( double *const Data, const unsigned int Data_Length, const int Socket )
+void Substructure_Remote_Receive( const int Socket, const unsigned int Data_Length, const size_t Datatype_Size, char *const Data )
 {
-     char *Msg;
      ssize_t bytesRcvd, totalBytesRcvd;
      size_t Length;
 
      totalBytesRcvd = 0;
-     Length = sizeof(double) * Data_Length;
-     Msg = (char *) Data;
+     Length = Datatype_Size * Data_Length;
 
      while (totalBytesRcvd < (ssize_t) Length )
      {
-	  if ((bytesRcvd = recv( Socket, Msg, Length,0)) <= 0){
+	  if ((bytesRcvd = recv( Socket, Data, Length, 0 )) <= 0){
 	       Print_Header( ERROR );
 	       fprintf( stderr, "recv() failed or connection closed prematurely.\n" );
 	       exit( EXIT_FAILURE );
@@ -343,14 +354,14 @@ void Substructure_Remote_Destroy( Remote_t *const Remote, const int Order )
 
      if( Remote->Type == REMOTE_TCP || Remote->Type == REMOTE_UDP || Remote->Type == REMOTE_CELESTINA ){
 	  Send[0] = -9999.0;
-	  Substructure_Remote_Send( Send, (unsigned int) Order + 1, Remote->Socket );
-     } else if( Remote->Type == REMOTE_NCREE ){
+	  Substructure_Remote_Send( Remote->Socket, (unsigned int) Order + 1, sizeof(double), (char *const) Send );
+     } else if( Remote->Type == REMOTE_NSEP ){
 	  /* Using NSEP Protocol */
 	  /* Say to PNSE server that the process has finished. WhatToDo = 6 */
-	  //Communicate_With_PNSE( 6, 0.0,  Send, Send, 0 );
+	  Substructure_Remote_NSEP( Remote, NSEP_SET_TO_FINISHED, 0.0, 0, Send, NULL );
      } else if( Remote->Type == REMOTE_OF ){
 	  /* Using OpenFresco */
-	  //Communicate_With_OpenFresco( Send, Send, 1, 10 );
+	  Substructure_Remote_OpenFresco( Remote->Socket, OF_REMOTE_DIE, Remote->NSub, NULL, NULL );
      } else assert( Remote->Type >= 0 || Remote->Type < NUM_REMOTE_TYPE );
 
      free( Send );

@@ -8,6 +8,8 @@
 #include "Substructure.h"
 #include "Substructure_Exact.h"
 #include "Substructure_Remote.h"
+#include "Substructure_Remote_OpenFresco.h"
+#include "Substructure_Remote_NSEP.h"
 #include "Substructure_UHYDEfbr.h"
 #include "Substructure_SimMeasured.h"
 #include "Substructure_Experimental.h"
@@ -26,7 +28,9 @@
 void Substructure_SendGainMatrix( const double *const Gain, unsigned int Order, const Substructure_t *const Substructure )
 {
      Remote_t *Remote = NULL;
-  
+     unsigned int i, j;       /* Counters */
+     double *Send, *Recv;     /* Only used in case of of substructures of remote type REMOTE_NSEP */
+
      if( Substructure->Type == EXP_ADWIN ){
 #if _ADWIN_
 
@@ -45,42 +49,36 @@ void Substructure_SendGainMatrix( const double *const Gain, unsigned int Order, 
 	  Remote = (Remote_t *) Substructure->SimStruct;
 
 	  if( Remote->Type == REMOTE_TCP || Remote->Type == REMOTE_UDP || Remote->Type == REMOTE_CELESTINA ){
-	       Substructure_Remote_Send( Gain, Order*Order, Remote->Socket );
+	       Substructure_Remote_Send( Remote->Socket, Order*Order, sizeof(double), (const char *const) Gain );
 	       Print_Header( SUCCESS );
 	       printf("Gain Matrix successfully sent to Remote site %s:%s (%s protocol).\n", Remote->IP, Remote->Port,
 		      Substructure_RemoteType[Remote->Type] );
-	  } else if( Remote->Type == REMOTE_NCREE ){
-	  /* Using NSEP Protocol */
-	  /* Open the Socket */
-//	  printf( "Establishing connection with PNSE server.\n" );
-//	  Communicate_With_PNSE( 0, 0.0, Send, Recv, 0 );
-	  
+	  } else if( Remote->Type == REMOTE_NSEP ){
 	  /* Send the matrix Gc to the PNSE server in order to reach the FCM */
 	  /*
 	   * Note that the CGM can only send a NSEP_CMD message with the size of order, therefore it is needed
 	   * to send the matrix Gc per rows to fullfill this requisite. This also means, that the FCM must
 	   * send as many NSEP_CSIG packets as the number of rows to keep everything synchronised
 	   */
-
-//	  for ( i = 0; i < OrderC; i++ ){
-//	       for ( j = 0; j < OrderC; j++ ){
-//		    Send[j] = Eff_Mat[i*OrderC + j];
-//	       }
-	       /* Send the matrix Keinv_c to PNSE Server */
-//	       Communicate_With_PNSE( 1, 0.0, Send, Recv, OrderC );
-	       /* This is done so that PNSE do not overtake the first step */
-//	       Communicate_With_PNSE( 2, 0.0,  Send, Recv, OrderC );
-//	  }
-
+	       Send = (double *) calloc( (size_t) Order, sizeof(double) );
+	       Recv = (double *) calloc( (size_t) Order, sizeof(double) );
+	       for ( i = 0; i < Order; i++ ){
+		    for ( j = 0; j < Order; j++ ){
+			 Send[j] = Gain[i*Order + j];
+		    }
+		    /* Send the matrix Keinv_c to PNSE Server */
+		    Substructure_Remote_NSEP( Remote, NSEP_SEND_CMD, 0.0, Remote->NSub, Send, Recv );
+		    /* This is done so that PNSE do not overtake the first step */
+		    Substructure_Remote_NSEP( Remote, NSEP_REQUEST_CSIG, 0.0, Remote->NSub, Send, Recv );
+	       }
+	       
+	       free( Send );
+	       free( Recv );
 	  } else if( Remote->Type == REMOTE_OF ){
-	       /* Using OpenFresco. Exit with failure if the connection could not be established */
-//	  if ( Communicate_With_OpenFresco( Eff_Mat, Recv, OrderC*OrderC, 1 ) < 0 ){
-//	       exit( EXIT_FAILURE );
-//	  }
-//	  if ( Communicate_With_OpenFresco( Eff_Mat, Recv, OrderC*OrderC, 3 ) < 0 ){
-//	       exit( EXIT_FAILURE );
-//	  }
-	  /* TODO Implement Send the Matrix G in OpenFresco. Wait for the answer from Andreas */
+	       /* TODO Implement Send the Matrix G in OpenFresco. Wait for the answer from Andreas. What
+		* follows is an ugly hack. */
+	       Substructure_Remote_OpenFresco( Remote->Socket, OF_REMOTE_SET_TRIAL_RESPONSE,
+					       Remote->NSub*Remote->NSub, Gain, NULL );
 	  } else assert( Remote->Type >= 0 || Remote->Type < NUM_REMOTE_TYPE );
      } else assert( Substructure->Type == EXP_ADWIN || Substructure->Type == REMOTE );
 }
@@ -141,18 +139,21 @@ void Substructure_Substepping( const CouplingNode_t *const CNodes, const double 
 		    }
 		    Send[CNodes->Order] = GAcc;
 
-		    Substructure_Remote_Send( Send, (unsigned int) CNodes->Order + 1, Remote->Socket );
+		    Substructure_Remote_Send( Remote->Socket, (unsigned int) CNodes->Order + 1, sizeof(double), (char *const) Send );
 
-		    Substructure_Remote_Receive( Recv, 3*(unsigned int) CNodes->Order, Remote->Socket );
+		    Substructure_Remote_Receive( Remote->Socket, 3*(unsigned int) CNodes->Order, sizeof(double), (char *const) Recv );
 		    free( Send );
-	       } else if( Remote->Type == REMOTE_NCREE ){
+	       } else if( Remote->Type == REMOTE_NSEP ){
 		    /* Using NSEP Protocol */
-		    //Communicate_With_PNSE( 1, Time, VecTdT0_c, Recv, OrderC );
+		    Substructure_Remote_NSEP( Remote, NSEP_SEND_CMD, Time, Remote->NSub, Send, Recv );
 		    /* Receive the force from the PNSE server. WhatToDo = 2 */
-		    //Communicate_With_PNSE( 2, Time, VecTdT0_c, Recv, 3*OrderC );
+		    Substructure_Remote_NSEP( Remote, NSEP_REQUEST_CSIG, Time, 3*Remote->NSub, Send, Recv );
 	       } else if( Remote->Type == REMOTE_OF ){
 		    /* Using OpenFresco */
-		    //Communicate_With_OpenFresco( VecTdT0_c, Recv, OrderC, 3 );
+		    /* Send the trial response */
+		    Substructure_Remote_OpenFresco( Remote->Socket, OF_REMOTE_SET_TRIAL_RESPONSE, Remote->NSub, Send, NULL );
+		    /* Get the DAQ response */
+		    Substructure_Remote_OpenFresco( Remote->Socket, OF_REMOTE_GET_DAQ_RESPONSE, Remote->NSub, NULL, Recv );
 	       } else assert( Remote->Type >= 0 || Remote->Type < NUM_REMOTE_TYPE );
 	       break;
 	  }
