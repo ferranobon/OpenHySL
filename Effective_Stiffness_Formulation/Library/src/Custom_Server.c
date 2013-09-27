@@ -71,7 +71,7 @@ int main( int argc, char **argv )
      /* This is only used if there are no arguments */
      if( argc == 1 ){
 	  Print_Header( INFO );
-	  printf( "Assuming the configuration file to be: ConfFile.conf.\n" );
+	  printf( "Assuming the configuration file to be: %s.\n", FileConf );
 	  Print_Header( INFO );
 	  printf( "Defaulting to TCP/IP protocol on port 3333\n" );
      }
