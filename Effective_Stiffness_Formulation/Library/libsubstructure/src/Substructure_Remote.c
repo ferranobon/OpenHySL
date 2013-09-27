@@ -20,19 +20,29 @@
 #include "Substructure_Remote_NSEP.h"
 #include "Substructure_Remote_OpenFresco.h"
 
-void Substructure_Remote_Init( const char *RemoteType, const char *IPAddress, const char *Port, const int NSub,
+void Substructure_Remote_Init( const char *RemoteType, const char *IPAddress, const char *Port, const char *Acc_Name, const char *Acc_Password, const unsigned int NSub,
 			       const int *const DOF, const char *Description, Remote_t *const Remote )
 {
 
-     int i;   /* A counter */
+     unsigned int i;   /* A counter */
 
-     Substructure_Remote_Identify( RemoteType, &Remote->Type );
+     Remote->Type = Substructure_Remote_Identify( RemoteType );
      
      Remote->IP = strdup( IPAddress );
      Remote->Port = strdup( Port );
+
+     Remote->Account_Name = strdup( Acc_Name );
+     Remote->Account_Password = strdup( Acc_Password );
+
      Remote->NSub = NSub;
 
      Remote->DOFs = (int *) calloc( (size_t) NSub, sizeof(int) );
+     if( Remote->DOFs == NULL ){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Substructure_Remote_Init(): Out of memory.\n" );
+	  exit( EXIT_FAILURE );
+     }
+
      for( i = 0; i < NSub; i++ ){
 	  Remote->DOFs[i] = DOF[i];
      }
@@ -53,7 +63,7 @@ void Substructure_Remote_Init( const char *RemoteType, const char *IPAddress, co
 
 }
 
-void Substructure_Remote_Identify( const char *RemoteType, int *const Type )
+int Substructure_Remote_Identify( const char *RemoteType )
 {
 
      int ID;   /* A counter */
@@ -61,7 +71,7 @@ void Substructure_Remote_Identify( const char *RemoteType, int *const Type )
 
      ID = 0;
      while ( ID < NUM_REMOTE_TYPE && !Found ){
-	  if ( strcmp( Substructure_RemoteType[ID], RemoteType ) == 0 ){
+	  if ( strcmp( Substructure_Remote_Type[ID], RemoteType ) == 0 ){
 	       Found = true;
 	  } else {
 	       ID = ID + 1;
@@ -73,12 +83,12 @@ void Substructure_Remote_Identify( const char *RemoteType, int *const Type )
 	  Print_Header( ERROR );
 	  fprintf( stderr, "Substructure_Remote_Identify: The remote type '%s' is not supported. Valid remote options are:\n", RemoteType );
 	  for( ID = 0; ID < NUM_REMOTE_TYPE; ID++ ){
-	       fprintf( stderr, "[......] %d) %s.\n", ID+1, Substructure_RemoteType[ID] );
+	       fprintf( stderr, "[......] %d) %s.\n", ID+1, Substructure_Remote_Type[ID] );
 	  }
 	  exit( EXIT_FAILURE );
      } else {
 	  /* Assign the identity */
-	  (*Type) = ID;
+	  return ID;
      }
 }
 
@@ -287,6 +297,12 @@ void Substructure_Remote_SetupClientSocket( Remote_t *const RemoteNode )
 	       } else if( RemoteNode->Type == REMOTE_NSEP ){
 		    printf( "Successfully connected to the NSEP Server: %s on port %s.\n", RemoteNode->IP,
 			    RemoteNode->Port );
+	       } else if( RemoteNode->Type == REMOTE_OF ){
+		    printf( "Successfully connected to the OpenFresco Server: %s on port %s.\n", RemoteNode->IP,
+			    RemoteNode->Port );
+	       } else if( RemoteNode->Type == REMOTE_OF ){
+		    printf( "Successfully connected to the Celestina Server: %s on port %s.\n", RemoteNode->IP,
+			    RemoteNode->Port );
 	       }
 	       break;                  /* The socket has been successfully created, break and return Socket */
 	  }
@@ -343,27 +359,31 @@ void Substructure_Remote_Receive( const int Socket, const unsigned int Data_Leng
      }
 }
 
-void Substructure_Remote_Destroy( Remote_t *const Remote, const int Order )
+void Substructure_Remote_Destroy( Remote_t *const Remote )
 {
      double *Send = NULL;
      
-     Send = (double *) calloc( (size_t) Order + 1, sizeof(double) );
+     Send = (double *) calloc( (size_t) Remote->NSub + 1, sizeof(double) );
 
-     Remote->NSub = 0;
+
      free( Remote->DOFs );
 
      if( Remote->Type == REMOTE_TCP || Remote->Type == REMOTE_UDP || Remote->Type == REMOTE_CELESTINA ){
 	  Send[0] = -9999.0;
-	  Substructure_Remote_Send( Remote->Socket, (unsigned int) Order + 1, sizeof(double), (char *const) Send );
+	  Substructure_Remote_Send( Remote->Socket, (unsigned int) Remote->NSub + 1, sizeof(double), (char *const) Send );
      } else if( Remote->Type == REMOTE_NSEP ){
 	  /* Using NSEP Protocol */
 	  /* Say to PNSE server that the process has finished. WhatToDo = 6 */
 	  Substructure_Remote_NSEP( Remote, NSEP_SET_TO_FINISHED, 0.0, 0, Send, NULL );
+
+	  free( Remote->Account_Name );
+	  free( Remote->Account_Password );
      } else if( Remote->Type == REMOTE_OF ){
 	  /* Using OpenFresco */
 	  Substructure_Remote_OpenFresco( Remote->Socket, OF_REMOTE_DIE, Remote->NSub, NULL, NULL );
      } else assert( Remote->Type >= 0 || Remote->Type < NUM_REMOTE_TYPE );
 
+     Remote->NSub = 0;
      free( Send );
 
      Substructure_Remote_CloseSocket( &Remote->Socket );

@@ -52,7 +52,7 @@ void Substructure_SendGainMatrix( const double *const Gain, unsigned int Order, 
 	       Substructure_Remote_Send( Remote->Socket, Order*Order, sizeof(double), (const char *const) Gain );
 	       Print_Header( SUCCESS );
 	       printf("Gain Matrix successfully sent to Remote site %s:%s (%s protocol).\n", Remote->IP, Remote->Port,
-		      Substructure_RemoteType[Remote->Type] );
+		      Substructure_Remote_Type[Remote->Type] );
 	  } else if( Remote->Type == REMOTE_NSEP ){
 	  /* Send the matrix Gc to the PNSE server in order to reach the FCM */
 	  /*

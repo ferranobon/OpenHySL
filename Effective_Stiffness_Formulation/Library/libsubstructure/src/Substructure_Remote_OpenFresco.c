@@ -4,7 +4,7 @@
 #include "Substructure_Remote.h"
 #include "Substructure_Remote_OpenFresco.h"
 
-void Substructure_Remote_OpenFresco( const int Socket, const int WhatToDo, const int Size, const double *const Data_To_Send, double *const Data_To_Receive )
+void Substructure_Remote_OpenFresco( const int Socket, const int WhatToDo, const unsigned int Size, const double *const Data_To_Send, double *const Data_To_Receive )
 {
 
      /* Local Variables */
