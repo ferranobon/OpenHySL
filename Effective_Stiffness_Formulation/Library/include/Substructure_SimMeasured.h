@@ -63,7 +63,6 @@ void Substructure_SimMeasured_Init( const char *FileName, const unsigned int NSt
  * \param[in]  Sub Sub-structure of type \c SIM_MEASURED.
  * \param[out] fc  Coupling force at the \a i-th postion of the array \c Sub.Value.
  *
- * 
  * \sa MeasuredSim_t, Substructure_SimMeasured_Init().
  */
 void Substructure_SimMeasured( const MeasuredSim_t *const Sub, double *const fc );

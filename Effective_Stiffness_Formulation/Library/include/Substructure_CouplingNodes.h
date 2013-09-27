@@ -55,7 +55,7 @@ typedef struct Substructure{
  */
 typedef struct CouplingNode {
      int *Array;             /*!< \brief Array containing the coupling nodes of length \c Order.*/
-     int Order;              /*!< \brief Number of coupling nodes. */
+     int Order;     /*!< \brief Number of coupling nodes. */
      double *VecTdT0_c0;     /*!< \brief Previous values of the explicit displacement. They are used in the
 			      * sub-stepping process (ramp function). */
      Substructure_t *Sub;    /*!< \brief Array of substructures of length \c Order.*/

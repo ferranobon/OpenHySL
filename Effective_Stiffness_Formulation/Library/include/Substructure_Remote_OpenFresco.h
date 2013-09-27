@@ -1,5 +1,5 @@
 /**
- * \file Substructure_Remote_NSEP.h
+ * \file Substructure_Remote_OpenFresco.h
  * \author Ferran Obón Santacana
  * \version 1.0
  * \date 26th of September 2013
@@ -66,6 +66,6 @@
  * \post If any error occurs during the execution of this routine, like communication problems, the program
  * shows the appropiate error message befor exiting with \c EXIT_FAILURE.
  */
-void Substructure_Remote_OpenFresco( const int Socket, const int WhatToDo, const int Size, const double *const Data_To_Send, double *const Data_To_Receive );
+void Substructure_Remote_OpenFresco( const int Socket, const int WhatToDo, const unsigned int Size, const double *const Data_To_Send, double *const Data_To_Receive );
 
 #endif /* SUBSTRUCTURE_REMOTE_OPENFRESCO_H */

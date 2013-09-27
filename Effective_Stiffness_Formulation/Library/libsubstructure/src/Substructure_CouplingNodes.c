@@ -36,6 +36,7 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
      char RemoteType[MAX_SUBTYPE];
      char InLine[MAX_LINE];
      char IPAddress[20], Port[20];
+     char Account_Name[20], Account_Password[20];
      double DeltaTSub;
 
      DeltaTSub = InitCnt->Delta_t/(double) InitCnt->NSubstep;
@@ -280,13 +281,17 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 	       /* Read IP Address and Port */
 	       fscanf( InFile, "%*[,] %s %s %[^,]", RemoteType, IPAddress, Port );
 
+	       if ( strcmp( RemoteType, "NSEP" ) == 0 ){
+		    fscanf( InFile, "%*[,] %s %[^,]", Account_Name, Account_Password );
+	       }
+
 	       /* Read the optional description */
 	       Substructure_GetDescription( InFile, i, Description );
 	       
 	       for( j = 0; j <  Count_Type; j++ ){
 		    CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(Remote_t) );
-		    Substructure_Remote_Init( RemoteType, IPAddress, Port, Count_Type, &CNodes->Array[i], Description,
-					      (Remote_t *) CNodes->Sub[i + j].SimStruct );
+		    Substructure_Remote_Init( RemoteType, IPAddress, Port, Account_Name, Account_Password, (unsigned int) Count_Type,
+					      &CNodes->Array[i], Description, (Remote_t *) CNodes->Sub[i + j].SimStruct );
 		    Print_Header( INFO );
 		    printf( "The substructure in the coupling node %d is computed is computed at %s:%s using %s protocol.\n", CNodes->Array[i + j],
 			    IPAddress, Port, RemoteType );
@@ -399,7 +404,7 @@ void Substructure_DeleteCouplingNodes( CouplingNode_t *CNodes )
 	       Substructure_Experimental_Destroy( (ExpSub_t *) CNodes->Sub[i].SimStruct );
 	       break;
 	  case REMOTE:
-	       Substructure_Remote_Destroy( (Remote_t *) CNodes->Sub[i].SimStruct, CNodes->Order );
+	       Substructure_Remote_Destroy( (Remote_t *) CNodes->Sub[i].SimStruct );
 	       break;
 	  }
 	  free( CNodes->Sub[i].SimStruct );

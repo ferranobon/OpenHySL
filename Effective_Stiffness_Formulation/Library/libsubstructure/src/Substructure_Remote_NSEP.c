@@ -207,7 +207,7 @@ void Substructure_Remote_NSEP_SendLoginInformation( const int Socket, const char
      memcpy( pos, Password, (strlen( Password ) + 1)*sizeof (char) );
 
      /* Send the message through TCP/IP and check if there were any problems with the communication */
-     Substructure_Remote_Send( Socket, Length, sizeof(char), Send_Buffer );
+     Substructure_Remote_Send( Socket, (unsigned int) Length, sizeof(char), Send_Buffer );
 }
 
 void Substructure_Remote_NSEP_ReceiveLoginInformation( const int Socket, int *const NSEP_Type,
@@ -242,5 +242,5 @@ void Substructure_Remote_NSEP_SetClientState( const int Socket, const int Run_St
      
      pos = pos + sizeof (int);    
      memcpy( pos, &Run_State, sizeof (int) );
-     Substructure_Remote_Send( Socket, Length, sizeof(char), Send_Buffer );
+     Substructure_Remote_Send( Socket, (unsigned int) Length, sizeof(char), Send_Buffer );
 }
