@@ -6,6 +6,7 @@
 
 #include "Print_Messages.h"
 #include "Substructure_Exact.h"
+#include "MatrixVector.h"
 #include "Auxiliary_Math.h"
 
 #if _MKL_
@@ -27,9 +28,9 @@ void Substructure_ExactSolutionMDOF_Init( const double *const Mass, const double
 
      MatrixVector_Create( NDOF, NDOF, &Sub->Mass );
      MatrixVector_Create( NDOF, NDOF, &Sub->Stiff );
-     MatrixVector_Create( NDOF, NDOF, &Sub->EValues );
      MatrixVector_Create( NDOF, NDOF, &Sub->EVectors );
 
+     MatrixVector_Create( NDOF, 1, &Sub->EValues );
      MatrixVector_Create( NDOF, 1, &Sub->Damping_Ratios );
      MatrixVector_Create( NDOF, 1, &Sub->Init_Disp );
      MatrixVector_Create( NDOF, 1, &Sub->Init_Vel );
