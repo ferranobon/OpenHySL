@@ -100,6 +100,25 @@ void Compute_Eigenvalues_Eigenvectors ( MatrixVector_t *const MatrixA, MatrixVec
      Length = MatrixA->Rows;
      dsygv_( &one, "V", "L", &Length, EigenVectors->Array, &lda, TempMat, &ldb, EigenValues->Array, work, &lwork, &info );
 
+     if( info == 0 ){
+	  Print_Header( SUCCESS );
+	  printf( "Successfully calculated the eigenvalues and eigenvectors\n." );
+     } else if ( info < 0 ){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Compute_Eigenvalues_Eigenvectors: the %d-th argument of the function dsygv_() had an illegal value", info );
+	  exit( EXIT_FAILURE );
+     } else if ( info > 0 ){
+	  if ( info <= EigenVectors->Rows ){
+	       Print_Header( ERROR );
+	       fprintf( stderr, "Compute_Eigenvalues_Eigenvectors: %d off-diagonal elements of an intermediate tridiagonal form did not converge to zero.\n", info );
+	       exit( EXIT_FAILURE );
+	  } else {
+	       Print_Header( ERROR );
+	       fprintf( stderr, "Compute_Eigenvalues_Eigenvectors: the leading minor of order %d of MatrixB (TempMat) is not positive definite. The factorization of MatrixB could not be completed and no eigenvalues or eigenvectors were computed.\n", info );
+	       exit( EXIT_FAILURE );
+	  }
+     }
+
      for ( i = 0; i < Length - 1; i++){
 	  
 	  /* Order the Eigenvalues and eigenvectors in ascendent order */
