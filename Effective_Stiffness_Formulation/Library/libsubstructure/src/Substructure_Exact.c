@@ -103,6 +103,7 @@ void Compute_DampingRatios_Rayleigh( const double Ray_Alpha, const double Ray_Be
      int i; /* A counter */
      double omega;
      
+#pragma omp parallel for
      for ( i = 0; i < Num_DOF; i++ ){
 	  omega = sqrt( Eigen_Values[i] );
 	  Damping_Ratios[i] = Ray_Alpha/(2.0*omega) + Ray_Beta*omega/2.0;
