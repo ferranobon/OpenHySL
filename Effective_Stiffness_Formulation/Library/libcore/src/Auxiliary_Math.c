@@ -114,7 +114,7 @@ void Compute_Eigenvalues_Eigenvectors ( MatrixVector_t *const MatrixA, MatrixVec
 	       exit( EXIT_FAILURE );
 	  } else {
 	       Print_Header( ERROR );
-	       fprintf( stderr, "Compute_Eigenvalues_Eigenvectors: the leading minor of order %d of MatrixB (TempMat) is not positive definite. The factorization of MatrixB could not be completed and no eigenvalues or eigenvectors were computed.\n", info - MatrixB.Rows );
+	       fprintf( stderr, "Compute_Eigenvalues_Eigenvectors: the leading minor of order %d of MatrixB (TempMat) is not positive definite. The factorization of MatrixB could not be completed and no eigenvalues or eigenvectors were computed.\n", info - MatrixB->Rows );
 	       exit( EXIT_FAILURE );
 	  }
      }
