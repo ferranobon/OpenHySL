@@ -161,15 +161,9 @@ void Substructure_Substepping( const CouplingNode_t *const CNodes, const double 
 
 #pragma omp parallel for
      for ( i = 0; i < CNodes->Order; i++ ){
-#if _MPI_
-	  VecTdT[i] = Recv[i];
-	  CoupForcePrev[i] = Recv[CNodes->Order + i];
-	  CoupForce[i] = Recv[2*CNodes->Order + i];
-#else
 	  VecTdT[CNodes->Array[i] - 1] = Recv[i];
 	  CoupForcePrev[i] = Recv[CNodes->Order + i];
 	  CoupForce[CNodes->Array[i] - 1] = Recv[2*CNodes->Order + i];
-#endif
      }
 
      free( Recv );
@@ -225,7 +219,7 @@ void Substructure_Simulate( const CouplingNode_t *const CNodes, const double *IG
 		    break;
 	       case SIM_EXACT_ESP:
 		    ExactEsp = (ExactSimESP_t *) CNodes->Sub[i].SimStruct;
-		    Substructure_ExactSolutionESP_SDOF( VecTdT_c[i], DeltaT_Sub, ExactEsp, &CoupForce_c[i] );
+		    Substructure_ExactSolutionESP_SDOF( VecTdT_c[i], ramp, DeltaT_Sub, ExactEsp, &CoupForce_c[i] );
 		    break;
 	       case SIM_UHYDE:
 		    UHYDE = (UHYDEfbrSim_t *) CNodes->Sub[i].SimStruct;
@@ -251,6 +245,9 @@ void Substructure_Simulate( const CouplingNode_t *const CNodes, const double *IG
 	       Exact->Disp0 = Exact->DispT; Exact->DispT = VecTdT_c[0];
 	       break;
 	  case SIM_EXACT_ESP:
+	       ExactEsp->Acc0 = ExactEsp->AccT; ExactEsp->AccT = ExactEsp->AccTdT;
+	       ExactEsp->Vel0 = ExactEsp->VelT; ExactEsp->VelT = ExactEsp->VelTdT;
+	       ExactEsp->Disp0 = ExactEsp->DispT; ExactEsp->DispT = VecTdT_c[0];
 	       break;
 	  case SIM_UHYDE:
 	       break;
