@@ -102,7 +102,7 @@ void Compute_Eigenvalues_Eigenvectors ( MatrixVector_t *const MatrixA, MatrixVec
 
      if( info == 0 ){
 	  Print_Header( SUCCESS );
-	  printf( "Successfully calculated the eigenvalues and eigenvectors\n." );
+	  printf( "Successfully calculated the eigenvalues and eigenvectors.\n" );
      } else if ( info < 0 ){
 	  Print_Header( ERROR );
 	  fprintf( stderr, "Compute_Eigenvalues_Eigenvectors: the %d-th argument of the function dsygv_() had an illegal value", info );
