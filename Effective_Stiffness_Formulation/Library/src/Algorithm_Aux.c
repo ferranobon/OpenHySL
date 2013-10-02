@@ -223,7 +223,7 @@ void Change_Filename( char *Name )
      char NewName[80];
      char HelpChar[4];
      char Extension[6];
-     short unsigned int i;
+     unsigned int i;
      size_t Pos;
 
      Pos = strcspn( Name, "." );
@@ -231,7 +231,7 @@ void Change_Filename( char *Name )
      i = 0;
      while( Name[Pos + i] != '\0' && i < 6){
 	  Extension[i] = Name[Pos + i];
-	  i = i + (unsigned short int) 1;
+	  i = i + 1;
      }
 
      strcpy( NewName, Name );
@@ -244,7 +244,7 @@ void Change_Filename( char *Name )
 	  strcat( NewName, "_" );
 	  strcat( NewName, HelpChar );	  
 	  strcat( NewName, Extension );
-	  i = i + (unsigned short int) 1;
+	  i = i + 1;
      }
 
      free( Name );
