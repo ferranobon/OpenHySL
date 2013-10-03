@@ -14,7 +14,7 @@
 #include "Cblacs.h"
 #include "Scalapack_Aux.h"
 #else
-#include "Netlib."
+#include "Netlib.h"
 #endif
 
 void PMatrixVector_FromFile( const char *Filename, PMatrixVector_t *const Mat )
@@ -37,7 +37,7 @@ void PMatrixVector_FromFile( const char *Filename, PMatrixVector_t *const Mat )
      
      Cblacs_gridinfo( Mat->Desc[1], &nprow, &npcol, &myrow, &mycol );
      
-     lld = Max(1, numroc_( &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &myrow, &izero, &nprow ) ); /* Mat->GlobalSize.Row; */
+     lld = Max(1, Mat->GlobalSize.Row);
      
      descinit_( descLocal, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &Mat->GlobalSize.Row,
 		&Mat->GlobalSize.Col, &izero, &izero, &Mat->Desc[1], &lld, &info );
@@ -83,6 +83,7 @@ void PMatrixVector_FromFile( const char *Filename, PMatrixVector_t *const Mat )
      }     
 }
 
+#if _MATRIXMARKET_
 void PMatrixVector_FromFile_MM( const char *Filename, PMatrixVector_t *const Mat )
 {
 
@@ -109,7 +110,7 @@ void PMatrixVector_FromFile_MM( const char *Filename, PMatrixVector_t *const Mat
      
      Cblacs_gridinfo( Mat->Desc[1], &nprow, &npcol, &myrow, &mycol );
      
-     lld = Max(1, numroc_( &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &myrow, &izero, &nprow ) ); /* Mat->GlobalSize.Row; */
+     lld = Max(1, Mat->GlobalSize.Row );
      
      descinit_( descLocal, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &Mat->GlobalSize.Row,
 		&Mat->GlobalSize.Col, &izero, &izero, &Mat->Desc[1], &lld, &info );
@@ -174,7 +175,7 @@ void PMatrixVector_FromFile_MM( const char *Filename, PMatrixVector_t *const Mat
 	   */
 	  for( innz = 0; innz < nnz; innz++ ){
 	       fscanf( InFile, "%d %d %lE", &i, &j, &Value );
-	       Mat->Array[(j-1)*Mat->GlobalSize.Col + (i-1)] = Value;
+	       LocalMatrix[(j-1)*Mat->GlobalSize.Col + (i-1)] = Value;
 	  }
      } else {
 	  LocalMatrix = NULL;
@@ -189,6 +190,7 @@ void PMatrixVector_FromFile_MM( const char *Filename, PMatrixVector_t *const Mat
 	  free( LocalMatrix );
      }
 }
+#endif /* _MATRIXMARKET_ */
 
 void PMatrixVector_ToFile( PMatrixVector_t *const Mat, const char *Filename )
 {
