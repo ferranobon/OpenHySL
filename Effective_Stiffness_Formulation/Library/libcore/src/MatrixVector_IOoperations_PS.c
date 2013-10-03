@@ -122,9 +122,9 @@ void MatrixVector_ToFile_PS2Full( const MatrixVector_t *const MatVec, const char
      for ( i = 1; i <= MatVec->Rows; i++){
 	  for( j = 1; j <= MatVec->Cols; j++ ){
 	       if( i >= j ){
-		    fprintf( OutFile,"%le\t", MatVec->Array[i + (2*MatVec->Cols - j)*(j - 1)/2 - 1] );
+		    fprintf( OutFile,"%lE\t", MatVec->Array[i + (2*MatVec->Cols - j)*(j - 1)/2 - 1] );
 	       } else {
-		    fprintf( OutFile, "%le\t", dzero );
+		    fprintf( OutFile, "%lE\t", dzero );
 	       }
 	  }
 	  fprintf( OutFile, "\n" );
