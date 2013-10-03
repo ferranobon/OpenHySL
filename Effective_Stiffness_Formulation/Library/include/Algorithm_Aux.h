@@ -213,6 +213,9 @@ void Algorithm_Init_MPI( const char *FileName, AlgConst_t *const InitConst );
  */
 void Algorithm_BroadcastConfFile( AlgConst_t *const InitConst );
 
+char* Algorithm_BroadcastString( char *String );
+int* Algorithm_BroadcastExcitedDOF( int *IntArray );
+
 /**
  * \brief Frees the memory allocated during the Algorithm_Init() routine.
  *
