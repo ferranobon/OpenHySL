@@ -42,8 +42,7 @@ void IGainMatrix_MPI( PMatrixVector_t *const IGain, PMatrixVector_t *const Mass,
 	  exit( EXIT_FAILURE );
      } else if (info > 0){
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Cholesky factorization: the leading minor of order %d is not positive definite,", info );
-	  fprintf( stderr, " and the factorization could not be completed.\n" );
+	  fprintf( stderr, "Cholesky factorization: the leading minor of order %d is not positive definite, and the factorization could not be completed.\n", info );
 	  exit( EXIT_FAILURE );
      }
      /* SCALAPACK: Compute the inverse of Me using the Cholesky factorization computed by pdpotrf_() */
