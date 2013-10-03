@@ -29,8 +29,10 @@
 #define dspmv dspmv_
 
 #define pdcopy pdcopy_
+#define pdaxpy pdaxpy_
 #define pdlacpy pdlacpy_
 #define pdlascl pdlascl_
+#define pdsymv pdsymv_
 #endif
 
 /* BLAS routines */
