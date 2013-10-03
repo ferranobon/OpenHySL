@@ -154,6 +154,9 @@ target_link_libraries(SAlgorithm core core_sp substructure hdf5 hdf5_hl)
 add_executable( Custom_Server src/Custom_Server.c )
 target_link_libraries(Custom_Server core core_sp substructure)
 
+add_executable( Exact_Solution src/Exact_Solution.c src/Algorithm_Aux.c src/HDF5_Operations.c)# ${CORE_SRCS} ${SPARSE_SRCS} ${SUBS_SRCS})
+target_link_libraries(Exact_Solution core core_sp substructure hdf5 hdf5_hl)
+
 if( USE_MPI )
   add_executable( SAlgorithm_MPI src/SAlgorithm_MPI.c src/Algorithm_Aux.c src/Algorithm_Aux_MPI.c src/HDF5_Operations.c )# ${CORE_SRCS} ${SPARSE_SRCS} ${SUBS_SRCS})
   target_link_libraries(SAlgorithm_MPI core core_mpi substructure hdf5 hdf5_hl)
