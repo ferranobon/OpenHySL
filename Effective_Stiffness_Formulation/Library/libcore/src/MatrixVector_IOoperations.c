@@ -113,7 +113,7 @@ void MatrixVector_ToFile( const MatrixVector_t *const MatVec, const char *Filena
 
      for ( i = 0; i < MatVec->Rows; i++){
 	  for( j = 0; j < MatVec->Cols; j++ ){
-	       fprintf( OutFile,"%le\t", MatVec->Array[i + j*MatVec->Rows] );
+	       fprintf( OutFile,"%lE\t", MatVec->Array[i + j*MatVec->Rows] );
 	  }
 	  fprintf( OutFile, "\n" );
      }
