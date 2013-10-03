@@ -224,7 +224,7 @@ void Algorithm_BroadcastConfFile( AlgConst_t *const InitConst )
      int i;     /* A counter */
      
      /* Setup three blocks */
-     int          blockcounts[2] = {13, 20};
+     int          blockcounts[2] = {13, 21};
      MPI_Datatype types[3];
      MPI_Aint     displs[3];
      MPI_Datatype InfoFile;

@@ -68,7 +68,7 @@ int main( int argc, char **argv ){
      int nprow, npcol, myrow, mycol;
 
      /* Algorithm variables */
-     unsigned int istep;
+     unsigned int i, istep;
      AlgConst_t InitCnt;
      const char *FileConf;
      
@@ -299,7 +299,11 @@ int main( int argc, char **argv ){
 	  Substructure_MatrixXcm_MPI( MPI_COMM_WORLD, &Keinv, &CNodes, &Keinv_m );  
 	  if ( rank == 0 ){
 	       /* Send the coupling part of the effective matrix if we are performing a distributed test */
-	       // Send_Effective_Matrix( Keinv_c.Array, (unsigned int) CNodes.Order, &Socket, InitCnt.Remote );
+	       for( i = 0; i < (unsigned int) CNodes.Order; i++ ){
+		    if( CNodes.Sub[i].Type == EXP_ADWIN || CNodes.Sub[i].Type == REMOTE ){
+			 Substructure_SendGainMatrix( Keinv_c.Array, (unsigned int) CNodes.Order, &CNodes.Sub[i] );
+		    }
+	       }
 	  }
      }
 
@@ -351,12 +355,14 @@ int main( int argc, char **argv ){
 	  Print_Header( INFO );
 	  printf( "Starting stepping process.\n" );
      }
+
      while ( istep <= InitCnt.NStep ){
 
 	  /* Calculate the effective force vector Fe = M*(a0*u + a2*v + a3*a) + C*(a1*u + a4*v + a5*a) */
 	  EffK_EffectiveForce_MPI( &M, &C, &DispT, &VelT, &AccT, &tempvec, InitCnt.a0, InitCnt.a1, InitCnt.a2,
 				   InitCnt.a3, InitCnt.a4, InitCnt.a5, &EffT );
 
+	  /* Compute the new Displacement u0 */
 	  Compute_NewState_MPI( &Keinv, &EffT, &LoadTdT, &fu, &tempvec, &DispTdT0 );
 
 	  /* Split DispTdT into coupling and non-coupling part */
@@ -367,13 +373,13 @@ int main( int argc, char **argv ){
 
 	  /* Perform substepping */
 	  if( CNodes.Order >= 1 ){
-	       Substructure_Substepping_MPI( &CNodes, Keinv_c.Array, DispTdT0_c.Array,
+/*	       Substructure_Substepping_MPI( &CNodes, Keinv_c.Array, DispTdT0_c.Array,
 					     InitCnt.Delta_t*(double) istep, AccAll[istep - 1],
 					     InitCnt.NSubstep, InitCnt.DeltaT_Sub, DispTdT.Array,
-					     fcprevsub.Array, fc.Array);
-/*	       Substructure_Substepping_MPI( &CNodes, Keinv_c.Array, DispTdT0_c.Array,
+					     fcprevsub.Array, fc.Array);*/
+	       Substructure_Substepping_MPI( &CNodes, Keinv_c.Array, DispTdT0_c.Array,
 	                                     InitCnt.Delta_t*(double) istep, 0.0, InitCnt.NSubstep, 
-					     InitCnt.DeltaT_Sub, DispTdT.Array, fcprevsub.Array, fc.Array );*/
+					     InitCnt.DeltaT_Sub, DispTdT.Array, fcprevsub.Array, fc.Array );
 	  }
 
 	  if ( istep < InitCnt.NStep ){
@@ -438,7 +444,7 @@ int main( int argc, char **argv ){
 //	  printf( "The time integration process has finished in %lf ms.\n", Time.Elapsed_time );
      }
 
-     //   HDF5_CloseFile( hdf5_file );
+     HDF5_CloseFile_MPI( &hdf5_file, &hdf5_plist );
 
      /* Free initiation values */
      Algorithm_Destroy( &InitCnt );
