@@ -19,6 +19,20 @@
 #include "Scalapack_Aux.h"
 #endif
 
+#if _MKL_
+#else
+#define dscal dscal_
+#define dcopy dcopy_
+#define daxpy daxpy_
+#define dgemv dgemv_
+#define dsymv dsymv_
+#define dspmv dspmv_
+
+#define pdcopy pdcopy_
+#define pdlacpy pdlacpy_
+#define pdlascl pdlascl_
+#endif
+
 /* BLAS routines */
 /**
  * \brief \f$\vec x \leftarrow \alpha \vec x\f$
@@ -801,7 +815,7 @@ void pdlacpy_( char *uplo, int *m, int *n, double *a, int *ia, int *ja, int *des
  *
  * For a complete documentation the reader should refer to \cite ScaLAPACK_webpage \cite SLUG.
  */
-void pdlascl_( char *type, char *uplo, double *cfrom, double *cto, int *m, int *n, double *a, int *ia, int *ja,
+void pdlascl_( char *type, double *cfrom, double *cto, int *m, int *n, double *a, int *ia, int *ja,
 	       int *desca, int *info);
 
 /**

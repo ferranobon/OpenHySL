@@ -5,7 +5,7 @@
 #include <mkl_blas.h>
 #include <mkl_spblas.h>
 #else
-#include "Netlib."
+#include "Netlib.h"
 #endif
 
 void EffK_EffectiveForce_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp, const MatrixVector_t *const DispT,
