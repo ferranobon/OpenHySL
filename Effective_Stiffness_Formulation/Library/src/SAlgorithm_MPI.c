@@ -15,6 +15,7 @@
 #include "Rayleigh.h"
 #include "GainMatrix.h"
 #include "Substructure.h"
+#include "Substructure_Experimental.h"
 #include "Substructure_Auxiliary.h"  /* For Substructure_VectorXm(), Substructure_VectorXc(), ... */
 
 #include "HDF5_Operations.h"
@@ -26,6 +27,34 @@
 #else
 #include "Netlib.h"
 #endif
+
+#include <mpi.h>
+
+const char *Entry_Names[NUM_CHANNELS] = { "Sub-step",
+					  "Control displacement actuator 1 [m]",
+					  "Control displacement actuator 2 [m]",
+					  "Measured displacement actuator 1 [m]",
+					  "Measured displacement actuator 2 [m]",
+					  "Control acceleration Actuator 1 [m/s^2]",
+					  "Control acceleration Actuator 2 [m/s^2]",
+					  "Measured acceleration actuator 1 [m/s^2]",
+					  "Measured acceleration actuator 2 [m/s^2]",
+					  "Acceleration TMD (y-direction) [m/s^2]",
+					  "Acceleration TMD (x-direction) [m/s^2]",
+					  "Acceleration Base-Frame (x-direction) [m/s^2]",
+					  "Coupling Force 1 (y-direction) [N]",
+					  "Coupling Force 2 (y-direction) [N]",
+					  "Coupling Force 3 (x-direction) [N]",
+					  "Displacement TMD (x-direction) [m]",
+					  "Displacement TMD (y-direction) [m]",
+					  "Control pressure [Pa]",
+					  "Measured pressure [Pa]",
+					  "Displacement at the coupling node [m]",
+					  "Time spent doing the sub-step [ms]", 
+					  "Sub-step time [ms]",
+					  "Synchronisation time between PC and ADwin [ms]",
+					  "Time between the first sub-step and arrival of the new update [ms]"
+};
 
 int main( int argc, char **argv ){
 
@@ -43,7 +72,7 @@ int main( int argc, char **argv ){
      AlgConst_t InitCnt;
      const char *FileConf;
      
-     int hdf5_file;
+     int hdf5_file, hdf5_plist;
      
      /* NETLIB Variables */
      int ione = 1;
@@ -100,12 +129,12 @@ int main( int argc, char **argv ){
 	  printf( "*                                                          *\n" );
 	  printf( "************************************************************\n\n" );
 	  /* Set de default value for the configuration file */
-	  FileConf = "ConfFile.conf";
+	  FileConf = "ConfFile_MPI.conf";
 
 	  /* This is only used if there are no arguments */
 	  if( argc == 1 ){
 	       Print_Header( INFO );
-	       printf( "Assuming the configuration file to be: ConfFile.conf.\n" );
+	       printf( "Assuming the configuration file to be: %s\n", FileConf );
 
 	  }
 
@@ -135,9 +164,9 @@ int main( int argc, char **argv ){
 	  Algorithm_Init_MPI( FileConf, &InitCnt );
 
 	  /* Read the coupling nodes from a file */
-	  Substructure_ReadCouplingNodes( &CNodes, InitCnt.NStep, InitCnt.NSubstep, InitCnt.OrderSub,
-					  InitCnt.DeltaT_Sub, InitCnt.FileCNodes );
+	  Substructure_ReadCouplingNodes( &InitCnt, &CNodes );
      }
+     MPI_Barrier( MPI_COMM_WORLD );
 
      /* Send the Information read in process 0 to all the other processes using MPI_Bcast */
      Algorithm_BroadcastConfFile( &InitCnt );
@@ -277,9 +306,11 @@ int main( int argc, char **argv ){
      /* Read the earthquake data from a file */
      if( rank == 0 ){
 	  if( InitCnt.Use_Absolute_Values ){
-	       Algorithm_ReadDataEarthquake_AbsValues( InitCnt.NStep, InitCnt.FileData, VelAll, DispAll );
+	       Algorithm_ReadDataEarthquake_AbsValues( InitCnt.NStep, InitCnt.FileData, InitCnt.Scale_Factor,
+						  VelAll, DispAll );
 	  } else {
-	       Algorithm_ReadDataEarthquake_RelValues( InitCnt.NStep, InitCnt.FileData, AccAll );
+	       Algorithm_ReadDataEarthquake_RelValues( InitCnt.NStep, InitCnt.FileData, InitCnt.Scale_Factor,
+						       AccAll );
 	  }
      }
 
@@ -293,13 +324,17 @@ int main( int argc, char **argv ){
 
      /* Open Output file. If the file cannot be opened, the program will exit, since the results cannot be
       * stored. */
-     hdf5_file = HDF5_CreateFile( InitCnt.FileOutput );
-     HDF5_CreateGroup_Parameters( hdf5_file, &InitCnt, &CNodes );
-     HDF5_CreateGroup_TimeIntegration( hdf5_file, &InitCnt );
 
-     Time.Date_start = time( NULL );
-     Time.Date_time = strdup( ctime( &Time.Date_start) );
-     gettimeofday( &Time.start, NULL );        
+     HDF5_CreateFile_MPI( MPI_COMM_WORLD, InitCnt.FileOutput, &hdf5_file, &hdf5_plist );
+
+
+     if( myrow == 0 && mycol == 0 ){
+	  HDF5_CreateGroup_Parameters( hdf5_file, &InitCnt, &CNodes, AccAll, VelAll, DispAll );
+	  HDF5_CreateGroup_TimeIntegration( hdf5_file, &InitCnt );
+	  Time.Date_start = time( NULL );
+	  Time.Date_time = strdup( ctime( &Time.Date_start) );
+	  gettimeofday( &Time.start, NULL );
+     } 
 
      /* Calculate the input load */
      istep = 1;
@@ -332,9 +367,13 @@ int main( int argc, char **argv ){
 
 	  /* Perform substepping */
 	  if( CNodes.Order >= 1 ){
-	       Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(double) istep,
-					 InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array,
-					 fcprevsub.Array, fc.Array );
+	       Substructure_Substepping_MPI( &CNodes, Keinv_c.Array, DispTdT0_c.Array,
+					     InitCnt.Delta_t*(double) istep, AccAll[istep - 1],
+					     InitCnt.NSubstep, InitCnt.DeltaT_Sub, DispTdT.Array,
+					     fcprevsub.Array, fc.Array);
+/*	       Substructure_Substepping_MPI( &CNodes, Keinv_c.Array, DispTdT0_c.Array,
+	                                     InitCnt.Delta_t*(double) istep, 0.0, InitCnt.NSubstep, 
+					     InitCnt.DeltaT_Sub, DispTdT.Array, fcprevsub.Array, fc.Array );*/
 	  }
 
 	  if ( istep < InitCnt.NStep ){
@@ -371,9 +410,11 @@ int main( int argc, char **argv ){
 	       ErrorForce_PID_MPI( &M, &C, &K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &InitCnt.PID, &fu );
 	  }
 
+#if _HDF5_
 	  /* Save the result in a HDF5 file format */
-	  HDF5_Store_TimeHistoryData( hdf5_file, &AccTdT, &VelTdT, &DispTdT, &LoadTdT, &fc, &fu, (int) istep,
-				      &InitCnt );
+//	  HDF5_Store_TimeHistoryData( hdf5_file, &AccTdT, &VelTdT, &DispTdT, &LoadTdT, &fc, &fu, (int) istep,
+//				      &InitCnt );
+#endif
 
 	  /* Backup vectors */
 	  pdcopy_( &LoadTdT.GlobalSize.Row, LoadTdT1.Array, &ione, &ione, LoadTdT1.Desc, &ione, LoadTdT.Array,
@@ -388,16 +429,16 @@ int main( int argc, char **argv ){
 	  istep = istep + 1;
      }
 
-     gettimeofday( &Time.end, NULL );
-     Time.Elapsed_time = (double) (Time.end.tv_sec - Time.start.tv_sec)*1000.0;
-     Time.Elapsed_time += (double) (Time.end.tv_usec - Time.start.tv_usec)/1000.0;
-     HDF5_StoreTime( hdf5_file, &Time );
+//     gettimeofday( &Time.end, NULL );
+     //   Time.Elapsed_time = (double) (Time.end.tv_sec - Time.start.tv_sec)*1000.0;
+     //   Time.Elapsed_time += (double) (Time.end.tv_usec - Time.start.tv_usec)/1000.0;
+     //   HDF5_StoreTime( hdf5_file, &Time );
      if( rank == 0 ){
 	  Print_Header( SUCCESS );
-	  printf( "The time integration process has finished in %lf ms.\n", Time.Elapsed_time );
+//	  printf( "The time integration process has finished in %lf ms.\n", Time.Elapsed_time );
      }
 
-     HDF5_CloseFile( hdf5_file );
+     //   HDF5_CloseFile( hdf5_file );
 
      /* Free initiation values */
      Algorithm_Destroy( &InitCnt );
@@ -467,6 +508,8 @@ int main( int argc, char **argv ){
 
      /* Free the coupling nodes memory */
      Substructure_DeleteCouplingNodes( &CNodes );
+
+     MPI_Finalize();
 
      return 0;
 }

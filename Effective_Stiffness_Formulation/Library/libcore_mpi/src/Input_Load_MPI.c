@@ -45,6 +45,7 @@ void InputLoad_RelValues_MPI( PMatrixVector_t *const Mass, PMatrixVector_t *cons
      incx = 1; incy = 1;
      Alpha = -1.0; Beta = 0.0;
      uplo = 'L';
+     ione = 1;
 
      pdsymv_( &uplo, &InLoad->GlobalSize.Row, &Alpha, Mass->Array, &ione, &ione, Mass->Desc, GAcc->Array,
 	      &ione, &ione, GAcc->Desc, &incx, &Beta, InLoad->Array, &ione, &ione, InLoad->Desc, &incy );
