@@ -105,23 +105,23 @@ void Substructure_Remote_Destroy( Remote_t *const Remote );
 /**
  * \brief Initialises a substructure that runs on a remote facility.
 
- * \param[in]  RemoteType  Type of remote facility. It can be one of the following:
- *                         - TCP: The exchange of data is performed using TCP/IP.
- *			   - UDP: The exchange of data is performed using UDP.
- *			   - NSEP: The exchange of data is performed according to the NSEP specifications
- *                           \cite Wang_2013.
- *			   - OpenFresco: The exchange of data is performed according to the OpenFresco
- *                           specifications.
- *			   - Celestina: The exchange of data is performed through Celestina.
- * \param[in]  IPAddress   IP address of the remote facility.
- * \param[in]  Port        Port used in exchanging data.
- * \param[in]  Acc_Name    Account name to login into a PNSE server. It is ignored otherwise.
- * \param[in]  Acc_Pasword Account password to login into a PNSE server. It is ignored otherwise.
- * \param[in]  NSub        Number of degrees of freedom that the remote facility has to handle.
- * \param[in]  DOF         Degrees of freedom that the remote facility has to handle. Its length must be \f$l
- *                         \geq N_{Sub}\f$.
- * \param[in]  Description Brief description of the substructure.
- * \param[out] Remote      Substructure of type \c REMOTE. On output it stores all the information presented
+ * \param[in]  RemoteType   Type of remote facility. It can be one of the following:
+ *                          - TCP: The exchange of data is performed using TCP/IP.
+ *			    - UDP: The exchange of data is performed using UDP.
+ *			    - NSEP: The exchange of data is performed according to the NSEP specifications
+ *                            \cite Wang_2013.
+ *			    - OpenFresco: The exchange of data is performed according to the OpenFresco
+ *                            specifications.
+ *			    - Celestina: The exchange of data is performed through Celestina.
+ * \param[in]  IPAddress    IP address of the remote facility.
+ * \param[in]  Port         Port used in exchanging data.
+ * \param[in]  Acc_Name     Account name to login into a PNSE server. It is ignored otherwise.
+ * \param[in]  Acc_Password Account password to login into a PNSE server. It is ignored otherwise.
+ * \param[in]  NSub         Number of degrees of freedom that the remote facility has to handle.
+ * \param[in]  DOF          Degrees of freedom that the remote facility has to handle. Its length must be \f$l
+ *                          \geq N_{Sub}\f$.
+ * \param[in]  Description  Brief description of the substructure.
+ * \param[out] Remote       Substructure of type \c REMOTE. On output it stores all the information presented
  *                         above.
  *
  * \post
