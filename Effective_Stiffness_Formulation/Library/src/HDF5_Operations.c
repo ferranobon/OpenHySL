@@ -458,7 +458,7 @@ void HDF5_StoreTime( const int hdf5_file, const HDF5time_t *Time )
 }
 
 #if _ADWIN_
-void HDF5_StoreADwinData( const int hdf5_file, const double *Array, const char **Entry_Names, const int Length )
+void HDF5_StoreADwinData( const int hdf5_file, const double *Array, char **Entry_Names, const int Length )
 {
      hid_t file_id, group_id;
      herr_t   status;
@@ -474,7 +474,7 @@ void HDF5_StoreADwinData( const int hdf5_file, const double *Array, const char *
 }
 
 void ADwin_SaveData_HDF5( const int hdf5_file, const int Num_Steps, const int Num_Sub,
-			  const int Num_Channels, const char **Chan_Names, const int DataIndex )
+			  const int Num_Channels, char **Chan_Names, const int DataIndex )
 {
      int Length;
      double *Data = NULL;
@@ -497,7 +497,7 @@ void ADwin_SaveData_HDF5( const int hdf5_file, const int Num_Steps, const int Nu
 }
 #endif
 
-void HDF5_AddDoubleArray_AsTable( hid_t file_id, const char *Name_path, const char **Names, const double *Array, const int Num_param, const int Length )
+void HDF5_AddDoubleArray_AsTable( hid_t file_id, const char *Name_path, char **Names, const double *Array, const int Num_param, const int Length )
 {
      int      i;
      hid_t    memtype, filetype, space, dset;
@@ -541,7 +541,7 @@ void HDF5_AddDoubleArray_AsTable( hid_t file_id, const char *Name_path, const ch
      status = H5Sclose (space);
 }
 
-void HDF5_AddIntArray_AsTable( hid_t file_id, const char *Name_path, const char **Names, const int *Array, const int Num_param )
+void HDF5_AddIntArray_AsTable( hid_t file_id, const char *Name_path, char **Names, const int *Array, const int Num_param )
 {
      int      i;
      hid_t    memtype, filetype, space, dset;
