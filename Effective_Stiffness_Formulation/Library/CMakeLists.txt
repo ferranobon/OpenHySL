@@ -158,7 +158,7 @@ add_executable( Exact_Solution src/Exact_Solution.c src/Algorithm_Aux.c src/HDF5
 target_link_libraries(Exact_Solution core core_sp substructure hdf5 hdf5_hl)
 
 if( USE_MPI )
-  add_executable( SAlgorithm_MPI src/SAlgorithm_MPI.c src/Algorithm_Aux.c src/Algorithm_Aux_MPI.c src/HDF5_Operations.c )# ${CORE_SRCS} ${SPARSE_SRCS} ${SUBS_SRCS})
+  add_executable( SAlgorithm_MPI src/SAlgorithm_MPI.c src/Algorithm_Aux.c src/Algorithm_Aux_MPI.c src/HDF5_Operations.c src/HDF5_Operations_MPI.c )# ${CORE_SRCS} ${SPARSE_SRCS} ${SUBS_SRCS})
   target_link_libraries(SAlgorithm_MPI core core_mpi substructure hdf5 hdf5_hl)
 endif()
 # Rules to build the programs related to the substructure. Each program will

@@ -20,6 +20,10 @@
 #include <sys/time.h> /* For struct timeval */
 #include <time.h> /* For time_t */
 
+#if _MPI_
+#include <mpi.h>
+#endif
+
 typedef struct {
      time_t Date_start;
      char *Date_time;
@@ -40,6 +44,15 @@ typedef struct{
 } HDF5_Exp_Meas_t;
 
 int HDF5_CreateFile( const char *Filename );
+
+#if _MPI_
+void HDF5_CreateFile_MPI( MPI_Comm Comm, const char *Filename, hid_t *file_id, hid_t *plist_id );
+void HDF5_Store_TimeHistoryData_MPI( int hdf5_file, PMatrixVector_t *const Acc, PMatrixVector_t *const Vel, PMatrixVector_t *const Disp, PMatrixVector_t *const InLoad,
+				     PMatrixVector_t *const fc, PMatrixVector_t *const fu, int istep, AlgConst_t *InitCnt );
+void HDF5_AddResults_to_Dataset_MPI( hid_t file_id, const char *Path_name, PMatrixVector_t *const Data, const int Step_count );
+void HDF5_CloseFile_MPI( int *const hdf5_file, int *const plist_id );
+#endif
+
 void HDF5_CreateGroup_Parameters( int hdf5_file, AlgConst_t *const InitCnt, CouplingNode_t *const CNode, const double *const Acc, const double *const Vel, const double *const Disp );
 void Save_InformationCNodes( hid_t file_id, const char *Name_path, CouplingNode_t *const CNodes );
 void HDF5_CreateGroup_TimeIntegration( int hdf5_file, AlgConst_t *const InitCnt );
