@@ -33,11 +33,20 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
      }
 
      InitConst->Use_Sparse = ConfFile_GetInt( Config, "General:Use_Sparse" );
+#if _SPARSE_
      if ( !Valid_Value( InitConst->Use_Sparse ) ){
 	  Error = true;
 	  Print_Header( ERROR );
 	  fprintf( stderr, "Algorithm_Init(): Invalid option for Use_Sparse.\n" );
      }
+#else
+     if ( InitConst->Use_Sparse != 0 ){
+	  Error = true;
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Algorithm_Init(): The algorithm has been compiled without sparse support. ");
+	  fprintf( stderr, "Please, set Use_Sparse variable to 0 in the configuration file.\n" );
+     }
+#endif
 
      InitConst->Use_Packed = ConfFile_GetInt( Config, "General:Use_Packed" );
      if ( !Valid_Value( InitConst->Use_Packed) ){
