@@ -151,6 +151,9 @@ add_subdirectory(libsubstructure)
 add_executable( SAlgorithm src/SAlgorithm.c src/Algorithm_Aux.c src/HDF5_Operations.c)# ${CORE_SRCS} ${SPARSE_SRCS} ${SUBS_SRCS})
 target_link_libraries(SAlgorithm core core_sp substructure hdf5 hdf5_hl)
 
+add_executable( SAlgorithm_EffM src/SAlgorithm_EffM.c src/Algorithm_Aux.c src/HDF5_Operations.c)# ${CORE_SRCS} ${SPARSE_SRCS} ${SUBS_SRCS})
+target_link_libraries(SAlgorithm_EffM core core_sp substructure hdf5 hdf5_hl)
+
 add_executable( Custom_Server src/Custom_Server.c )
 target_link_libraries(Custom_Server core core_sp substructure)
 

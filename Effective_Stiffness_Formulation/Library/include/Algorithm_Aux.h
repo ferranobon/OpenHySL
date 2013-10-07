@@ -126,6 +126,12 @@ typedef struct AlgConst{
      double a6;               /*!< \brief \f$a_6= \frac{1 - \gamma_N}{\Delta t}\f$ */
      double a7;               /*!< \brief \f$a_7 = \gamma_N\Delta t\f$ */
 
+     double a8;               /*!< \brief \f$a_8 = \beta_N\Delta t^2\f$ */
+
+     double a9;               /*!< \brief \f$a_9 = \Delta t\f$ */
+
+     double a10;              /*!< \brief \f$a_{10} = \biggl(\frac{1}{2} - \beta_N\biggr)\Delta t^2\f$ */
+
      /* Files where data are located */
      char* FileM;            /*!< \brief Stores the name of the file that contains the Mass Matrix */
      char* FileK;            /*!< \brief Stores the name of the file that contains the Stiffness Matrix */
