@@ -329,7 +329,7 @@ int main( int argc, char **argv ){
 
      Time.Date_start = time( NULL );
      Time.Date_time = strdup( ctime( &Time.Date_start) );
-     gettimeofday( &Time.start, NULL );        
+     gettimeofday( &Time.Start, NULL );        
 
      /* Calculate the input load */
      istep = 1;
@@ -473,9 +473,9 @@ int main( int argc, char **argv ){
 	  istep = istep + 1;
      }
 
-     gettimeofday( &Time.end, NULL );
-     Time.Elapsed_time = (double) (Time.end.tv_sec - Time.start.tv_sec)*1000.0;
-     Time.Elapsed_time += (double) (Time.end.tv_usec - Time.start.tv_usec)/1000.0;
+     gettimeofday( &Time.End, NULL );
+     Time.Elapsed_time = (double) (Time.End.tv_sec - Time.Start.tv_sec)*1000.0;
+     Time.Elapsed_time += (double) (Time.End.tv_usec - Time.Start.tv_usec)/1000.0;
      HDF5_StoreTime( hdf5_file, &Time );
      Print_Header( SUCCESS );
      printf( "The time integration process has finished in %lf ms.\n", Time.Elapsed_time );
