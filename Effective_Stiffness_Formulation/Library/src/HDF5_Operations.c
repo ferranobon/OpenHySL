@@ -642,12 +642,10 @@ void HDF5_AddResults_to_Dataset( hid_t file_id, const char *Path_name, MatrixVec
      status = H5Sclose( filespace_id );
 }
 
-void HDF5_CloseFile( int hdf5_file )
+void HDF5_CloseFile( hid_t *const hdf5_file )
 {    
      herr_t status;
-     hid_t file_id;
 
-     file_id = (int) hdf5_file;
      /* Terminate access to the file. */
-     status = H5Fclose( file_id );
+     status = H5Fclose( *hdf5_file );
 }
