@@ -119,11 +119,6 @@ void Algorithm_Init_MPI( const char *FileName, AlgConst_t *const InitConst )
      InitConst->PID.I = ConfFile_GetDouble( Config, "PID:I" );
      InitConst->PID.D = ConfFile_GetDouble( Config, "PID:D" );
 
-     /* Several constants to multiply the vectors */
-     InitConst->Const1 = InitConst->Newmark.Beta*InitConst->Delta_t*InitConst->Delta_t;
-     InitConst->Const2 = (0.5 - 2.0*InitConst->Newmark.Beta + InitConst->Newmark.Gamma)*InitConst->Delta_t*InitConst->Delta_t;
-     InitConst->Const3 = (0.5 + InitConst->Newmark.Beta - InitConst->Newmark.Gamma)*InitConst->Delta_t*InitConst->Delta_t;
-
      /* Constants for Ending Step */
      InitConst->a0 = 1.0/(InitConst->Newmark.Beta*InitConst->Delta_t*InitConst->Delta_t);
      InitConst->a1 = InitConst->Newmark.Gamma/(InitConst->Newmark.Beta*InitConst->Delta_t);

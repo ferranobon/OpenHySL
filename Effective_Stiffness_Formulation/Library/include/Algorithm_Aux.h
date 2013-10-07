@@ -115,11 +115,6 @@ typedef struct AlgConst{
 			       * (\c PID.D) part.
 			       */
 
-     /* Constants for Calculations */
-     double Const1;           /*!< \brief \f$Const_1=\beta_N\Delta t^2\f$ */
-     double Const2;           /*!< \brief \f$Const_2 = (0.5 - 2*\beta_N + \gamma_N)*\Delta t^2\f$ */
-     double Const3;           /*!< \brief \f$Const_3 = (0.5 + \beta_N - \gamma_N)*\Delta t^2\f$ */
-
      /* Constants for Step ending */
      double a0;               /*!< \brief \f$a_0 = \frac{1}{\beta_N\Delta t^2}\f$ */
      double a1;               /*!< \brief \f$a_1 = \frac{\gamma_N}{\beta_N\Delta t}\f$ */
