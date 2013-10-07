@@ -128,6 +128,9 @@ void Algorithm_Init_MPI( const char *FileName, AlgConst_t *const InitConst )
      InitConst->a5 = (InitConst->Delta_t/2.0)*(InitConst->Newmark.Gamma/InitConst->Newmark.Beta - 2.0);
      InitConst->a6 = (1.0 - InitConst->Newmark.Gamma)*InitConst->Delta_t;
      InitConst->a7 = InitConst->Newmark.Gamma*InitConst->Delta_t;
+     InitConst->a8 = InitConst->Newmark.Beta*InitConst->Delta_t*InitConst->Delta_t;
+     InitConst->a9 = InitConst->Delta_t;
+     InitConst->a10 = (0.5 - InitConst->Newmark.Beta)*InitConst->Delta_t*InitConst->Delta_t;
 
      /* File Names */
      InitConst->FileM = strdup( ConfFile_GetString( Config, "FileNames:Mass_Matrix" ) );
