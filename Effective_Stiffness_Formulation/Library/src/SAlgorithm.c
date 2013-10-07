@@ -396,7 +396,7 @@ int main( int argc, char **argv ){
 /*	       Substructure_Substepping( &CNodes, Keinv_c.Array, DispTdT0_c.Array,
 	                                 InitCnt.Delta_t*(double) istep, AccAll[istep - 1],
 					 InitCnt.NSubstep, InitCnt.DeltaT_Sub, DispTdT.Array,
-					 fcprevsub.Array, fc.Arrayx); */
+					 fcprevsub.Array, fc.Array); */
 	       Substructure_Substepping( &CNodes, Keinv_c.Array, DispTdT0_c.Array,
 					 InitCnt.Delta_t*(double) istep, 0.0, InitCnt.NSubstep, 
 					 InitCnt.DeltaT_Sub, DispTdT.Array, fcprevsub.Array, fc.Array );
@@ -492,7 +492,7 @@ int main( int argc, char **argv ){
      }
 #endif
 
-     HDF5_CloseFile( hdf5_file );
+     HDF5_CloseFile( &hdf5_file );
 
      /* Free initiation values */
      Algorithm_Destroy( &InitCnt );

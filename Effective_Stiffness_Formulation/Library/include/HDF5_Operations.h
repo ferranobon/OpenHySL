@@ -93,5 +93,5 @@ void HDF5_AddIntArray_AsTable( hid_t file_id, const char *Name_path, char **Name
 
 void HDF5_Create_Dataset( hid_t file_id, const char *Path_name, const int Nstep, const int Order );
 void HDF5_AddResults_to_Dataset( hid_t file_id, const char *Path_name, MatrixVector_t *const Data, const int Step_count );
-void HDF5_CloseFile( int hdf5_file );
+void HDF5_CloseFile( hid_t *const hdf5_file );
 #endif
