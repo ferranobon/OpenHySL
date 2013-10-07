@@ -24,21 +24,29 @@
 #include <mpi.h>
 #endif
 
-typedef struct {
+typedef struct HDF5time {
      time_t Date_start;
      char *Date_time;
      double Elapsed_time;
-     struct timeval start;
-     struct timeval end;
+     struct timeval Start;
+     struct timeval End;
 } HDF5time_t;
 
-typedef struct{
+typedef struct HDF5time_MPI {
+     time_t Date_start;
+     char *Date_time;
+     double Elapsed_time;
+     double Start;
+     double End;
+} HDF5time_MPI_t;
+
+typedef struct HDF5_Exact_UHYDE {
      int Position;
      double InitValues[3];
      char *Description;
 } HDF5_Exact_UHYDE_t;
 
-typedef struct{
+typedef struct HDF5_Exp_Meas {
      int Position;
      char *Description;
 } HDF5_Exp_Meas_t;
