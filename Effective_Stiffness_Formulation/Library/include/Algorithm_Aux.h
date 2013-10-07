@@ -15,10 +15,30 @@
 #define _ALGORITHM_AUX_H_
 
 #include <stdbool.h>
+#include <sys/time.h>           /* For struct timeval */
 
 #include "Rayleigh.h"           /* For Rayleigh_t */
 #include "Error_Compensation.h" /* For PID_t */
 #include "Conf_Parser.h"        /* For ConfFile_t */
+
+#define MPI_TIME_SLENGTH 30
+
+typedef struct SaveTime {
+     time_t Date_start;
+     char *Date_time;
+     double Elapsed_time;
+     struct timeval Start;
+     struct timeval End;
+} SaveTime_t;
+
+typedef struct SaveTime_MPI {
+     time_t Date_start;
+     char Date_time[MPI_TIME_SLENGTH]; /* Fixed length because HDF5 does not support variable types in mpi
+					  mode */
+     double Elapsed_time;
+     double Start;
+     double End;
+} SaveTime_MPI_t;
 
 /**
  * \brief Structure to handle the time integration constants.

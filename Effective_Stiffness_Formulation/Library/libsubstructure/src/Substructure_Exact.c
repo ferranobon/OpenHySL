@@ -95,6 +95,8 @@ void Substructure_ExactSolutionSDOF_Init( const double Mass, const double Damp, 
 
      Sub->a0 = a0; Sub->a2 = a2; Sub->a3 = a3;
      Sub->a6 = a6; Sub->a7 = a7;
+
+     printf("a0 %le a2 %le a3 %le a6%le a7 %le\n", a0, a2, a3, a6, a7 );
 }
 
 void Compute_DampingRatios_Rayleigh( const double Ray_Alpha, const double Ray_Beta, const int Num_DOF,
@@ -310,22 +312,28 @@ void Substructure_ExactSolutionESP_Init( const double Mass, const double Damp, c
 
      Sub->Description = strdup( Description );
 
+     Sub->a0 = 4E4;
+     Sub->a2 = 4E2;
+     Sub->a3 = 1.0;
+     Sub->a6 = 5E-3;
+     Sub->a7 = 5E-3;
+
      /* Init the variables */
      Sub->Mass = Mass;
      Sub->Damp = Damp;
      Sub->Stiff = Stiff;
 
-     Sub->Disp0 = 0.0;
-     Sub->Vel0 = 0.0;
+     Sub->Init_Disp = 0.0;
+     Sub->Init_Vel = 0.0;
 
-     Sub->Disp = 0.0;
-     Sub->Vel = 0.0;
+     Sub->End_Disp = 0.0;
+     Sub->End_Vel = 0.0;
 
      Sub->Force_0 = 0.0;
      Sub->Force_1 = 0.0;
 
-     Sub->u0c_old = 0.0;
-     Sub->v0c = 0.0;
+     Sub->DispT = 0.0;
+     Sub->VelTdT = 0.0;
 
      /* Calculate the free vibration frequency */
      omega2 = Stiff/Mass;
@@ -370,29 +378,34 @@ void Substructure_ExactSolutionESP_Init( const double Mass, const double Damp, c
      }
 }
 
-void Substructure_ExactSolutionESP_SDOF( const double u0c, const double DeltaT, ExactSimESP_t *const Sub, double *const fc )
+void Substructure_ExactSolutionESP_SDOF( const double DispTdT, const double ramp, const double DeltaT, ExactSimESP_t *const Sub, double *const fc )
 {
 
      /* Compute initial velocity */
-     Sub->v0c = (u0c - Sub->u0c_old)/DeltaT;
+     Sub->AccTdT = (1.0 - ramp)*(-Sub->a0*Sub->Disp0 -Sub->a2*Sub->Vel0 -Sub->a3*Sub->Acc0)
+	  + ramp*(-Sub->a0*Sub->DispT -Sub->a2*Sub->VelT -Sub->a3*Sub->AccT) + Sub->a0*DispTdT;
+
+     Sub->VelTdT = (1.0 - ramp)*(Sub->Vel0 + Sub->a6*Sub->Acc0) + ramp*(Sub->VelT + Sub->a6*Sub->AccT) + Sub->a7*Sub->AccTdT;
+
+     // Sub->VelTdT = (DispTdT - Sub->DispT)/DeltaT;
 
      /* Backup and computer new forcce */
      Sub->Force_0 = Sub->Force_1;
-     Sub->Force_1 = Sub->Stiff*u0c + Sub->Damp*Sub->v0c;
+     Sub->Force_1 = Sub->Stiff*DispTdT + Sub->Damp*Sub->VelTdT;
 
      /* Backup the displacements */
-     Sub->Disp0 = Sub->Disp;
-     Sub->Vel0 = Sub->Vel;
+     Sub->Init_Disp = Sub->End_Disp;
+     Sub->Init_Vel = Sub->End_Vel;
 
      /* Compute the new state */
-     Sub->Disp = Sub->A*Sub->Disp0 + Sub->B*Sub->Vel0 + Sub->C*Sub->Force_0 + Sub->D*Sub->Force_1;
-     Sub->Vel = Sub->E*Sub->Disp0 + Sub->F*Sub->Vel0 + Sub->G*Sub->Force_0 + Sub->H*Sub->Force_1;
+     Sub->End_Disp = Sub->A*Sub->Init_Disp + Sub->B*Sub->Init_Vel + Sub->C*Sub->Force_0 + Sub->D*Sub->Force_1;
+     Sub->End_Vel = Sub->E*Sub->Init_Disp + Sub->F*Sub->Init_Vel + Sub->G*Sub->Force_0 + Sub->H*Sub->Force_1;
 
      /* Compute the coupling force */
-     *fc = Sub->Stiff*(Sub->Disp - u0c) + Sub->Damp*(Sub->Vel - Sub->v0c);
+     *fc = Sub->Stiff*(Sub->End_Disp - DispTdT) + Sub->Damp*(Sub->End_Vel - Sub->VelTdT);
 
-     /* Backup u0c vector */
-     Sub->u0c_old = u0c;
+     /* Backup DispTdT vector */
+//     Sub->DispT = DispTdT;
 	 
 }
 
