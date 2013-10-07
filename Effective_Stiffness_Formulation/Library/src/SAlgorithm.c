@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <getopt.h>  /* For getopt_long() */
 
+#include <time.h>
+
 #include "Print_Messages.h"
 
 #include "Algorithm_Aux.h"
@@ -18,7 +20,9 @@
 #include "Substructure_Experimental.h"
 #include "Substructure_Auxiliary.h"  /* For Substructure_VectorXm(), Substructure_VectorXc(), ... */
 
+#if _HDF5_
 #include "HDF5_Operations.h"
+#endif
 
 #include "ADwin_Routines.h"
 
@@ -61,8 +65,10 @@ int main( int argc, char **argv ){
      AlgConst_t InitCnt;
      const char *FileConf;
      
-     int hdf5_file;
-     
+#if _HDF5_
+     hid_t hdf5_file;
+#endif
+
      /* NETLIB Variables */
      int incx, incy;
      Scalars_t Constants;
@@ -97,7 +103,8 @@ int main( int argc, char **argv ){
 #endif
 
      CouplingNode_t CNodes;
-     HDF5time_t     Time;
+     SaveTime_t     Time;
+
      /* Options */
      int Selected_Option;
      struct option long_options[] = {
@@ -323,13 +330,15 @@ int main( int argc, char **argv ){
 
      /* Open Output file. If the file cannot be opened, the program will exit, since the results cannot be
       * stored. */
+#if _HDF5_
      hdf5_file = HDF5_CreateFile( InitCnt.FileOutput );
      HDF5_CreateGroup_Parameters( hdf5_file, &InitCnt, &CNodes, AccAll, VelAll, DispAll );
      HDF5_CreateGroup_TimeIntegration( hdf5_file, &InitCnt );
+#endif
 
      Time.Date_start = time( NULL );
      Time.Date_time = strdup( ctime( &Time.Date_start) );
-     gettimeofday( &Time.Start, NULL );        
+     gettimeofday( &Time.Start, NULL );
 
      /* Calculate the input load */
      istep = 1;
@@ -461,7 +470,7 @@ int main( int argc, char **argv ){
 
 	  /* Save the result in a HDF5 file format */
 #if _HDF5_
-	  HDF5_Store_TimeHistoryData( hdf5_file, &AccTdT, &VelTdT, &DispTdT, &LoadTdT, &fc, &fu, (int) istep, &InitCnt );
+	  HDF5_Store_TimeHistoryData( hdf5_file, &AccTdT, &VelTdT, &DispTdT, &fc, &fu, (int) istep, &InitCnt );
 #else
 	  
 #endif
@@ -476,7 +485,10 @@ int main( int argc, char **argv ){
      gettimeofday( &Time.End, NULL );
      Time.Elapsed_time = (double) (Time.End.tv_sec - Time.Start.tv_sec)*1000.0;
      Time.Elapsed_time += (double) (Time.End.tv_usec - Time.Start.tv_usec)/1000.0;
-     HDF5_StoreTime( hdf5_file, &Time );
+#if _HDF5_
+     HDF5_Store_Time( hdf5_file, &Time );
+#endif
+
      Print_Header( SUCCESS );
      printf( "The time integration process has finished in %lf ms.\n", Time.Elapsed_time );
 
@@ -485,14 +497,18 @@ int main( int argc, char **argv ){
      if( CNodes.Order >= 1 ){
 	  for( i = 0; i < (unsigned int) CNodes.Order; i++ ){
 	       if( CNodes.Sub[i].Type == EXP_ADWIN ){
+#if _HDF5_
 		    ADwin_SaveData_HDF5( hdf5_file, (int) InitCnt.NStep, (int) InitCnt.NSubstep,
 					NUM_CHANNELS, Entry_Names, 97 );
+#endif
 	       }
 	  }
      }
 #endif
 
+#if _HDF5_
      HDF5_CloseFile( &hdf5_file );
+#endif
 
      /* Free initiation values */
      Algorithm_Destroy( &InitCnt );

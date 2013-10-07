@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <getopt.h>  /* For getopt_long() */
+#include <time.h>    /* For time(), ctime() */
 
 #include "Print_Messages.h"
 
@@ -18,7 +19,9 @@
 #include "Substructure_Experimental.h"
 #include "Substructure_Auxiliary.h"  /* For Substructure_VectorXm(), Substructure_VectorXc(), ... */
 
+#if _HDF5_
 #include "HDF5_Operations.h"
+#endif
 
 #if _MKL_
 #include <mkl_pblas.h>
@@ -72,8 +75,10 @@ int main( int argc, char **argv ){
      AlgConst_t InitCnt;
      const char *FileConf;
      
-     int hdf5_file, hdf5_plist;
-     
+#if _HDF5_
+     hid_t hdf5_file;
+#endif
+
      /* NETLIB Variables */
      int ione = 1;
      Scalars_t Constants;
@@ -105,7 +110,8 @@ int main( int argc, char **argv ){
      PMatrixVector_t Disp, Vel, Acc;
 
      CouplingNode_t CNodes;
-     HDF5time_t     Time;
+     SaveTime_MPI_t Time;
+
      /* Options */
      int Selected_Option;
      struct option long_options[] = {
@@ -166,7 +172,6 @@ int main( int argc, char **argv ){
 	  /* Read the coupling nodes from a file */
 	  Substructure_ReadCouplingNodes( &InitCnt, &CNodes );
      }
-     MPI_Barrier( MPI_COMM_WORLD );
 
      /* Send the Information read in process 0 to all the other processes using MPI_Bcast */
      Algorithm_BroadcastConfFile( &InitCnt );
@@ -328,17 +333,16 @@ int main( int argc, char **argv ){
 
      /* Open Output file. If the file cannot be opened, the program will exit, since the results cannot be
       * stored. */
+#if _HDF5_
+     HDF5_CreateFile_MPI( MPI_COMM_WORLD, InitCnt.FileOutput, &hdf5_file );
 
-     HDF5_CreateFile_MPI( MPI_COMM_WORLD, InitCnt.FileOutput, &hdf5_file, &hdf5_plist );
+     HDF5_CreateGroup_Parameters( hdf5_file, &InitCnt, &CNodes, AccAll, VelAll, DispAll );
+     HDF5_CreateGroup_TimeIntegration( hdf5_file, &InitCnt );
+#endif
 
-
-     if( myrow == 0 && mycol == 0 ){
-	  HDF5_CreateGroup_Parameters( hdf5_file, &InitCnt, &CNodes, AccAll, VelAll, DispAll );
-	  HDF5_CreateGroup_TimeIntegration( hdf5_file, &InitCnt );
-	  Time.Date_start = time( NULL );
-	  Time.Date_time = strdup( ctime( &Time.Date_start) );
-	  gettimeofday( &Time.start, NULL );
-     } 
+     Time.Start = MPI_Wtime();
+     Time.Date_start = time( NULL );
+     strcpy( Time.Date_time, ctime( &Time.Date_start ) );
 
      /* Calculate the input load */
      istep = 1;
@@ -418,8 +422,7 @@ int main( int argc, char **argv ){
 
 #if _HDF5_
 	  /* Save the result in a HDF5 file format */
-//	  HDF5_Store_TimeHistoryData( hdf5_file, &AccTdT, &VelTdT, &DispTdT, &LoadTdT, &fc, &fu, (int) istep,
-//				      &InitCnt );
+	  HDF5_Store_TimeHistoryData_MPI( hdf5_file, &AccTdT, &VelTdT, &DispTdT, &fc, &fu, (int) istep, nprow, myrow, &InitCnt );
 #endif
 
 	  /* Backup vectors */
@@ -435,16 +438,20 @@ int main( int argc, char **argv ){
 	  istep = istep + 1;
      }
 
-//     gettimeofday( &Time.end, NULL );
-     //   Time.Elapsed_time = (double) (Time.end.tv_sec - Time.start.tv_sec)*1000.0;
-     //   Time.Elapsed_time += (double) (Time.end.tv_usec - Time.start.tv_usec)/1000.0;
-     //   HDF5_StoreTime( hdf5_file, &Time );
+     Time.End = MPI_Wtime();
+     /* Elapsed time in miliseconds */
+     Time.Elapsed_time = (Time.End - Time.Start)/1000.0;
+
+#if _HDF5_
+     HDF5_Store_Time_MPI( hdf5_file, &Time );
+     HDF5_CloseFile( &hdf5_file );
+#endif
+
      if( rank == 0 ){
 	  Print_Header( SUCCESS );
-//	  printf( "The time integration process has finished in %lf ms.\n", Time.Elapsed_time );
+	  printf( "The time integration process has finished in %lf ms.\n",
+		  Time.Elapsed_time );
      }
-
-     HDF5_CloseFile_MPI( &hdf5_file, &hdf5_plist );
 
      /* Free initiation values */
      Algorithm_Destroy( &InitCnt );
@@ -457,17 +464,13 @@ int main( int argc, char **argv ){
 	  free( AccAll );
      }
 
-     /* Free Time string */
-     free( Time.Date_time );
-
      /* Destroy the data structures */
-     
      PMatrixVector_Destroy( &M );
      PMatrixVector_Destroy( &K );
      PMatrixVector_Destroy( &C );
 
      PMatrixVector_Destroy( &Keinv );
- 
+
      if( CNodes.Order >= 1 ){
 	  if( rank == 0 ){
 	       MatrixVector_Destroy( &Keinv_c );
@@ -513,7 +516,13 @@ int main( int argc, char **argv ){
      PMatrixVector_Destroy( &Acc );
 
      /* Free the coupling nodes memory */
-     Substructure_DeleteCouplingNodes( &CNodes );
+     if( CNodes.Order >= 1 ){
+	  Substructure_DeleteCouplingNodes( &CNodes );
+     }
+
+     /* BLACS: Exit Grid and release bhandle */
+     Cblacs_gridexit( icontxt );
+     Cfree_blacs_system_handle( bhandle );
 
      MPI_Finalize();
 

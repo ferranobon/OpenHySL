@@ -35,23 +35,23 @@ int HDF5_CreateFile( const char *Filename )
      return (int) file_id;
 }
 
-void HDF5_CreateGroup_Parameters( int hdf5_file, AlgConst_t *const InitCnt, CouplingNode_t *const CNodes, const double *const Acc, const double *const Vel, const double *const Disp )
+void HDF5_CreateGroup_Parameters( const int hdf5_file, const AlgConst_t *const InitCnt,
+				  const CouplingNode_t *const CNodes, const double *const Acc,
+				  const double *const Vel, const double *const Disp )
 {
-     hid_t    file_id, group_id, dataset_id, dataspace_id;
+     hid_t    group_id, dataset_id, dataspace_id;
      hsize_t  dims[2];
      herr_t   status;
      double   *dArray;
      int      *iArray, i;
      char     **Entry_Names;
      
-     file_id = (hid_t) hdf5_file;
      Entry_Names = (char **) malloc( (size_t) 6*sizeof(char*) );
      dArray = (double *) malloc( (size_t) 3*sizeof(double) );
 
      /* Create a group named "/Time History" in the file. */
-     group_id = H5Gcreate(file_id, "/Test Parameters", H5P_DEFAULT,
-			  H5P_DEFAULT, H5P_DEFAULT);     
-     status = H5Gclose(group_id);
+     group_id = H5Gcreate( hdf5_file, "/Test Parameters", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT );     
+     status = H5Gclose( group_id );
      if( status < 0 ){
 	  Print_Header( ERROR );
 	  fprintf( stderr, "Error creating group Test Parameters in HDF5 file.\n" );
@@ -59,62 +59,58 @@ void HDF5_CreateGroup_Parameters( int hdf5_file, AlgConst_t *const InitCnt, Coup
      }
      
      /* Add input load */
-     group_id = H5Gcreate(file_id, "/Test Parameters/Input", H5P_DEFAULT,
-			  H5P_DEFAULT, H5P_DEFAULT);
+     group_id = H5Gcreate( hdf5_file, "/Test Parameters/Input", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT );
      dims[0] = InitCnt->NStep;
      dims[1] = 1;
-     dataspace_id = H5Screate_simple(2, dims, NULL);
+     dataspace_id = H5Screate_simple( 2, dims, NULL );
      if( Acc != NULL ){
-	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input/Acceleration", H5T_NATIVE_DOUBLE, dataspace_id, H5P_DEFAULT,
-				   H5P_DEFAULT, H5P_DEFAULT);
-	  status = H5LTset_attribute_string( file_id, "Test Parameters/Input/Acceleration",
-					     "Units", "m/s^2" );
-	  status = H5Dwrite(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, Acc );
-	  status = H5Dclose(dataset_id);
+	  /* assssssssssfa asfjajs asjfnakjsdfajksh fafa safsjdfaskjh asjdf ajsf aksjdf aksj aksjdfnak sjdfn a
+	   *  */
+	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input/Acceleration", H5T_NATIVE_DOUBLE,
+				   dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	  status = H5LTset_attribute_string( hdf5_file, "Test Parameters/Input/Acceleration", "Units", "m/s^2" );
+	  status = H5Dwrite( dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, Acc );
+	  status = H5Dclose( dataset_id );
      }
 
      if( Vel != NULL ){
-	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input/Velocity", H5T_NATIVE_DOUBLE, dataspace_id, H5P_DEFAULT,
-				   H5P_DEFAULT, H5P_DEFAULT);
-	  status = H5LTset_attribute_string( file_id, "Test Parameters/Input/Velocity",
-					     "Units", "m/s" );
-	  status = H5Dwrite(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, Vel );
-	  status = H5Dclose(dataset_id);
+	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input/Velocity", H5T_NATIVE_DOUBLE,
+				   dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	  status = H5LTset_attribute_string( hdf5_file, "Test Parameters/Input/Velocity", "Units", "m/s" );
+	  status = H5Dwrite( dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, Vel );
+	  status = H5Dclose( dataset_id );
      }
 
      if( Disp != NULL ){
-	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input/Displacement", H5T_NATIVE_DOUBLE, dataspace_id, H5P_DEFAULT,
-				   H5P_DEFAULT, H5P_DEFAULT);
-	  status = H5LTset_attribute_string( file_id, "Test Parameters/Input/Displacement",
-					     "Units", "m" );
-	  status = H5Dwrite(dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, Disp );
-	  status = H5Dclose(dataset_id);
+	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input/Displacement", H5T_NATIVE_DOUBLE,
+				   dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	  status = H5LTset_attribute_string( hdf5_file, "Test Parameters/Input/Displacement", "Units", "m" );
+	  status = H5Dwrite( dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, Disp );
+	  status = H5Dclose( dataset_id );
      }
-     status = H5Gclose(group_id);
+     status = H5Gclose( group_id );
 
      /* Add Integration parameters */
-     Entry_Names[0] = strdup( "Beta" ); Entry_Names[1] = strdup( "Gamma" );
-     Entry_Names[2] = strdup( "Time step" );
-     dArray[0] = InitCnt->Newmark.Beta; dArray[1] = InitCnt->Newmark.Gamma;
-     dArray[2] = InitCnt->Delta_t;
-     HDF5_AddDoubleArray_AsTable( file_id, "/Test Parameters/Time Integration", Entry_Names,
-				  dArray, 3, 1 );
-     free( Entry_Names[0] ); free( Entry_Names[1] ); free( Entry_Names[2] );
+     Entry_Names[0] = strdup( "Beta" );      dArray[0] = InitCnt->Newmark.Beta;
+     Entry_Names[1] = strdup( "Gamma" );     dArray[1] = InitCnt->Newmark.Gamma;
+     Entry_Names[2] = strdup( "Time step" ); dArray[2] = InitCnt->Delta_t;
+     
+     HDF5_AddDoubleArray_AsTable( hdf5_file, "/Test Parameters/Time Integration", Entry_Names, dArray, 3, 1 );
+     free( Entry_Names[0] );
+     free( Entry_Names[1] );
+     free( Entry_Names[2] );
 
      /* Add Rayleigh damping values */
-     Entry_Names[0] = strdup( "Alpha" ); Entry_Names[1] = strdup( "Beta" );
-     dArray[0] = InitCnt->Rayleigh.Alpha; dArray[1] = InitCnt->Rayleigh.Beta;
-     HDF5_AddDoubleArray_AsTable( file_id, "/Test Parameters/Rayleigh", Entry_Names,
-				  dArray, 2, 1 );
+     Entry_Names[0] = strdup( "Alpha" ); dArray[0] = InitCnt->Rayleigh.Alpha;
+     Entry_Names[1] = strdup( "Beta" );  dArray[1] = InitCnt->Rayleigh.Beta;
+     HDF5_AddDoubleArray_AsTable( hdf5_file, "/Test Parameters/Rayleigh", Entry_Names, dArray, 2, 1 );
      free( Entry_Names[0] ); free( Entry_Names[1] );
 
      /* Add PID parameters */
-     Entry_Names[0] = strdup( "P" ); Entry_Names[1] = strdup( "I" );
-     Entry_Names[2] = strdup( "D" );
-     dArray[0] = InitCnt->PID.P; dArray[1] = InitCnt->PID.I;
-     dArray[2] = InitCnt->PID.D;
-     HDF5_AddDoubleArray_AsTable( file_id, "/Test Parameters/PID", Entry_Names,
-				  dArray, 3, 1 );
+     Entry_Names[0] = strdup( "P" ); dArray[0] = InitCnt->PID.P;
+     Entry_Names[1] = strdup( "I" ); dArray[1] = InitCnt->PID.I;
+     Entry_Names[2] = strdup( "D" ); dArray[2] = InitCnt->PID.D;
+     HDF5_AddDoubleArray_AsTable( hdf5_file, "/Test Parameters/PID", Entry_Names, dArray, 3, 1 );
      for( i = 0; i < 3; i++ ){
 	  free( Entry_Names[i] );
      }
@@ -123,18 +119,16 @@ void HDF5_CreateGroup_Parameters( int hdf5_file, AlgConst_t *const InitCnt, Coup
 
      iArray = (int *) malloc( (size_t) 6*sizeof(int) );
 
-     Entry_Names[0] = strdup( "Num. DOF" ); Entry_Names[1] = strdup( "Num. steps" );
-     Entry_Names[2] = strdup( "Num. sub-steps" ); Entry_Names[3] = strdup( "Num. substructures" );
-     iArray[0] = (int) InitCnt->Order; iArray[1] = (int) InitCnt->NStep; 
-     iArray[2] = (int) InitCnt->NSubstep; iArray[3] = (int) InitCnt->OrderSub;
-     HDF5_AddIntArray_AsTable( file_id, "/Test Parameters/Misc", Entry_Names,
-				 iArray, 4 );
-
+     Entry_Names[0] = strdup( "Num. DOF" );           iArray[0] = (int) InitCnt->Order;
+     Entry_Names[1] = strdup( "Num. steps" );         iArray[1] = (int) InitCnt->NStep; 
+     Entry_Names[2] = strdup( "Num. sub-steps" );     iArray[2] = (int) InitCnt->NSubstep;
+     Entry_Names[3] = strdup( "Num. substructures" ); iArray[3] = (int) InitCnt->OrderSub;      
+     HDF5_AddIntArray_AsTable( hdf5_file, "/Test Parameters/Misc", Entry_Names, iArray, 4 );
      free( iArray );
      
      /* Save the coupling nodes and information */
      if( InitCnt->OrderSub > 0 ){
-	  Save_InformationCNodes( file_id, "/Test Parameters/Substructures", CNodes );
+	  Save_InformationCNodes( hdf5_file, "/Test Parameters/Substructures", CNodes );
      }
 
      for( i = 0; i < 4; i++ ){
@@ -145,7 +139,7 @@ void HDF5_CreateGroup_Parameters( int hdf5_file, AlgConst_t *const InitCnt, Coup
 }
 
 
-void Save_InformationCNodes( hid_t file_id, const char *Name_path, CouplingNode_t *const CNodes )
+void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const CouplingNode_t *const CNodes )
 {
      int i, j, k, count, is_adwin, is_exact, is_uhyde, is_measured;
      hid_t    group_id, strtype, memtype, space, dset;
@@ -159,7 +153,7 @@ void Save_InformationCNodes( hid_t file_id, const char *Name_path, CouplingNode_
      ExpSub_t *Experimental;
 
    
-     group_id = H5Gcreate(file_id, Name_path, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);     
+     group_id = H5Gcreate( file_id, Name_path, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT );     
 
      strtype = H5Tcopy( H5T_C_S1 );
      status = H5Tset_size( strtype, H5T_VARIABLE );
@@ -356,98 +350,87 @@ void Save_InformationCNodes( hid_t file_id, const char *Name_path, CouplingNode_
 }
      
 
-void HDF5_CreateGroup_TimeIntegration( int hdf5_file, AlgConst_t *const InitCnt )
+void HDF5_CreateGroup_TimeIntegration( const hid_t hdf5_file, const AlgConst_t *const InitCnt )
 {
 
-     hid_t    file_id, group_id;
+     hid_t    group_id;
      herr_t   status;
 
-     file_id = (hid_t) hdf5_file;
+
      /* Create the Time integration group */
-     group_id = H5Gcreate(file_id, "/Time Integration", H5P_DEFAULT,
+     group_id = H5Gcreate( hdf5_file, "/Time Integration", H5P_DEFAULT,
 			  H5P_DEFAULT, H5P_DEFAULT);
      /* Acceleration */
-     HDF5_Create_Dataset( file_id, "/Time Integration/Acceleration", (int) InitCnt->NStep, (int) InitCnt->Order );
-     status = H5LTset_attribute_string( file_id, "Time Integration/Acceleration",
-					"Units", "m/s^2" );
+     HDF5_Create_Dataset( hdf5_file, "/Time Integration/Acceleration", (int) InitCnt->NStep,
+			  (int) InitCnt->Order );
+     status = H5LTset_attribute_string( hdf5_file, "Time Integration/Acceleration", "Units", "m/s^2" );
      /* Velocity */
-     HDF5_Create_Dataset( file_id, "/Time Integration/Velocity", (int) InitCnt->NStep, (int)InitCnt->Order );
-     status = H5LTset_attribute_string( file_id, "Time Integration/Velocity",
-					"Units", "m/s" );
+     HDF5_Create_Dataset( hdf5_file, "/Time Integration/Velocity", (int) InitCnt->NStep,
+			  (int)InitCnt->Order );
+     status = H5LTset_attribute_string( hdf5_file, "Time Integration/Velocity",	"Units", "m/s" );
      /* Displacement */
-     HDF5_Create_Dataset( file_id, "/Time Integration/Displacement", (int) InitCnt->NStep, (int) InitCnt->Order );
-     status = H5LTset_attribute_string( file_id, "Time Integration/Displacement",
-					"Units", "m" );
-
-/*
-     HDF5_Create_Dataset( file_id, "/Time Integration/Input Load", (int) InitCnt->NStep, (int) InitCnt->Order );
-     status = H5LTset_attribute_string( file_id, "Time Integration/Input Load",
-					"Units", "N" );
-*/
+     HDF5_Create_Dataset( hdf5_file, "/Time Integration/Displacement", (int) InitCnt->NStep, 
+			  (int) InitCnt->Order );
+     status = H5LTset_attribute_string( hdf5_file, "Time Integration/Displacement", "Units", "m" );
 
      /* If the number of substructures is greater than zero, store the results */
      if( InitCnt->OrderSub > 0 ){
-	  HDF5_Create_Dataset( file_id, "/Time Integration/Coupling force", (int) InitCnt->NStep, (int) InitCnt->Order );
-	  status = H5LTset_attribute_string( file_id, "Time Integration/Coupling force",
-					     "Units", "N" );
+	  HDF5_Create_Dataset( hdf5_file, "/Time Integration/Coupling force", (int) InitCnt->NStep,
+			       (int) InitCnt->Order );
+	  status = H5LTset_attribute_string( hdf5_file, "Time Integration/Coupling force", "Units", "N" );
      }
 
      /* If the PID is used, then store the values */
      if( InitCnt->PID.P != 0.0 || InitCnt->PID.I != 0.0 || InitCnt->PID.D != 0.0 ){
-	  HDF5_Create_Dataset( file_id, "/Time Integration/Error force", (int) InitCnt->NStep, (int) InitCnt->Order );
-	  status = H5LTset_attribute_string( file_id, "Time Integration/Error force",
-					     "Units", "N" );
+	  HDF5_Create_Dataset( hdf5_file, "/Time Integration/Error force", (int) InitCnt->NStep,
+			       (int) InitCnt->Order );
+	  status = H5LTset_attribute_string( hdf5_file, "Time Integration/Error force", "Units", "N" );
      }
 
      status = H5Gclose( group_id );
 
 }
 
-void HDF5_Store_TimeHistoryData( int hdf5_file, MatrixVector_t *const Acc, MatrixVector_t *const Vel, MatrixVector_t *const Disp, MatrixVector_t *const InLoad,
-				 MatrixVector_t *const fc, MatrixVector_t *const fu, int istep, AlgConst_t *InitCnt )
+void HDF5_Store_TimeHistoryData( const hid_t hdf5_file, const MatrixVector_t *const Acc,
+				 const MatrixVector_t *const Vel, const MatrixVector_t *const Disp,
+				 const MatrixVector_t *const fc, const MatrixVector_t *const fu,
+				 const int istep, const AlgConst_t *const InitCnt )
 {
-
-     hid_t    file_id;
-
-     file_id = (hid_t) hdf5_file;
      /* Create the Time integration group */
 
-     HDF5_AddResults_to_Dataset( file_id, "/Time Integration/Acceleration", Acc, istep );
-     HDF5_AddResults_to_Dataset( file_id, "/Time Integration/Velocity", Vel, istep );
-     HDF5_AddResults_to_Dataset( file_id, "/Time Integration/Displacement", Disp, istep );
-
-     // HDF5_AddResults_to_Dataset( file_id, "/Time Integration/Input Load", InLoad, istep );
+     HDF5_AddResults_to_Dataset( hdf5_file, "/Time Integration/Acceleration", Acc, istep );
+     HDF5_AddResults_to_Dataset( hdf5_file, "/Time Integration/Velocity", Vel, istep );
+     HDF5_AddResults_to_Dataset( hdf5_file, "/Time Integration/Displacement", Disp, istep );
 
      /* If the number of substructures is greater than zero, store the results */
      if( InitCnt->OrderSub > 0 ){
-	  HDF5_AddResults_to_Dataset( file_id, "/Time Integration/Coupling force", fc, istep );
+	  HDF5_AddResults_to_Dataset( hdf5_file, "/Time Integration/Coupling force", fc, istep );
      }
 
      /* If the PID is used, then store the values */
      if( InitCnt->PID.P != 0.0 || InitCnt->PID.I != 0.0 || InitCnt->PID.D != 0.0 ){
-	  HDF5_AddResults_to_Dataset( file_id, "/Time Integration/Error force", fu, istep );
+	  HDF5_AddResults_to_Dataset( hdf5_file, "/Time Integration/Error force", fu, istep );
      }
 }
 
-void HDF5_StoreTime( const int hdf5_file, const HDF5time_t *Time )
+void HDF5_Store_Time( const hid_t hdf5_file, const SaveTime_t *const Time )
 {
 
-     hid_t    file_id, memtype, space, dset, strtype;
+     hid_t    memtype, space, dset, strtype;
      hsize_t  dims[1] = {1};
      herr_t   status;
 
-     file_id = (hid_t) hdf5_file;
 
      strtype = H5Tcopy( H5T_C_S1 );
      status = H5Tset_size( strtype, H5T_VARIABLE );
 
-     memtype = H5Tcreate (H5T_COMPOUND, sizeof( HDF5time_t ) );
-     H5Tinsert( memtype, "Date", HOFFSET( HDF5time_t, Date_time), strtype );
-     H5Tinsert( memtype, "Duration [ms]", HOFFSET( HDF5time_t, Elapsed_time), H5T_NATIVE_DOUBLE );
+     memtype = H5Tcreate (H5T_COMPOUND, sizeof( SaveTime_t ) );
+     H5Tinsert( memtype, "Date", HOFFSET( SaveTime_t, Date_time), strtype );
+     H5Tinsert( memtype, "Duration [ms]", HOFFSET( SaveTime_t, Elapsed_time), H5T_NATIVE_DOUBLE );
      
      space = H5Screate_simple (1, dims, NULL);
      /* Create the dataset */
-     dset = H5Dcreate ( file_id, "/Test Parameters/Date and Duration", memtype, space, H5P_DEFAULT,
+     dset = H5Dcreate ( hdf5_file, "/Test Parameters/Date and Duration", memtype, space, H5P_DEFAULT,
 			H5P_DEFAULT, H5P_DEFAULT);
      status = H5Dwrite ( dset, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Time );
     
@@ -460,16 +443,14 @@ void HDF5_StoreTime( const int hdf5_file, const HDF5time_t *Time )
 #if _ADWIN_
 void HDF5_StoreADwinData( const int hdf5_file, const double *Array, char **Entry_Names, const int Length )
 {
-     hid_t file_id, group_id;
-     herr_t   status;
+     hid_t   group_id;
+     herr_t  status;
 
-     file_id = (hid_t) hdf5_file;
-
-     group_id = H5Gcreate(file_id, "/ADwin measurements", H5P_DEFAULT,
+     group_id = H5Gcreate( hdf5_file, "/ADwin measurements", H5P_DEFAULT,
 			  H5P_DEFAULT, H5P_DEFAULT);     
      status = H5Gclose(group_id);
 
-     HDF5_AddDoubleArray_AsTable( file_id, "/ADwin measurements/Recorded data", Entry_Names,
+     HDF5_AddDoubleArray_AsTable( hdf5_file, "/ADwin measurements/Recorded data", Entry_Names,
 				  Array, 24, Length );
 }
 
@@ -497,7 +478,7 @@ void ADwin_SaveData_HDF5( const int hdf5_file, const int Num_Steps, const int Nu
 }
 #endif
 
-void HDF5_AddDoubleArray_AsTable( hid_t file_id, const char *Name_path, char **Names, const double *Array, const int Num_param, const int Length )
+void HDF5_AddDoubleArray_AsTable( const hid_t file_id, const char *Name_path, char **Names, const double *Array, const int Num_param, const int Length )
 {
      int      i;
      hid_t    memtype, filetype, space, dset;
@@ -506,42 +487,35 @@ void HDF5_AddDoubleArray_AsTable( hid_t file_id, const char *Name_path, char **N
 
 
      /* Create the compound datatype for memory. */
-     memtype = H5Tcreate (H5T_COMPOUND,
-			  (size_t) Num_param*H5Tget_size(H5T_NATIVE_DOUBLE));
+     memtype = H5Tcreate( H5T_COMPOUND, (size_t) Num_param*H5Tget_size(H5T_NATIVE_DOUBLE) );
      for( i = 0; i < Num_param; i++ ){
-	  status = H5Tinsert (memtype, Names[i],
-			      (size_t) i*H5Tget_size(H5T_NATIVE_DOUBLE),
-			      H5T_NATIVE_DOUBLE);
+	  status = H5Tinsert( memtype, Names[i], (size_t) i*H5Tget_size(H5T_NATIVE_DOUBLE),
+			      H5T_NATIVE_DOUBLE );
      }
     
      /* Create the compound datatype for the file.*/
-     filetype = H5Tcreate (H5T_COMPOUND,
-			   (size_t) Num_param*H5Tget_size(H5T_NATIVE_DOUBLE));
+     filetype = H5Tcreate( H5T_COMPOUND, (size_t) Num_param*H5Tget_size(H5T_NATIVE_DOUBLE) );
      for( i = 0; i < Num_param; i++ ){
-	  status = H5Tinsert (filetype, Names[i],
-			      (size_t) i*H5Tget_size(H5T_NATIVE_DOUBLE),
-			      H5T_NATIVE_DOUBLE);
+	  status = H5Tinsert( filetype, Names[i], (size_t) i*H5Tget_size(H5T_NATIVE_DOUBLE),
+			      H5T_NATIVE_DOUBLE );
      }
  
-     /* 
-      * Create dataspace.  Setting maximum size to NULL sets the maximum
-      * size to be the current size.
-      */    
+     /* Create dataspace.  Setting maximum size to NULL sets the maximum size to be the current size. */    
      space = H5Screate_simple (1, dims, NULL);
 
      /* Create the dataset and write the compound data to it. */
-     dset = H5Dcreate ( file_id, Name_path, filetype, space, H5P_DEFAULT,
-			H5P_DEFAULT, H5P_DEFAULT);
-     status = H5Dwrite (dset, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Array);
+     dset = H5Dcreate( file_id, Name_path, filetype, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT );
+     status = H5Dwrite( dset, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Array );
 
      /* Close and release resources. */
      status = H5Tclose( filetype );
      status = H5Tclose( memtype);
-     status = H5Dclose (dset);
-     status = H5Sclose (space);
+     status = H5Dclose( dset );
+     status = H5Sclose( space );
 }
 
-void HDF5_AddIntArray_AsTable( hid_t file_id, const char *Name_path, char **Names, const int *Array, const int Num_param )
+void HDF5_AddIntArray_AsTable( const hid_t file_id, const char *Name_path, char **Names, const int *Array,
+			       const int Num_param )
 {
      int      i;
      hid_t    memtype, filetype, space, dset;
@@ -550,71 +524,54 @@ void HDF5_AddIntArray_AsTable( hid_t file_id, const char *Name_path, char **Name
 
 
      /* Create the compound datatype for memory. */
-     memtype = H5Tcreate (H5T_COMPOUND,
-			  (size_t) Num_param*H5Tget_size(H5T_NATIVE_INT));
+     memtype = H5Tcreate( H5T_COMPOUND, (size_t) Num_param*H5Tget_size(H5T_NATIVE_INT) );
      for( i = 0; i < Num_param; i++ ){
-	  status = H5Tinsert (memtype, Names[i],
-			      (size_t) i*H5Tget_size(H5T_NATIVE_INT),
-			      H5T_NATIVE_INT);
+	  status = H5Tinsert( memtype, Names[i], (size_t) i*H5Tget_size(H5T_NATIVE_INT),
+			      H5T_NATIVE_INT );
      }
 
     
      /* Create the compound datatype for the file.*/
-     filetype = H5Tcreate (H5T_COMPOUND,
-			   (size_t) Num_param*H5Tget_size(H5T_NATIVE_INT));
+     filetype = H5Tcreate( H5T_COMPOUND, (size_t) Num_param*H5Tget_size(H5T_NATIVE_INT) );
      for( i = 0; i < Num_param; i++ ){
-	  status = H5Tinsert (filetype, Names[i],
-			      (size_t) i*H5Tget_size(H5T_NATIVE_INT),
+	  status = H5Tinsert( filetype, Names[i], (size_t) i*H5Tget_size(H5T_NATIVE_INT),
 			      H5T_NATIVE_INT);
      }
  
-     /* 
-      * Create dataspace.  Setting maximum size to NULL sets the maximum
-      * size to be the current size.
-      */    
+     /* Create dataspace. Setting maximum size to NULL sets the maximum size to be the current size. */    
      space = H5Screate_simple (1, dims, NULL);
 
      /* Create the dataset and write the compound data to it. */
-     dset = H5Dcreate ( file_id, Name_path, filetype, space, H5P_DEFAULT,
-			H5P_DEFAULT, H5P_DEFAULT);
-     status = H5Dwrite (dset, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Array);
+     dset = H5Dcreate( file_id, Name_path, filetype, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+     status = H5Dwrite( dset, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Array );
 
      /* Close and release resources. */
      status = H5Dclose (dset);
      status = H5Sclose (space);
 }
 
-void HDF5_Create_Dataset( hid_t file_id, const char *Path_name, const int NStep, const int Order )
+void HDF5_Create_Dataset( const hid_t file_id, const char *Path_name, const int NStep, const int Order )
 {
      hsize_t dims[2] = {1, (hsize_t) Order };
      hsize_t max_dims[2] = {(hsize_t) NStep, (hsize_t) Order };
 
      hid_t cparms, dataspace_id, dataset_id;
      herr_t status;
-	
-     //  unsigned szip_options_mask;
-     // unsigned szip_pixels_per_block;
 
      dataspace_id = H5Screate_simple( 2, dims, max_dims );
 
      cparms = H5Pcreate( H5P_DATASET_CREATE);
      status = H5Pset_chunk( cparms, 2, dims );
 
-     //status = H5Pset_deflate (cparms, 6); 
-
-     //szip_options_mask = H5_SZIP_NN_OPTION_MASK;
-     //szip_pixels_per_block = 16;
-     //status = H5Pset_szip (cparms, szip_options_mask, szip_pixels_per_block);
-
-     dataset_id = H5Dcreate( file_id, Path_name, H5T_NATIVE_DOUBLE, dataspace_id,
-			      H5P_DEFAULT, cparms, H5P_DEFAULT);
+     dataset_id = H5Dcreate( file_id, Path_name, H5T_NATIVE_DOUBLE, dataspace_id, H5P_DEFAULT, cparms, H5P_DEFAULT);
 
      status = H5Pclose( cparms );
      status = H5Dclose( dataset_id );
      status = H5Sclose( dataspace_id );
 }
 
-void HDF5_AddResults_to_Dataset( hid_t file_id, const char *Path_name, MatrixVector_t *const Data, const int Step_count )
+void HDF5_AddResults_to_Dataset( const hid_t file_id, const char *Path_name, const MatrixVector_t *const Data,
+				 const int Step_count )
 {
      hid_t   dataset_id, filespace_id, memspace_id;
      herr_t  status;
