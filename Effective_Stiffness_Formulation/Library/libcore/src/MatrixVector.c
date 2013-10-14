@@ -31,7 +31,7 @@ void MatrixVector_Create( const int Rows, const int Cols, MatrixVector_t *const 
      MatVec->Array = (double *) calloc( (size_t) MatVec->Rows*(size_t) MatVec->Cols, sizeof(double));
      if ( MatVec->Array == NULL ){
 	  Print_Header( ERROR );
-	  fprintf( stderr, "MatrixVector_Create: Out of memory.\n" );
+	  fprintf( stderr, "MatrixVector_Create(): Out of memory.\n" );
 	  exit( EXIT_FAILURE );
      }
 }
