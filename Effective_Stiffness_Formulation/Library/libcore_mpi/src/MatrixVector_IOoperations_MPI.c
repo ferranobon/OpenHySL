@@ -26,10 +26,10 @@ void PMatrixVector_FromFile( const char *Filename, PMatrixVector_t *const Mat )
      
      char trans = 'N';
      int izero = 0, ione = 1;
-     double done = 1.0, dzero = 0.0;
+     HYSL_FLOAT done = 1.0, dzero = 0.0;
      int lld, info;
      
-     double *LocalMatrix;
+     HYSL_FLOAT *LocalMatrix;
      int descLocal[9];
      
      FILE *InFile;
@@ -49,7 +49,7 @@ void PMatrixVector_FromFile( const char *Filename, PMatrixVector_t *const Mat )
      }
      
      if ( myrow == 0 && mycol == 0 ){
-	  LocalMatrix = calloc( (size_t) Mat->GlobalSize.Row * (size_t)Mat->GlobalSize.Col, sizeof(double) );
+	  LocalMatrix = calloc( (size_t) Mat->GlobalSize.Row * (size_t)Mat->GlobalSize.Col, sizeof(HYSL_FLOAT) );
 	  if( LocalMatrix == NULL ){
 	       Print_Header( ERROR );
 	       fprintf( stderr, "PMatrixVector_FromFile: Out of memory.\n");
@@ -73,7 +73,7 @@ void PMatrixVector_FromFile( const char *Filename, PMatrixVector_t *const Mat )
 	  LocalMatrix = NULL;
      }
      
-     pdgeadd_( &trans, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &done, LocalMatrix, &ione, &ione,
+     hysl_pgeadd( &trans, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &done, LocalMatrix, &ione, &ione,
 	       descLocal, &dzero, Mat->Array, &ione, &ione, Mat->Desc );
      
      if ( myrow == 0 && mycol == 0 ){
@@ -88,7 +88,7 @@ void PMatrixVector_FromFile_MM( const char *Filename, PMatrixVector_t *const Mat
 {
 
      int i, j, innz;				/* Counters */
-     double Value;
+     HYSL_FLOAT Value;
      int myrow, mycol;		/* Grid variables */
      int nprow, npcol;
      
@@ -97,12 +97,12 @@ void PMatrixVector_FromFile_MM( const char *Filename, PMatrixVector_t *const Mat
 
      char trans = 'N';
      int izero = 0, ione = 1;
-     double done = 1.0, dzero = 0.0;
+     HYSL_FLOAT done = 1.0, dzero = 0.0;
      int lld, info;
 
      int Rows, Cols, nnz;
      
-     double *LocalMatrix;
+     HYSL_FLOAT *LocalMatrix;
      int descLocal[9];
      
      FILE *InFile;
@@ -122,7 +122,7 @@ void PMatrixVector_FromFile_MM( const char *Filename, PMatrixVector_t *const Mat
      }
      
      if ( myrow == 0 && mycol == 0 ){
-	  LocalMatrix = calloc( (size_t) Mat->GlobalSize.Row * (size_t)Mat->GlobalSize.Col, sizeof(double) );
+	  LocalMatrix = calloc( (size_t) Mat->GlobalSize.Row * (size_t)Mat->GlobalSize.Col, sizeof(HYSL_FLOAT) );
 	  if( LocalMatrix == NULL ){
 	       Print_Header( ERROR );
 	       fprintf( stderr, "PMatrixVector_FromFile_MM: Out of memory.\n");
@@ -181,7 +181,7 @@ void PMatrixVector_FromFile_MM( const char *Filename, PMatrixVector_t *const Mat
 	  LocalMatrix = NULL;
      }
      
-     pdgeadd_( &trans, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &done, LocalMatrix, &ione, &ione, descLocal,
+     hysl_pgeadd( &trans, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &done, LocalMatrix, &ione, &ione, descLocal,
 	       &dzero, Mat->Array, &ione, &ione, Mat->Desc );
      
      if ( myrow == 0 && mycol == 0 ){
@@ -201,10 +201,10 @@ void PMatrixVector_ToFile( PMatrixVector_t *const Mat, const char *Filename )
 
      char trans = 'N';
      int izero = 0, ione = 1;
-     double done = 1.0, dzero = 0.0;
+     HYSL_FLOAT done = 1.0, dzero = 0.0;
      int lld, info;
 
-     double *LocalMatrix;
+     HYSL_FLOAT *LocalMatrix;
      int descLocal[9];
 
      FILE *OutFile;
@@ -225,7 +225,7 @@ void PMatrixVector_ToFile( PMatrixVector_t *const Mat, const char *Filename )
      }
 
      if ( myrow == 0 && mycol == 0 ){
-	  LocalMatrix = calloc( (size_t) (Mat->GlobalSize.Row*Mat->GlobalSize.Col), sizeof(double) );
+	  LocalMatrix = calloc( (size_t) (Mat->GlobalSize.Row*Mat->GlobalSize.Col), sizeof(HYSL_FLOAT) );
 	  if( LocalMatrix == NULL ){
 	       Print_Header( ERROR );
 	       fprintf( stderr, "PMatrixVector_ToFile: Out of memory.\n");
@@ -235,7 +235,7 @@ void PMatrixVector_ToFile( PMatrixVector_t *const Mat, const char *Filename )
 	  LocalMatrix = NULL;
      }
 
-     pdgeadd_( &trans, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &done, Mat->Array, &ione, &ione, Mat->Desc,
+     hysl_pgeadd( &trans, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &done, Mat->Array, &ione, &ione, Mat->Desc,
 	       &dzero, LocalMatrix, &ione, &ione, descLocal );
 
      if ( myrow == 0 && mycol == 0 ){

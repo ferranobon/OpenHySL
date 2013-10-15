@@ -22,6 +22,8 @@
 #include "MatrixVector_Sp.h"
 #include "MatrixVector_MPI.h"
 
+#include "Definitions.h"
+
 /**
  * \brief Calculates the input load as absolute values. General storage version.
  *
@@ -488,7 +490,7 @@ void InputLoad_Generate_LoadVectorForm_MPI( int *DOF, PMatrixVector_t *const Loa
  *
  * \sa MatrixVector_t and InputLoad_Generate_LoadVectorForm().
  */
-void InputLoad_Apply_LoadVectorForm( const MatrixVector_t *const LoadForm, const double Value,
+void InputLoad_Apply_LoadVectorForm( const MatrixVector_t *const LoadForm, const HYSL_FLOAT Value,
 				     MatrixVector_t *const LoadVector );
 
 /**
@@ -530,7 +532,7 @@ void InputLoad_Apply_LoadVectorForm( const MatrixVector_t *const LoadForm, const
  *
  * \sa PMatrixVector_t and InputLoad_Generate_LoadVectorForm_MPI().
  */
-void InputLoad_Apply_LoadVectorForm_MPI( PMatrixVector_t *const LoadForm, const double Value,
+void InputLoad_Apply_LoadVectorForm_MPI( PMatrixVector_t *const LoadForm, const HYSL_FLOAT Value,
 					 PMatrixVector_t *const LoadVector );
 
 #endif /* INPUT_LOAD_H_ */

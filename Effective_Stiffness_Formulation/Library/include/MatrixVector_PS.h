@@ -14,6 +14,7 @@
 #define MATRIXVECTOR_PS_H_
 
 #include "MatrixVector.h"
+#include "Definitions.h"
 
 /**
  * \brief Adds three matrices of the same dimensions.
@@ -73,8 +74,8 @@ void MatrixVector_Add3Mat_PS( const MatrixVector_t *const MatA, const MatrixVect
  *
  * \post
  * - <tt>Matrix.Rows = Rows</tt> and <tt>Matrix.Cols = Cols</tt>.
- * - The length of the allocated double array is set to \f$L = Rows*Cols\f$ and all its values initialised to
- *   0.0.
+ * - The length of the allocated double/single precision array is set to \f$L = Rows*Cols\f$ and all its
+ * values initialised to 0.0.
  * - The memory should be deallocated through MatrixVector_Destroy_PS().
  *
  * \sa MatrixVector_t.
@@ -165,7 +166,7 @@ void MatrixVector_FromFile_MM_PS( const char *Filename, MatrixVector_t *const Ma
  * \post One of the supported operations is performed. If the operation is not supported, the routine calls
  * <tt>exit( EXIT_FAILURE )</tt>.
  */
-void MatrixVector_ModifyElement_PS( const int RowIndex, const int ColIndex, const double Alpha,
+void MatrixVector_ModifyElement_PS( const int RowIndex, const int ColIndex, const HYSL_FLOAT Alpha,
 				 const char *Operation, MatrixVector_t *const Matrix );
 
 /**
@@ -183,7 +184,7 @@ void MatrixVector_ModifyElement_PS( const int RowIndex, const int ColIndex, cons
  *
  * \post All the elements in \c Matrix.Array are set to \c Value.
  */
-void MatrixVector_Set2Value_PS( const double Value, MatrixVector_t *const Matrix );
+void MatrixVector_Set2Value_PS( const HYSL_FLOAT Value, MatrixVector_t *const Matrix );
 
 /**
  * \brief Writes a matrix in packed storage and with the upper part referenced to an ASCII file in a full

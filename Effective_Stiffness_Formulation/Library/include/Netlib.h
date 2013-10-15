@@ -19,27 +19,11 @@
 #include "Scalapack_Aux.h"
 #endif
 
-#if _MKL_
-#else
-#define dscal dscal_
-#define dcopy dcopy_
-#define daxpy daxpy_
-#define dgemv dgemv_
-#define dsymv dsymv_
-#define dspmv dspmv_
-
-#define pdcopy pdcopy_
-#define pdaxpy pdaxpy_
-#define pdlacpy pdlacpy_
-#define pdlascl pdlascl_
-#define pdsymv pdsymv_
-#endif
-
 /* BLAS routines */
 /**
  * \brief \f$\vec x \leftarrow \alpha \vec x\f$
  *
- * \c dscal() computes the product of a vector by a scalar \f$\vec x \leftarrow \alpha \vec x\f$. Uses
+ * \c dscal_() computes the product of a vector by a scalar \f$\vec x \leftarrow \alpha \vec x\f$. Uses
  * unrolled loops for increment equal to one.
  *
  * \f[\vec x \leftarrow \alpha \vec x\f]
@@ -57,12 +41,12 @@
  *
  * For a complete documentation the reader should refer to \cite BLAS_webpage.
  */
-void dscal( int *n, double *alpha, double *x, int *incx );
+void dscal_( int *n, double *alpha, double *x, int *incx );
 
 /**
  * \brief \f$\vec y \leftarrow \vec x\f$
  *
- * \c dcopy() copies a vector,\f$\vec x\f$, to another vector, \f$\vec y\f$ \f$\vec y \leftarrow x\f$. Uses
+ * \c dcopy_() copies a vector,\f$\vec x\f$, to another vector, \f$\vec y\f$ \f$\vec y \leftarrow x\f$. Uses
  * unrolled loops for increments equal to one.
  *
  * \f[\vec y \leftarrow \vec x\f]
@@ -79,12 +63,12 @@ void dscal( int *n, double *alpha, double *x, int *incx );
  *
  * For a complete documentation the reader should refer to \cite BLAS_webpage.
  */
-void dcopy( int *n, double *x, int *incx, double *y, int *incy );
+void dcopy_( int *n, double *x, int *incx, double *y, int *incy );
 
 /**
  * \brief \f$\vec y \leftarrow \alpha \vec x + \vec y\f$
  *
- * \c daxpy() computes a vector-scalar product, \f$\alpha \vec x\f$ and adds the result to another vector
+ * \c daxpy_() computes a vector-scalar product, \f$\alpha \vec x\f$ and adds the result to another vector
  * \f$\vec y\f$. Uses unrolled loops for increments equal to one.
  *
  * \f[\vec y \leftarrow \alpha \vec x + \vec y \f]
@@ -104,12 +88,12 @@ void dcopy( int *n, double *x, int *incx, double *y, int *incy );
  *
  * For a complete documentation the reader should refer to \cite BLAS_webpage.
  */
-void daxpy( int *n, double *alpha, double *x, int *incx, double *y, int *incy );
+void daxpy_( int *n, double *alpha, double *x, int *incx, double *y, int *incy );
 
 /**
  * \brief \f$\vec y \leftarrow \alpha \mathcal A\vec x + \beta \vec y\f$.
  *
- * \c dsymv() Performs the matrix-vector operation:
+ * \c dsymv_() Performs the matrix-vector operation:
  *
  * \f[\vec y \leftarrow \alpha \mathcal A\vec x + \beta \vec y \f]
  *
@@ -144,14 +128,14 @@ void daxpy( int *n, double *alpha, double *x, int *incx, double *y, int *incy );
  *
  * For a complete documentation the reader should refer to \cite BLAS_webpage.
  */
-void dsymv( char *uplo, int *n, double *alpha, double *a, int *lda, double *x, int *incx, double *beta,
+void dsymv_( char *uplo, int *n, double *alpha, double *a, int *lda, double *x, int *incx, double *beta,
 	    double *y, int *incy );
 
 /**
  * \brief \f$\vec y \leftarrow \alpha \mathcal A\vec x + \beta \vec y\f$ or \f$\vec y \leftarrow \alpha
  * \mathcal A^T\vec x + \beta \vec y\f$.
  *
- * \c dgemv()  performs one of the matrix-vector operations
+ * \c dgemv_()  performs one of the matrix-vector operations
  * - \f$\vec y \leftarrow \alpha \mathcal A\vec x + \beta \vec y\f$,   or
  * - \f$\vec y \leftarrow \alpha \mathcal A^T\vec x + \beta \vec y\f$.
  *
@@ -396,7 +380,7 @@ void dpptri_( char *uplo, int *n, double *ap, int *info );
  * \brief Scales an \em n-element distributed vector \f$sub(\vec x)\f$ by a scalar \f$\alpha\f$ (PBLAS
  * routine).
  *
- * pdscal() scales an \em n-element distributed vector \f$sub(\vec x)\f$ by a scalar \f$\alpha\f$, where
+ * pdscal_() scales an \em n-element distributed vector \f$sub(\vec x)\f$ by a scalar \f$\alpha\f$, where
  * \f$sub(\vec x)\f$ denotes:
  * - \f$x(ix,jx:jx+n-1)\f$ if \c incx = \f$m_x\f$.
  * - \f$x(ix:ix+n-1,jx)\f$ if \c incx = 1 and \c incx <> \f$m_x\f$.
@@ -417,12 +401,12 @@ void dpptri_( char *uplo, int *n, double *ap, int *info );
  *
  * For a complete documentation the reader should refer to \cite PBLAS_webpage \cite SLUG.
  */
-void pdscal( int *n, double *alpha, double *x, int *ix, int *jx, int *descx, int *incx );
+void pdscal_( int *n, double *alpha, double *x, int *ix, int *jx, int *descx, int *incx );
 
 /**
  * \brief Copies one distributed vector into another (PBLAS routine).
  *
- * pdcopy() copies one distributed vector into another \f$sub(\vec y) = sub(\vec x)\f$, where:
+ * pdcopy_() copies one distributed vector into another \f$sub(\vec y) = sub(\vec x)\f$, where:
  * - \f$sub(\vec x)\f$:
  *   - \f$x(ix,jx:jx+n-1)\f$ if \c incx = \f$m_x\f$.
  *   - \f$x(ix:ix+n-1,jx)\f$ if \c incx = 1 and \c incx <> \f$m_x\f$.
@@ -453,12 +437,12 @@ void pdscal( int *n, double *alpha, double *x, int *ix, int *jx, int *descx, int
  * 
  * For a complete documentation the reader should refer to \cite PBLAS_webpage \cite SLUG.
  */
-void pdcopy(int *n, double *x, int *ix, int *jx, int *descx, int *incx, double *y, int *iy, int *jy, int *descy, int *incy );
+void pdcopy_(int *n, double *x, int *ix, int *jx, int *descx, int *incx, double *y, int *iy, int *jy, int *descy, int *incy );
 
 /**
  * \brief Adds one distributed vector to another (PBLAS routine).
  *
- * pdaxpy() adds one distributed vector to another \f$sub(\vec y) = sub(\vec y) + \alpha \cdot sub(\vec x)\f$, where
+ * pdaxpy_() adds one distributed vector to another \f$sub(\vec y) = sub(\vec y) + \alpha \cdot sub(\vec x)\f$, where
  * - \f$sub(\vec x)\f$:
  *   - \f$x(ix,jx:jx+n-1)\f$ if \c incx = \f$m_x\f$.
  *   - \f$x(ix:ix+n-1,jx)\f$ if \c incx = 1 and \c incx <> \f$m_x\f$.
@@ -490,7 +474,7 @@ void pdcopy(int *n, double *x, int *ix, int *jx, int *descx, int *incx, double *
  *
  * For a complete documentation the reader should refer to \cite PBLAS_webpage \cite SLUG.
  */
-void pdaxpy( int *n, double *alpha, double *x, int *ix, int *jx, int *descx, int *incx, double *y, int *iy,
+void pdaxpy_( int *n, double *alpha, double *x, int *ix, int *jx, int *descx, int *incx, double *y, int *iy,
 	     int *jy, int *descy, int *incy);
 
 /**
@@ -675,7 +659,7 @@ void pdgemv_( char *trans, int *m, int *n, double *alpha, double *a, int *ia, in
 /**
  * \brief Performs a distributed matrix-vector operation (symmetric, PBLAS routine).
  *
- * pdsymv() performs the distributed matrix-vector operation \f$sub(\vec y) = \alpha \cdot sub(\mathcal A)*sub(\vec
+ * pdsymv_() performs the distributed matrix-vector operation \f$sub(\vec y) = \alpha \cdot sub(\mathcal A)*sub(\vec
  * x) + \beta \cdot sub(\vec y)\f$
  *
  * where:
@@ -725,7 +709,7 @@ void pdgemv_( char *trans, int *m, int *n, double *alpha, double *a, int *ia, in
  *
  * For a complete documentation the reader should refer to \cite PBLAS_webpage \cite SLUG.
  */
-void pdsymv( char *uplo, int *n, double *alpha, double *a, int *ia, int *ja, int *desca, double *x, int *ix,
+void pdsymv_( char *uplo, int *n, double *alpha, double *a, int *ia, int *ja, int *desca, double *x, int *ix,
 	     int *jx, int *descx, int *incx, double *beta, double *y, int *iy, int *jy, int *descy, int *incy );
 
 /* ScaLAPACK routines */

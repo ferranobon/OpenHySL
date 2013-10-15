@@ -6,6 +6,7 @@
 #include "MatrixVector_MPI.h"
 #include "Print_Messages.h"
 #include "Auxiliary_Math.h"
+#include "Definitions.h"
 
 #if _MKL_
 #include "mkl_blas.h"
@@ -24,24 +25,24 @@ void PMatrixVector_Add3Mat( PMatrixVector_t *const MatA, PMatrixVector_t *const 
 
      char uplo, trans;
      int ione;
-     double ScalarA, ScalarB;
+     HYSL_FLOAT ScalarA, ScalarB;
 
      ione = 1;
      trans = 'N'; /* The operation will not use the transpose matrix */
      uplo = 'L';  /* The lower part of the matrix will be used; the upper part will strictly not be
 		   * referenced */
      /* ScaLAPACK: Perform Y = A (locally. There is no communication) */
-     pdlacpy( &uplo, &MatY->GlobalSize.Row, &MatY->GlobalSize.Col, MatA->Array, &ione, &ione,
+     hysl_placpy( &uplo, &MatY->GlobalSize.Row, &MatY->GlobalSize.Col, MatA->Array, &ione, &ione,
 	      MatA->Desc, MatY->Array, &ione, &ione, MatY->Desc );
 
      /* ScaLAPACK: Perform Y = beta*B + alpha*A = beta*B + alpha*Y */
      ScalarA = Const.Alpha; ScalarB = Const.Beta;
-     pdtradd_( &uplo, &trans, &MatY->GlobalSize.Row, &MatY->GlobalSize.Col, &ScalarB, MatB->Array,
+     hysl_ptradd( &uplo, &trans, &MatY->GlobalSize.Row, &MatY->GlobalSize.Col, &ScalarB, MatB->Array,
 	       &ione, &ione, MatB->Desc, &ScalarA, MatY->Array, &ione, &ione, MatY->Desc );
 
      /* ScaLAPACK: Perform Y = gamma*C + beta*B = gamma*C + 1.0*Y */
      ScalarA = 1.0; ScalarB = Const.Gamma;
-     pdtradd_( &uplo, &trans, &MatY->GlobalSize.Row, &MatY->GlobalSize.Col, &ScalarB, MatC->Array,
+     hysl_ptradd( &uplo, &trans, &MatY->GlobalSize.Row, &MatY->GlobalSize.Col, &ScalarB, MatC->Array,
 	       &ione, &ione, MatC->Desc, &ScalarA, MatY->Array, &ione, &ione, MatY->Desc );
 }
 
@@ -79,8 +80,8 @@ void PMatrixVector_Create( int icntxt, const int Rows, const int Cols, const int
      }
 	
      /* Allocate memory for the local array */
-     MatVec->Array = (double *) calloc( (size_t) MatVec->LocalSize.Row*(size_t) MatVec->LocalSize.Col,
-					sizeof(double) );
+     MatVec->Array = (HYSL_FLOAT *) calloc( (size_t) MatVec->LocalSize.Row*(size_t) MatVec->LocalSize.Col,
+					sizeof(HYSL_FLOAT) );
      if ( MatVec->Array == NULL ){
 	  Print_Header( ERROR );
 	  fprintf( stderr, "PMatrixVector_Create: Out of memory.\n" );
@@ -102,7 +103,7 @@ void PMatrixVector_Destroy( PMatrixVector_t *const MatVec )
      free( MatVec->Array );
 }
 
-void PMatrixVector_ModifyElement( int GRowIndex, int GColIndex, const double Alpha, const char *Operation,
+void PMatrixVector_ModifyElement( int GRowIndex, int GColIndex, const HYSL_FLOAT Alpha, const char *Operation,
 				  PMatrixVector_t *const MatVec )
 {
 
@@ -153,17 +154,17 @@ void PMatrixVector_ModifyElement( int GRowIndex, int GColIndex, const double Alp
 
 }
 
-void PMatrixVector_Set2Value( const double Value, PMatrixVector_t *const MatVec )
+void PMatrixVector_Set2Value( const HYSL_FLOAT Value, PMatrixVector_t *const MatVec )
 {
 
      int incx, incy;
      int Length;
-     double Val;
+     HYSL_FLOAT Val;
 
      incx = 0; incy = 1;
      
      Length = MatVec->LocalSize.Row*MatVec->LocalSize.Col;
      Val = Value;
      
-     dcopy( &Length, &Val, &incx, MatVec->Array, &incy );
+     hysl_copy( &Length, &Val, &incx, MatVec->Array, &incy );
 }

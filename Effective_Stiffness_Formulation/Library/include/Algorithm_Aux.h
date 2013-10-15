@@ -20,13 +20,14 @@
 #include "Rayleigh.h"           /* For Rayleigh_t */
 #include "Error_Compensation.h" /* For PID_t */
 #include "Conf_Parser.h"        /* For ConfFile_t */
+#include "Definitions.h"
 
 #define MPI_TIME_SLENGTH 30
 
 typedef struct SaveTime {
      time_t Date_start;
      char *Date_time;
-     double Elapsed_time;
+     HYSL_FLOAT Elapsed_time;
      struct timeval Start;
      struct timeval End;
 } SaveTime_t;
@@ -35,9 +36,9 @@ typedef struct SaveTime_MPI {
      time_t Date_start;
      char Date_time[MPI_TIME_SLENGTH]; /* Fixed length because HDF5 does not support variable types in mpi
 					  mode */
-     double Elapsed_time;
-     double Start;
-     double End;
+     HYSL_FLOAT Elapsed_time;
+     HYSL_FLOAT Start;
+     HYSL_FLOAT End;
 } SaveTime_MPI_t;
 
 /**
@@ -47,8 +48,8 @@ typedef struct SaveTime_MPI {
  * Newmark-\f$beta\f$ method: \f$\gamma\f$ and \f$\beta\f$.
  */
 typedef struct TIntegration{
-     double Gamma; /*!< \brief First constant.*/
-     double Beta;  /*!< \brief Second constant.*/
+     HYSL_FLOAT Gamma; /*!< \brief First constant.*/
+     HYSL_FLOAT Beta;  /*!< \brief Second constant.*/
 } TIntegration_t;
 
 /**
@@ -100,10 +101,10 @@ typedef struct AlgConst{
      int *ExcitedDOF;         /*!< \brief Integer string containing wich elements of the external load will be
 			       * applied.  \sa AlgorithM_GetExcitedDOF().
 			       */
-     double Delta_t;          /*!< \brief Time increment \f$\Delta t\f$ */
-     double DeltaT_Sub;       /*!< \brief Time increment for the sub-stepping process */
+     HYSL_FLOAT Delta_t;          /*!< \brief Time increment \f$\Delta t\f$ */
+     HYSL_FLOAT DeltaT_Sub;       /*!< \brief Time increment for the sub-stepping process */
 
-     double Scale_Factor;     /*!< \brief Scale factor for the time history of the input load */
+     HYSL_FLOAT Scale_Factor;     /*!< \brief Scale factor for the time history of the input load */
 
      Rayleigh_t Rayleigh;     /*!< \brief Stores Rayleigh Constants alpha (\c Rayleigh.Alpha or
 			       * \f$\alpha_R\f$) and beta (\c Rayleigh.Beta or \f$\beta_R\f$)
@@ -116,21 +117,21 @@ typedef struct AlgConst{
 			       */
 
      /* Constants for Step ending */
-     double a0;               /*!< \brief \f$a_0 = \frac{1}{\beta_N\Delta t^2}\f$ */
-     double a1;               /*!< \brief \f$a_1 = \frac{\gamma_N}{\beta_N\Delta t}\f$ */
-     double a2;               /*!< \brief \f$a_2 = \frac{1}{\beta_N\Delta t}\f$ */
-     double a3;               /*!< \brief \f$a_3 = \frac{1}{2\beta_N\Delta t} - 1\f$ */
-     double a4;               /*!< \brief \f$a_4 = \frac{\gamma_N}{\beta_N} - 1\f$ */
-     double a5;               /*!< \brief \f$a_5 =
+     HYSL_FLOAT a0;               /*!< \brief \f$a_0 = \frac{1}{\beta_N\Delta t^2}\f$ */
+     HYSL_FLOAT a1;               /*!< \brief \f$a_1 = \frac{\gamma_N}{\beta_N\Delta t}\f$ */
+     HYSL_FLOAT a2;               /*!< \brief \f$a_2 = \frac{1}{\beta_N\Delta t}\f$ */
+     HYSL_FLOAT a3;               /*!< \brief \f$a_3 = \frac{1}{2\beta_N\Delta t} - 1\f$ */
+     HYSL_FLOAT a4;               /*!< \brief \f$a_4 = \frac{\gamma_N}{\beta_N} - 1\f$ */
+     HYSL_FLOAT a5;               /*!< \brief \f$a_5 =
 			       * \Delta_t\biggl(\frac{\gamma_N}{2\beta_N} - 1\biggr)\f$ */
-     double a6;               /*!< \brief \f$a_6= \frac{1 - \gamma_N}{\Delta t}\f$ */
-     double a7;               /*!< \brief \f$a_7 = \gamma_N\Delta t\f$ */
+     HYSL_FLOAT a6;               /*!< \brief \f$a_6= \frac{1 - \gamma_N}{\Delta t}\f$ */
+     HYSL_FLOAT a7;               /*!< \brief \f$a_7 = \gamma_N\Delta t\f$ */
 
-     double a8;               /*!< \brief \f$a_8 = \beta_N\Delta t^2\f$ */
+     HYSL_FLOAT a8;               /*!< \brief \f$a_8 = \beta_N\Delta t^2\f$ */
 
-     double a9;               /*!< \brief \f$a_9 = \Delta t\f$ */
+     HYSL_FLOAT a9;               /*!< \brief \f$a_9 = \Delta t\f$ */
 
-     double a10;              /*!< \brief \f$a_{10} = \biggl(\frac{1}{2} - \beta_N\biggr)\Delta t^2\f$ */
+     HYSL_FLOAT a10;              /*!< \brief \f$a_{10} = \biggl(\frac{1}{2} - \beta_N\biggr)\Delta t^2\f$ */
 
      /* Files where data are located */
      char* FileM;            /*!< \brief Stores the name of the file that contains the Mass Matrix */
@@ -319,8 +320,8 @@ int* Algorithm_GetExcitedDOF( const ConfFile_t *const Config, const char *Expres
  * \sa Algorithm_Initnit().
  */
 void Algorithm_ReadDataEarthquake_AbsValues( const unsigned int NumSteps, const char *Filename,
-					     const double Scale_Factor, double *const Velocity,
-					     double *const Displacement );
+					     const HYSL_FLOAT Scale_Factor, HYSL_FLOAT *const Velocity,
+					     HYSL_FLOAT *const Displacement );
 
 /**
  * \brief Reads the accelerations of an earthquake from a file.
@@ -351,7 +352,7 @@ void Algorithm_ReadDataEarthquake_AbsValues( const unsigned int NumSteps, const 
  * \sa Algorithm_Init().
  */
 void Algorithm_ReadDataEarthquake_RelValues( const unsigned int NumSteps, const char *Filename,
-					     const double Scale_Factor, double *const Acceleration );
+					     const HYSL_FLOAT Scale_Factor, HYSL_FLOAT *const Acceleration );
 
 /**
  * \brief Prints a help text with the different options available when launching the program.

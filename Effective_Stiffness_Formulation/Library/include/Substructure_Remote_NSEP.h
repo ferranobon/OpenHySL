@@ -23,6 +23,7 @@
 #define SUBSTRUCTURE_REMOTE_NSEP_H
 
 #include "Substructure_Remote.h"
+#include "Definitions.h"
 
 #define MAXBUFLEN_NSEP 1000 /*!< \brief Maximum size of the buffer used in sending/receiving messages between the
 			     * PNSE server and the CGM */
@@ -181,8 +182,8 @@
  *
  * \sa Remote_t.
  */
-void Substructure_Remote_NSEP( const Remote_t *const Remote, const int WhatToDo, const double Time,
-			       const unsigned int Size, const double *const Data_To_Send, double *const Data_To_Receive );
+void Substructure_Remote_NSEP( const Remote_t *const Remote, const int WhatToDo, const HYSL_FLOAT Time,
+			       const unsigned int Size, const HYSL_FLOAT *const Data_To_Send, HYSL_FLOAT *const Data_To_Receive );
 
 /**
  * \brief Login to the server in order to proceed with the test.

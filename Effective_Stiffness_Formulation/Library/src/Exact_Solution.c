@@ -14,6 +14,8 @@
 
 #include "HDF5_Operations.h"
 
+#include "Definitions.h"
+
 #if _MKL_
 #include "mkl_blas.h"
 #else
@@ -40,7 +42,7 @@ int main( int argc, char **argv )
 
      MatrixVector_t LoadVectorForm, Acc;
 
-     double *AccAll;
+     HYSL_FLOAT *AccAll;
 
      SaveTime_t     Time;
      /* Options */
@@ -86,7 +88,7 @@ int main( int argc, char **argv )
      Algorithm_Init( FileConf, &InitCnt );
 
      /* Allocate memory for saving the acceleration (input files) that will be used during the test */
-     AccAll = (double *) calloc( (size_t) InitCnt.NStep, sizeof(double) );
+     AccAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
 
      /* Read the matrices */
      MatrixVector_Create( InitCnt.Order, InitCnt.Order, &Mass );
@@ -163,15 +165,15 @@ int main( int argc, char **argv )
 	  HDF5_Store_TimeHistoryData( hdf5_file, &End_Acc, &End_Vel, &End_Disp, NULL, NULL, (int) istep, &InitCnt );
 #endif
 	  /* Backup vectors */
-	  dcopy( &End_Vel.Rows, End_Vel.Array, &incx, Init_Vel.Array, &incy );
-	  dcopy( &End_Disp.Rows, End_Disp.Array, &incx, Init_Disp.Array, &incy );
+	  hysl_copy( &End_Vel.Rows, End_Vel.Array, &incx, Init_Vel.Array, &incy );
+	  hysl_copy( &End_Disp.Rows, End_Disp.Array, &incx, Init_Disp.Array, &incy );
 
 	  istep = istep + 1;
      }
 
      gettimeofday( &Time.End, NULL );
-     Time.Elapsed_time = (double) (Time.End.tv_sec - Time.Start.tv_sec)*1000.0;
-     Time.Elapsed_time += (double) (Time.End.tv_usec - Time.Start.tv_usec)/1000.0;
+     Time.Elapsed_time = (HYSL_FLOAT) (Time.End.tv_sec - Time.Start.tv_sec)*1000.0;
+     Time.Elapsed_time += (HYSL_FLOAT) (Time.End.tv_usec - Time.Start.tv_usec)/1000.0;
 #if _HDF5_
      HDF5_Store_Time( hdf5_file, &Time );
      HDF5_CloseFile( &hdf5_file );

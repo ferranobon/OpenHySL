@@ -4,6 +4,7 @@
 #include "Substructure_Auxiliary.h"
 
 #include "Auxiliary_Math.h"   /* For Max( ) */
+#include "Definitions.h"
 
 #if _MKL_
 #include <mkl_blas.h>
@@ -17,7 +18,7 @@ void Substructure_JoinNonCouplingPart( MatrixVector_t *const VecTdT_m, const Mat
 {
      int icoup;                 /* Counter for the coupling nodes */
      int incx, incy;            /* Stride in the vectors */
-     double Alpha, Beta;        /* Constants for the BLAS routines */
+     HYSL_FLOAT Alpha, Beta;    /* Constants for the BLAS routines */
      char trans;                /* Use or not the transpose */
      int Rows, Cols;            /* Number of Rows and columns */
      int lda;                   /* Leading dimension */
@@ -32,14 +33,14 @@ void Substructure_JoinNonCouplingPart( MatrixVector_t *const VecTdT_m, const Mat
 
      /* Update the VecTdT_m displacments to include the effects of the coupling force */
      /* BLAS: VecTdT_m = Gain_m*fcprevsub */
-     dgemv( &trans, &Rows, &Cols, &Alpha, Gain_m->Array, &lda,
+     hysl_gemv( &trans, &Rows, &Cols, &Alpha, Gain_m->Array, &lda,
 	     fcprevsub->Array, &incx, &Beta, VecTdT_m->Array, &incy );
 
      /* Copy the updated values into the complete displacement vector */
      PosX = 0; PosXm = 0;
      for ( icoup = 0; icoup < CNodes->Order; icoup++ ){
 	  Length = CNodes->Array[icoup] - PosX -1;
-	  dcopy( &Length, &VecTdT_m->Array[PosXm], &incx, &VecTdT->Array[PosX], &incy );
+	  hysl_copy( &Length, &VecTdT_m->Array[PosXm], &incx, &VecTdT->Array[PosX], &incy );
 	  PosX = CNodes->Array[icoup];
 	  PosXm = PosXm + Length;
      }
@@ -47,7 +48,7 @@ void Substructure_JoinNonCouplingPart( MatrixVector_t *const VecTdT_m, const Mat
      /* Add the elements between the final coupling node and the final element of the complete displacement
       * vector */
      Length = VecTdT->Rows - CNodes->Array[CNodes->Order -1];
-     dcopy( &Length, &VecTdT_m->Array[PosXm], &incx, &VecTdT->Array[PosX], &incy );	
+     hysl_copy( &Length, &VecTdT_m->Array[PosXm], &incx, &VecTdT->Array[PosX], &incy );	
 }
 
 void Substructure_MatrixXc( const MatrixVector_t *const Mat, const CouplingNode_t *const CNodes,
@@ -119,7 +120,7 @@ void Substructure_MatrixXcm( const MatrixVector_t *const Mat, const CouplingNode
      Length = CNodes->Array[0] - 1;
      for ( jcoup = 0; jcoup < CNodes->Order; jcoup++ ){
 	  PosXcm = jcoup*MatXcm->Rows;
-	  dcopy( &Length, &Mat->Array[CNodes->Array[jcoup] - 1], &incx, &MatXcm->Array[PosXcm], &incy );
+	  hysl_copy( &Length, &Mat->Array[CNodes->Array[jcoup] - 1], &incx, &MatXcm->Array[PosXcm], &incy );
      }
 
      /* Copy until the last coupling node */
@@ -131,7 +132,7 @@ void Substructure_MatrixXcm( const MatrixVector_t *const Mat, const CouplingNode
 	 
 	       PosXcm = jcoup*MatXcm->Rows + Acumulated_Length;
 	       
-	       dcopy( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1) + (CNodes->Array[icoup-1])*Mat->Rows],
+	       hysl_copy( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1) + (CNodes->Array[icoup-1])*Mat->Rows],
 		      &incx, &MatXcm->Array[PosXcm], &incy );
 	  }
 	  Acumulated_Length = Acumulated_Length + Length;
@@ -142,7 +143,7 @@ void Substructure_MatrixXcm( const MatrixVector_t *const Mat, const CouplingNode
      Length = Mat->Rows - CNodes->Array[CNodes->Order -1];
      for ( jcoup = CNodes->Order - 1; jcoup >= 0; jcoup = jcoup - 1 ){
 	  PosXcm = MatXcm->Rows*(jcoup+1) - Length;
-	  dcopy( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1)*Mat->Rows + (CNodes->Array[CNodes->Order-1])],
+	  hysl_copy( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1)*Mat->Rows + (CNodes->Array[CNodes->Order-1])],
 		 &incx, &MatXcm->Array[PosXcm], &incy );
      }
      Acumulated_Length = Length;
@@ -151,7 +152,7 @@ void Substructure_MatrixXcm( const MatrixVector_t *const Mat, const CouplingNode
 	  Length = CNodes->Array[icoup + 1] - CNodes->Array[icoup] - 1;
 	  for( jcoup = icoup; jcoup >= 0; jcoup = jcoup - 1){
 	       PosXcm = (jcoup+1)*MatXcm->Rows - Acumulated_Length - Length;
-	       dcopy( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1)*Mat->Rows + (CNodes->Array[icoup])],
+	       hysl_copy( &Length, &Mat->Array[(CNodes->Array[jcoup] - 1)*Mat->Rows + (CNodes->Array[icoup])],
 		      &incx, &MatXcm->Array[PosXcm], &incy );
 	  }
 	  Acumulated_Length = Acumulated_Length + Length;
@@ -205,7 +206,7 @@ void Substructure_VectorXm( const MatrixVector_t *const VectorX, const CouplingN
 
 	     /* Copy the part of the vector between twwo positions */
 	     Length = CNodes->Array[icoup] - PosX - 1;
-	     dcopy( &Length, &VectorX->Array[PosX], &incx, &VectorXm->Array[PosXm], &incy );
+	     hysl_copy( &Length, &VectorX->Array[PosX], &incx, &VectorXm->Array[PosXm], &incy );
 	     /* Update the values of the position in the vectors */
 	     PosX = CNodes->Array[icoup];
 	     PosXm = PosXm + Length;
@@ -213,7 +214,7 @@ void Substructure_VectorXm( const MatrixVector_t *const VectorX, const CouplingN
 
 	/* Copy the elements from the last position until the end of the vector */
 	Length = VectorX->Rows - CNodes->Array[CNodes->Order-1];
-	dcopy( &Length, &VectorX->Array[PosX], &incx, &VectorXm->Array[PosXm], &incy );
+	hysl_copy( &Length, &VectorX->Array[PosX], &incx, &VectorXm->Array[PosXm], &incy );
 }
 
 void Substructure_VectorXc( const MatrixVector_t *const VecX, const CouplingNode_t *const CNodes,

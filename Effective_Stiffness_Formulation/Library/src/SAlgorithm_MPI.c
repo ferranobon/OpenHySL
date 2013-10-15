@@ -19,6 +19,8 @@
 #include "Substructure_Experimental.h"
 #include "Substructure_Auxiliary.h"  /* For Substructure_VectorXm(), Substructure_VectorXc(), ... */
 
+#include "Definitions.h"
+
 #if _HDF5_
 #include "HDF5_Operations.h"
 #endif
@@ -404,7 +406,7 @@ int main( int argc, char **argv ){
 	  if( CNodes.Order >= 1 ){
 	       Substructure_JoinNonCouplingPart_MPI( &DispTdT0_m, &Keinv_m, &fcprevsub, &CNodes,  &DispTdT );
 	  } else {
-	       pdcopy_( &DispTdT0.GlobalSize.Row, DispTdT0.Array, &ione, &ione, DispTdT0.Desc, &ione,
+	       hysl_pcopy( &DispTdT0.GlobalSize.Row, DispTdT0.Array, &ione, &ione, DispTdT0.Desc, &ione,
 			DispTdT.Array, &ione, &ione, DispTdT.Desc, &ione );
 	  }
 
@@ -426,14 +428,14 @@ int main( int argc, char **argv ){
 #endif
 
 	  /* Backup vectors */
-	  pdcopy_( &LoadTdT.GlobalSize.Row, LoadTdT1.Array, &ione, &ione, LoadTdT1.Desc, &ione, LoadTdT.Array,
+	  hysl_pcopy( &LoadTdT.GlobalSize.Row, LoadTdT1.Array, &ione, &ione, LoadTdT1.Desc, &ione, LoadTdT.Array,
 		   &ione, &ione, LoadTdT.Desc, &ione ); /* ui = ui1 */
 	  /* Backup vectors */
-	  pdcopy_( &DispTdT.GlobalSize.Row, DispTdT.Array, &ione, &ione, DispTdT.Desc, &ione, DispT.Array,
+	  hysl_pcopy( &DispTdT.GlobalSize.Row, DispTdT.Array, &ione, &ione, DispTdT.Desc, &ione, DispT.Array,
 		   &ione, &ione, DispT.Desc, &ione ); /* ui = ui1 */
-	  pdcopy_( &VelTdT.GlobalSize.Row, VelTdT.Array, &ione, &ione, VelTdT.Desc, &ione, VelT.Array, &ione,
+	  hysl_pcopy( &VelTdT.GlobalSize.Row, VelTdT.Array, &ione, &ione, VelTdT.Desc, &ione, VelT.Array, &ione,
 		   &ione, VelT.Desc, &ione ); /* vi = vi1 */
-	  pdcopy_( &AccTdT.GlobalSize.Row, AccTdT.Array, &ione, &ione, AccTdT.Desc, &ione, AccT.Array, &ione,
+	  hysl_pcopy( &AccTdT.GlobalSize.Row, AccTdT.Array, &ione, &ione, AccTdT.Desc, &ione, AccT.Array, &ione,
 		   &ione, AccT.Desc, &ione ); /* ai = ai1 */
 	  istep = istep + 1;
      }

@@ -7,6 +7,8 @@
 #include "Conf_Parser.h"
 #include "Print_Messages.h"
 
+#include "Definitions.h"
+
 void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
 {
 
@@ -187,7 +189,7 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
      /* Number of substructures */
      InitConst->NSubstep = (unsigned int) ConfFile_GetInt( Config, "Substructure:Num_Substeps" );
 
-     InitConst->DeltaT_Sub = InitConst->Delta_t/(double) InitConst->NSubstep;
+     InitConst->DeltaT_Sub = InitConst->Delta_t/(HYSL_FLOAT) InitConst->NSubstep;
 
      ConfFile_Destroy( Config );
 
@@ -308,13 +310,13 @@ int* Algorithm_GetExcitedDOF( const ConfFile_t *const Config, const char *Expres
 }
 
 void Algorithm_ReadDataEarthquake_AbsValues( const unsigned int NumSteps, const char *Filename,
-					     const double Scale_Factor, double *const Velocity,
-					     double *const Displacement )
+					     const HYSL_FLOAT Scale_Factor, HYSL_FLOAT *const Velocity,
+					     HYSL_FLOAT *const Displacement )
 {
 
      unsigned int i;		    /* A counter */
-     double unnecessary;	    /* Variable to store unnecessary data */
-     double temp1, temp2, temp3;
+     HYSL_FLOAT unnecessary;	    /* Variable to store unnecessary data */
+     HYSL_FLOAT temp1, temp2, temp3;
      FILE *InFile;
 
      InFile = fopen( Filename, "r" );
@@ -337,12 +339,12 @@ void Algorithm_ReadDataEarthquake_AbsValues( const unsigned int NumSteps, const 
 }
 
 void Algorithm_ReadDataEarthquake_RelValues( const unsigned int NumSteps, const char *Filename, 
-					     const double Scale_Factor, double *const Acceleration )
+					     const HYSL_FLOAT Scale_Factor, HYSL_FLOAT *const Acceleration )
 {
 
      unsigned int i;		    /* A counter */
-     double unnecessary;	    /* Variable to store unnecessary data */
-     double temp1, temp2, temp3;
+     HYSL_FLOAT unnecessary;	    /* Variable to store unnecessary data */
+     HYSL_FLOAT temp1, temp2, temp3;
      FILE *InFile;
 
      InFile = fopen( Filename, "r" );

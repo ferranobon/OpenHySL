@@ -202,15 +202,15 @@ void Duhamel_Integral( const MatrixVector_t *const Mass, const MatrixVector_t *c
 
      Alpha = 1.0; Beta = 0.0;
      incx = 1; incy = 1;
-     dsymv( &uplo, &temp1.Rows, &Alpha, Mass->Array, &temp1.Rows, Init_Disp->Array, &incx, &Beta, temp1.Array, &incy );
-     dsymv( &uplo, &temp2.Rows, &Alpha, Mass->Array, &temp2.Rows, Init_Vel->Array, &incx, &Beta, temp2.Array, &incy );
+     dsymv_( &uplo, &temp1.Rows, &Alpha, Mass->Array, &temp1.Rows, Init_Disp->Array, &incx, &Beta, temp1.Array, &incy );
+     dsymv_( &uplo, &temp2.Rows, &Alpha, Mass->Array, &temp2.Rows, Init_Vel->Array, &incx, &Beta, temp2.Array, &incy );
 
      trans = 'T';
-     dgemv( &trans, &temp1.Rows, &temp1.Rows, &Alpha, Eigen_Vectors->Array, &temp1.Rows, temp1.Array, &incx, &Beta,
+     dgemv_( &trans, &temp1.Rows, &temp1.Rows, &Alpha, Eigen_Vectors->Array, &temp1.Rows, temp1.Array, &incx, &Beta,
 	     modal_disp.Array, &incy );
-     dgemv( &trans, &temp2.Rows, &temp1.Rows, &Alpha, Eigen_Vectors->Array, &temp2.Rows, temp2.Array, &incx, &Beta,
+     dgemv_( &trans, &temp2.Rows, &temp1.Rows, &Alpha, Eigen_Vectors->Array, &temp2.Rows, temp2.Array, &incx, &Beta,
 	     modal_velo.Array, &incy );
-     dgemv( &trans, &temp1.Rows, &temp1.Rows, &Alpha, Eigen_Vectors->Array, &temp1.Rows, Load->Array, &incx, &Beta,
+     dgemv_( &trans, &temp1.Rows, &temp1.Rows, &Alpha, Eigen_Vectors->Array, &temp1.Rows, Load->Array, &incx, &Beta,
 	     modal_force.Array, &incy );
 
      MatrixVector_Destroy( &temp1 );
@@ -255,11 +255,11 @@ void Duhamel_Integral( const MatrixVector_t *const Mass, const MatrixVector_t *c
 
      /* Transform into physical coordinates */
      trans = 'N';
-     dgemv( &trans, &modal_disp.Rows, &modal_disp.Rows, &Alpha, Eigen_Vectors->Array, &modal_disp.Rows,
+     dgemv_( &trans, &modal_disp.Rows, &modal_disp.Rows, &Alpha, Eigen_Vectors->Array, &modal_disp.Rows,
 	     modal_disp.Array, &incx, &Beta, End_Disp->Array, &incy );
-     dgemv( &trans, &modal_velo.Rows, &modal_velo.Rows, &Alpha, Eigen_Vectors->Array, &modal_velo.Rows,
+     dgemv_( &trans, &modal_velo.Rows, &modal_velo.Rows, &Alpha, Eigen_Vectors->Array, &modal_velo.Rows,
 	     modal_velo.Array, &incx, &Beta, End_Vel->Array, &incy );
-     dgemv( &trans, &modal_force.Rows, &modal_force.Rows, &Alpha, Eigen_Vectors->Array, &modal_force.Rows,
+     dgemv_( &trans, &modal_force.Rows, &modal_force.Rows, &Alpha, Eigen_Vectors->Array, &modal_force.Rows,
 	     modal_force.Array, &incx, &Beta, End_Acc->Array, &incy );
 
      /* Free dynamically allocated memory */

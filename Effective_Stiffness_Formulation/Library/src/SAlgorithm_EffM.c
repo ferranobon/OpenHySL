@@ -20,6 +20,8 @@
 #include "Substructure_Experimental.h"
 #include "Substructure_Auxiliary.h"  /* For Substructure_VectorXm(), Substructure_VectorXc(), ... */
 
+#include "Definitions.h"
+
 #if _HDF5_
 #include "HDF5_Operations.h"
 #endif
@@ -73,7 +75,7 @@ int main( int argc, char **argv ){
      int incx, incy;
      Scalars_t Constants;
      
-     double *AccAll, *VelAll, *DispAll;
+     HYSL_FLOAT *AccAll, *VelAll, *DispAll;
 
      MatrixVector_t M, C, K;               /* Mass, Damping and Stiffness matrices */
      MatrixVector_t Meinv;
@@ -162,10 +164,10 @@ int main( int argc, char **argv ){
       * during the test */
      if( InitCnt.Use_Absolute_Values ){
 	  AccAll = NULL;
-	  VelAll = (double *) calloc( (size_t) InitCnt.NStep, sizeof(double) );
-	  DispAll = (double *) calloc( (size_t) InitCnt.NStep, sizeof(double) );
+	  VelAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+	  DispAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
      } else {
-	  AccAll = (double *) calloc( (size_t) InitCnt.NStep, sizeof(double) );
+	  AccAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
 	  VelAll = NULL;
 	  DispAll = NULL;
      }
@@ -401,11 +403,11 @@ int main( int argc, char **argv ){
 	  /* Perform substepping */
 	  if( CNodes.Order >= 1 ){
 /*	       Substructure_Substepping( &CNodes, Meinv_c.Array, AccTdT0_c.Array,
-	                                 InitCnt.Delta_t*(double) istep, AccAll[istep - 1],
+	                                 InitCnt.Delta_t*(HYSL_FLOAT) istep, AccAll[istep - 1],
 					 InitCnt.NSubstep, InitCnt.DeltaT_Sub, DispTdT.Array,
 					 fcprevsub.Array, fc.Array); */
 	       Substructure_Substepping( &CNodes, Meinv_c.Array, AccTdT0_c.Array,
-					 InitCnt.Delta_t*(double) istep, 0.0, InitCnt.NSubstep, 
+					 InitCnt.Delta_t*(HYSL_FLOAT) istep, 0.0, InitCnt.NSubstep, 
 					 InitCnt.DeltaT_Sub, AccTdT.Array, fcprevsub.Array, fc.Array );
 	  }
 
@@ -444,7 +446,7 @@ int main( int argc, char **argv ){
 	  if( CNodes.Order >= 1 ){
 	       Substructure_JoinNonCouplingPart( &AccTdT0_m, &Meinv_m, &fcprevsub, &CNodes,  &AccTdT );
 	  } else {
-	       dcopy( &AccTdT0.Rows, AccTdT0.Array, &incx, AccTdT.Array, &incy ); /* ui = ui1 */
+	       hysl_copy( &AccTdT0.Rows, AccTdT0.Array, &incx, AccTdT.Array, &incy ); /* ui = ui1 */
 	  }
 
 	  /* Compute acceleration ui1 = ui + a9*vi + a10*ai + a8*ai1 */
@@ -473,16 +475,16 @@ int main( int argc, char **argv ){
 	  
 #endif
 	  /* Backup vectors */
-	  dcopy( &LoadTdT1.Rows, LoadTdT1.Array, &incx, LoadTdT.Array, &incy ); /* li = li1 */
-	  dcopy( &DispTdT.Rows, DispTdT.Array, &incx, DispT.Array, &incy ); /* ui = ui1 */
-	  dcopy( &VelTdT.Rows, VelTdT.Array, &incx, VelT.Array, &incy ); /* vi = vi1 */
-	  dcopy( &AccTdT.Rows, AccTdT.Array, &incx, AccT.Array, &incy ); /* ai = ai1 */
+	  hysl_copy( &LoadTdT1.Rows, LoadTdT1.Array, &incx, LoadTdT.Array, &incy ); /* li = li1 */
+	  hysl_copy( &DispTdT.Rows, DispTdT.Array, &incx, DispT.Array, &incy ); /* ui = ui1 */
+	  hysl_copy( &VelTdT.Rows, VelTdT.Array, &incx, VelT.Array, &incy ); /* vi = vi1 */
+	  hysl_copy( &AccTdT.Rows, AccTdT.Array, &incx, AccT.Array, &incy ); /* ai = ai1 */
 	  istep = istep + 1;
      }
 
      gettimeofday( &Time.End, NULL );
-     Time.Elapsed_time = (double) (Time.End.tv_sec - Time.Start.tv_sec)*1000.0;
-     Time.Elapsed_time += (double) (Time.End.tv_usec - Time.Start.tv_usec)/1000.0;
+     Time.Elapsed_time = (HYSL_FLOAT) (Time.End.tv_sec - Time.Start.tv_sec)*1000.0;
+     Time.Elapsed_time += (HYSL_FLOAT) (Time.End.tv_usec - Time.Start.tv_usec)/1000.0;
 #if _HDF5_
      HDF5_Store_Time( hdf5_file, &Time );
 #endif

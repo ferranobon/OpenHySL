@@ -15,6 +15,7 @@
 #define SUBSTRUCTURE_SIMMEASURED_H_
 
 #include "Substructure.h"
+#include "Substructure.h"
 
 /**
  * \brief Stores the information necessary to deal with substructures that come in form of a time history of
@@ -22,7 +23,7 @@
  */
 typedef struct MeasuredSim {
      char *Description;    /*!< \brief Description of the sub-structure.*/
-     double *Values;       /*!< \brief Time history of coupling force values. */
+     HYSL_FLOAT *Values;       /*!< \brief Time history of coupling force values. */
      unsigned int Length;  /*!< \brief Length of the \c Values array.*/
 } MeasuredSim_t;
 
@@ -65,7 +66,7 @@ void Substructure_SimMeasured_Init( const char *FileName, const unsigned int NSt
  *
  * \sa MeasuredSim_t, Substructure_SimMeasured_Init().
  */
-void Substructure_SimMeasured( const MeasuredSim_t *const Sub, double *const fc );
+void Substructure_SimMeasured( const MeasuredSim_t *const Sub, HYSL_FLOAT *const fc );
 
 /**
  * \brief Frees the memory dynamically allocated in Substructure_SimMeasured_Init().
