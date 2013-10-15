@@ -3,6 +3,7 @@
 
 #include "MatrixVector_PS.h"
 #include "Print_Messages.h" /* For Print_Header() */
+#include "Definitions.h"
 
 #if _MATRIXMARKET_
 #include "mmio.h"
@@ -13,7 +14,7 @@ void MatrixVector_FromFile_GE2PS( const char *Filename, MatrixVector_t *const Ma
 
      FILE *InFile;
      int i, j;         /* A counter */
-     double temp;
+     HYSL_FLOAT temp;
 
      InFile = fopen( Filename, "r" );
 
@@ -47,7 +48,7 @@ void MatrixVector_FromFile_MM_PS( const char *Filename, MatrixVector_t *const Ma
      MM_typecode matcode;   /* MatrixMarket: type of the matrix (symmetric, dense, complex, ...)  */
      int return_code;       /* MatrixMarket: return code for the functions */
      int i, j;              /* Indexes of the position within the matrix of the readen value */
-     double Value;           /* Value to be saved in the position (i,j) of the matrix */
+     HYSL_FLOAT Value;           /* Value to be saved in the position (i,j) of the matrix */
      int Rows, Cols;        /* Number of Rows and Columns */
      int nnz;               /* Number of non-zero elements */
      int innz;              /* Counter for the number of non-zero elements */
@@ -109,7 +110,7 @@ void MatrixVector_ToFile_PS2Full( const MatrixVector_t *const MatVec, const char
 {
      int i, j;      /* Counters */
      FILE *OutFile;
-     const double dzero = 0.0;
+     const HYSL_FLOAT dzero = 0.0;
 
      OutFile = fopen( Filename, "w" );
 

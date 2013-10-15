@@ -5,6 +5,7 @@
 #include "MatrixVector.h"
 #include "Print_Messages.h"
 #include "Auxiliary_Math.h"  /* For max() */
+#include "Definitions.h"
 
 #if _MKL_
 #include <mkl_blas.h>
@@ -28,7 +29,7 @@ void MatrixVector_Create( const int Rows, const int Cols, MatrixVector_t *const 
      
      /* Allocate the memory */
      MatVec->Array = NULL;
-     MatVec->Array = (double *) calloc( (size_t) MatVec->Rows*(size_t) MatVec->Cols, sizeof(double));
+     MatVec->Array = (HYSL_FLOAT *) calloc( (size_t) MatVec->Rows*(size_t) MatVec->Cols, sizeof(HYSL_FLOAT));
      if ( MatVec->Array == NULL ){
 	  Print_Header( ERROR );
 	  fprintf( stderr, "MatrixVector_Create(): Out of memory.\n" );
@@ -36,21 +37,21 @@ void MatrixVector_Create( const int Rows, const int Cols, MatrixVector_t *const 
      }
 }
 
-void MatrixVector_Set2Value( const double Value, MatrixVector_t *const MatVec )
+void MatrixVector_Set2Value( const HYSL_FLOAT Value, MatrixVector_t *const MatVec )
 {
      int incx = 0;  /* No stride in the vector */
      int incy = 1;  /* Stride of one */
      int Length;
-     double Val;
+     HYSL_FLOAT Val;
 
      Length = MatVec->Rows*MatVec->Cols;
      Val = Value;
 
      /* BLAS: All elements of MatVec are equal to Value */ 
-     dcopy( &Length, &Val, &incx, MatVec->Array, &incy );
+     hysl_copy( &Length, &Val, &incx, MatVec->Array, &incy );
 }
 
-void MatrixVector_ModifyElement( const int RowIndex, const int ColIndex, const double Alpha,
+void MatrixVector_ModifyElement( const int RowIndex, const int ColIndex, const HYSL_FLOAT Alpha,
 				 const char *Operation, MatrixVector_t *const MatVec )
 {
 
@@ -88,7 +89,7 @@ void MatrixVector_Add3Mat( const MatrixVector_t *const MatA, const MatrixVector_
      int incx, incy;       /* Stride in the vectors for BLAS library */
      int lda, ldy;
      int ione;
-     double done, Scalar;  /* Constant to use in the BLAS library */
+     HYSL_FLOAT done, Scalar;  /* Constant to use in the BLAS library */
      char uplo;            /* BLAS & LAPACK: Character to specify which part of the matrix has been referenced. */
      int info;             /* LAPACK: Variable to inform if the operations of Cholesky factorization and
 			    * inverse were successful or not */
@@ -103,11 +104,11 @@ void MatrixVector_Add3Mat( const MatrixVector_t *const MatA, const MatrixVector_
      ldy = Max( 1, MatY->Rows );
 
      /* LAPACK: Y = A */
-     dlacpy_( &uplo, &MatY->Rows, &MatY->Cols, MatA->Array, &lda, MatY->Array, &ldy );
+     hysl_lacpy( &uplo, &MatY->Rows, &MatY->Cols, MatA->Array, &lda, MatY->Array, &ldy );
 
      /* LAPACK: Calculates Y = A  */
      Scalar = Const.Alpha;
-     dlascl_( &uplo, &ione, &ione, &done, &Scalar, &MatY->Rows, &MatY->Cols, MatY->Array, &ldy, &info );
+     hysl_lascl( &uplo, &ione, &ione, &done, &Scalar, &MatY->Rows, &MatY->Cols, MatY->Array, &ldy, &info );
 
      if ( info < 0 ){
 	  Print_Header( ERROR );
@@ -119,14 +120,14 @@ void MatrixVector_Add3Mat( const MatrixVector_t *const MatA, const MatrixVector_
      Scalar = Const.Beta;
      for (i = 0; i < MatY->Rows; i++){
 	  Length = MatY->Rows - i;
-	  daxpy( &Length, &Scalar, &MatB->Array[i*MatB->Rows + i], &incx, &MatY->Array[i*MatY->Rows +i], &incy);
+	  hysl_axpy( &Length, &Scalar, &MatB->Array[i*MatB->Rows + i], &incx, &MatY->Array[i*MatY->Rows +i], &incy);
      }
 
      /* BLAS: Calculates Y = Gamma*C + Y. Only computes half of the matrix */
      Scalar = Const.Gamma;
      for (i = 0; i < MatY->Rows; i++){
 	  Length = MatY->Rows - i;
-	  daxpy( &Length, &Scalar, &MatC->Array[i*MatC->Rows + i], &incx, &MatY->Array[i*MatY->Rows +i], &incy);
+	  hysl_axpy( &Length, &Scalar, &MatC->Array[i*MatC->Rows + i], &incx, &MatY->Array[i*MatY->Rows +i], &incy);
      }
 }
 

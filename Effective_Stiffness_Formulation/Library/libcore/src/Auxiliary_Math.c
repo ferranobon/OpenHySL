@@ -4,6 +4,8 @@
 #include "Auxiliary_Math.h"
 #include "Print_Messages.h"
 
+#include "Definitions.h"
+
 #if _MKL_
 #include <mkl_blas.h>
 #include <mkl_lapack.h>
@@ -76,7 +78,7 @@ void Compute_Eigenvalues_Eigenvectors ( MatrixVector_t *const MatrixA, MatrixVec
      int one = 1, Length;
      int lda, ldb, info;
      int lwork; /* Dimension of the array work */
-     double *work, *TempMat, temp;
+     HYSL_FLOAT *work, *TempMat, temp;
 
      if( MatrixA->Rows != MatrixB->Rows || MatrixA->Cols != MatrixB->Cols ){
 	  Print_Header( ERROR );
@@ -90,22 +92,22 @@ void Compute_Eigenvalues_Eigenvectors ( MatrixVector_t *const MatrixA, MatrixVec
      ldb = lda;
 
      Length = MatrixA->Rows*MatrixA->Cols;
-     TempMat = (double*) calloc( (size_t) Length, sizeof (double) );
-     work = (double*) calloc( (size_t) lwork, sizeof (double) );
+     TempMat = (HYSL_FLOAT*) calloc( (size_t) Length, sizeof (HYSL_FLOAT) );
+     work = (HYSL_FLOAT*) calloc( (size_t) lwork, sizeof (HYSL_FLOAT) );
 
      /* DSYGV_:On Entry EigenVectors must contain the Matrix A */
-     dcopy( &Length, MatrixA->Array, &one, EigenVectors->Array, &one );
-     dcopy( &Length, MatrixB->Array, &one, TempMat, &one );
+     hysl_copy( &Length, MatrixA->Array, &one, EigenVectors->Array, &one );
+     hysl_copy( &Length, MatrixB->Array, &one, TempMat, &one );
 
      Length = MatrixA->Rows;
-     dsygv_( &one, "V", "L", &Length, EigenVectors->Array, &lda, TempMat, &ldb, EigenValues->Array, work, &lwork, &info );
+     hysl_sygv( &one, "V", "L", &Length, EigenVectors->Array, &lda, TempMat, &ldb, EigenValues->Array, work, &lwork, &info );
 
      if( info == 0 ){
 	  Print_Header( SUCCESS );
 	  printf( "Successfully calculated the eigenvalues and eigenvectors.\n" );
      } else if ( info < 0 ){
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Compute_Eigenvalues_Eigenvectors: the %d-th argument of the function dsygv_() had an illegal value", info );
+	  fprintf( stderr, "Compute_Eigenvalues_Eigenvectors: the %d-th argument of the function hysl_sygv() had an illegal value", info );
 	  exit( EXIT_FAILURE );
      } else if ( info > 0 ){
 	  if ( info <= EigenVectors->Rows ){

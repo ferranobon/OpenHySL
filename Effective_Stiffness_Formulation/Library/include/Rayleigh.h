@@ -20,12 +20,14 @@
 #include "MatrixVector_Sp.h"
 #include "MatrixVector_MPI.h"
 
+#include "Definitions.h"
+
 /**
  * \brief Stores the Rayleigh coefficients alpha and beta.
  */
 typedef struct Rayleigh {
-     double Alpha; /*!< \brief Coefficient that multiplies the mass matrix.*/
-     double Beta;  /*!< \brief Coefficient that multiplies the stiffness matrix.*/
+     HYSL_FLOAT Alpha; /*!< \brief Coefficient that multiplies the mass matrix.*/
+     HYSL_FLOAT Beta;  /*!< \brief Coefficient that multiplies the stiffness matrix.*/
 } Rayleigh_t;
 
 /**

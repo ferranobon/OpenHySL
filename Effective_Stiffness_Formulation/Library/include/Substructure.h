@@ -19,6 +19,16 @@
 
 #include "Substructure_CouplingNodes.h"
 
+#if _MPI_
+#include <mpi.h>
+#include "MatrixVector_MPI.h"
+#define MPI_NEW_STATE 1   /*!< \brief To send/receive MPI messages that contain the new value. */
+#define MPI_PREV_FORCE 2  /*!< \brief To send/receive MPI messages that contain the coupling force at the
+			   * previous substep. */
+#define MPI_FORCE 3       /*!< \brief To send/receive MPI messages that contain the coupling force at the last
+			   * substep. */
+#endif
+
 /**
  * \brief Sends the Gain matrix to the corresponding facility/controller.
 
@@ -90,6 +100,7 @@ void Substructure_Substepping( const CouplingNode_t *const CNodes, const double 
 			       const unsigned int NSubstep, const double DeltaT_Sub, double *const VecTdT,
 			       double *const CoupForcePrev, double *const CoupForce );
 
+#if _MPI_
 /**
  * \brief Performs the sub-stepping process. MPI version.
  * 
@@ -126,12 +137,16 @@ void Substructure_Substepping( const CouplingNode_t *const CNodes, const double 
  * \post The vectors \c VecTdT \c CoupForcePrev and \c CoupForce have the updated displacements at the
  * equations with substructures acting on them.
  *
- * \sa CouplingNote_t.
+ * \sa CouplingNote_t, PMatrixVector_t.
  */
 void Substructure_Substepping_MPI( const CouplingNode_t *const CNodes, const double *const IGain,
 				   const double *const VecTdT0_c, const double Time, const double GAcc,
-				   const unsigned int NSubstep, const double DeltaT_Sub, double *const VecTdT,
-				   double *const CoupForcePrev, double *const CoupForce );
+				   const unsigned int NSubstep, const double DeltaT_Sub,
+				   const MPI_Comm Comm, const int *const LRowIndex_Coupling,
+				   const int *const RowProcess_Coupling, const int *const ColProcess_Coupling,
+				   PMatrixVector_t *const VecTdT, PMatrixVector_t *const CoupForcePrev,
+				   PMatrixVector_t *const CoupForce );
+#endif
 
 /**
  * \brief Performs the sub-stepping process for those DOFs that have numerical substructures acting on them.

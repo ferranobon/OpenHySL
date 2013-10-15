@@ -13,6 +13,8 @@
 #ifndef SUBSTRUCTURE_REMOTE_OPENFRESCO_H
 #define SUBSTRUCTURE_REMOTE_OPENFRESCO_H
 
+#include "Definitions.h"
+
 #define OF_INFO_DATA_LENGTH 11 /*!< Data length of the information message sent at the beginning of the
 				* connection in order to establish the amount of data to be exchanged. */
 #define OF_DATA_SIZE 256  /*!< Default amount of data exchanged between the OpenFresco client/server each
@@ -66,6 +68,6 @@
  * \post If any error occurs during the execution of this routine, like communication problems, the program
  * shows the appropiate error message befor exiting with \c EXIT_FAILURE.
  */
-void Substructure_Remote_OpenFresco( const int Socket, const int WhatToDo, const unsigned int Size, const double *const Data_To_Send, double *const Data_To_Receive );
+void Substructure_Remote_OpenFresco( const int Socket, const int WhatToDo, const unsigned int Size, const HYSL_FLOAT *const Data_To_Send, HYSL_FLOAT *const Data_To_Receive );
 
 #endif /* SUBSTRUCTURE_REMOTE_OPENFRESCO_H */

@@ -5,6 +5,7 @@
 #include "MatrixVector_MPI.h"   /* MatrixVector definition */
 #include "Print_Messages.h" /* For Print_Header() */
 #include "Rayleigh.h"       /* Rayleigh damping routines */
+#include "Definitions.h"
 
 #if _MKL_
 #include <mkl_pblas.h>
@@ -28,10 +29,10 @@ void Rayleigh_Damping_MPI( PMatrixVector_t *const Mass, PMatrixVector_t *const S
      beta = Rayleigh->Beta;
 
      /* ScaLAPACK: Perform C = M (locally. There is no communication) */
-     pdlacpy( &uplo, &Damp->GlobalSize.Row, &Damp->GlobalSize.Col, Mass->Array, &ione, &ione, Mass->Desc,
+     hysl_placpy( &uplo, &Damp->GlobalSize.Row, &Damp->GlobalSize.Col, Mass->Array, &ione, &ione, Mass->Desc,
 	      Damp->Array, &ione, &ione, Damp->Desc );
      
      /* ScaLAPACK: Perform C = alpha*M + beta*K = alpha*C + beta*K */
-     pdtradd_( &uplo, &trans, &Damp->GlobalSize.Row, &Damp->GlobalSize.Col, &beta, Stiff->Array, &ione,
+     hysl_ptradd( &uplo, &trans, &Damp->GlobalSize.Row, &Damp->GlobalSize.Col, &beta, Stiff->Array, &ione,
 	       &ione, Stiff->Desc, &alpha, Damp->Array, &ione, &ione, Damp->Desc );
 }

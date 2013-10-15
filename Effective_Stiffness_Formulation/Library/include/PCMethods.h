@@ -14,7 +14,6 @@
  * operations are supported through the Intel MKL library.
  */
 
-
 #ifndef PCMETHODS_H_
 #define PCMETHODS_H_
 

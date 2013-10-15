@@ -18,13 +18,15 @@
 #include "MatrixVector_Sp.h"
 #include "MatrixVector_MPI.h"
 
+#include "Definitions.h"
+
 /**
  * \brief Stores the proportional, integral and derivative constant of the PID compensator.
  */
 typedef struct PID {
-     double P;  /*!< \brief Proportional constant.*/
-     double I;  /*!< \brief Integral constant.*/
-     double D;  /*!< \brief Derivative constant.*/
+     HYSL_FLOAT P;  /*!< \brief Proportional constant.*/
+     HYSL_FLOAT I;  /*!< \brief Integral constant.*/
+     HYSL_FLOAT D;  /*!< \brief Derivative constant.*/
 } PID_t;
 
 /**
