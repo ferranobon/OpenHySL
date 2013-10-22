@@ -442,7 +442,7 @@ int main( int argc, char **argv ){
 
      Time.End = MPI_Wtime();
      /* Elapsed time in miliseconds */
-     Time.Elapsed_time = (Time.End - Time.Start)/1000.0;
+     Time.Elapsed_time = (Time.End - Time.Start)*1000.0;
 
 #if _HDF5_
      HDF5_Store_Time_MPI( hdf5_file, &Time );
