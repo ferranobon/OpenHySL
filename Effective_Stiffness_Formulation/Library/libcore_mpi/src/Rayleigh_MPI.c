@@ -17,7 +17,7 @@
 void Rayleigh_Damping_MPI( PMatrixVector_t *const Mass, PMatrixVector_t *const Stiff, PMatrixVector_t *const Damp,
 			   const Rayleigh_t *const Rayleigh )
 {
-     double alpha, beta;
+     HYSL_FLOAT alpha, beta;
      char trans, uplo;
      int ione;
      

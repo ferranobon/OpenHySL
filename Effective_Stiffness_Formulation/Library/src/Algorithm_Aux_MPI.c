@@ -8,6 +8,8 @@
 #include "Conf_Parser.h"
 #include "Print_Messages.h"
 
+#include "Definitions.h"
+
 void Algorithm_Init_MPI( const char *FileName, AlgConst_t *const InitConst )
 {
 
@@ -77,14 +79,22 @@ void Algorithm_Init_MPI( const char *FileName, AlgConst_t *const InitConst )
 	  fprintf( stderr, "Algorithm_Init_MPI(): Invalid number of steps.\n" );
      }
 
+#if _FLOAT_
+     InitConst->Delta_t = ConfFile_GetFloat( Config, "General:Delta" );
+#else
      InitConst->Delta_t = ConfFile_GetDouble( Config, "General:Delta" );
+#endif
      if ( InitConst->Delta_t <= 0.0 ){
 	  Error = true;
 	  Print_Header( ERROR );
 	  fprintf( stderr, "Algorithm_Init_MPI(): Invalid time step.\n" );
      }
 
+#if _FLOAT_
+     InitConst->Scale_Factor = ConfFile_GetFloat( Config, "General:Scale_Factor" );
+#else
      InitConst->Scale_Factor = ConfFile_GetDouble( Config, "General:Scale_Factor" );
+#endif
 
      /* Grid information */
      InitConst->ProcessGrid.Rows = ConfFile_GetInt( Config, "Grid:Rows" );
@@ -107,30 +117,56 @@ void Algorithm_Init_MPI( const char *FileName, AlgConst_t *const InitConst )
      }
 
      /* Rayleigh values */
+#if _FLOAT_
+     InitConst->Rayleigh.Alpha = ConfFile_GetFloat( Config, "Rayleigh:Alpha" );
+     InitConst->Rayleigh.Beta = ConfFile_GetFloat( Config, "Rayleigh:Beta" );
+#else
      InitConst->Rayleigh.Alpha = ConfFile_GetDouble( Config, "Rayleigh:Alpha" );
      InitConst->Rayleigh.Beta = ConfFile_GetDouble( Config, "Rayleigh:Beta" );
+#endif
 
      /* Newmark integration constants */
+#if _FLOAT_
+     InitConst->Newmark.Gamma = ConfFile_GetFloat( Config, "Newmark:Gamma" );
+     InitConst->Newmark.Beta = ConfFile_GetFloat( Config, "Newmark:Beta" );
+#else
      InitConst->Newmark.Gamma = ConfFile_GetDouble( Config, "Newmark:Gamma" );
      InitConst->Newmark.Beta = ConfFile_GetDouble( Config, "Newmark:Beta" );
+#endif
 
      /* PID Constants */
+#if _FLOAT_
+     InitConst->PID.P = ConfFile_GetFloat( Config, "PID:P" );
+     InitConst->PID.I = ConfFile_GetFloat( Config, "PID:I" );
+     InitConst->PID.D = ConfFile_GetFloat( Config, "PID:D" );
+#else
      InitConst->PID.P = ConfFile_GetDouble( Config, "PID:P" );
      InitConst->PID.I = ConfFile_GetDouble( Config, "PID:I" );
      InitConst->PID.D = ConfFile_GetDouble( Config, "PID:D" );
+#endif
 
      /* Constants for Ending Step */
+#if _FLOAT_
+     InitConst->a0 = 1.0f/(InitConst->Newmark.Beta*InitConst->Delta_t*InitConst->Delta_t);
+     InitConst->a2 = 1.0f/(InitConst->Newmark.Beta*InitConst->Delta_t);
+     InitConst->a3 = 1.0f/(2.0f*InitConst->Newmark.Beta) - 1.0f;
+     InitConst->a4 = InitConst->Newmark.Gamma/InitConst->Newmark.Beta - 1.0f;
+     InitConst->a5 = (InitConst->Delta_t/2.0f)*(InitConst->Newmark.Gamma/InitConst->Newmark.Beta - 2.0f);
+     InitConst->a6 = (1.0f - InitConst->Newmark.Gamma)*InitConst->Delta_t;
+     InitConst->a10 = (0.5f - InitConst->Newmark.Beta)*InitConst->Delta_t*InitConst->Delta_t;
+#else
      InitConst->a0 = 1.0/(InitConst->Newmark.Beta*InitConst->Delta_t*InitConst->Delta_t);
-     InitConst->a1 = InitConst->Newmark.Gamma/(InitConst->Newmark.Beta*InitConst->Delta_t);
      InitConst->a2 = 1.0/(InitConst->Newmark.Beta*InitConst->Delta_t);
      InitConst->a3 = 1.0/(2.0*InitConst->Newmark.Beta) - 1.0;
      InitConst->a4 = InitConst->Newmark.Gamma/InitConst->Newmark.Beta - 1.0;
      InitConst->a5 = (InitConst->Delta_t/2.0)*(InitConst->Newmark.Gamma/InitConst->Newmark.Beta - 2.0);
      InitConst->a6 = (1.0 - InitConst->Newmark.Gamma)*InitConst->Delta_t;
+     InitConst->a10 = (0.5 - InitConst->Newmark.Beta)*InitConst->Delta_t*InitConst->Delta_t;
+#endif
+     InitConst->a1 = InitConst->Newmark.Gamma/(InitConst->Newmark.Beta*InitConst->Delta_t);
      InitConst->a7 = InitConst->Newmark.Gamma*InitConst->Delta_t;
      InitConst->a8 = InitConst->Newmark.Beta*InitConst->Delta_t*InitConst->Delta_t;
      InitConst->a9 = InitConst->Delta_t;
-     InitConst->a10 = (0.5 - InitConst->Newmark.Beta)*InitConst->Delta_t*InitConst->Delta_t;
 
      /* File Names */
      InitConst->FileM = strdup( ConfFile_GetString( Config, "FileNames:Mass_Matrix" ) );
@@ -199,7 +235,7 @@ void Algorithm_Init_MPI( const char *FileName, AlgConst_t *const InitConst )
      /* Number of substructures */
      InitConst->NSubstep = (unsigned int) ConfFile_GetInt( Config, "Substructure:Num_Substeps" );
 
-     InitConst->DeltaT_Sub = InitConst->Delta_t/(double) InitConst->NSubstep;
+     InitConst->DeltaT_Sub = InitConst->Delta_t/(HYSL_FLOAT) InitConst->NSubstep;
 
      ConfFile_Destroy( Config );
 
@@ -246,7 +282,7 @@ void Algorithm_BroadcastConfFile( AlgConst_t *const InitConst )
      MPI_Address( &InitConst->Delta_t, &displs[1] );
 
      types[0] = MPI_INT;
-     types[1] = MPI_DOUBLE;
+     types[1] = MPI_HYSL_FLOAT;
 
      /* Adjust the displacement array so that the displacements are offsets from the beginning of the
       * structure */

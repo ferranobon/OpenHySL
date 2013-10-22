@@ -6,6 +6,7 @@
 
 #include "Algorithm_Aux.h"
 
+#include "Definitions.h"
 #include "Print_Messages.h"
 #include "Substructure.h"
 #include "Substructure_Exact.h"
@@ -42,16 +43,16 @@ int main( int argc, char **argv )
      int Is_Not_Finished;
      int Length;
 
-     double *IGain;
-     double *DispTdT0_c, *DispTdT_c;
-     double *fcprev, *fc;
-     double *Send;
-     double *Recv;
+     HYSL_FLOAT *IGain;
+     HYSL_FLOAT *DispTdT0_c, *DispTdT_c;
+     HYSL_FLOAT *fcprev, *fc;
+     HYSL_FLOAT *Send;
+     HYSL_FLOAT *Recv;
 
-     double GAcc = 0.0;
+     HYSL_FLOAT GAcc = 0.0;
 
      /* Array where the data from ADwin will be stored */
-     double *ADWIN_DATA = NULL;
+     HYSL_FLOAT *ADWIN_DATA = NULL;
 
      /* Variables to deal with arguments */
      int Selected_Option;
@@ -141,25 +142,25 @@ int main( int argc, char **argv )
 
 
      /* Dynamically allocate memory */
-     IGain = (double *) calloc( (size_t) InitCnt.OrderSub*(size_t) InitCnt.OrderSub, sizeof( double ) );
+     IGain = (HYSL_FLOAT *) calloc( (size_t) InitCnt.OrderSub*(size_t) InitCnt.OrderSub, sizeof( HYSL_FLOAT ) );
 
-     DispTdT0_c = (double *) calloc( (size_t) InitCnt.OrderSub, sizeof( double ) );
-     DispTdT_c = (double *) calloc( (size_t) InitCnt.OrderSub, sizeof( double ) );
+     DispTdT0_c = (HYSL_FLOAT *) calloc( (size_t) InitCnt.OrderSub, sizeof( HYSL_FLOAT ) );
+     DispTdT_c = (HYSL_FLOAT *) calloc( (size_t) InitCnt.OrderSub, sizeof( HYSL_FLOAT ) );
 
-     fcprev = (double *) calloc( (size_t) InitCnt.OrderSub, sizeof( double ) );
-     fc = (double *) calloc( (size_t) InitCnt.OrderSub, sizeof( double ) );
+     fcprev = (HYSL_FLOAT *) calloc( (size_t) InitCnt.OrderSub, sizeof( HYSL_FLOAT ) );
+     fc = (HYSL_FLOAT *) calloc( (size_t) InitCnt.OrderSub, sizeof( HYSL_FLOAT ) );
 
-     Send = (double *) calloc( (size_t) 3*(size_t) InitCnt.OrderSub, sizeof( double ) );
-     Recv = (double *) calloc( (size_t) 1+(size_t) InitCnt.OrderSub, sizeof( double ) );
+     Send = (HYSL_FLOAT *) calloc( (size_t) 3*(size_t) InitCnt.OrderSub, sizeof( HYSL_FLOAT ) );
+     Recv = (HYSL_FLOAT *) calloc( (size_t) 1+(size_t) InitCnt.OrderSub, sizeof( HYSL_FLOAT ) );
 
      /* Receive matrix IGain */
      Length = InitCnt.OrderSub*InitCnt.OrderSub;
 
      if( Socket_Type == REMOTE_TCP ){
-	  Substructure_Remote_Receive( Client_Socket, (unsigned int) Length, sizeof(double), (char *const) IGain );
+	  Substructure_Remote_Receive( Client_Socket, (unsigned int) Length, sizeof(HYSL_FLOAT), (char *const) IGain );
      } else {
 	  Client_AddrLen = sizeof(Client_Addr);
-	  if ( recvfrom( Server_Socket, IGain, (size_t) Length*sizeof(double), 0, (struct sockaddr *) &Client_Addr, &Client_AddrLen) < 0 ){
+	  if ( recvfrom( Server_Socket, IGain, (size_t) Length*sizeof(HYSL_FLOAT), 0, (struct sockaddr *) &Client_Addr, &Client_AddrLen) < 0 ){
 	       Print_Header( ERROR );
 	       fprintf( stderr, "Recvfrom failed" );
 	       return EXIT_FAILURE;
@@ -171,7 +172,7 @@ int main( int argc, char **argv )
 	       Substructure_SendGainMatrix( IGain, (unsigned int) CNodes.Order, &CNodes.Sub[i] );
 	       /* Allocate the memory for reading the ADwin data */
 	       if( ADWIN_DATA == NULL ){
-		    ADWIN_DATA = (double *) calloc( (size_t) InitCnt.OrderSub*InitCnt.NSubstep*NUM_CHANNELS, sizeof( double ) );
+		    ADWIN_DATA = (HYSL_FLOAT *) calloc( (size_t) InitCnt.OrderSub*InitCnt.NSubstep*NUM_CHANNELS, sizeof( HYSL_FLOAT ) );
 	       }
 	  }
      }
@@ -184,10 +185,10 @@ int main( int argc, char **argv )
 	  /* Receive the displacement */
 	  Length = InitCnt.OrderSub;
 	  if ( Socket_Type == REMOTE_TCP ){
-	       Substructure_Remote_Receive( Client_Socket, (unsigned int) Length + 1, sizeof(double), (char *const) Recv );
+	       Substructure_Remote_Receive( Client_Socket, (unsigned int) Length + 1, sizeof(HYSL_FLOAT), (char *const) Recv );
 	  } else {
 	       Client_AddrLen = sizeof(Client_Addr);
-	       if ( recvfrom( Server_Socket, Recv, (size_t) (Length+1)*sizeof(double), 0, (struct sockaddr *) &Client_Addr, &Client_AddrLen) < 0 ){
+	       if ( recvfrom( Server_Socket, Recv, (size_t) (Length+1)*sizeof(HYSL_FLOAT), 0, (struct sockaddr *) &Client_Addr, &Client_AddrLen) < 0 ){
 		    Print_Header( ERROR );
 		    fprintf( stderr, "recvfrom() failed" );
 		    return EXIT_FAILURE;
@@ -219,7 +220,8 @@ int main( int argc, char **argv )
 			 /* Call the Simulate_Substructures() function only once. All the simulated substructures are
 			  * handled together in this routine */
 			 if( !Called_Sub ){
-			      Substructure_Simulate( &CNodes, IGain, DispTdT0_c, GAcc, InitCnt.NSubstep, InitCnt.DeltaT_Sub, DispTdT_c, fcprev, fc );
+			      Substructure_Simulate( IGain, DispTdT0_c, GAcc, InitCnt.NSubstep, InitCnt.DeltaT_Sub,
+						     &CNodes, DispTdT_c, fcprev, fc );
 			      Called_Sub = true;
 			 }
 			 break;
@@ -242,9 +244,9 @@ int main( int argc, char **argv )
 	       /* Send the response */
 	       Length = 3*InitCnt.OrderSub;
 	       if( Socket_Type == REMOTE_TCP ){
-		    Substructure_Remote_Send( Client_Socket, (unsigned int) Length, sizeof(double), (char *const) Send );
+		    Substructure_Remote_Send( Client_Socket, (unsigned int) Length, sizeof(HYSL_FLOAT), (char *const) Send );
 	       } else{
-		    if( sendto( Server_Socket, Send, (size_t) Length*sizeof(double), 0, (struct sockaddr *) &Client_Addr, sizeof(Client_Addr) ) != (int) sizeof(double)*Length ){  /* Sizeof() returns unsigned int */
+		    if( sendto( Server_Socket, Send, (size_t) Length*sizeof(HYSL_FLOAT), 0, (struct sockaddr *) &Client_Addr, sizeof(Client_Addr) ) != (int) sizeof(HYSL_FLOAT)*Length ){  /* Sizeof() returns unsigned int */
 			 Print_Header( ERROR );
 			 fprintf( stderr, "sendto() failed or send a different ammount of data");
 			 return EXIT_FAILURE;
@@ -303,7 +305,11 @@ void CustomServer_Init( const char *FileName, AlgConst_t *const InitConst )
 
      ConfFile_ReadFile( FileName, Config );
 
+#if _FLOAT_
+     InitConst->Delta_t = ConfFile_GetFloat( Config, "General:Delta" );
+#else
      InitConst->Delta_t = ConfFile_GetDouble( Config, "General:Delta" );
+#endif
      if ( InitConst->Delta_t <= 0.0 ){
 	  Print_Header( ERROR );
 	  fprintf( stderr, "Invalid time step.\n" );
@@ -311,17 +317,32 @@ void CustomServer_Init( const char *FileName, AlgConst_t *const InitConst )
      }
 
      /* Newmark integration constants */
+#if _FLOAT_
+     InitConst->Newmark.Gamma = ConfFile_GetFloat( Config, "Newmark:Gamma" );
+     InitConst->Newmark.Beta = ConfFile_GetFloat( Config, "Newmark:Beta" );
+#else
      InitConst->Newmark.Gamma = ConfFile_GetDouble( Config, "Newmark:Gamma" );
      InitConst->Newmark.Beta = ConfFile_GetDouble( Config, "Newmark:Beta" );
+#endif
 
      /* Constants for Ending Step */
+#if _FLOAT_
+     InitConst->a0 = 1.0f/(InitConst->Newmark.Beta*InitConst->Delta_t*InitConst->Delta_t);
+     InitConst->a2 = 1.0f/(InitConst->Newmark.Beta*InitConst->Delta_t);
+     InitConst->a3 = 1.0f/(2.0f*InitConst->Newmark.Beta) - 1.0f;
+     InitConst->a4 = InitConst->Newmark.Gamma/InitConst->Newmark.Beta - 1.0f;
+     InitConst->a5 = (InitConst->Delta_t/2.0f)*(InitConst->Newmark.Gamma/InitConst->Newmark.Beta - 2.0f);
+     InitConst->a6 = (1.0f - InitConst->Newmark.Gamma)*InitConst->Delta_t;
+#else
      InitConst->a0 = 1.0/(InitConst->Newmark.Beta*InitConst->Delta_t*InitConst->Delta_t);
-     InitConst->a1 = InitConst->Newmark.Gamma/(InitConst->Newmark.Beta*InitConst->Delta_t);
      InitConst->a2 = 1.0/(InitConst->Newmark.Beta*InitConst->Delta_t);
      InitConst->a3 = 1.0/(2.0*InitConst->Newmark.Beta) - 1.0;
      InitConst->a4 = InitConst->Newmark.Gamma/InitConst->Newmark.Beta - 1.0;
      InitConst->a5 = (InitConst->Delta_t/2.0)*(InitConst->Newmark.Gamma/InitConst->Newmark.Beta - 2.0);
      InitConst->a6 = (1.0 - InitConst->Newmark.Gamma)*InitConst->Delta_t;
+#endif
+
+     InitConst->a1 = InitConst->Newmark.Gamma/(InitConst->Newmark.Beta*InitConst->Delta_t);
      InitConst->a7 = InitConst->Newmark.Gamma*InitConst->Delta_t;
 
      /* File Names */
@@ -338,7 +359,7 @@ void CustomServer_Init( const char *FileName, AlgConst_t *const InitConst )
      /* Number of substructures */
      InitConst->NSubstep = (unsigned int) ConfFile_GetInt( Config, "Substructure:Num_Substeps" );
 
-     InitConst->DeltaT_Sub = InitConst->Delta_t/(double) InitConst->NSubstep;
+     InitConst->DeltaT_Sub = InitConst->Delta_t/(HYSL_FLOAT) InitConst->NSubstep;
 
      ConfFile_Destroy( Config );
 

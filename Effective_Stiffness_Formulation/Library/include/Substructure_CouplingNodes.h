@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include "Algorithm_Aux.h"
 #include "Substructure.h"
+#include "Definitions.h"
 
 #define MAX_LINE 200          /*!< \brief Maximum input line length. */
 #define MAX_SUBTYPE 20        /*!< \brief Maximum length of the substructure type */
@@ -56,11 +57,18 @@ typedef struct Substructure{
 typedef struct CouplingNode {
      int *Array;             /*!< \brief Array containing the coupling nodes of length \c Order.*/
      int Order;     /*!< \brief Number of coupling nodes. */
-     double *VecTdT0_c0;     /*!< \brief Previous values of the explicit displacement. They are used in the
+     HYSL_FLOAT *VecTdT0_c0;     /*!< \brief Previous values of the explicit displacement. They are used in the
 			      * sub-stepping process (ramp function). */
      Substructure_t *Sub;    /*!< \brief Array of substructures of length \c Order.*/
 } CouplingNode_t;
 
+
+typedef struct InfoLocation {
+     int *LRowIndex;
+     int *LColIndex;
+     int *RowProcess;
+     int *ColProcess;
+} InfoLocation_t;
 
 /**
  * \brief Deallocates the memory in the \c CouplingNode_t by calling the appropiate routines.
@@ -180,6 +188,11 @@ void Substructure_SortCouplingNodes( CouplingNode_t *const CNodes );
  * \sa CouplingNode_t.
  */
 void Substructure_BroadCastCouplingNodes( CouplingNode_t *const CNodes );
+
+void Substructure_InfoLocation_Init( const int Length, int *Position, int *const Descriptor,
+				     InfoLocation_t *const InfoLoc );
+
+void Substructure_InfoLocation_Destroy( InfoLocation_t *const InfoLoc );
 
 #endif /* SUBSTRUCTURE_COUPLINGNODES_H_ */
 

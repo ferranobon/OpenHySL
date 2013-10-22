@@ -3,6 +3,7 @@
 
 #include "MatrixVector_Sp.h"
 #include "Print_Messages.h"
+#include "Definitions.h"
 
 #if _MATRIXMARKET_
 #include "mmio.h"
@@ -15,7 +16,7 @@ void MatrixVector_FromFile_MM_Sp( const char *Filename, MatrixVector_Sp_t *const
      MM_typecode matcode;   /* MatrixMarket: type of the matrix (symmetric, dense, complex, ...)  */
      int return_code;       /* MatrixMarket: return code for the functions */
      int i, j;              /* Indexes of the position within the matrix of the readen value */
-     double Value;          /* Value to be saved in the position (i,j) of the matrix */
+     HYSL_FLOAT Value;      /* Value to be saved in the position (i,j) of the matrix */
      int Rows, Cols;        /* Number of Rows and Columns */
      int nnz;               /* Number of non-zero elements */
      int innz;              /* Counter for the number of non-zero elements */
@@ -68,7 +69,11 @@ void MatrixVector_FromFile_MM_Sp( const char *Filename, MatrixVector_Sp_t *const
       */
      Pos_RI = 0;
      for( innz = 0; innz < nnz; innz++ ){
+#if _FLOAT_
+	  fscanf( InFile, "%d %d %E", &i, &j, &Value );
+#else
 	  fscanf( InFile, "%d %d %lE", &i, &j, &Value );
+#endif
 	  MatVec_Sp->Values[innz] = Value;
 	  MatVec_Sp->Columns[innz] = i;            /* The read matrix is the lower triangular part but we store the upper triangular part */
 	  if ( j > Pos_RI ){
@@ -105,7 +110,11 @@ void MatrixVector_ToFile_Sp( const MatrixVector_Sp_t *const MatVec_Sp, const cha
 	  
      fprintf( OutFile, "Values: Nonzero elements.\n" );
      for ( i = 0; i < MatVec_Sp->Num_Nonzero; i++ ){
+#if _FLOAT_
+	  fprintf( OutFile, "%E\t", MatVec_Sp->Values[i] );
+#else
 	  fprintf( OutFile, "%lE\t", MatVec_Sp->Values[i] );
+#endif
      }
      fprintf( OutFile, "\n" );
 

@@ -85,7 +85,7 @@ int main( int argc, char **argv ){
      int ione = 1;
      Scalars_t Constants;
      
-     double *AccAll, *VelAll, *DispAll;
+     HYSL_FLOAT *AccAll, *VelAll, *DispAll;
 
      PMatrixVector_t M, C, K;               /* Mass, Damping and Stiffness matrices */
      PMatrixVector_t Keinv;
@@ -112,6 +112,12 @@ int main( int argc, char **argv ){
      PMatrixVector_t Disp, Vel, Acc;
 
      CouplingNode_t CNodes;
+
+     /* Variables to store the information regarding where the coupling position is in the fc vector */
+     InfoLocation_t InfoLoc_fc, InfoLoc_fcprevsub, InfoLoc_DispTdT;
+     int *TempIntArray;
+
+     /* Time control variables */
      SaveTime_MPI_t Time;
 
      /* Options */
@@ -178,15 +184,15 @@ int main( int argc, char **argv ){
      /* Send the Information read in process 0 to all the other processes using MPI_Bcast */
      Algorithm_BroadcastConfFile( &InitCnt );
      Substructure_BroadCastCouplingNodes( &CNodes );
-
+     Substructure_ReadCouplingNodes( &InitCnt, &CNodes );
      /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will be used
       * during the test */
      if( InitCnt.Use_Absolute_Values ){
 	  AccAll = NULL;
-	  VelAll = (double *) calloc( (size_t) InitCnt.NStep, sizeof(double) );
-	  DispAll = (double *) calloc( (size_t) InitCnt.NStep, sizeof(double) );
+	  VelAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+	  DispAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
      } else {
-	  AccAll = (double *) calloc( (size_t) InitCnt.NStep, sizeof(double) );
+	  AccAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
 	  VelAll = NULL;
 	  DispAll = NULL;
      }
@@ -314,6 +320,24 @@ int main( int argc, char **argv ){
 	  }
      }
 
+     /*
+      * Get the information about the position of the coupling force in the vector fc and its coordinates in
+      * the process grid. Used when receiving the information from the server
+      */
+     Substructure_InfoLocation_Init( CNodes.Order, CNodes.Array, fc.Desc, &InfoLoc_fc );
+     Substructure_InfoLocation_Init( CNodes.Order, CNodes.Array, DispTdT.Desc, &InfoLoc_DispTdT );
+
+     /* Since fcprevsub is an array of order CNodes.Order and it contains only the coupling nodes in ascending
+      * order, a temp array has to be first initialised in order to get the local coordinates. This cannot be
+      * done with CNodes.Array since it contains the coupling positions in the arrays of length InitCnt.Order */
+     TempIntArray = (int *) calloc( (size_t) CNodes.Order, sizeof(int) );
+     for( i = 0; i < CNodes.Order; i++ ){
+	  TempIntArray[i] = i + 1;  /* One based index since infog2l_(), a FORTRAN routine, is going to be
+				     * used in order to retrieve the information */
+     }
+     Substructure_InfoLocation_Init( CNodes.Order, TempIntArray, fcprevsub.Desc, &InfoLoc_fcprevsub );
+     free( TempIntArray );
+
      /* Read the earthquake data from a file */
      if( rank == 0 ){
 	  if( InitCnt.Use_Absolute_Values ){
@@ -327,17 +351,16 @@ int main( int argc, char **argv ){
 
      /* Broadcast the earthquake data */
      if( InitCnt.Use_Absolute_Values ){
-	  MPI_Bcast( DispAll, (int) InitCnt.NStep, MPI_DOUBLE, 0, MPI_COMM_WORLD );
-	  MPI_Bcast( VelAll, (int) InitCnt.NStep, MPI_DOUBLE, 0, MPI_COMM_WORLD );
+	  MPI_Bcast( DispAll, (int) InitCnt.NStep, MPI_HYSL_FLOAT, 0, MPI_COMM_WORLD );
+	  MPI_Bcast( VelAll, (int) InitCnt.NStep, MPI_HYSL_FLOAT, 0, MPI_COMM_WORLD );
      } else {
-	  MPI_Bcast( AccAll, (int) InitCnt.NStep, MPI_DOUBLE, 0, MPI_COMM_WORLD );
+	  MPI_Bcast( AccAll, (int) InitCnt.NStep, MPI_HYSL_FLOAT, 0, MPI_COMM_WORLD );
      }
 
      /* Open Output file. If the file cannot be opened, the program will exit, since the results cannot be
       * stored. */
 #if _HDF5_
      HDF5_CreateFile_MPI( MPI_COMM_WORLD, InitCnt.FileOutput, &hdf5_file );
-
      HDF5_CreateGroup_Parameters( hdf5_file, &InitCnt, &CNodes, AccAll, VelAll, DispAll );
      HDF5_CreateGroup_TimeIntegration( hdf5_file, &InitCnt );
 #endif
@@ -363,7 +386,6 @@ int main( int argc, char **argv ){
      }
 
      while ( istep <= InitCnt.NStep ){
-
 	  /* Calculate the effective force vector Fe = M*(a0*u + a2*v + a3*a) + C*(a1*u + a4*v + a5*a) */
 	  EffK_EffectiveForce_MPI( &M, &C, &DispT, &VelT, &AccT, &tempvec, InitCnt.a0, InitCnt.a1, InitCnt.a2,
 				   InitCnt.a3, InitCnt.a4, InitCnt.a5, &EffT );
@@ -379,13 +401,13 @@ int main( int argc, char **argv ){
 
 	  /* Perform substepping */
 	  if( CNodes.Order >= 1 ){
-/*	       Substructure_Substepping_MPI( &CNodes, Keinv_c.Array, DispTdT0_c.Array,
-					     InitCnt.Delta_t*(double) istep, AccAll[istep - 1],
-					     InitCnt.NSubstep, InitCnt.DeltaT_Sub, DispTdT.Array,
-					     fcprevsub.Array, fc.Array);*/
-	       Substructure_Substepping_MPI( &CNodes, Keinv_c.Array, DispTdT0_c.Array,
-	                                     InitCnt.Delta_t*(double) istep, 0.0, InitCnt.NSubstep, 
-					     InitCnt.DeltaT_Sub, DispTdT.Array, fcprevsub.Array, fc.Array );
+/*	       Substructure_Substepping_MPI( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep,
+					     AccAll[istep -1], InitCnt.NSubstep, InitCnt.DeltaT_Sub, MPI_COMM_WORLD,
+					     &InfoLoc_DispTdT, &InfoLoc_fcprevsub, &InfoLoc_fc, &CNodes, &DispTdT,
+					     &fcprevsub, &fc );*/
+	       Substructure_Substepping_MPI( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep,
+					     0.0, InitCnt.NSubstep, InitCnt.DeltaT_Sub, MPI_COMM_WORLD, &InfoLoc_DispTdT,
+					     &InfoLoc_fcprevsub, &InfoLoc_fc, &CNodes, &DispTdT, &fcprevsub, &fc );
 	  }
 
 	  if ( istep < InitCnt.NStep ){
@@ -521,6 +543,11 @@ int main( int argc, char **argv ){
      if( CNodes.Order >= 1 ){
 	  Substructure_DeleteCouplingNodes( &CNodes );
      }
+
+     /* Free information regarding the location of the coupling nodes in the distributed grid */
+     Substructure_InfoLocation_Destroy( &InfoLoc_fc );
+     Substructure_InfoLocation_Destroy( &InfoLoc_fcprevsub );
+     Substructure_InfoLocation_Destroy( &InfoLoc_DispTdT );
 
      /* BLACS: Exit Grid and release bhandle */
      Cblacs_gridexit( icontxt );

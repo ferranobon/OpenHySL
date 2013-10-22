@@ -15,6 +15,8 @@
 
 #include "MatrixVector.h"  /* For Scalars_t */
 
+#include "Definitions.h"
+
 /**
  * \brief Sparse matrix storage. MKL CSR-\em three \em array \em variation.
  *
@@ -26,19 +28,19 @@
  * \sa MatrixVector_t.
  */
 typedef struct MatrixVector_Sp {
-     int Rows;        /*!< \brief Number of Rows of the matrix. */
-     int Cols;        /*!< \brief Number of Columns of the matrix. */
-     int Num_Nonzero; /*!< \brief Number of non-zero elements. */
-     double *Values;  /*!< \brief A double precision array that contains the non-zero elements of a sparse
-		       * matrix. The non-zero elements are mapped into the values array using the row-major
-		       * upper triangular storage mapping. The lenght of the array is equal to the number of
-		       * non-zero elements in the matrix. */
-     int *Columns;    /*!< \brief Element \a i of the integer array columns is the number of the column that
-		       * contains the i-th element in the values array. The lenght of the array is equal to
-		       * the number of non-zero elements in the matrix. */
-     int *RowIndex;   /*!< \brief Element \a j of the integer array rowIndex gives the index of the element in
-		       * the values array that is first non-zero element in a row j. The length of the array
-		       * is equal to the number of rows plus one. */
+     int Rows;            /*!< \brief Number of Rows of the matrix. */
+     int Cols;            /*!< \brief Number of Columns of the matrix. */
+     int Num_Nonzero;     /*!< \brief Number of non-zero elements. */
+     HYSL_FLOAT *Values;  /*!< \brief A HYSL_FLOAT precision array that contains the non-zero elements of a
+		           * sparse matrix. The non-zero elements are mapped into the values array using the
+		           * row-major upper triangular storage mapping. The lenght of the array is equal to
+		           * the number of non-zero elements in the matrix. */
+     int *Columns;        /*!< \brief Element \a i of the integer array columns is the number of the column
+			   * that contains the i-th element in the values array. The lenght of the array is
+			   * equal to the number of non-zero elements in the matrix. */
+     int *RowIndex;       /*!< \brief Element \a j of the integer array rowIndex gives the index of the
+			   * element in the values array that is first non-zero element in a row j. The length
+			   * of the array is equal to the number of rows plus one. */
 } MatrixVector_Sp_t;
 
 /**
@@ -120,7 +122,7 @@ void MatrixVector_AllocateSpace_Sp( const int nnz, MatrixVector_Sp_t *const MatV
  * \param[in] Cols Number of columns.
  * \returns Number of non-zero elements in the general matrix.
  */
-int MatrixVector_CountNNZ_GE( const double *const Matrix, const int Rows, const int Cols );
+int MatrixVector_CountNNZ_GE( const HYSL_FLOAT *const Matrix, const int Rows, const int Cols );
 
 /**
  * \brief Counts the number of non-zero elements in the upper triangular part of a symmetric matrix.
@@ -131,7 +133,7 @@ int MatrixVector_CountNNZ_GE( const double *const Matrix, const int Rows, const 
 
  * \returns Number of non-zero elements in the upper triangular part of the symmetric matrix.
  */
-int MatrixVector_CountNNZ_SY( const double *const Sym_Matrix, const int Rows );
+int MatrixVector_CountNNZ_SY( const HYSL_FLOAT *const Sym_Matrix, const int Rows );
 
 /**
  * \brief Initialises a sparse matrix or vector.

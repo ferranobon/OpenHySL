@@ -15,6 +15,7 @@
 #include <unistd.h>
 #endif
 
+#include "Definitions.h"
 #include "Print_Messages.h"
 #include "Substructure_Remote.h"
 #include "Substructure_Remote_NSEP.h"
@@ -53,7 +54,7 @@ void Substructure_Remote_Init( const char *RemoteType, const char *IPAddress, co
 
      if ( Remote->Type == REMOTE_NSEP ){
 	  /* Log into the PNSE server and set the client state to running */
-	  Substructure_Remote_NSEP( Remote, NSEP_LOG, 0.0, 0, NULL, NULL );
+	  Substructure_Remote_NSEP( Remote, NSEP_LOG, 0.0f, 0, NULL, NULL );
      } else if ( Remote->Type == REMOTE_OF ){
 	  /* Configure the connection with OpenFresco */
 	  Substructure_Remote_OpenFresco( Remote->Socket, OF_REMOTE_SETUP, Remote->NSub, NULL, NULL );
@@ -361,20 +362,24 @@ void Substructure_Remote_Receive( const int Socket, const unsigned int Data_Leng
 
 void Substructure_Remote_Destroy( Remote_t *const Remote )
 {
-     double *Send = NULL;
+     HYSL_FLOAT *Send = NULL;
      
-     Send = (double *) calloc( (size_t) Remote->NSub + 1, sizeof(double) );
+     Send = (HYSL_FLOAT *) calloc( (size_t) Remote->NSub + 1, sizeof(HYSL_FLOAT) );
 
 
      free( Remote->DOFs );
 
      if( Remote->Type == REMOTE_TCP || Remote->Type == REMOTE_UDP || Remote->Type == REMOTE_CELESTINA ){
 	  Send[0] = -9999.0;
-	  Substructure_Remote_Send( Remote->Socket, (unsigned int) Remote->NSub + 1, sizeof(double), (char *const) Send );
+	  Substructure_Remote_Send( Remote->Socket, (unsigned int) Remote->NSub + 1, sizeof(HYSL_FLOAT), (char *const) Send );
      } else if( Remote->Type == REMOTE_NSEP ){
 	  /* Using NSEP Protocol */
 	  /* Say to PNSE server that the process has finished. WhatToDo = 6 */
+#if _FLOAT_
+	  Substructure_Remote_NSEP( Remote, NSEP_SET_TO_FINISHED, 0.0f, 0, Send, NULL );
+#else
 	  Substructure_Remote_NSEP( Remote, NSEP_SET_TO_FINISHED, 0.0, 0, Send, NULL );
+#endif
 
 	  free( Remote->Account_Name );
 	  free( Remote->Account_Password );

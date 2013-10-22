@@ -2,6 +2,8 @@
 #include "MatrixVector.h"
 #include "MatrixVector_Sp.h"
 
+#include "Definitions.h"
+
 #include <mkl_blas.h>
 #include <mkl_spblas.h>
 
@@ -10,7 +12,7 @@ void PC_Correct_Acceleration_Sp( const MatrixVector_Sp_t *const MInv, const Matr
 				 MatrixVector_t *const AccTdT_Corr )
 {
      int incx = 1, incy = 1;    /* Stride in the vectors */
-     double Alpha, Beta;        /* Constants to use in the Sparse BLAS routines */
+     HYSL_FLOAT Alpha, Beta;    /* Constants to use in the Sparse BLAS routines */
      char trans = 'N';          /* No transpose operation */
      char matdescra[6] = {'S',  /* The matrix is symmetric */
 			  'U',  /* The upper part is referenced */
@@ -20,11 +22,11 @@ void PC_Correct_Acceleration_Sp( const MatrixVector_Sp_t *const MInv, const Matr
      Alpha = 1.0; Beta = 0.0;
 
      /* BLAS: tempvec = In_LoadT */
-     dcopy( &Tempvec->Rows, In_LoadT->Array, &incx, Tempvec->Array, &incy );
+     hysl_copy( &Tempvec->Rows, In_LoadT->Array, &incx, Tempvec->Array, &incy );
      /* BLAS: tempvec = In_LoadT + fc = tempvec + fc */
-     daxpy( &Tempvec->Rows, &Alpha, fc->Array, &incx, Tempvec->Array, &incy );
+     hysl_axpy( &Tempvec->Rows, &Alpha, fc->Array, &incx, Tempvec->Array, &incy );
 
      /* Sparse BLAS: AccTdT_Corr = MInv*(In_LoadT + fc) = MInv*Tempvec */
-     mkl_dcsrmv( &trans, &Tempvec->Rows, &Tempvec->Rows, &Alpha, matdescra, MInv->Values, MInv->Columns,
-		 MInv->RowIndex, &MInv->RowIndex[1], Tempvec->Array, &Beta, AccTdT_Corr->Array );
+     hysl_mkl_csrmv( &trans, &Tempvec->Rows, &Tempvec->Rows, &Alpha, matdescra, MInv->Values, MInv->Columns,
+		     MInv->RowIndex, &MInv->RowIndex[1], Tempvec->Array, &Beta, AccTdT_Corr->Array );
 }

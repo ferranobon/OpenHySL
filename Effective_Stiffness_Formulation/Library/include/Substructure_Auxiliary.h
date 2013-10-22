@@ -15,7 +15,7 @@
 
 #include "MatrixVector.h"
 
-#include "Substructure.h"
+#include "Substructure_CouplingNodes.h"
 
 #if _MPI_
 #include "mpi.h"

@@ -22,7 +22,7 @@ void EffM_EffectiveForce_MPI( PMatrixVector_t *const Stiff, PMatrixVector_t *con
      HYSL_FLOAT Alpha, Beta;      /* Constants for the BLAS routines */
 
      /* PBLAS: tempvec = Disp */
-     pdcopy_( &Tempvec->GlobalSize.Row, DispT->Array, &ione, &ione, DispT->Desc, &ione, Tempvec->Array, &ione,
+     hysl_pcopy( &Tempvec->GlobalSize.Row, DispT->Array, &ione, &ione, DispT->Desc, &ione, Tempvec->Array, &ione,
 	      &ione, Tempvec->Desc, &ione );
      /* PBLAS: tempvec = tempvec = Disp + a9*Vel = tempvec + a9*Vel */
      Alpha = a9;
@@ -34,12 +34,12 @@ void EffM_EffectiveForce_MPI( PMatrixVector_t *const Stiff, PMatrixVector_t *con
 	      &ione, &ione, Tempvec->Desc, &incy );
      /* PBLAS: Eff_Force = -Stiff*(Disp + a2*Vel + a10*Acc) = -Stiff*tempvec */
      Alpha = -1.0; Beta = 0.0;
-     pdsymv_( &uplo, &Tempvec->GlobalSize.Row, &Alpha, Stiff->Array, &ione, &ione, Stiff->Desc, Tempvec->Array,
+     hysl_psymv( &uplo, &Tempvec->GlobalSize.Row, &Alpha, Stiff->Array, &ione, &ione, Stiff->Desc, Tempvec->Array,
 	      &ione, &ione, Tempvec->Desc, &incx, &Beta, Eff_ForceT->Array, &ione, &ione, Eff_ForceT->Desc,
 	      &incy );
 
      /* PBLAS: tempvec = Vel */
-     pdcopy_( &Tempvec->GlobalSize.Row, VelT->Array, &ione, &ione, VelT->Desc, &ione, Tempvec->Array, &ione,
+     hysl_pcopy( &Tempvec->GlobalSize.Row, VelT->Array, &ione, &ione, VelT->Desc, &ione, Tempvec->Array, &ione,
 	      &ione, Tempvec->Desc, &ione );
      /* PBLAS: tempvec = Vel + a6*Acc = tempvec + a6*Acc */
      Alpha = a6;
@@ -47,7 +47,7 @@ void EffM_EffectiveForce_MPI( PMatrixVector_t *const Stiff, PMatrixVector_t *con
 	      &ione, &ione, Tempvec->Desc, &incy );
      /* PBLAS: Eff_Force = -Stiff*(Disp + a9*Vel + a10*Acc) - Damp*(Vel + 6*Acc) = Eff_Force - Damp*tempvec */
      Alpha = 1.0; Beta = 1.0;
-     pdsymv_( &uplo, &Tempvec->GlobalSize.Row, &Alpha, Damp->Array, &ione, &ione, Damp->Desc, Tempvec->Array,
+     hysl_psymv( &uplo, &Tempvec->GlobalSize.Row, &Alpha, Damp->Array, &ione, &ione, Damp->Desc, Tempvec->Array,
 	      &ione, &ione, Tempvec->Desc, &incx, &Beta, Eff_ForceT->Array, &ione, &ione, Eff_ForceT->Desc,
 	      &incy );
 }
@@ -63,7 +63,7 @@ void EffM_ComputeDisplacement_MPI( PMatrixVector_t *const DispT, PMatrixVector_t
      HYSL_FLOAT Alpha;            /* Constant for the BLAS routines */
 
      /* PBLAS: DispTdT = DispT */
-     pdcopy_( &DispTdT->GlobalSize.Row, DispT->Array, &ione, &ione, DispT->Desc, &ione, DispTdT->Array,
+     hysl_pcopy( &DispTdT->GlobalSize.Row, DispT->Array, &ione, &ione, DispT->Desc, &ione, DispTdT->Array,
 	      &ione, &ione, DispTdT->Desc, &ione );
      /* PBLAS: DispTdT = DispT + a9*VelT = DispTdT + a9*VelT */
      Alpha = a9;

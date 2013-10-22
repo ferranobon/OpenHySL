@@ -42,6 +42,7 @@
  * For a complete documentation the reader should refer to \cite BLAS_webpage.
  */
 void dscal_( int *n, double *alpha, double *x, int *incx );
+void sscal_( int *n, float *alpha, float *x, int *incx );
 
 /**
  * \brief \f$\vec y \leftarrow \vec x\f$
@@ -64,6 +65,7 @@ void dscal_( int *n, double *alpha, double *x, int *incx );
  * For a complete documentation the reader should refer to \cite BLAS_webpage.
  */
 void dcopy_( int *n, double *x, int *incx, double *y, int *incy );
+void scopy_( int *n, float *x, int *incx, float *y, int *incy );
 
 /**
  * \brief \f$\vec y \leftarrow \alpha \vec x + \vec y\f$
@@ -89,6 +91,7 @@ void dcopy_( int *n, double *x, int *incx, double *y, int *incy );
  * For a complete documentation the reader should refer to \cite BLAS_webpage.
  */
 void daxpy_( int *n, double *alpha, double *x, int *incx, double *y, int *incy );
+void saxpy_( int *n, float *alpha, float *x, int *incx, float *y, int *incy );
 
 /**
  * \brief \f$\vec y \leftarrow \alpha \mathcal A\vec x + \beta \vec y\f$.
@@ -130,6 +133,13 @@ void daxpy_( int *n, double *alpha, double *x, int *incx, double *y, int *incy )
  */
 void dsymv_( char *uplo, int *n, double *alpha, double *a, int *lda, double *x, int *incx, double *beta,
 	    double *y, int *incy );
+void ssymv_( char *uplo, int *n, float *alpha, float *a, int *lda, float *x, int *incx, float *beta,
+	     float *y, int *incy );
+
+void dspmv_( char *uplo, int *n, double *alpha, double *ap, double *x, int *incx, double *beta, double *y,
+	     int *incy );
+void sspmv_( char *uplo, int *n, float *alpha, float *ap, float *x, int *incx, float *beta, float *y,
+	     int *incy );
 
 /**
  * \brief \f$\vec y \leftarrow \alpha \mathcal A\vec x + \beta \vec y\f$ or \f$\vec y \leftarrow \alpha
@@ -175,6 +185,8 @@ void dsymv_( char *uplo, int *n, double *alpha, double *a, int *lda, double *x, 
  */
 void dgemv_( char *trans, int *m, int *n, double *alpha, double *a, int *lda, double *x, int *incx,
 	     double *beta, double *y, int *incy );
+void sgemv_( char *trans, int *m, int *n, float *alpha, float *a, int *lda, float *x, int *incx,
+	     float *beta, float *y, int *incy );
 
 /* LAPACK routines */
 /**
@@ -200,6 +212,7 @@ void dgemv_( char *trans, int *m, int *n, double *alpha, double *a, int *lda, do
  * For a complete documentation the reader should refer to \cite LAPACK_webpage \cite LUG.
  */
 void dlacpy_( char *uplo, int *m, int *n, double *a, int *lda, double *b, int *ldb );
+void slacpy_( char *uplo, int *m, int *n, float *a, int *lda, float *b, int *ldb );
 
 /**
  * \brief Multiplies the M by N real matrix \c a by a real scalar.
@@ -238,6 +251,8 @@ void dlacpy_( char *uplo, int *m, int *n, double *a, int *lda, double *b, int *l
  */
 void dlascl_( char *type, int *kl, int *ku, double *cfrom, double *cto, int *m, int *n, double *a, int *lda,
 	      int *info );
+void slascl_( char *type, int *kl, int *ku, float *cfrom, float *cto, int *m, int *n, float *a, int *lda,
+	      int *info );
 
 /**
  * \brief Computes the Cholesky factorization of a real symmetric positive definite matrix \c a.
@@ -274,6 +289,7 @@ void dlascl_( char *type, int *kl, int *ku, double *cfrom, double *cto, int *m, 
  * For a complete documentation the reader should refer to \cite LAPACK_webpage \cite LUG.
  */
 void dpotrf_( char *uplo, int *n, double *a, int *lda, int *info );
+void spotrf_( char *uplo, int *n, float *a, int *lda, int *info );
 
 /**
  * \brief Computes the Cholesky factorization of a real symmetric positive definite matrix \c a stored in
@@ -308,6 +324,7 @@ void dpotrf_( char *uplo, int *n, double *a, int *lda, int *info );
  * For a complete documentation the reader should refer to \cite LAPACK_webpage \cite LUG.
  */
 void dpptrf_( char *uplo, int *n, double *ap, int *info );
+void spptrf_( char *uplo, int *n, float *ap, int *info );
 
 /**
  * \brief Computes the inverse of a real symmetric positive definite matrix \c a using the Cholesky factorization.
@@ -337,6 +354,7 @@ void dpptrf_( char *uplo, int *n, double *ap, int *info );
  * For a complete documentation the reader should refer to \cite LAPACK_webpage \cite LUG.
  */
 void dpotri_( char *uplo, int *n, double *a, int *lda, int *info );
+void spotri_( char *uplo, int *n, float *a, int *lda, int *info );
 
 /**
  * \brief Computes the inverse of a packed symmetric (Hermitian) positive-definite matrix.
@@ -370,6 +388,12 @@ void dpotri_( char *uplo, int *n, double *a, int *lda, int *info );
  * For a complete documentation the reader should refer to \cite LAPACK_webpage \cite LUG.
  */
 void dpptri_( char *uplo, int *n, double *ap, int *info );
+void spptri_( char *uplo, int *n, float *ap, int *info );
+
+void dsygv_( int *itype, char *jobz, char *uplo, int *n, double *a, int *lda, double *b, int *ldb, double *w,
+	     double *work, int *lwork, int *info );
+void ssygv_( int *itype, char *jobz, char *uplo, int *n, float *a, int *lda, float *b, int *ldb, float *w,
+	     float *work, int *lwork, int *info );
 
 
 #if _MPI_
@@ -402,6 +426,7 @@ void dpptri_( char *uplo, int *n, double *ap, int *info );
  * For a complete documentation the reader should refer to \cite PBLAS_webpage \cite SLUG.
  */
 void pdscal_( int *n, double *alpha, double *x, int *ix, int *jx, int *descx, int *incx );
+void psscal_( int *n, float *alpha, float *x, int *ix, int *jx, int *descx, int *incx );
 
 /**
  * \brief Copies one distributed vector into another (PBLAS routine).
@@ -437,7 +462,10 @@ void pdscal_( int *n, double *alpha, double *x, int *ix, int *jx, int *descx, in
  * 
  * For a complete documentation the reader should refer to \cite PBLAS_webpage \cite SLUG.
  */
-void pdcopy_(int *n, double *x, int *ix, int *jx, int *descx, int *incx, double *y, int *iy, int *jy, int *descy, int *incy );
+void pdcopy_(int *n, double *x, int *ix, int *jx, int *descx, int *incx, double *y, int *iy, int *jy,
+	     int *descy, int *incy );
+void pscopy_(int *n, float *x, int *ix, int *jx, int *descx, int *incx, float *y, int *iy, int *jy,
+	     int *descy, int *incy );
 
 /**
  * \brief Adds one distributed vector to another (PBLAS routine).
@@ -475,7 +503,9 @@ void pdcopy_(int *n, double *x, int *ix, int *jx, int *descx, int *incx, double 
  * For a complete documentation the reader should refer to \cite PBLAS_webpage \cite SLUG.
  */
 void pdaxpy_( int *n, double *alpha, double *x, int *ix, int *jx, int *descx, int *incx, double *y, int *iy,
-	     int *jy, int *descy, int *incy);
+	      int *jy, int *descy, int *incy);
+void psaxpy_( int *n, float *alpha, float *x, int *ix, int *jx, int *descx, int *incx, float *y, int *iy,
+	      int *jy, int *descy, int *incy);
 
 /**
  * \brief Adds a matrix to another (PBLAS routine).
@@ -521,6 +551,8 @@ void pdaxpy_( int *n, double *alpha, double *x, int *ix, int *jx, int *descx, in
  */
 void pdgeadd_(char *trans, int *m, int *n, double *alpha, double *a, int *ia, int *ja, int *desca, double *beta,
 	      double *c, int *ic, int *jc, int *descc);
+void psgeadd_(char *trans, int *m, int *n, float *alpha, float *a, int *ia, int *ja, int *desca, float *beta,
+	      float *c, int *ic, int *jc, int *descc);
 
 /**
  * \brief Adds a trapezoidal matrix to another (PBLAS routine).
@@ -579,6 +611,8 @@ void pdgeadd_(char *trans, int *m, int *n, double *alpha, double *a, int *ia, in
  */
 void pdtradd_( char *uplo, char *trans, int *m, int *n, double *alpha, double *a, int *ia, int *ja, int *desca,
 	       double *beta, double *c, int *ic, int *jc, int *descc );
+void pstradd_( char *uplo, char *trans, int *m, int *n, float *alpha, float *a, int *ia, int *ja, int *desca,
+	       float *beta, float *c, int *ic, int *jc, int *descc );
 
 /**
  * \brief Performs a distributed matrix-vector operation (PBLAS routine).
@@ -655,6 +689,9 @@ void pdtradd_( char *uplo, char *trans, int *m, int *n, double *alpha, double *a
 void pdgemv_( char *trans, int *m, int *n, double *alpha, double *a, int *ia, int *ja, int *desca, double *x,
 	      int *ix, int *jx, int *descx, int *incx, double *beta, double *y, int *iy, int *jy, int *descy,
 	      int *incy );
+void psgemv_( char *trans, int *m, int *n, float *alpha, float *a, int *ia, int *ja, int *desca, float *x,
+	      int *ix, int *jx, int *descx, int *incx, float *beta, float *y, int *iy, int *jy, int *descy,
+	      int *incy );
 
 /**
  * \brief Performs a distributed matrix-vector operation (symmetric, PBLAS routine).
@@ -711,6 +748,8 @@ void pdgemv_( char *trans, int *m, int *n, double *alpha, double *a, int *ia, in
  */
 void pdsymv_( char *uplo, int *n, double *alpha, double *a, int *ia, int *ja, int *desca, double *x, int *ix,
 	     int *jx, int *descx, int *incx, double *beta, double *y, int *iy, int *jy, int *descy, int *incy );
+void pssymv_( char *uplo, int *n, float *alpha, float *a, int *ia, int *ja, int *desca, float *x, int *ix,
+	     int *jx, int *descx, int *incx, float *beta, float *y, int *iy, int *jy, int *descy, int *incy );
 
 /* ScaLAPACK routines */
 /**
@@ -758,6 +797,8 @@ void pdsymv_( char *uplo, int *n, double *alpha, double *a, int *ia, int *ja, in
  */
 void pdlacpy_( char *uplo, int *m, int *n, double *a, int *ia, int *ja, int *desca, double *b, int *ib, int *jb,
 	       int *descb);
+void pslacpy_( char *uplo, int *m, int *n, float *a, int *ia, int *ja, int *desca, float *b, int *ib, int *jb,
+	       int *descb);
 
 /**
  * \brief Multiplies a distributed matrix \f$sub(\mathcal A)\f$ with a scalar (ScaLAPACK routine).
@@ -803,7 +844,8 @@ void pdlacpy_( char *uplo, int *m, int *n, double *a, int *ia, int *ja, int *des
  */
 void pdlascl_( char *type, double *cfrom, double *cto, int *m, int *n, double *a, int *ia, int *ja,
 	       int *desca, int *info);
-
+void pslascl_( char *type, float *cfrom, float *cto, int *m, int *n, float *a, int *ia, int *ja,
+	       int *desca, int *info);
 /**
  * \brief Computes the Cholesky factorisation of an n-by-n real symmetric positive distributed
  * matrix.(ScaLAPACK routine).
@@ -849,6 +891,7 @@ void pdlascl_( char *type, double *cfrom, double *cto, int *m, int *n, double *a
  * For a complete documentation the reader should refer to \cite ScaLAPACK_webpage \cite SLUG.
  */
 void pdpotrf_( char *uplo, int *n, double *a, int *ia, int *ja, int *desca, int *info );
+void pspotrf_( char *uplo, int *n, float *a, int *ia, int *ja, int *desca, int *info );
 
 /**
  * \brief Computes the inverse off a real symmetric positive definite distribured matrix (ScaLAPACK routine).
@@ -885,6 +928,7 @@ void pdpotrf_( char *uplo, int *n, double *a, int *ia, int *ja, int *desca, int 
  * For a complete documentation the reader should refer to \cite ScaLAPACK_webpage \cite SLUG.
  */
 void pdpotri_( char *uplo, int *n, double *a, int *ia, int *ja, int *desca, int *info );
+void pspotri_( char *uplo, int *n, float *a, int *ia, int *ja, int *desca, int *info );
 
 #endif /* _MPI_ */
 

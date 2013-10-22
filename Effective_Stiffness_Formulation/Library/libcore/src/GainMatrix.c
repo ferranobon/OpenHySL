@@ -146,18 +146,18 @@ void IGainMatrix_PS( MatrixVector_t *const IGain, const MatrixVector_t *const Ma
 }
 
 void IGainMatrix_Float2Double( MatrixVector_t *const IGain, const MatrixVector_t *const Mass, 
-		  const MatrixVector_t *const Damp, const MatrixVector_t *const Stiff,
-		  const Scalars_t Const )
+			       const MatrixVector_t *const Damp, const MatrixVector_t *const Stiff,
+			       const Scalars_t Const )
 {
      char uplo;    
      int lda, info;    /* Leading dimension of the matrix, LAPACK error handling
 			* variable */
 
      int ione = 1;     /* Integer of value one */
-     HYSL_FLOAT one = 1.0; /* HYSL_FLOAT precision one for dlascl() parameter cfrom */
-     HYSL_FLOAT Scalar;    /* HYSL_FLOAT precision scalar */
+     double one = 1.0; /* double precision one for dlascl() parameter cfrom */
+     double Scalar;    /* double precision scalar */
 
-     double *TempMatDouble = NULL;  /* Temporal HYSL_FLOAT matrix for matrix inversion purposes. */
+     double *TempMatDouble = NULL;  /* Temporal double matrix for matrix inversion purposes. */
      size_t i;
      
      uplo = 'L';       /* The lower part of the matrix will be used and the upper part will strictly not be
@@ -215,17 +215,9 @@ void IGainMatrix_Float2Double( MatrixVector_t *const IGain, const MatrixVector_t
 	  exit( EXIT_FAILURE );
      }
 
-     Scalar = Const.Lambda;
+     Scalar = (double) Const.Lambda;
      dlascl_( &uplo, &ione, &ione, &one, &Scalar, &IGain->Rows, &IGain->Cols,
 	      TempMatDouble, &lda, &info );
-
-#pragma omp parallel for
-     for( i = 0; i < (size_t) IGain->Rows*(size_t) IGain->Cols; i++ ){
-	  IGain->Array[i] = (float) TempMatDouble[i];
-     }
-
-     /* Free the temporal HYSL_FLOAT matrix */
-     free( TempMatDouble );
 
      if( info < 0 ){
 	  Print_Header( ERROR );
@@ -236,17 +228,26 @@ void IGainMatrix_Float2Double( MatrixVector_t *const IGain, const MatrixVector_t
 	  printf( "Gain matrix successfully calculated.\n" );
      }
 
+
+#pragma omp parallel for
+     for( i = 0; i < (size_t) IGain->Rows*(size_t) IGain->Cols; i++ ){
+	  IGain->Array[i] = (float) TempMatDouble[i];
+     }
+
+     /* Free the temporal HYSL_FLOAT matrix */
+     free( TempMatDouble );
+
 }
 
 
 void IGainMatrix_Float2Double_PS( MatrixVector_t *const IGain, const MatrixVector_t *const Mass,
-		     const MatrixVector_t *const Damp, const MatrixVector_t *const Stiff,
-		     const Scalars_t Const )
+				  const MatrixVector_t *const Damp, const MatrixVector_t *const Stiff,
+				  const Scalars_t Const )
 {
 
      char uplo;
      int info;         /* LAPACK error handling variable */
-     HYSL_FLOAT Scalar;    /* HYSL_FLOAT precision scalar */
+     double Scalar;    /* HYSL_FLOAT precision scalar */
      int incx;
      double *TempMatDouble = NULL;  /* Temporal double matrix for matrix inversion purposes. */
      size_t Length, i;
@@ -306,7 +307,7 @@ void IGainMatrix_Float2Double_PS( MatrixVector_t *const IGain, const MatrixVecto
 	  exit( EXIT_FAILURE );
      }
 
-     Scalar = Const.Lambda;
+     Scalar = (double) Const.Lambda;
      dscal_( (int *) &Length, &Scalar, TempMatDouble, &incx );
 
 #pragma omp parallel for

@@ -85,10 +85,10 @@ void Substructure_SendGainMatrix( const HYSL_FLOAT *const Gain, unsigned int Ord
      } else assert( Substructure->Type == EXP_ADWIN || Substructure->Type == REMOTE );
 }
 
-void Substructure_Substepping( const CouplingNode_t *const CNodes, const HYSL_FLOAT *const IGain,
-			       const HYSL_FLOAT *const VecTdT0_c, const HYSL_FLOAT Time, const HYSL_FLOAT GAcc,
-			       const unsigned int NSubstep, const HYSL_FLOAT DeltaT_Sub, HYSL_FLOAT *const VecTdT,
-			       HYSL_FLOAT *const CoupForcePrev, HYSL_FLOAT *const CoupForce )
+void Substructure_Substepping( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *const VecTdT0_c, const HYSL_FLOAT Time,
+			       const HYSL_FLOAT GAcc, const unsigned int NSubstep, const HYSL_FLOAT DeltaT_Sub,
+			       CouplingNode_t *const CNodes, HYSL_FLOAT *const VecTdT, HYSL_FLOAT *const CoupForcePrev,
+			       HYSL_FLOAT *const CoupForce )
 {
 
      int i;
@@ -121,7 +121,8 @@ void Substructure_Substepping( const CouplingNode_t *const CNodes, const HYSL_FL
 	       /* Call the Simulate_Substructures() function only once. All the simulated substructures are
 		* handled together in this routine */
 	       if( !Called_Sub ){
-		    Substructure_Simulate( CNodes, IGain, VecTdT0_c, GAcc, NSubstep, DeltaT_Sub, &Recv[0], &Recv[CNodes->Order], &Recv[2*CNodes->Order] );
+		    Substructure_Simulate( IGain, VecTdT0_c, GAcc, NSubstep, DeltaT_Sub, CNodes, &Recv[0],
+					   &Recv[CNodes->Order], &Recv[2*CNodes->Order] );
 		    Called_Sub = true;
 	       }
 	       break;
@@ -171,9 +172,9 @@ void Substructure_Substepping( const CouplingNode_t *const CNodes, const HYSL_FL
      free( Recv );
 }
 
-void Substructure_Simulate( const CouplingNode_t *const CNodes, const HYSL_FLOAT *IGain, const HYSL_FLOAT *const VecTdT0_c, const HYSL_FLOAT GAcc, 
-			    const unsigned int NSubstep, const HYSL_FLOAT DeltaT_Sub, HYSL_FLOAT *const VecTdT_c,
-			    HYSL_FLOAT *const CoupForcePrev_c, HYSL_FLOAT *const CoupForce_c )
+void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const VecTdT0_c, const HYSL_FLOAT GAcc, 
+			    const unsigned int NSubstep, const HYSL_FLOAT DeltaT_Sub, CouplingNode_t *const CNodes,
+			    HYSL_FLOAT *const VecTdT_c, HYSL_FLOAT *const CoupForcePrev_c, HYSL_FLOAT *const CoupForce_c )
 {
 
      unsigned int i, Substep;
@@ -197,7 +198,11 @@ void Substructure_Simulate( const CouplingNode_t *const CNodes, const HYSL_FLOAT
 	       
 	  ramp = (HYSL_FLOAT) Substep / (HYSL_FLOAT) NSubstep;
 
+#if _FLOAT_
+	  ramp0 = 1.0f - ramp;   
+#else
 	  ramp0 = 1.0 - ramp;   
+#endif
 
 	  if ( CNodes->Order > 1 ){
 	       hysl_copy( &Length, CNodes->VecTdT0_c0, &incx, VecTdT_c, &incy );

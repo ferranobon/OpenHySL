@@ -361,12 +361,20 @@ void IGainMatrix_MPI( PMatrixVector_t *const IGain, PMatrixVector_t *const Mass,
 		      PMatrixVector_t *const Stiff, const Scalars_t Const );
 
 void IGainMatrix_Float2Double( MatrixVector_t *const IGain, const MatrixVector_t *const Mass, 
-		  const MatrixVector_t *const Damp, const MatrixVector_t *const Stiff,
+			       const MatrixVector_t *const Damp, const MatrixVector_t *const Stiff,
 			       const Scalars_t Const );
 
 void IGainMatrix_Float2Double_PS( MatrixVector_t *const IGain, const MatrixVector_t *const Mass,
-		     const MatrixVector_t *const Damp, const MatrixVector_t *const Stiff,
+				  const MatrixVector_t *const Damp, const MatrixVector_t *const Stiff,
 				  const Scalars_t Const );
+
+void IGainMatrix_Float2Double_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const Mass,
+				  const MatrixVector_Sp_t *const Damp, const MatrixVector_Sp_t *const Stiff,
+				  const Scalars_t Const );
+
+void IGainMatrix_Float2Double_Sp_PS( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const Mass,
+				     const MatrixVector_Sp_t *const Damp, const MatrixVector_Sp_t *const Stiff,
+				     const Scalars_t Const );
 
 #endif /* GAINMATRIX_H_ */
 

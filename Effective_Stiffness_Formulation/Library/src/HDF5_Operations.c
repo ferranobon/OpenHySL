@@ -8,6 +8,7 @@
 
 #include "Print_Messages.h"
 
+#include "Definitions.h"
 #include "Substructure.h"
 #include "Substructure_Exact.h"
 #include "Substructure_UHYDEfbr.h"
@@ -36,18 +37,18 @@ int HDF5_CreateFile( const char *Filename )
 }
 
 void HDF5_CreateGroup_Parameters( const int hdf5_file, const AlgConst_t *const InitCnt,
-				  const CouplingNode_t *const CNodes, const double *const Acc,
-				  const double *const Vel, const double *const Disp )
+				  const CouplingNode_t *const CNodes, const HYSL_FLOAT *const Acc,
+				  const HYSL_FLOAT *const Vel, const HYSL_FLOAT *const Disp )
 {
      hid_t    group_id, dataset_id, dataspace_id;
      hsize_t  dims[2];
      herr_t   status;
-     double   *dArray;
+     HYSL_FLOAT   *dArray;
      int      *iArray, i;
      char     **Entry_Names;
      
      Entry_Names = (char **) malloc( (size_t) 6*sizeof(char*) );
-     dArray = (double *) malloc( (size_t) 3*sizeof(double) );
+     dArray = (HYSL_FLOAT *) malloc( (size_t) 3*sizeof(HYSL_FLOAT) );
 
      /* Create a group named "/Time History" in the file. */
      group_id = H5Gcreate( hdf5_file, "/Test Parameters", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT );     
@@ -66,26 +67,26 @@ void HDF5_CreateGroup_Parameters( const int hdf5_file, const AlgConst_t *const I
      if( Acc != NULL ){
 	  /* assssssssssfa asfjajs asjfnakjsdfajksh fafa safsjdfaskjh asjdf ajsf aksjdf aksj aksjdfnak sjdfn a
 	   *  */
-	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input/Acceleration", H5T_NATIVE_DOUBLE,
+	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input/Acceleration", H5T_NATIVE_HYSL_FLOAT,
 				   dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 	  status = H5LTset_attribute_string( hdf5_file, "Test Parameters/Input/Acceleration", "Units", "m/s^2" );
-	  status = H5Dwrite( dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, Acc );
+	  status = H5Dwrite( dataset_id, H5T_NATIVE_HYSL_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, Acc );
 	  status = H5Dclose( dataset_id );
      }
 
      if( Vel != NULL ){
-	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input/Velocity", H5T_NATIVE_DOUBLE,
+	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input/Velocity", H5T_NATIVE_HYSL_FLOAT,
 				   dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 	  status = H5LTset_attribute_string( hdf5_file, "Test Parameters/Input/Velocity", "Units", "m/s" );
-	  status = H5Dwrite( dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, Vel );
+	  status = H5Dwrite( dataset_id, H5T_NATIVE_HYSL_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, Vel );
 	  status = H5Dclose( dataset_id );
      }
 
      if( Disp != NULL ){
-	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input/Displacement", H5T_NATIVE_DOUBLE,
+	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input/Displacement", H5T_NATIVE_HYSL_FLOAT,
 				   dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 	  status = H5LTset_attribute_string( hdf5_file, "Test Parameters/Input/Displacement", "Units", "m" );
-	  status = H5Dwrite( dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, Disp );
+	  status = H5Dwrite( dataset_id, H5T_NATIVE_HYSL_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, Disp );
 	  status = H5Dclose( dataset_id );
      }
      status = H5Gclose( group_id );
@@ -95,7 +96,7 @@ void HDF5_CreateGroup_Parameters( const int hdf5_file, const AlgConst_t *const I
      Entry_Names[1] = strdup( "Gamma" );     dArray[1] = InitCnt->Newmark.Gamma;
      Entry_Names[2] = strdup( "Time step" ); dArray[2] = InitCnt->Delta_t;
      
-     HDF5_AddDoubleArray_AsTable( hdf5_file, "/Test Parameters/Time Integration", Entry_Names, dArray, 3, 1 );
+     HDF5_AddFloatArray_AsTable( hdf5_file, "/Test Parameters/Time Integration", Entry_Names, dArray, 3, 1 );
      free( Entry_Names[0] );
      free( Entry_Names[1] );
      free( Entry_Names[2] );
@@ -103,18 +104,18 @@ void HDF5_CreateGroup_Parameters( const int hdf5_file, const AlgConst_t *const I
      /* Add Rayleigh damping values */
      Entry_Names[0] = strdup( "Alpha" ); dArray[0] = InitCnt->Rayleigh.Alpha;
      Entry_Names[1] = strdup( "Beta" );  dArray[1] = InitCnt->Rayleigh.Beta;
-     HDF5_AddDoubleArray_AsTable( hdf5_file, "/Test Parameters/Rayleigh", Entry_Names, dArray, 2, 1 );
+     HDF5_AddFloatArray_AsTable( hdf5_file, "/Test Parameters/Rayleigh", Entry_Names, dArray, 2, 1 );
      free( Entry_Names[0] ); free( Entry_Names[1] );
 
      /* Add PID parameters */
      Entry_Names[0] = strdup( "P" ); dArray[0] = InitCnt->PID.P;
      Entry_Names[1] = strdup( "I" ); dArray[1] = InitCnt->PID.I;
      Entry_Names[2] = strdup( "D" ); dArray[2] = InitCnt->PID.D;
-     HDF5_AddDoubleArray_AsTable( hdf5_file, "/Test Parameters/PID", Entry_Names, dArray, 3, 1 );
+     HDF5_AddFloatArray_AsTable( hdf5_file, "/Test Parameters/PID", Entry_Names, dArray, 3, 1 );
      for( i = 0; i < 3; i++ ){
 	  free( Entry_Names[i] );
      }
-     /* Free the double array */
+     /* Free the HYSL_FLOAT array */
      free( dArray );
 
      iArray = (int *) malloc( (size_t) 6*sizeof(int) );
@@ -128,7 +129,7 @@ void HDF5_CreateGroup_Parameters( const int hdf5_file, const AlgConst_t *const I
      
      /* Save the coupling nodes and information */
      if( InitCnt->OrderSub > 0 ){
-	  Save_InformationCNodes( hdf5_file, "/Test Parameters/Substructures", CNodes );
+//	  Save_InformationCNodes( hdf5_file, "/Test Parameters/Substructures", CNodes );
      }
 
      for( i = 0; i < 4; i++ ){
@@ -232,9 +233,9 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const C
 	  if ( (i == SIM_EXACT_ESP) && is_exact ){
 	       memtype = H5Tcreate (H5T_COMPOUND, sizeof( HDF5_Exact_UHYDE_t) );
 	       H5Tinsert( memtype, "Eq. column (0-based index)", HOFFSET( HDF5_Exact_UHYDE_t, Position), H5T_NATIVE_INT );
-	       H5Tinsert( memtype, "Mass [kg]", HOFFSET( HDF5_Exact_UHYDE_t, InitValues[0]), H5T_NATIVE_DOUBLE );
-	       H5Tinsert( memtype, "Damping", HOFFSET( HDF5_Exact_UHYDE_t, InitValues[1]), H5T_NATIVE_DOUBLE );
-	       H5Tinsert( memtype, "Stiffness [N/m]", HOFFSET( HDF5_Exact_UHYDE_t, InitValues[2]), H5T_NATIVE_DOUBLE );
+	       H5Tinsert( memtype, "Mass [kg]", HOFFSET( HDF5_Exact_UHYDE_t, InitValues[0]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Damping", HOFFSET( HDF5_Exact_UHYDE_t, InitValues[1]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Stiffness [N/m]", HOFFSET( HDF5_Exact_UHYDE_t, InitValues[2]), H5T_NATIVE_HYSL_FLOAT );
 	       H5Tinsert( memtype, "Description", HOFFSET( HDF5_Exact_UHYDE_t, Description), strtype );
 
 	       dims[0] = (hsize_t) count; 
@@ -276,9 +277,9 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const C
 	  } else if ( (i == SIM_UHYDE) && is_uhyde ){
 	       memtype = H5Tcreate (H5T_COMPOUND, sizeof( HDF5_Exact_UHYDE_t) );
 	       H5Tinsert( memtype, "Eq. column (0-based index)", HOFFSET( HDF5_Exact_UHYDE_t, Position), H5T_NATIVE_INT );
-	       H5Tinsert( memtype, "qyield", HOFFSET( HDF5_Exact_UHYDE_t, InitValues[0]), H5T_NATIVE_DOUBLE );
-	       H5Tinsert( memtype, "yield factor", HOFFSET( HDF5_Exact_UHYDE_t, InitValues[1]), H5T_NATIVE_DOUBLE );
-	       H5Tinsert( memtype, "Friction force [N]", HOFFSET( HDF5_Exact_UHYDE_t, InitValues[2]), H5T_NATIVE_DOUBLE );
+	       H5Tinsert( memtype, "qyield", HOFFSET( HDF5_Exact_UHYDE_t, InitValues[0]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "yield factor", HOFFSET( HDF5_Exact_UHYDE_t, InitValues[1]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Friction force [N]", HOFFSET( HDF5_Exact_UHYDE_t, InitValues[2]), H5T_NATIVE_HYSL_FLOAT );
 	       H5Tinsert( memtype, "Description", HOFFSET( HDF5_Exact_UHYDE_t, Description), strtype );
 
 	       dims[0] = (hsize_t) count; 
@@ -426,7 +427,7 @@ void HDF5_Store_Time( const hid_t hdf5_file, const SaveTime_t *const Time )
 
      memtype = H5Tcreate (H5T_COMPOUND, sizeof( SaveTime_t ) );
      H5Tinsert( memtype, "Date", HOFFSET( SaveTime_t, Date_time), strtype );
-     H5Tinsert( memtype, "Duration [ms]", HOFFSET( SaveTime_t, Elapsed_time), H5T_NATIVE_DOUBLE );
+     H5Tinsert( memtype, "Duration [ms]", HOFFSET( SaveTime_t, Elapsed_time), H5T_NATIVE_HYSL_FLOAT );
      
      space = H5Screate_simple (1, dims, NULL);
      /* Create the dataset */
@@ -441,7 +442,7 @@ void HDF5_Store_Time( const hid_t hdf5_file, const SaveTime_t *const Time )
 }
 
 #if _ADWIN_
-void HDF5_StoreADwinData( const int hdf5_file, const double *Array, char **Entry_Names, const int Length )
+void HDF5_StoreADwinData( const int hdf5_file, const HYSL_FLOAT *Array, char **Entry_Names, const int Length )
 {
      hid_t   group_id;
      herr_t  status;
@@ -450,7 +451,7 @@ void HDF5_StoreADwinData( const int hdf5_file, const double *Array, char **Entry
 			  H5P_DEFAULT, H5P_DEFAULT);     
      status = H5Gclose(group_id);
 
-     HDF5_AddDoubleArray_AsTable( hdf5_file, "/ADwin measurements/Recorded data", Entry_Names,
+     HDF5_AddFloatArray_AsTable( hdf5_file, "/ADwin measurements/Recorded data", Entry_Names,
 				  Array, 24, Length );
 }
 
@@ -458,17 +459,21 @@ void ADwin_SaveData_HDF5( const int hdf5_file, const int Num_Steps, const int Nu
 			  const int Num_Channels, char **Chan_Names, const int DataIndex )
 {
      int Length;
-     double *Data = NULL;
+     HYSL_FLOAT *Data = NULL;
 
      Length = Num_Sub*Num_Steps*Num_Channels;
-     Data = (double *) calloc( (size_t) Length, sizeof( double ) );
+     Data = (HYSL_FLOAT *) calloc( (size_t) Length, sizeof( HYSL_FLOAT ) );
      if( Data == NULL ){
 	  Print_Header( WARNING );
 	  fprintf( stderr, "ADwin_SaveData_HDF5: Out of memory. Manual extraction of the data required.\n" );
      }
 
      /* Get the data from ADwin */
+#if _FLOAT_
+     GetData_Float( (int32_t) DataIndex, Data, 1, (int32_t) Length);
+#else
      GetData_Double( (int32_t) DataIndex, Data, 1, (int32_t) Length);
+#endif
   
      /* Save the data into an HDF5 file */
      HDF5_StoreADwinData( hdf5_file, Data, Chan_Names, Num_Sub*Num_Steps );
@@ -478,7 +483,7 @@ void ADwin_SaveData_HDF5( const int hdf5_file, const int Num_Steps, const int Nu
 }
 #endif
 
-void HDF5_AddDoubleArray_AsTable( const hid_t file_id, const char *Name_path, char **Names, const double *Array, const int Num_param, const int Length )
+void HDF5_AddFloatArray_AsTable( const hid_t file_id, const char *Name_path, char **Names, const HYSL_FLOAT *Array, const int Num_param, const int Length )
 {
      int      i;
      hid_t    memtype, filetype, space, dset;
@@ -487,17 +492,17 @@ void HDF5_AddDoubleArray_AsTable( const hid_t file_id, const char *Name_path, ch
 
 
      /* Create the compound datatype for memory. */
-     memtype = H5Tcreate( H5T_COMPOUND, (size_t) Num_param*H5Tget_size(H5T_NATIVE_DOUBLE) );
+     memtype = H5Tcreate( H5T_COMPOUND, (size_t) Num_param*H5Tget_size(H5T_NATIVE_HYSL_FLOAT) );
      for( i = 0; i < Num_param; i++ ){
-	  status = H5Tinsert( memtype, Names[i], (size_t) i*H5Tget_size(H5T_NATIVE_DOUBLE),
-			      H5T_NATIVE_DOUBLE );
+	  status = H5Tinsert( memtype, Names[i], (size_t) i*H5Tget_size(H5T_NATIVE_HYSL_FLOAT),
+			      H5T_NATIVE_HYSL_FLOAT );
      }
     
      /* Create the compound datatype for the file.*/
-     filetype = H5Tcreate( H5T_COMPOUND, (size_t) Num_param*H5Tget_size(H5T_NATIVE_DOUBLE) );
+     filetype = H5Tcreate( H5T_COMPOUND, (size_t) Num_param*H5Tget_size(H5T_NATIVE_HYSL_FLOAT) );
      for( i = 0; i < Num_param; i++ ){
-	  status = H5Tinsert( filetype, Names[i], (size_t) i*H5Tget_size(H5T_NATIVE_DOUBLE),
-			      H5T_NATIVE_DOUBLE );
+	  status = H5Tinsert( filetype, Names[i], (size_t) i*H5Tget_size(H5T_NATIVE_HYSL_FLOAT),
+			      H5T_NATIVE_HYSL_FLOAT );
      }
  
      /* Create dataspace.  Setting maximum size to NULL sets the maximum size to be the current size. */    
@@ -563,7 +568,7 @@ void HDF5_Create_Dataset( const hid_t file_id, const char *Path_name, const int 
      cparms = H5Pcreate( H5P_DATASET_CREATE);
      status = H5Pset_chunk( cparms, 2, dims );
 
-     dataset_id = H5Dcreate( file_id, Path_name, H5T_NATIVE_DOUBLE, dataspace_id, H5P_DEFAULT, cparms, H5P_DEFAULT);
+     dataset_id = H5Dcreate( file_id, Path_name, H5T_NATIVE_HYSL_FLOAT, dataspace_id, H5P_DEFAULT, cparms, H5P_DEFAULT);
 
      status = H5Pclose( cparms );
      status = H5Dclose( dataset_id );
@@ -592,7 +597,7 @@ void HDF5_AddResults_to_Dataset( const hid_t file_id, const char *Path_name, con
      
      memspace_id = H5Screate_simple( 2, dims, NULL );
      
-     status = H5Dwrite( dataset_id, H5T_NATIVE_DOUBLE, memspace_id, filespace_id, H5P_DEFAULT, Data->Array );
+     status = H5Dwrite( dataset_id, H5T_NATIVE_HYSL_FLOAT, memspace_id, filespace_id, H5P_DEFAULT, Data->Array );
 
      status = H5Dclose( dataset_id );
      status = H5Sclose( memspace_id );

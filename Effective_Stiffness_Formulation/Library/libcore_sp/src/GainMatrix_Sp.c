@@ -7,12 +7,14 @@
 #include "MatrixVector_Sp.h"
 #include "Print_Messages.h"
 
+#include "Definitions.h"
+
 #include <mkl_blas.h>
 #include <mkl_lapack.h>
 #include <mkl_pardiso.h>
 
 void IGainMatrix_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp,
-		    const MatrixVector_Sp_t *const Stiff, const Scalars_t Const )
+		     const MatrixVector_Sp_t *const Stiff, const Scalars_t Const )
 {
 
      char uplo;
@@ -20,8 +22,8 @@ void IGainMatrix_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const
      MatrixVector_Sp_t Sp_TempMat; /* Temporal sparse matrix */
 
      int ione = 1;                 /* Integer of value one */
-     double one = 1.0;             /* Double precision one for dlascl() parameter cfrom */
-     double Scalar;                /* Double precision scalar */
+     HYSL_FLOAT one = 1.0;         /* HYSL_FLOAT precision one for dlascl() parameter cfrom */
+     HYSL_FLOAT Scalar;            /* HYSL_FLOAT precision scalar */
 
      MatrixVector_Create_Sp( Damp->Rows, Damp->Cols, Damp->Num_Nonzero, &Sp_TempMat );
      /* Gain = Const.Alpha*M + Const.Beta*C + Const.Gamma*K */
@@ -38,7 +40,7 @@ void IGainMatrix_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const
      lda = Max( 1, IGain->Rows );
 
      /* LAPACK: Compute the Cholesky factorization */
-     dpotrf_( &uplo, &IGain->Rows, IGain->Array, &lda, &info );
+     hysl_potrf( &uplo, &IGain->Rows, IGain->Array, &lda, &info );
 
      if ( info == 0 ){
 	  Print_Header( SUCCESS );
@@ -57,7 +59,7 @@ void IGainMatrix_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const
 
      /* LAPACK: Compute the inverse of the Gain matrix using the Cholesky factorization computed by
       * dpotrf_() */
-     dpotri_( &uplo, &IGain->Rows, IGain->Array, &lda, &info );
+     hysl_potri( &uplo, &IGain->Rows, IGain->Array, &lda, &info );
 
      if ( info == 0 ){
 	  Print_Header( SUCCESS );
@@ -74,7 +76,7 @@ void IGainMatrix_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const
      }
 
      Scalar = Const.Lambda;
-     dlascl_( &uplo, &ione, &ione, &one, &Scalar, &IGain->Rows, &IGain->Cols, IGain->Array, &lda, &info );
+     hysl_lascl( &uplo, &ione, &ione, &one, &Scalar, &IGain->Rows, &IGain->Cols, IGain->Array, &lda, &info );
 
      if( info < 0 ){
 	  Print_Header( ERROR );
@@ -93,8 +95,12 @@ void IGainMatrix_Sp_PS( MatrixVector_t *const IGain, const MatrixVector_Sp_t *co
      char uplo;
      int info;                     /* LAPACK error handling variable */
      MatrixVector_Sp_t Sp_TempMat; /* Temporal sparse matrix */
-     double Scalar;                /* Double precision scalar */
+     HYSL_FLOAT Scalar;                /* HYSL_FLOAT precision scalar */
      int incx, Length;
+
+     uplo = 'L';  /* The lower part of the matrix will be used and the upper part will strictly not be
+		   * referenced */
+     incx = 1;
 
      MatrixVector_Create_Sp( Damp->Rows, Damp->Cols, Damp->Num_Nonzero, &Sp_TempMat );
      /* Gain = Const.Alpha*M + Const.Beta*C + Const.Gamma*K */
@@ -105,11 +111,8 @@ void IGainMatrix_Sp_PS( MatrixVector_t *const IGain, const MatrixVector_Sp_t *co
      MatrixVector_CSR2Packed( &Sp_TempMat, IGain );
      MatrixVector_Destroy_Sp( &Sp_TempMat );
 
-     uplo = 'L';  /* The lower part of the matrix will be used and the upper part will strictly not be
-		   * referenced */
-
      /* LAPACK: Compute the Cholesky factorization */
-     dpptrf_( &uplo, &IGain->Rows, IGain->Array, &info );
+     hysl_pptrf( &uplo, &IGain->Rows, IGain->Array, &info );
 
      if ( info == 0 ){
 	  Print_Header( SUCCESS );
@@ -128,7 +131,7 @@ void IGainMatrix_Sp_PS( MatrixVector_t *const IGain, const MatrixVector_Sp_t *co
 
      /* LAPACK: Compute the inverse of the Gain matrix using the Cholesky factorization computed by
       * dpptrf_() */
-     dpptri_( &uplo, &IGain->Rows, IGain->Array, &info );
+     hysl_pptri( &uplo, &IGain->Rows, IGain->Array, &info );
 
      if ( info == 0 ){
 	  Print_Header( SUCCESS );
@@ -146,7 +149,200 @@ void IGainMatrix_Sp_PS( MatrixVector_t *const IGain, const MatrixVector_Sp_t *co
 
      Length = (IGain->Rows*IGain->Cols + IGain->Rows)/2;
      Scalar = Const.Lambda;
-     dscal( &Length, &Scalar, IGain->Array, &incx );
+     hysl_scal( &Length, &Scalar, IGain->Array, &incx );
+     
+     Print_Header( SUCCESS );
+     printf( "Gain matrix successfully calculated.\n" );
+}
+
+void IGainMatrix_Float2Double_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const Mass,
+				  const MatrixVector_Sp_t *const Damp, const MatrixVector_Sp_t *const Stiff,
+				  const Scalars_t Const )
+{
+
+     char uplo;
+     int lda, info;                 /* Leading dimension of the gain matrix, LAPACK error handling variable */
+     MatrixVector_Sp_t Sp_TempMat;  /* Temporal sparse matrix */
+
+     int ione = 1;                  /* Integer of value one */
+     double one = 1.0;              /* double precision one for dlascl() parameter cfrom */
+     double Scalar;                 /* double precision scalar */
+
+     double *TempMatDouble = NULL;  /* Temporal double matrix for matrix inversion purposes. */
+     size_t i;
+
+     uplo = 'L';  /* The lower part of the matrix will be used and the upper part will strictly not be
+		   * referenced */
+     lda = Max( 1, IGain->Rows );
+
+     MatrixVector_Create_Sp( Damp->Rows, Damp->Cols, Damp->Num_Nonzero, &Sp_TempMat );
+
+     /* Gain = Const.Alpha*M + Const.Beta*C + Const.Gamma*K */
+     MatrixVector_Add3Mat_Sp( Mass, Damp, Stiff, Const, &Sp_TempMat );
+
+     /* Sparse to dense conversion. The Gain matrix will be symmetrical and only the upper part (lower part in
+      * FORTRAN) will be referenced.
+      */
+     MatrixVector_CSR2Dense( &Sp_TempMat, 0, IGain );
+     MatrixVector_Destroy_Sp( &Sp_TempMat );
+
+     TempMatDouble = (double *) calloc ( (size_t) IGain->Rows*(size_t) IGain->Cols, sizeof(double) );
+
+     if( TempMatDouble == NULL ){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "IGainMatrix_Float2Double(): Out of memory.\n" );
+	  exit( EXIT_FAILURE );
+     }
+
+#pragma omp parallel for
+     for( i = 0; i < (size_t) IGain->Rows*(size_t) IGain->Cols; i++ ){
+	  TempMatDouble[i] = (double) IGain->Array[i];
+     }
+
+     /* LAPACK: Compute the Cholesky factorization */
+     dpotrf_( &uplo, &IGain->Rows, TempMatDouble, &lda, &info );
+
+     if ( info == 0 ){
+	  Print_Header( SUCCESS );
+	  printf( "Cholesky factorization successfully completed.\n" );
+     }
+     else if (info < 0){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Cholesky factorization: the %d-th argument has an illegal value.\n", -info );
+	  exit( EXIT_FAILURE );
+     } else if (info > 0){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Cholesky factorization: the leading minor of order %d is not positive definite,", info );
+	  fprintf( stderr, " and the factorization could not be completed.\n" );
+	  exit( EXIT_FAILURE );
+     }
+
+     /* LAPACK: Compute the inverse of the Gain matrix using the Cholesky factorization computed by
+      * dpotrf_() */
+     dpotri_( &uplo, &IGain->Rows, TempMatDouble, &lda, &info );
+
+     if ( info == 0 ){
+	  Print_Header( SUCCESS );
+	  printf( "Matrix Inversion successfully completed.\n" );
+     } else if (info < 0){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Matrix inversion: the %d-th argument has an illegal value.\n", -info );
+	  exit( EXIT_FAILURE );
+     } else if (info > 0){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Matrix Inversion: the (%d,%d) element of the factor U or L is zero,", info, info );
+	  fprintf( stderr, "and the inverse could not be computed.\n" );
+	  exit( EXIT_FAILURE );
+     }
+
+     Scalar = (double) Const.Lambda;
+     dlascl_( &uplo, &ione, &ione, &one, &Scalar, &IGain->Rows, &IGain->Cols, TempMatDouble, &lda, &info );
+
+     if( info < 0 ){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Gain matrix: the %d-th argument has an illegal value and cannot be scaled.\n", -info );
+	  exit( EXIT_FAILURE );
+     } else {
+	  Print_Header( SUCCESS );
+	  printf( "Gain matrix successfully calculated.\n" );
+     }
+
+
+#pragma omp parallel for
+     for( i = 0; i < (size_t) IGain->Rows*(size_t) IGain->Cols; i++ ){
+	  IGain->Array[i] = (float) TempMatDouble[i];
+     }
+
+     /* Free the temporal HYSL_FLOAT matrix */
+     free( TempMatDouble );
+}
+
+void IGainMatrix_Float2Double_Sp_PS( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const Mass,
+				     const MatrixVector_Sp_t *const Damp, const MatrixVector_Sp_t *const Stiff,
+				     const Scalars_t Const )
+{
+
+     char uplo;
+     int info;                      /* LAPACK error handling variable */
+     MatrixVector_Sp_t Sp_TempMat;  /* Temporal sparse matrix */
+     double Scalar;                 /* double precision scalar */
+     int incx;
+
+     double *TempMatDouble = NULL;  /* Temporal double matrix for matrix inversion purposes. */
+     size_t Length, i;
+
+     uplo = 'L';  /* The lower part of the matrix will be used and the upper part will strictly not be
+		   * referenced */
+     incx = 1;
+
+     MatrixVector_Create_Sp( Damp->Rows, Damp->Cols, Damp->Num_Nonzero, &Sp_TempMat );
+     /* Gain = Const.Alpha*M + Const.Beta*C + Const.Gamma*K */
+     MatrixVector_Add3Mat_Sp( Mass, Damp, Stiff, Const, &Sp_TempMat );
+
+     /* Sparse to dense conversion. The Gain matrix will be symmetrical and only the upper part (lower part in
+      * FORTRAN) will be referenced. */
+     MatrixVector_CSR2Packed( &Sp_TempMat, IGain );
+     MatrixVector_Destroy_Sp( &Sp_TempMat );
+
+     Length = ((size_t) IGain->Rows*(size_t) IGain->Cols + (size_t)IGain->Rows)/2;
+     TempMatDouble = (double *) calloc ( Length, sizeof(double) );
+     if( TempMatDouble == NULL ){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "IGainMatrix_Float2Double(): Out of memory.\n" );
+	  exit( EXIT_FAILURE );
+     }
+
+#pragma omp parallel for
+     for( i = 0; i < Length; i++ ){
+	  TempMatDouble[i] = (double) IGain->Array[i];
+     }
+
+     /* LAPACK: Compute the Cholesky factorization */
+     dpptrf_( &uplo, &IGain->Rows, TempMatDouble, &info );
+
+     if ( info == 0 ){
+	  Print_Header( SUCCESS );
+	  printf( "Cholesky factorization successfully completed.\n" );
+     }
+     else if (info < 0){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Cholesky factorization: the %d-th argument has an illegal value.\n", -info );
+	  exit( EXIT_FAILURE );
+     } else if (info > 0){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Cholesky factorization: the leading minor of order %d is not positive definite,", info );
+	  fprintf( stderr, " and the factorization could not be completed.\n" );
+	  exit( EXIT_FAILURE );
+     }
+
+     /* LAPACK: Compute the inverse of the Gain matrix using the Cholesky factorization computed by
+      * dpptrf_() */
+     dpptri( &uplo, &IGain->Rows, TempMatDouble, &info );
+
+     if ( info == 0 ){
+	  Print_Header( SUCCESS );
+	  printf( "Matrix Inversion successfully completed.\n" );
+     } else if (info < 0){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Matrix inversion: the %d-th argument has an illegal value.\n", -info );
+	  exit( EXIT_FAILURE );
+     } else if (info > 0){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Matrix Inversion: the (%d,%d) element of the factor U or L is zero,", info, info );
+	  fprintf( stderr, "and the inverse could not be computed.\n" );
+	  exit( EXIT_FAILURE );
+     }
+
+     Scalar = Const.Lambda;
+     dscal( (int *) &Length, &Scalar, TempMatDouble, &incx );
+
+#pragma omp parallel for
+     for( i = 0; i < Length; i++ ){
+	  IGain->Array[i] = (float) TempMatDouble[i];
+     }
+
+     /* Free the temporal HYSL_FLOAT matrix */
+     free( TempMatDouble );
      
      Print_Header( SUCCESS );
      printf( "Gain matrix successfully calculated.\n" );
@@ -166,11 +362,11 @@ void IGainMatrix_Pardiso( MatrixVector_t *const IGain, const MatrixVector_t *con
      MatrixVector_t IdentMatrix;
      MatrixVector_t TempMat;
      MatrixVector_Sp_t Sp_TempMat;
-     double ddum;                       /* Dummy double */
+     HYSL_FLOAT ddum;                       /* Dummy HYSL_FLOAT */
      int idum;                          /* Dummy integer */
      char uplo;                         /* Used in dlascl() */
      int info, lda;                     /* Error handling and Leading dimension for dlascl() */
-     double Scalar;                     /* Double precision scalar */
+     HYSL_FLOAT Scalar;                     /* HYSL_FLOAT precision scalar */
 
      MatrixVector_Create( IGain->Rows, IGain->Cols, &TempMat );
 
@@ -198,7 +394,11 @@ void IGainMatrix_Pardiso( MatrixVector_t *const IGain, const MatrixVector_t *con
      iparm[17] = -1;	/* Output: Number of nonzeros in the factor LU */
      iparm[18] = -1;	/* Output: Mflops for LU factorization */
      iparm[19] = 0;	/* Output: Numbers of CG Iterations */
+#if _FLOAT_
+     iparm[27] = 1;     /* Input/output matrices are single precision */
+#else
      iparm[27] = 0;     /* Input/output matrices are double precision */
+#endif
      iparm[34] = 0;	/* PARDISO uses 1 based indexing for ia and ja arrays */
      maxfct = 1;	/* Maximum number of numerical factorizations. */
      mnum = 1;		/* Which factorization to use. */
@@ -282,7 +482,7 @@ void IGainMatrix_Pardiso( MatrixVector_t *const IGain, const MatrixVector_t *con
      uplo = 'L';   /* The lower part of the matrix will be used (upper part in C) */
 
      Scalar = Const.Lambda;
-     dlascl_( &uplo, &idum, &idum, &ddum, &Scalar, &IGain->Rows, &IGain->Cols, IGain->Array, &lda, &info );
+     hysl_lascl( &uplo, &idum, &idum, &ddum, &Scalar, &IGain->Rows, &IGain->Cols, IGain->Array, &lda, &info );
 
      if( info < 0 ){
 	  Print_Header( ERROR );
@@ -307,11 +507,11 @@ void IGainMatrix_Pardiso_Sp( MatrixVector_t *const IIGain, const MatrixVector_Sp
      int phase;
      MatrixVector_t IdentMatrix;
      MatrixVector_Sp_t Sp_TempMat;
-     double ddum;                       /* Dummy double */
+     HYSL_FLOAT ddum;                       /* Dummy HYSL_FLOAT */
      int idum;                          /* Dummy integer */
      char uplo;                         /* Used in dlascl() */
      int info, lda;                     /* Error handling and Leading dimension for dlascl() */
-     double Scalar;                     /* Double precision scalar */
+     HYSL_FLOAT Scalar;                     /* HYSL_FLOAT precision scalar */
 
      MatrixVector_Create_Sp( Damp->Rows, Damp->Cols, Damp->Num_Nonzero, &Sp_TempMat );
 
@@ -336,7 +536,11 @@ void IGainMatrix_Pardiso_Sp( MatrixVector_t *const IIGain, const MatrixVector_Sp
      iparm[17] = -1;	/* Output: Number of nonzeros in the factor LU */
      iparm[18] = -1;	/* Output: Mflops for LU factorization */
      iparm[19] = 0;	/* Output: Numbers of CG Iterations */
+#if _FLOAT_
+     iparm[27] = 1;     /* Input/output matrices are single precision */
+#else
      iparm[27] = 0;     /* Input/output matrices are double precision */
+#endif
      iparm[34] = 0;	/* PARDISO use 1 based indexing for ia and ja arrays */
      maxfct = 1;	/* Maximum number of numerical factorizations. */
      mnum = 1;		/* Which factorization to use. */
@@ -421,7 +625,7 @@ void IGainMatrix_Pardiso_Sp( MatrixVector_t *const IIGain, const MatrixVector_Sp
      lda = Max( 1, IIGain->Rows );
      uplo = 'L';   /* The lower part of the matrix will be used (upper part in C) */
      Scalar = Const.Lambda;
-     dlascl_( &uplo, &idum, &idum, &ddum, &Scalar, &IIGain->Rows, &IIGain->Cols, IIGain->Array, &lda, &info );
+     hysl_lascl( &uplo, &idum, &idum, &ddum, &Scalar, &IIGain->Rows, &IIGain->Cols, IIGain->Array, &lda, &info );
 
      if( info < 0 ){
 	  Print_Header( ERROR );
