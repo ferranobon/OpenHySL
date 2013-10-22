@@ -129,7 +129,7 @@ void HDF5_CreateGroup_Parameters( const int hdf5_file, const AlgConst_t *const I
      
      /* Save the coupling nodes and information */
      if( InitCnt->OrderSub > 0 ){
-//	  Save_InformationCNodes( hdf5_file, "/Test Parameters/Substructures", CNodes );
+	  Save_InformationCNodes( hdf5_file, "/Test Parameters/Substructures", CNodes );
      }
 
      for( i = 0; i < 4; i++ ){
@@ -157,7 +157,7 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const C
      group_id = H5Gcreate( file_id, Name_path, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT );     
 
      strtype = H5Tcopy( H5T_C_S1 );
-     status = H5Tset_size( strtype, H5T_VARIABLE );
+     status = H5Tset_size( strtype, HDF5_DESCRIPTION_LENGTH );
 
      if( status < 0 ){
 	  Print_Header( ERROR );
@@ -200,7 +200,7 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const C
 
 		    Nodes_Exp[k].Position = CNodes->Array[j] - 1;  /* 0-based index */
 		    Experimental = (ExpSub_t *) CNodes->Sub[j].SimStruct;
-		    Nodes_Exp[k].Description = strdup( Experimental->Description );
+		    strcpy( Nodes_Exp[k].Description, Experimental->Description );
 		    k = k + 1;
 	       } else if ( i == SIM_EXACT_ESP && CNodes->Sub[j].Type == SIM_EXACT_ESP ){
 		    Nodes[k].Position = CNodes->Array[j] - 1;      /* 0-based index */
@@ -210,7 +210,7 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const C
 		    Nodes[k].InitValues[1] = ExSim->Damp;
 		    Nodes[k].InitValues[2] = ExSim->Stiff;
 
-		    Nodes[k].Description = strdup( ExSim->Description );		
+		    strcpy( Nodes[k].Description, ExSim->Description );	
 		    k = k + 1;
 	       } else if ( i == SIM_UHYDE && CNodes->Sub[j].Type == SIM_UHYDE ){
 		    Nodes[k].Position = CNodes->Array[j] - 1;      /* 0-based index */
@@ -220,12 +220,12 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const C
 		    Nodes[k].InitValues[1] = UHYDE->qyield/UHYDE->qplastic;
 		    Nodes[k].InitValues[2] = UHYDE->qplastic*UHYDE->k;
 
-		    Nodes[k].Description = strdup( UHYDE->Description );
+		    strcpy( Nodes[k].Description, UHYDE->Description );
 		    k = k + 1;
 	       } else if ( i == SIM_MEASURED && CNodes->Sub[j].Type == SIM_MEASURED ){
 		    Nodes_Exp[k].Position = CNodes->Array[j] - 1; /* 0-based index */
 		    Experimental = (ExpSub_t *) CNodes->Sub[j].SimStruct;
-		    Nodes_Exp[k].Description = strdup( Experimental->Description );
+		    strcpy( Nodes_Exp[k].Description, Experimental->Description );
 		    k = k + 1;
 	       }
 	  }
@@ -250,9 +250,6 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const C
 		    exit( EXIT_FAILURE );
 	       }
 	       
-	       for( j = 0; j < count; j++ ){
-		    free( Nodes[j].Description );	     
-	       }
 	       free( Nodes );
 
 	       status = H5Dclose( dset );
