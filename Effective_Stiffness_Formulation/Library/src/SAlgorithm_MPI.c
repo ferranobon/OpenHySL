@@ -331,8 +331,8 @@ int main( int argc, char **argv ){
       * order, a temp array has to be first initialised in order to get the local coordinates. This cannot be
       * done with CNodes.Array since it contains the coupling positions in the arrays of length InitCnt.Order */
      TempIntArray = (int *) calloc( (size_t) CNodes.Order, sizeof(int) );
-     for( i = 0; i < CNodes.Order; i++ ){
-	  TempIntArray[i] = i + 1;  /* One based index since infog2l_(), a FORTRAN routine, is going to be
+     for( i = 0; i < (unsigned int) CNodes.Order; i++ ){
+	  TempIntArray[i] = (int) i + 1;  /* One based index since infog2l_(), a FORTRAN routine, is going to be
 				     * used in order to retrieve the information */
      }
      Substructure_InfoLocation_Init( CNodes.Order, TempIntArray, fcprevsub.Desc, &InfoLoc_fcprevsub );
