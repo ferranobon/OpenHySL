@@ -397,11 +397,11 @@ void Algorithm_ReadDataEarthquake_RelValues( const unsigned int NumSteps, const 
 
      for ( i = 0; i < NumSteps; i++ ){
 #if _FLOAT_
-//	  fscanf( InFile, "%E %E", &unnecessary, &temp1 );
-	  fscanf( InFile, "%E %E %E %E", &unnecessary, &temp1, &temp2, &temp3 );
+	  fscanf( InFile, "%E %E", &unnecessary, &temp1 );
+//	  fscanf( InFile, "%E %E %E %E", &unnecessary, &temp1, &temp2, &temp3 );
 #else
-//	  fscanf( InFile, "%lE %lE", &unnecessary, &temp1 );
-	  fscanf( InFile, "%lE %lE %lE %lE", &unnecessary, &temp1, &temp2, &temp3 );
+	  fscanf( InFile, "%lE %lE", &unnecessary, &temp1 );
+//	  fscanf( InFile, "%lE %lE %lE %lE", &unnecessary, &temp1, &temp2, &temp3 );
 #endif
 	  Acceleration[i] = temp1*Scale_Factor;
      }
