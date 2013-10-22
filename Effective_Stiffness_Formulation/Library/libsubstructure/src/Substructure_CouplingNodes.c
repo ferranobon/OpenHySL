@@ -13,6 +13,7 @@
 #include "Substructure_Experimental.h"
 #include "Substructure_CouplingNodes.h"
 
+#include "Definitions.h"
 
 const char *Substructure_Type[] = {"Sim_Exact_MDOF",
 				   "Sim_Exact_SDOF",
@@ -29,7 +30,7 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
      int Count_Type;
      int i, j, k;
      int itemp, ndof;
-     double *ftemp, *rayleigh;
+     HYSL_FLOAT *ftemp, *rayleigh;
      char *ctemp;
      MatrixVector_t mass, stiff;
      char Type[MAX_SUBTYPE], Description[MAX_DESCRIPTION], FileMeas[MAX_FILENAME];
@@ -37,9 +38,9 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
      char InLine[MAX_LINE];
      char IPAddress[20], Port[20];
      char Account_Name[20], Account_Password[20];
-     double DeltaTSub;
+     HYSL_FLOAT DeltaTSub;
 
-     DeltaTSub = InitCnt->Delta_t/(double) InitCnt->NSubstep;
+     DeltaTSub = InitCnt->Delta_t/(HYSL_FLOAT) InitCnt->NSubstep;
 
      InFile = fopen( InitCnt->FileCNodes, "r" );
 
@@ -63,7 +64,7 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
      /* Allocate the necessary memory */
      CNodes->Array = (int *) calloc( (size_t) CNodes->Order, sizeof(int) );
      CNodes->Sub = (Substructure_t *) malloc( (size_t) CNodes->Order*sizeof(Substructure_t) );
-     CNodes->VecTdT0_c0 = (double *) calloc( (size_t) CNodes->Order, sizeof(double) );
+     CNodes->VecTdT0_c0 = (HYSL_FLOAT *) calloc( (size_t) CNodes->Order, sizeof(HYSL_FLOAT) );
 
      /* Read the contents of the file */
      i = 0;
@@ -113,9 +114,9 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 		    exit( EXIT_FAILURE );
 	       } else {
 		    ftemp = NULL; ctemp = NULL;
-		    ftemp = (double *) calloc( (size_t) EXACTMDOF_NUMPARAM_INIT, sizeof( double ) );
+		    ftemp = (HYSL_FLOAT *) calloc( (size_t) EXACTMDOF_NUMPARAM_INIT, sizeof( HYSL_FLOAT ) );
 		    ctemp = (char *) calloc( (size_t) 20, sizeof( char ) );
-		    rayleigh = (double *) calloc ( 2, sizeof(double) );
+		    rayleigh = (HYSL_FLOAT *) calloc ( 2, sizeof(HYSL_FLOAT) );
 
 		    /* Read the number of degrees of freedom */
 		    fscanf( InFile, "%i", &ndof );
@@ -127,7 +128,11 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 		    MatrixVector_FromFile_MM( ctemp, &mass );
 		    fscanf( InFile, "%s", ctemp );
 		    MatrixVector_FromFile_MM( ctemp, &stiff );
+#if _FLOAT_
+		    fscanf( InFile, "%f %f", &rayleigh[0], &rayleigh[1] );
+#else
 		    fscanf( InFile, "%lf %lf", &rayleigh[0], &rayleigh[1] );
+#endif
 
 		    /* Read the optional description */
 		    Substructure_GetDescription( InFile, i, Description );
@@ -165,11 +170,15 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 		    exit( EXIT_FAILURE );
 	       } else {
 		    ftemp = NULL;
-		    ftemp = (double *) calloc( (size_t) EXACTSDOF_NUMPARAM_INIT, sizeof( double ) );
+		    ftemp = (HYSL_FLOAT *) calloc( (size_t) EXACTSDOF_NUMPARAM_INIT, sizeof( HYSL_FLOAT ) );
 
 		    /* Read the input parameters */
 		    for( j = 0; j < EXACTSDOF_NUMPARAM_INIT; j++ ){
+#if _FLOAT_
+			 fscanf( InFile, "%f", &ftemp[j] );
+#else
 			 fscanf( InFile, "%lf", &ftemp[j] );
+#endif
 		    }
 
 		    /* Read the optional description */
@@ -200,11 +209,15 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 		    exit( EXIT_FAILURE );
 	       } else {
 		    ftemp = NULL;
-		    ftemp = (double *) calloc( (size_t) EXACTSDOF_NUMPARAM_INIT, sizeof( double ) );
+		    ftemp = (HYSL_FLOAT *) calloc( (size_t) EXACTSDOF_NUMPARAM_INIT, sizeof( HYSL_FLOAT ) );
 
 		    /* Read the input parameters */
 		    for( j = 0; j < EXACTSDOF_NUMPARAM_INIT; j++ ){
+#if _FLOAT_
+			 fscanf( InFile, "%f", &ftemp[j] );
+#else
 			 fscanf( InFile, "%lf", &ftemp[j] );
+#endif
 		    }
 
 		    /* Read the optional description */
@@ -232,10 +245,14 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 		    exit( EXIT_FAILURE );
 	       } else {
 		    ftemp = NULL;
-		    ftemp = (double *) calloc( (size_t) UHYDE_NUMPARAM_INIT, sizeof( double ) );
+		    ftemp = (HYSL_FLOAT *) calloc( (size_t) UHYDE_NUMPARAM_INIT, sizeof( HYSL_FLOAT ) );
 
 		    for( j = 0; j < UHYDE_NUMPARAM_INIT; j++ ){
+#if _FLOAT_
+			 fscanf( InFile, "%f", &ftemp[j] );
+#else
 			 fscanf( InFile, "%lf", &ftemp[j] );
+#endif
 		    }
 
 		    /* Read the optional description */

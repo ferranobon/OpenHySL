@@ -404,13 +404,12 @@ int main( int argc, char **argv ){
 
 	  /* Perform substepping */
 	  if( CNodes.Order >= 1 ){
-/*	       Substructure_Substepping( &CNodes, Keinv_c.Array, DispTdT0_c.Array,
-	                                 InitCnt.Delta_t*(HYSL_FLOAT) istep, AccAll[istep - 1],
-					 InitCnt.NSubstep, InitCnt.DeltaT_Sub, DispTdT.Array,
-					 fcprevsub.Array, fc.Array); */
-	       Substructure_Substepping( &CNodes, Keinv_c.Array, DispTdT0_c.Array,
-					 InitCnt.Delta_t*(HYSL_FLOAT) istep, 0.0, InitCnt.NSubstep, 
-					 InitCnt.DeltaT_Sub, DispTdT.Array, fcprevsub.Array, fc.Array );
+/*	       Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep,
+					 AccAll[istep-1], InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes,
+					 DispTdT.Array, fcprevsub.Array, fc.Array );*/
+	       Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep, 0.0,
+					 InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array, fcprevsub.Array,
+					 fc.Array );
 	  }
 
 	  if ( istep < InitCnt.NStep ){
@@ -485,8 +484,8 @@ int main( int argc, char **argv ){
      }
 
      gettimeofday( &Time.End, NULL );
-     Time.Elapsed_time = (HYSL_FLOAT) (Time.End.tv_sec - Time.Start.tv_sec)*1000.0;
-     Time.Elapsed_time += (HYSL_FLOAT) (Time.End.tv_usec - Time.Start.tv_usec)/1000.0;
+     Time.Elapsed_time = (double) (Time.End.tv_sec - Time.Start.tv_sec)*1000.0;
+     Time.Elapsed_time += (double) (Time.End.tv_usec - Time.Start.tv_usec)/1000.0;
 #if _HDF5_
      HDF5_Store_Time( hdf5_file, &Time );
 #endif

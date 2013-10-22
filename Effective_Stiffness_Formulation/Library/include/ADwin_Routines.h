@@ -16,6 +16,8 @@
 #ifndef ADWIN_ROUTINES_H_
 #define ADWIN_ROUTINES_H_
 
+#include "Definitions.h"
+
 /**
  * \brief Routine to boot ADwin.
  * 
@@ -87,7 +89,7 @@ void ADwin_ManageProcess( const char* PName, const int PNum, const int dowhat );
  *
  * \post The number of variables contained in Array and transfered to ADwin is equal to \c Length.
  */
-void ADwin_SendArray( const unsigned int Index, const double *const Array, const unsigned int Length );
+void ADwin_SendArray( const unsigned int Index, const HYSL_FLOAT *const Array, const unsigned int Length );
 
 /**
  * \brief Sub-stepping process in ADwin.
@@ -134,8 +136,8 @@ void ADwin_SendArray( const unsigned int Index, const double *const Array, const
  * \post The vectors \c VecTdT_c, \c fcprev_c, \c fc_c contain the last control values and the coupling force
  * at the previous and last sub-steps.
  */
-void ADwin_Substep( const double *const VecTdT_0c, const unsigned int OrderC, const double Time_To_Wait, double *const VecTdT_c,
-		    double *const fcprev_c, double *const fc_c );
+void ADwin_Substep( const HYSL_FLOAT *const VecTdT_0c, const unsigned int OrderC, const HYSL_FLOAT Time_To_Wait, HYSL_FLOAT *const VecTdT_c,
+		    HYSL_FLOAT *const fcprev_c, HYSL_FLOAT *const fc_c );
 
 /**
  * \brief Checks if the loaded driver matches the ADwin system.

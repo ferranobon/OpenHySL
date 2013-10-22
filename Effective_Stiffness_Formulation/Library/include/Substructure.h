@@ -18,6 +18,7 @@
 #define SUBSTRUCTURE_H_
 
 #include "Substructure_CouplingNodes.h"
+#include "Definitions.h"
 
 #if _MPI_
 #include <mpi.h>
@@ -55,7 +56,7 @@
  *
  * \sa Substructure_t
  */
-void Substructure_SendGainMatrix( const double *const Gain, const unsigned int Order, const Substructure_t *const Substructure );
+void Substructure_SendGainMatrix( const HYSL_FLOAT *const Gain, const unsigned int Order, const Substructure_t *const Substructure );
 
 /**
  * \brief Performs the sub-stepping process.
@@ -74,31 +75,32 @@ void Substructure_SendGainMatrix( const double *const Gain, const unsigned int O
  * - \c VecTdT0_c should be generated through the Substructure_VectorXc() routine and be of length \f$n_c\f$.
  * - \c VecTdT, \c CoupForcePrev and \c CoupForce are of length \f$n > n_c\f$.
  *
- * \param[in]  CNodes        Information regarding the coupling nodes.
- * \param[in]  IGain         Symmetric matrix of order \c CNodes.Order. The part of the gain matrix
- *                           \f$\mathcal G\f$ that affects the coupling degrees of freedom \f$\mathcal G_c\f$.
- * \param[in]  VecTdT0_c     Vector with the initial value problem
- * \param[in]  Time          Only used in case of remote substructures using the NSEP protocol and it
- *                           indicates the ellapsed time from since the start of the simulation. It does not
- *                           indicate actual computation time but it is usually computed as \f$\Delta t*i\f$,
- *                           where \f$i\f$ is the step count and \f$\Delta t\f$ the time increment.
- * \param[in]  GAcc          Ground acceleration
- * \param[in]  NSubstep      The number of sub-steps \f$n_{Sub}\f$.
- * \param[in]  DeltaT_Sub    Time increment of a sub-step \f$\Delta t_{Sub}\f$.
- * \param[out] VecTdT        Vector with the updated displacement, velocity or acceleration.
- * \param[out] CoupForcePrev Vector containing the coupling force at the sub-step \f$i - 1\f$, with \f$i =
- *                           n_{Sub}\f$.
- * \param[out] CoupForce     Vector containing the coupling force at the sub-step \f$n_{Sub}\f$.
+ * \param[in]     IGain         Symmetric matrix of order \c CNodes.Order. The part of the gain matrix
+ *                              \f$\mathcal G\f$ that affects the coupling degrees of freedom \f$\mathcal
+ *                              G_c\f$.
+ * \param[in]     VecTdT0_c     Vector with the initial value problem
+ * \param[in]     Time          Only used in case of remote substructures using the NSEP protocol and it
+ *                              indicates the ellapsed time from since the start of the simulation. It does
+ *                              not indicate actual computation time but it is usually computed as \f$\Delta
+ *                              t*i\f$, where \f$i\f$ is the step count and \f$\Delta t\f$ the time increment.
+ * \param[in]     GAcc          Ground acceleration
+ * \param[in]     NSubstep      The number of sub-steps \f$n_{Sub}\f$.
+ * \param[in]     DeltaT_Sub    Time increment of a sub-step \f$\Delta t_{Sub}\f$.
+ * \param[in,out] CNodes        Information regarding the coupling nodes.
+ * \param[out]    VecTdT        Vector with the updated displacement, velocity or acceleration.
+ * \param[out]    CoupForcePrev Vector containing the coupling force at the sub-step \f$i - 1\f$, with \f$i =
+ *                              n_{Sub}\f$.
+ * \param[out]    CoupForce     Vector containing the coupling force at the sub-step \f$n_{Sub}\f$.
  *
  * \post The vectors \c VecTdT \c CoupForcePrev and \c CoupForce have the updated displacements at the
  * equations with substructures acting on them.
  *
  * \sa CouplingNote_t.
  */
-void Substructure_Substepping( const CouplingNode_t *const CNodes, const double *const IGain,
-			       const double *const VecTdT0_c, const double Time, const double GAcc,
-			       const unsigned int NSubstep, const double DeltaT_Sub, double *const VecTdT,
-			       double *const CoupForcePrev, double *const CoupForce );
+void Substructure_Substepping( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *const VecTdT0_c, const HYSL_FLOAT Time,
+			       const HYSL_FLOAT GAcc, const unsigned int NSubstep, const HYSL_FLOAT DeltaT_Sub,
+			       CouplingNode_t *const CNodes, HYSL_FLOAT *const VecTdT, HYSL_FLOAT *const CoupForcePrev,
+			       HYSL_FLOAT *const CoupForce );
 
 #if _MPI_
 /**
@@ -118,32 +120,34 @@ void Substructure_Substepping( const CouplingNode_t *const CNodes, const double 
  *   \f$n_c\f$.
  * - \c VecTdT, \c CoupForcePrev and \c CoupForce are of length \f$n > n_c\f$.
  *
- * \param[in]  CNodes        Information regarding the coupling nodes.
- * \param[in]  IGain         Symmetric matrix of order \c CNodes.Order. The part of the gain matrix
- *                           \f$\mathcal G\f$ that affects the coupling degrees of freedom \f$\mathcal G_c\f$.
- * \param[in]  VecTdT0_c     Vector with the initial value problem
- * \param[in]  Time          Only used in case of remote substructures using the NSEP protocol and it
- *                           indicates the ellapsed time from since the start of the simulation. It does not
- *                           indicate actual computation time but it is usually computed as \f$\Delta t*i\f$,
- *                           where \f$i\f$ is the step count and \f$\Delta t\f$ the time increment.
- * \param[in]  GAcc          Ground acceleration
- * \param[in]  NSubstep      The number of sub-steps \f$n_{Sub}\f$.
- * \param[in]  DeltaT_Sub    Time increment of a sub-step \f$\Delta t_{Sub}\f$.
- * \param[out] VecTdT        Vector with the updated displacement, velocity or acceleration.
- * \param[out] CoupForcePrev Vector containing the coupling force at the sub-step \f$i - 1\f$, with \f$i =
- *                           n_{Sub}\f$.
- * \param[out] CoupForce     Vector containing the coupling force at the sub-step \f$n_{Sub}\f$.
+ * \param[in]     IGain         Symmetric matrix of order \c CNodes.Order. The part of the gain matrix
+ *                              \f$\mathcal G\f$ that affects the coupling degrees of freedom \f$\mathcal
+ *                              G_c\f$.
+ * \param[in]     VecTdT0_c     Vector with the initial value problem
+ * \param[in]     Time          Only used in case of remote substructures using the NSEP protocol and it
+ *                              indicates the ellapsed time from since the start of the simulation. It does
+ *                              not indicate actual computation time but it is usually computed as \f$\Delta
+ *                              t*i\f$, where \f$i\f$ is the step count and \f$\Delta t\f$ the time increment.
+ * \param[in]     GAcc          Ground acceleration
+ * \param[in]     NSubstep      The number of sub-steps \f$n_{Sub}\f$.
+ * \param[in]     DeltaT_Sub    Time increment of a sub-step \f$\Delta t_{Sub}\f$.
+ * \param[in,out] CNodes        Information regarding the coupling nodes.
+ * \param[out]    VecTdT        Vector with the updated displacement, velocity or acceleration.
+ * \param[out]    CoupForcePrev Vector containing the coupling force at the sub-step \f$i - 1\f$, with \f$i =
+ *                              n_{Sub}\f$.
+ * \param[out]    CoupForce     Vector containing the coupling force at the sub-step \f$n_{Sub}\f$.
  *
  * \post The vectors \c VecTdT \c CoupForcePrev and \c CoupForce have the updated displacements at the
  * equations with substructures acting on them.
  *
  * \sa CouplingNote_t, PMatrixVector_t.
  */
-void Substructure_Substepping_MPI( const CouplingNode_t *const CNodes, const double *const IGain,
-				   const double *const VecTdT0_c, const double Time, const double GAcc,
-				   const unsigned int NSubstep, const double DeltaT_Sub,
-				   const MPI_Comm Comm, const int *const LRowIndex_Coupling,
-				   const int *const RowProcess_Coupling, const int *const ColProcess_Coupling,
+void Substructure_Substepping_MPI( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *const VecTdT0_c,
+				   const HYSL_FLOAT Time, const HYSL_FLOAT GAcc, const unsigned int NSubstep,
+				   const HYSL_FLOAT DeltaT_Sub, const MPI_Comm Comm,
+				   const InfoLocation_t *const ILoc_VecTdT,
+				   const InfoLocation_t *const ILoc_CoupForcePrev,
+				   const InfoLocation_t *const ILoc_CoupForce, CouplingNode_t *const CNodes,
 				   PMatrixVector_t *const VecTdT, PMatrixVector_t *const CoupForcePrev,
 				   PMatrixVector_t *const CoupForce );
 #endif
@@ -179,20 +183,20 @@ void Substructure_Substepping_MPI( const CouplingNode_t *const CNodes, const dou
  * - \c VecTdT_c, \c CoupForcePrev_c and \c CoupForce_c are of length \f$n_c\f$ and must contain only those
  *   elements of the original vector that are being affected by a numerical substructure.
  * 
- * \param[in]  CNodes          Information regarding the coupling nodes.
- * \param[in]  IGain           Symmetric matrix of order \c CNodes.Order. The part of the gain matrix 
- *                             \f$\mathcal G\f$ that affects the coupling degrees of freedom \f$\mathcal
- *                             G_c\f$.
- * \param[in]  VecTdT0_c       Vector of length \c CNodes.Order. The initial value problem.
- * \param[in]  GAcc            Ground acceleration.
- * \param[in]  NSubstep        The number of sub-steps \f$n_{Sub}\f$.
- * \param[in]  DeltaT_Sub      Time increment of a sub-step \f$\Delta t_{Sub}\f$.
- * \param[out] VecTdT_c        Vector of length \c CNodes.Order with the updated displacement, velocity or
- *                             acceleration.
- * \param[out] CoupForcePrev_c Vector of length \c CNodes.Order containing the coupling force at the sub-step
- *                             \f$i - 1\f$, with \f$i = n_{Sub}\f$.
- * \param[out] CoupForce_c     Vector of length \c CNodes.Order containing the coupling force at the sub-step
- *                             \f$n_{Sub}\f$.
+ * \param[in]     IGain           Symmetric matrix of order \c CNodes.Order. The part of the gain matrix 
+ *                                \f$\mathcal G\f$ that affects the coupling degrees of freedom \f$\mathcal
+ *                                G_c\f$.
+ * \param[in]     VecTdT0_c       Vector of length \c CNodes.Order. The initial value problem.
+ * \param[in]     GAcc            Ground acceleration.
+ * \param[in]     NSubstep        The number of sub-steps \f$n_{Sub}\f$.
+ * \param[in]     DeltaT_Sub      Time increment of a sub-step \f$\Delta t_{Sub}\f$.
+ * \param[in,out] CNodes          Information regarding the coupling nodes.
+ * \param[out]    VecTdT_c        Vector of length \c CNodes.Order with the updated displacement, velocity or
+ *                                acceleration.
+ * \param[out]    CoupForcePrev_c Vector of length \c CNodes.Order containing the coupling force at the
+ *                                sub-step \f$i - 1\f$, with \f$i = n_{Sub}\f$.
+ * \param[out]    CoupForce_c     Vector of length \c CNodes.Order containing the coupling force at the
+ *                                sub-step \f$n_{Sub}\f$.
  *
  * \post The vectors \c VecTdT_c \c CoupForcePrev_c and \c CoupForce_c have the updated displacements at the
  * equations with numerical substructures acting on them as a result of the following equation:
@@ -202,9 +206,9 @@ void Substructure_Substepping_MPI( const CouplingNode_t *const CNodes, const dou
  *
  * \sa CouplingNode_t.
  */
-void Substructure_Simulate( const CouplingNode_t *const CNodes, const double *const IGain,
-			    const double *const VecTdT0_c, const double GAcc, const unsigned int NSubstep,
-			    const double DeltaT_Sub, double *const VecTdT_c, double *const CoupForcePrev_c,
-			    double *const CoupForce_c );
+void Substructure_Simulate( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *const VecTdT0_c,
+			    const HYSL_FLOAT GAcc, const unsigned int NSubstep, const HYSL_FLOAT DeltaT_Sub,
+			    CouplingNode_t *const CNodes, HYSL_FLOAT *const VecTdT_c,
+			    HYSL_FLOAT *const CoupForcePrev_c, HYSL_FLOAT *const CoupForce_c );
 
 #endif /* SUBSTRUCTURE_H_ */

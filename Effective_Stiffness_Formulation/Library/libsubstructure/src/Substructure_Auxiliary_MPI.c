@@ -1,8 +1,8 @@
 #include "MatrixVector.h"
 #include "MatrixVector_MPI.h"
 
-#include "Substructure_Auxiliary.h"
 #include "Substructure.h"
+#include "Substructure_Auxiliary.h"
 
 #include "mpi.h"
 
@@ -24,7 +24,7 @@ void Substructure_JoinNonCouplingPart_MPI( PMatrixVector_t *const VecTdT_m,
 
      int incx, incy, ione;
      int icoup, Length;
-     double Alpha, Beta;
+     HYSL_FLOAT Alpha, Beta;
      char trans = 'N';
      int Rows, Cols;
      int PosX_Row, PosX_Col, PosXm_Row, PosXm_Col;
@@ -38,7 +38,7 @@ void Substructure_JoinNonCouplingPart_MPI( PMatrixVector_t *const VecTdT_m,
 
      /* Update the VecTdT_m displacments to include the effects of the coupling force */
      /* PBLAS: VecTdT_m = Gain_m*fcprevsub */
-     pdgemv_( &trans, &Rows, &Cols, &Alpha, Gain_m->Array, &ione, &ione, Gain_m->Desc, fcprevsub->Array,
+     hysl_pgemv( &trans, &Rows, &Cols, &Alpha, Gain_m->Array, &ione, &ione, Gain_m->Desc, fcprevsub->Array,
 	      &ione, &ione, fcprevsub->Desc, &incx, &Beta, VecTdT_m->Array, &ione, &ione, VecTdT_m->Desc,
 	      &incy );
 
@@ -51,7 +51,7 @@ void Substructure_JoinNonCouplingPart_MPI( PMatrixVector_t *const VecTdT_m,
 	  Length = CNodes->Array[icoup] - PosX_Row;
 	  
 	  /* Copy the part of the vector between two positions */
-	  pdcopy_( &Length, VecTdT_m->Array, &PosXm_Row, &PosXm_Col, VecTdT_m->Desc, &incx, VecTdT->Array,
+	  hysl_pcopy( &Length, VecTdT_m->Array, &PosXm_Row, &PosXm_Col, VecTdT_m->Desc, &incx, VecTdT->Array,
 		   &PosX_Row, &PosX_Col, VecTdT->Desc, &incy );
 	  
 	  /* Update the values of the position in the vectors */
@@ -61,7 +61,7 @@ void Substructure_JoinNonCouplingPart_MPI( PMatrixVector_t *const VecTdT_m,
 
      /* Copy the elements from the last position until the end of the vector */
      Length = VecTdT->GlobalSize.Row - CNodes->Array[CNodes->Order-1];
-     pdcopy_( &Length, VecTdT_m->Array, &PosXm_Row, &PosXm_Col, VecTdT_m->Desc, &incx, VecTdT->Array,
+     hysl_pcopy( &Length, VecTdT_m->Array, &PosXm_Row, &PosXm_Col, VecTdT_m->Desc, &incx, VecTdT->Array,
 	      &PosX_Row, &PosX_Col, VecTdT->Desc, &incy );
 
 }
@@ -105,12 +105,12 @@ void Substructure_MatrixXc_MPI( const MPI_Comm Comm, const CouplingNode_t *const
 	       } else {
 		    if ( myrow == RowProcess && mycol == ColProcess ){			 
 			 MPI_Send( &Mat->Array[(LRowIndex - 1)+Mat->LocalSize.Row*(LColIndex - 1)], 1,
-				   MPI_DOUBLE, 0, MATRIX_XC, Comm );
+				   MPI_HYSL_FLOAT, 0, MATRIX_XC, Comm );
 		    }
 
 		    if ( rank == 0 ){
 			 /* Store the diagonal elements */
-			 MPI_Recv( &MatCouple->Array[icoup*CNodes->Order + jcoup], 1, MPI_DOUBLE,
+			 MPI_Recv( &MatCouple->Array[icoup*CNodes->Order + jcoup], 1, MPI_HYSL_FLOAT,
 				   Cblacs_pnum( Mat->Desc[1], RowProcess, ColProcess ), MATRIX_XC, Comm,
 				   &status );
 			 /* Now add the elements belonging to the same row as the current coupling node but
@@ -154,7 +154,7 @@ void Substructure_MatrixXcm_MPI( const MPI_Comm Comm, PMatrixVector_t *const Mat
 	  PosX_Cols = 1; /* 1 based index */
 	  PosXcm_Rows = 1;
 	  PosXcm_Cols = icoup + 1;
-	  pdcopy_( &Length, Mat->Array, &PosX_Rows, &PosX_Cols, Mat->Desc, &incx, MatXcm->Array, &PosXcm_Rows,
+	  hysl_pcopy( &Length, Mat->Array, &PosX_Rows, &PosX_Cols, Mat->Desc, &incx, MatXcm->Array, &PosXcm_Rows,
 		   &PosXcm_Cols, MatXcm->Desc, &incy );
      }
      Accumulated_Length = Accumulated_Length + Length;
@@ -167,7 +167,7 @@ void Substructure_MatrixXcm_MPI( const MPI_Comm Comm, PMatrixVector_t *const Mat
 		    PosX_Cols = CNodes->Array[icoup-1] + 1; /* 1 based index */
 		    PosXcm_Rows = Accumulated_Length + 1;
 		    PosXcm_Cols = jcoup + 1;		    
-		    pdcopy_( &Length, Mat->Array, &PosX_Rows, &PosX_Cols, Mat->Desc, &incx, MatXcm->Array,
+		    hysl_pcopy( &Length, Mat->Array, &PosX_Rows, &PosX_Cols, Mat->Desc, &incx, MatXcm->Array,
 			     &PosXcm_Rows, &PosXcm_Cols, MatXcm->Desc, &incy );
 	       }
 	       Accumulated_Length = Accumulated_Length + Length;
@@ -183,7 +183,7 @@ void Substructure_MatrixXcm_MPI( const MPI_Comm Comm, PMatrixVector_t *const Mat
 	       PosX_Cols = CNodes->Array[icoup];
 	       PosXcm_Rows = MatXcm->GlobalSize.Row - Length + 1;
 	       PosXcm_Cols = icoup + 1;
-	       pdcopy_( &Length, Mat->Array, &PosX_Rows, &PosX_Cols, Mat->Desc, &incx, MatXcm->Array,
+	       hysl_pcopy( &Length, Mat->Array, &PosX_Rows, &PosX_Cols, Mat->Desc, &incx, MatXcm->Array,
 			&PosXcm_Rows, &PosXcm_Cols, MatXcm->Desc, &incy );
 	  }
      }
@@ -197,7 +197,7 @@ void Substructure_MatrixXcm_MPI( const MPI_Comm Comm, PMatrixVector_t *const Mat
 		    PosX_Cols = CNodes->Array[jcoup];
 		    PosXcm_Rows = MatXcm->GlobalSize.Row - Accumulated_Length - Length + 1;
 		    PosXcm_Cols = jcoup + 1;	           
-		    pdcopy_( &Length, Mat->Array, &PosX_Rows, &PosX_Cols, Mat->Desc, &incx, MatXcm->Array,
+		    hysl_pcopy( &Length, Mat->Array, &PosX_Rows, &PosX_Cols, Mat->Desc, &incx, MatXcm->Array,
 			     &PosXcm_Rows, &PosXcm_Cols, MatXcm->Desc, &incy );
 	       }
 	       Accumulated_Length = Accumulated_Length + Length;
@@ -224,7 +224,7 @@ void Substructure_VectorXm_MPI( PMatrixVector_t *const VectorX, const CouplingNo
 	     Length = CNodes->Array[icoup] - PosX_Row;
 
 	     /* Copy the part of the vector between two positions */
-	     pdcopy_( &Length, VectorX->Array, &PosX_Row, &PosX_Col, VectorX->Desc, &incx, VectorXm->Array,
+	     hysl_pcopy( &Length, VectorX->Array, &PosX_Row, &PosX_Col, VectorX->Desc, &incx, VectorXm->Array,
 		      &PosXm_Row, &PosXm_Col, VectorXm->Desc, &incy );
 
 	     /* Update the values of the position in the vectors */
@@ -234,7 +234,7 @@ void Substructure_VectorXm_MPI( PMatrixVector_t *const VectorX, const CouplingNo
 
 	/* Copy the elements from the last position until the end of the vector */
 	Length = VectorX->GlobalSize.Row - CNodes->Array[CNodes->Order-1];
-	pdcopy_( &Length, VectorX->Array, &PosX_Row, &PosX_Col, VectorX->Desc, &incx, VectorXm->Array,
+	hysl_pcopy( &Length, VectorX->Array, &PosX_Row, &PosX_Col, VectorX->Desc, &incx, VectorXm->Array,
 		 &PosXm_Row, &PosXm_Col, VectorXm->Desc, &incy );
 }
 
@@ -274,12 +274,12 @@ void Substructure_VectorXc_MPI( const MPI_Comm Comm, PMatrixVector_t *const VecX
 	       if ( myrow == RowProcess && mycol == ColProcess ){
 			 
 		    MPI_Send( &VecX->Array[(LRowIndex - 1)*VecX->LocalSize.Col + (LColIndex - 1)], 1,
-			      MPI_DOUBLE, 0, VECTOR_XC, Comm );
+			      MPI_HYSL_FLOAT, 0, VECTOR_XC, Comm );
 	       }
 	       
 	       if ( rank == 0 ){
 		    /* Store the diagonal elements */
-		    MPI_Recv( &VecXc->Array[icoup], 1, MPI_DOUBLE,
+		    MPI_Recv( &VecXc->Array[icoup], 1, MPI_HYSL_FLOAT,
 			      Cblacs_pnum( VecX->Desc[1], RowProcess, ColProcess ), VECTOR_XC, Comm, &status );
 	       }
 	  }	  

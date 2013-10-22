@@ -14,6 +14,7 @@
 #define MATRIXVECTOR_MPI_H_
 
 #include "MatrixVector.h"
+#include "Definitions.h"
 
 /**
  * \brief Structure to handle distribution information of distributed matrices.
@@ -34,7 +35,7 @@ typedef struct DistInfo {
  * \sa MatrixVector_t and Matrixvector_Sp_t 
  */
 typedef struct PMatrixVector {
-     double *Array;         /*!< \brief Local array of a distributed matrix */
+     HYSL_FLOAT *Array;         /*!< \brief Local array of a distributed matrix */
      int Desc[9];           /*!< \brief Array descriptor for ScaLAPACK routines \cite ScaLAPACK_webpage
 			     * \cite SLUG */
      DistInfo_t GlobalSize; /*!< \brief Stores the size of the global matrix: rows, columns */
@@ -111,7 +112,7 @@ void PMatrixVector_Add3Mat( PMatrixVector_t *const MatA, PMatrixVector_t *const 
  * - <tt>MatVec.LocalSize.Row = numroc_()</tt> and <tt>MatVec.LocalSize.Col = numroc_()</tt>.
  * - <tt>MatVec.BlockSize.Row = BlRows</tt> and <tt>MatVec.BlockSize.Col = BlCols</tt>.
  * - <tt>MatVec.Desc = descinit_()</tt>.
- * - The length of the allocated double array (local) is set to \f$L = LocalSize.Row*LocalSize.Col\f$ and all
+ * - The length of the allocated HYSL_FLOAT array (local) is set to \f$L = LocalSize.Row*LocalSize.Col\f$ and all
  *   its values initialised to 0.0.
  * - The memory should be deallocated through PMatrixVector_Destroy().
  *
@@ -218,7 +219,7 @@ void PMatrixVector_FromFile_MM( const char *Filename, PMatrixVector_t *const Mat
  *
  * \sa PMatrixVector_t
  */
-void PMatrixVector_ModifyElement( int GRowIndex, int GColIndex, const double Alpha, const char *Operation,
+void PMatrixVector_ModifyElement( int GRowIndex, int GColIndex, const HYSL_FLOAT Alpha, const char *Operation,
 				  PMatrixVector_t *const MatVec );
 
 /**
@@ -235,7 +236,7 @@ void PMatrixVector_ModifyElement( int GRowIndex, int GColIndex, const double Alp
  *
  * \post All the elements in \c MatVec.Array are set to \c Value.
  */
-void PMatrixVector_Set2Value( const double Value, PMatrixVector_t *const MatVec );
+void PMatrixVector_Set2Value( const HYSL_FLOAT Value, PMatrixVector_t *const MatVec );
 
 /**
  * \brief Writes a distributed matrix or a vector to an ASCII file in a dense format. MPI version.

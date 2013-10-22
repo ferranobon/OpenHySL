@@ -27,7 +27,7 @@
 typedef struct SaveTime {
      time_t Date_start;
      char *Date_time;
-     HYSL_FLOAT Elapsed_time;
+     double Elapsed_time;
      struct timeval Start;
      struct timeval End;
 } SaveTime_t;
@@ -36,9 +36,9 @@ typedef struct SaveTime_MPI {
      time_t Date_start;
      char Date_time[MPI_TIME_SLENGTH]; /* Fixed length because HDF5 does not support variable types in mpi
 					  mode */
-     HYSL_FLOAT Elapsed_time;
-     HYSL_FLOAT Start;
-     HYSL_FLOAT End;
+     double Elapsed_time;
+     double Start;
+     double End;
 } SaveTime_MPI_t;
 
 /**

@@ -29,9 +29,17 @@ void MatrixVector_FromFile_GE2PS( const char *Filename, MatrixVector_t *const Ma
 	  for ( j = 1; j <= MatVec->Cols; j++ ){
 	       /* Only the values in the upper part of the matrix are stored */
 	       if( i >= j ){
+#if _FLOAT_
+		    fscanf( InFile,"%f", &MatVec->Array[i + (2*MatVec->Cols - j)*(j - 1)/2 - 1] );
+#else 
 		    fscanf( InFile,"%lf", &MatVec->Array[i + (2*MatVec->Cols - j)*(j - 1)/2 - 1] );
+#endif
 	       } else {
+#if _FLOAT_
+		    fscanf( InFile, "%f", &temp );
+#else
 		    fscanf( InFile, "%lf", &temp );
+#endif
 	       }
 	  }
      }
@@ -97,7 +105,11 @@ void MatrixVector_FromFile_MM_PS( const char *Filename, MatrixVector_t *const Ma
       * part of the matrix without requiring transposing it.
       */
      for( innz = 0; innz < nnz; innz++ ){
+#if _FLOAT_
+	  fscanf( InFile, "%d %d %E", &i, &j, &Value );
+#else
 	  fscanf( InFile, "%d %d %lE", &i, &j, &Value );
+#endif
 	  MatVec->Array[i + (2*MatVec->Cols - j)*(j - 1)/2 - 1] = Value;
      }
 
@@ -123,9 +135,17 @@ void MatrixVector_ToFile_PS2Full( const MatrixVector_t *const MatVec, const char
      for ( i = 1; i <= MatVec->Rows; i++){
 	  for( j = 1; j <= MatVec->Cols; j++ ){
 	       if( i >= j ){
+#if _FLOAT_
+		    fprintf( OutFile,"%E\t", MatVec->Array[i + (2*MatVec->Cols - j)*(j - 1)/2 - 1] );
+#else
 		    fprintf( OutFile,"%lE\t", MatVec->Array[i + (2*MatVec->Cols - j)*(j - 1)/2 - 1] );
+#endif
 	       } else {
+#if _FLOAT_
+		    fprintf( OutFile, "%E\t", dzero );
+#else
 		    fprintf( OutFile, "%lE\t", dzero );
+#endif
 	       }
 	  }
 	  fprintf( OutFile, "\n" );

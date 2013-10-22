@@ -6,8 +6,10 @@
 #include "Print_Messages.h"
 #include "Substructure_Remote_NSEP.h"
 
-void Substructure_Remote_NSEP( const Remote_t *const Remote, const int WhatToDo, const double Time,
-			       const unsigned int Size, const double *const Data_To_Send, double *const Data_To_Receive )
+#include "Definitions.h"
+
+void Substructure_Remote_NSEP( const Remote_t *const Remote, const int WhatToDo, const HYSL_FLOAT Time,
+			       const unsigned int Size, const HYSL_FLOAT *const Data_To_Send, HYSL_FLOAT *const Data_To_Receive )
 {
      static unsigned int Length;
      static int NSEP_Type;
@@ -42,10 +44,10 @@ void Substructure_Remote_NSEP( const Remote_t *const Remote, const int WhatToDo,
 	  memcpy( pos , &NSEP_Type, sizeof (int) );
 
 	  pos = pos + sizeof (int);
-	  memcpy( pos, &Time, sizeof (double) );
+	  memcpy( pos, &Time, sizeof (HYSL_FLOAT) );
 
-	  pos = pos + sizeof (double);
-	  memcpy( pos, Data_To_Send, sizeof(double)*Size );
+	  pos = pos + sizeof (HYSL_FLOAT);
+	  memcpy( pos, Data_To_Send, sizeof(HYSL_FLOAT)*Size );
 	  Substructure_Remote_Send( Remote->Socket, Length, sizeof(char), Send_Buffer );
      } else if ( WhatToDo == NSEP_REQUEST_CSIG ) { /* Request a message from the server */
 	  /* Send the NSEP_QUERY packet to query for the critical signal */
@@ -64,7 +66,7 @@ void Substructure_Remote_NSEP( const Remote_t *const Remote, const int WhatToDo,
 	  Substructure_Remote_Send( Remote->Socket, Length, sizeof(char), Send_Buffer );
 	  
 	  Substructure_Remote_Receive( Remote->Socket, MAXBUFLEN_NSEP, sizeof(char), Receive_Buffer );
-	  memcpy( Data_To_Receive, Receive_Buffer + 2*sizeof(int), sizeof (double)*Size );
+	  memcpy( Data_To_Receive, Receive_Buffer + 2*sizeof(int), sizeof (HYSL_FLOAT)*Size );
 
      } else if ( WhatToDo == NSEP_REQUEST_CMD ) { /* Request a message from the server (FCM) */
 	  /* Send the NSEP_QUERY packet to query for the command */
@@ -85,9 +87,9 @@ void Substructure_Remote_NSEP( const Remote_t *const Remote, const int WhatToDo,
 	  Substructure_Remote_Receive( Remote->Socket, MAXBUFLEN_NSEP, sizeof(char), Receive_Buffer );
 	  /* Get the displacement */
 	  pos = Receive_Buffer + 2*sizeof( int );
-	  memcpy( &Time, pos, sizeof (double) );
-	  pos = pos + sizeof( double );
-	  memcpy( Data_To_Receive, pos, sizeof (double)*Size );
+	  memcpy( &Time, pos, sizeof (HYSL_FLOAT) );
+	  pos = pos + sizeof( HYSL_FLOAT );
+	  memcpy( Data_To_Receive, pos, sizeof (HYSL_FLOAT)*Size );
 
      } else if ( WhatToDo == NSEP_SEND_CSIG ) { /* Send the force to the server */
 
@@ -101,8 +103,8 @@ void Substructure_Remote_NSEP( const Remote_t *const Remote, const int WhatToDo,
 	  pos = pos + sizeof (int);
 	  memcpy( pos , &NSEP_Type, sizeof (int) );
 
-	  pos = pos + sizeof (double);
-	  memcpy( pos, Data_To_Send, sizeof(double)*Size );
+	  pos = pos + sizeof (HYSL_FLOAT);
+	  memcpy( pos, Data_To_Send, sizeof(HYSL_FLOAT)*Size );
 	  Substructure_Remote_Send( Remote->Socket, Length, sizeof(char), Send_Buffer );
 
      } else if ( WhatToDo == NSEP_REQUEST_STATE ) {

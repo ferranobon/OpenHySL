@@ -65,7 +65,12 @@ void PMatrixVector_FromFile( const char *Filename, PMatrixVector_t *const Mat )
 
 	  for ( i = 0; i < Mat->GlobalSize.Row; i++ ){
 	       for ( j = 0; j < Mat->GlobalSize.Col; j++ ){
+#if _FLOAT_
+		    fscanf( InFile, "%E", &LocalMatrix[i + j*Mat->GlobalSize.Row] );
+#else
 		    fscanf( InFile, "%lE", &LocalMatrix[i + j*Mat->GlobalSize.Row] );
+#endif
+
 	       }
 	  }
 	  fclose( InFile );
@@ -174,7 +179,11 @@ void PMatrixVector_FromFile_MM( const char *Filename, PMatrixVector_t *const Mat
 	   * routines from BLAS they access the lower part of the matrix without requiring transposing it.
 	   */
 	  for( innz = 0; innz < nnz; innz++ ){
+#if _FLOAT_
+	       fscanf( InFile, "%d %d %E", &i, &j, &Value );
+#else
 	       fscanf( InFile, "%d %d %lE", &i, &j, &Value );
+#endif
 	       LocalMatrix[(j-1)*Mat->GlobalSize.Col + (i-1)] = Value;
 	  }
      } else {
@@ -249,7 +258,12 @@ void PMatrixVector_ToFile( PMatrixVector_t *const Mat, const char *Filename )
 
 	  for ( i = 0; i < Mat->GlobalSize.Row; i++ ){
 	       for ( j = 0; j < Mat->GlobalSize.Col; j++ ){
-		    fprintf( OutFile, "%lE\t", LocalMatrix[i + Mat->GlobalSize.Row*j] );  /* Print in row major order */
+		    /* Print in row major order */
+#if _FLOAT_
+		    fprintf( OutFile, "%E\t", LocalMatrix[i + Mat->GlobalSize.Row*j] ); 
+#else
+		    fprintf( OutFile, "%lE\t", LocalMatrix[i + Mat->GlobalSize.Row*j] );
+#endif
 	       }
 	       fprintf( OutFile, "\n" );
 	  }

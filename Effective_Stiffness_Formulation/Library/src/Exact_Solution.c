@@ -115,7 +115,11 @@ int main( int argc, char **argv )
 
      for( i = 0; i < InitCnt.Order; i++ ){
 	  if( Mass.Array[i*InitCnt.Order + i] == 0.0 ){
+#if _FLOAT_
+	       Mass.Array[i*InitCnt.Order + i] = 1E-12f;
+#else
 	       Mass.Array[i*InitCnt.Order + i] = 1E-12;
+#endif
 	  }
      }
 
@@ -172,8 +176,8 @@ int main( int argc, char **argv )
      }
 
      gettimeofday( &Time.End, NULL );
-     Time.Elapsed_time = (HYSL_FLOAT) (Time.End.tv_sec - Time.Start.tv_sec)*1000.0;
-     Time.Elapsed_time += (HYSL_FLOAT) (Time.End.tv_usec - Time.Start.tv_usec)/1000.0;
+     Time.Elapsed_time = (double) (Time.End.tv_sec - Time.Start.tv_sec)*1000.0;
+     Time.Elapsed_time += (double) (Time.End.tv_usec - Time.Start.tv_usec)/1000.0;
 #if _HDF5_
      HDF5_Store_Time( hdf5_file, &Time );
      HDF5_CloseFile( &hdf5_file );

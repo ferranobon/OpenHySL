@@ -4,14 +4,14 @@
 #include "Substructure_Remote.h"
 #include "Substructure_Remote_OpenFresco.h"
 
-void Substructure_Remote_OpenFresco( const int Socket, const int WhatToDo, const unsigned int Size, const double *const Data_To_Send, double *const Data_To_Receive )
+void Substructure_Remote_OpenFresco( const int Socket, const int WhatToDo, const unsigned int Size, const HYSL_FLOAT *const Data_To_Send, HYSL_FLOAT *const Data_To_Receive )
 {
 
      /* Local Variables */
      static unsigned int i, iData[OF_INFO_DATA_LENGTH];
      static unsigned int DataSize = OF_DATA_SIZE;
 
-     /* OpenFresco uses type double to send/receive messages */
+     /* OpenFresco uses type HYSL_FLOAT to send/receive messages */
      static double *sData, *rData;
 
      /* Data communication variables */
@@ -49,9 +49,9 @@ void Substructure_Remote_OpenFresco( const int Socket, const int WhatToDo, const
 	  /* Send Trial response to the experimental site */
 	  sData[0] = (double) OF_REMOTE_SET_TRIAL_RESPONSE;
 	  for ( i = 0; i < Size; i++ ){
-	       /* ADwin can only handle double correctly. Therefore we must stick
-		* with it and make the conversion from double to double so that
-		* the messages can be sent correctly using OpenFresco. */
+	       /* ADwin can only handle float correctly. Therefore we must stick with it and make the
+		* conversion from float to double so that the messages can be sent correctly using
+		* OpenFresco. */
 	       sData[i + 1] = (double) Data_To_Send[i];
 	  }
 	  Substructure_Remote_Send( Socket, DataSize, sizeof(double), (char *const) sData );
@@ -60,16 +60,15 @@ void Substructure_Remote_OpenFresco( const int Socket, const int WhatToDo, const
 	  sData[0] = (double) OF_REMOTE_GET_DAQ_RESPONSE;
 	  Substructure_Remote_Send( Socket, DataSize, sizeof(double), (char *const) sData );
 
-	  /* The DAQ values are received. The data received is bounded to a
-	   * particular order in order to work properly: the new displacement
-	   * in the first position, followed by the coupling force from the
+	  /* The DAQ values are received. The data received is bounded to a particular order in order to work
+	   * properly: the new displacement in the first position, followed by the coupling force from the
 	   * previous sub-step and the coupling force at the last sub-step. */
 	  Substructure_Remote_Receive( Socket, DataSize, sizeof(double), (char *const) rData );
 
 	  for ( i = 0; i < Size; i++ ){
-	       Data_To_Receive[i]= rData[i];
-	       Data_To_Receive[i + Size]= rData[i + Size];
-	       Data_To_Receive[i + 2*Size]= rData[i + 2*Size];
+	       Data_To_Receive[i]= (HYSL_FLOAT) rData[i];
+	       Data_To_Receive[i + Size]= (HYSL_FLOAT) rData[i + Size];
+	       Data_To_Receive[i + 2*Size]= (HYSL_FLOAT) rData[i + 2*Size];
 	  }
 	  
      } else if ( WhatToDo == OF_REMOTE_DIE ){
