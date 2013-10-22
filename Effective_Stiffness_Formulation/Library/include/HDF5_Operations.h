@@ -21,17 +21,15 @@
 #include <mpi.h>
 #endif
 
-#define HDF5_DESCRIPTION_LENGTH 80
-
 typedef struct HDF5_Exact_UHYDE {
      int Position;
      HYSL_FLOAT InitValues[3];
-     char Description[HDF5_DESCRIPTION_LENGTH];
+     char Description[MAX_DESCRIPTION];
 } HDF5_Exact_UHYDE_t;
 
 typedef struct HDF5_Exp_Meas {
      int Position;
-     char Description[HDF5_DESCRIPTION_LENGTH];
+     char Description[MAX_DESCRIPTION];
 } HDF5_Exp_Meas_t;
 
 int HDF5_CreateFile( const char *Filename );

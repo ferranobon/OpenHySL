@@ -9,7 +9,7 @@
 #include "Print_Messages.h"
 
 #include "Definitions.h"
-#include "Substructure.h"
+#include "Substructure_CouplingNodes.h"
 #include "Substructure_Exact.h"
 #include "Substructure_UHYDEfbr.h"
 #include "Substructure_SimMeasured.h"
@@ -157,7 +157,7 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const C
      group_id = H5Gcreate( file_id, Name_path, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT );     
 
      strtype = H5Tcopy( H5T_C_S1 );
-     status = H5Tset_size( strtype, HDF5_DESCRIPTION_LENGTH );
+     status = H5Tset_size( strtype, MAX_DESCRIPTION );
 
      if( status < 0 ){
 	  Print_Header( ERROR );
