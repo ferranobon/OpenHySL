@@ -7,6 +7,8 @@
 #include "Conf_Parser.h"
 #include "Print_Messages.h"
 
+#include "Definitions.h"
+
 void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
 {
 
@@ -33,11 +35,20 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
      }
 
      InitConst->Use_Sparse = ConfFile_GetInt( Config, "General:Use_Sparse" );
+#if _SPARSE_
      if ( !Valid_Value( InitConst->Use_Sparse ) ){
 	  Error = true;
 	  Print_Header( ERROR );
 	  fprintf( stderr, "Algorithm_Init(): Invalid option for Use_Sparse.\n" );
      }
+#else
+     if ( InitConst->Use_Sparse != 0 ){
+	  Error = true;
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Algorithm_Init(): The algorithm has been compiled without sparse support. ");
+	  fprintf( stderr, "Please, set Use_Sparse variable to 0 in the configuration file.\n" );
+     }
+#endif
 
      InitConst->Use_Packed = ConfFile_GetInt( Config, "General:Use_Packed" );
      if ( !Valid_Value( InitConst->Use_Packed) ){
@@ -76,42 +87,75 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
 	  fprintf( stderr, "Algorithm_Init(): Invalid number of steps.\n" );
      }
 
+#if _FLOAT_
+     InitConst->Delta_t = ConfFile_GetFloat( Config, "General:Delta" );
+#else
      InitConst->Delta_t = ConfFile_GetDouble( Config, "General:Delta" );
+#endif
      if ( InitConst->Delta_t <= 0.0 ){
 	  Error = true;
 	  Print_Header( ERROR );
 	  fprintf( stderr, "Algorithm_Init(): Invalid time step.\n" );
      }
 
+#if _FLOAT_
+     InitConst->Scale_Factor = ConfFile_GetFloat( Config, "General:Scale_Factor" );
+#else
      InitConst->Scale_Factor = ConfFile_GetDouble( Config, "General:Scale_Factor" );
+#endif
 
      /* Rayleigh values */
+#if _FLOAT_
+     InitConst->Rayleigh.Alpha = ConfFile_GetFloat( Config, "Rayleigh:Alpha" );
+     InitConst->Rayleigh.Beta = ConfFile_GetFloat( Config, "Rayleigh:Beta" );
+#else
      InitConst->Rayleigh.Alpha = ConfFile_GetDouble( Config, "Rayleigh:Alpha" );
      InitConst->Rayleigh.Beta = ConfFile_GetDouble( Config, "Rayleigh:Beta" );
+#endif
 
      /* Newmark integration constants */
+#if _FLOAT_
+     InitConst->Newmark.Gamma = ConfFile_GetFloat( Config, "Newmark:Gamma" );
+     InitConst->Newmark.Beta = ConfFile_GetFloat( Config, "Newmark:Beta" );
+#else
      InitConst->Newmark.Gamma = ConfFile_GetDouble( Config, "Newmark:Gamma" );
      InitConst->Newmark.Beta = ConfFile_GetDouble( Config, "Newmark:Beta" );
+#endif
 
      /* PID Constants */
+#if _FLOAT_
+     InitConst->PID.P = ConfFile_GetFloat( Config, "PID:P" );
+     InitConst->PID.I = ConfFile_GetFloat( Config, "PID:I" );
+     InitConst->PID.D = ConfFile_GetFloat( Config, "PID:D" );
+#else
      InitConst->PID.P = ConfFile_GetDouble( Config, "PID:P" );
      InitConst->PID.I = ConfFile_GetDouble( Config, "PID:I" );
      InitConst->PID.D = ConfFile_GetDouble( Config, "PID:D" );
-
-     /* Several constants to multiply the vectors */
-     InitConst->Const1 = InitConst->Newmark.Beta*InitConst->Delta_t*InitConst->Delta_t;
-     InitConst->Const2 = (0.5 - 2.0*InitConst->Newmark.Beta + InitConst->Newmark.Gamma)*InitConst->Delta_t*InitConst->Delta_t;
-     InitConst->Const3 = (0.5 + InitConst->Newmark.Beta - InitConst->Newmark.Gamma)*InitConst->Delta_t*InitConst->Delta_t;
+#endif
 
      /* Constants for Ending Step */
+#if _FLOAT_
+     InitConst->a0 = 1.0f/(InitConst->Newmark.Beta*InitConst->Delta_t*InitConst->Delta_t);
+     InitConst->a2 = 1.0f/(InitConst->Newmark.Beta*InitConst->Delta_t);
+     InitConst->a3 = 1.0f/(2.0f*InitConst->Newmark.Beta) - 1.0f;
+     InitConst->a4 = InitConst->Newmark.Gamma/InitConst->Newmark.Beta - 1.0f;
+     InitConst->a5 = (InitConst->Delta_t/2.0f)*(InitConst->Newmark.Gamma/InitConst->Newmark.Beta - 2.0f);
+     InitConst->a6 = (1.0f - InitConst->Newmark.Gamma)*InitConst->Delta_t;
+     InitConst->a10 = (0.5f - InitConst->Newmark.Beta)*InitConst->Delta_t*InitConst->Delta_t;
+#else
      InitConst->a0 = 1.0/(InitConst->Newmark.Beta*InitConst->Delta_t*InitConst->Delta_t);
-     InitConst->a1 = InitConst->Newmark.Gamma/(InitConst->Newmark.Beta*InitConst->Delta_t);
      InitConst->a2 = 1.0/(InitConst->Newmark.Beta*InitConst->Delta_t);
      InitConst->a3 = 1.0/(2.0*InitConst->Newmark.Beta) - 1.0;
      InitConst->a4 = InitConst->Newmark.Gamma/InitConst->Newmark.Beta - 1.0;
      InitConst->a5 = (InitConst->Delta_t/2.0)*(InitConst->Newmark.Gamma/InitConst->Newmark.Beta - 2.0);
      InitConst->a6 = (1.0 - InitConst->Newmark.Gamma)*InitConst->Delta_t;
+     InitConst->a10 = (0.5 - InitConst->Newmark.Beta)*InitConst->Delta_t*InitConst->Delta_t;
+#endif
+
+     InitConst->a1 = InitConst->Newmark.Gamma/(InitConst->Newmark.Beta*InitConst->Delta_t);
      InitConst->a7 = InitConst->Newmark.Gamma*InitConst->Delta_t;
+     InitConst->a8 = InitConst->Newmark.Beta*InitConst->Delta_t*InitConst->Delta_t;
+     InitConst->a9 = InitConst->Delta_t;
 
      /* File Names */
      InitConst->FileM = strdup( ConfFile_GetString( Config, "FileNames:Mass_Matrix" ) );
@@ -180,7 +224,7 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
      /* Number of substructures */
      InitConst->NSubstep = (unsigned int) ConfFile_GetInt( Config, "Substructure:Num_Substeps" );
 
-     InitConst->DeltaT_Sub = InitConst->Delta_t/(double) InitConst->NSubstep;
+     InitConst->DeltaT_Sub = InitConst->Delta_t/(HYSL_FLOAT) InitConst->NSubstep;
 
      ConfFile_Destroy( Config );
 
@@ -223,7 +267,7 @@ void Change_Filename( char *Name )
      char NewName[80];
      char HelpChar[4];
      char Extension[6];
-     short unsigned int i;
+     unsigned int i;
      size_t Pos;
 
      Pos = strcspn( Name, "." );
@@ -231,7 +275,7 @@ void Change_Filename( char *Name )
      i = 0;
      while( Name[Pos + i] != '\0' && i < 6){
 	  Extension[i] = Name[Pos + i];
-	  i = i + (unsigned short int) 1;
+	  i = i + 1;
      }
 
      strcpy( NewName, Name );
@@ -244,7 +288,7 @@ void Change_Filename( char *Name )
 	  strcat( NewName, "_" );
 	  strcat( NewName, HelpChar );	  
 	  strcat( NewName, Extension );
-	  i = i + (unsigned short int) 1;
+	  i = i + 1;
      }
 
      free( Name );
@@ -301,13 +345,13 @@ int* Algorithm_GetExcitedDOF( const ConfFile_t *const Config, const char *Expres
 }
 
 void Algorithm_ReadDataEarthquake_AbsValues( const unsigned int NumSteps, const char *Filename,
-					     const double Scale_Factor, double *const Velocity,
-					     double *const Displacement )
+					     const HYSL_FLOAT Scale_Factor, HYSL_FLOAT *const Velocity,
+					     HYSL_FLOAT *const Displacement )
 {
 
      unsigned int i;		    /* A counter */
-     double unnecessary;	    /* Variable to store unnecessary data */
-     double temp1, temp2, temp3;
+     HYSL_FLOAT unnecessary;	    /* Variable to store unnecessary data */
+     HYSL_FLOAT temp1, temp2, temp3;
      FILE *InFile;
 
      InFile = fopen( Filename, "r" );
@@ -320,7 +364,11 @@ void Algorithm_ReadDataEarthquake_AbsValues( const unsigned int NumSteps, const 
      }
 
      for ( i = 0; i < NumSteps; i++ ){
+#if _FLOAT_
+	  fscanf( InFile, "%E %E %E %E", &unnecessary, &temp1, &temp2, &temp3 );
+#else
 	  fscanf( InFile, "%lE %lE %lE %lE", &unnecessary, &temp1, &temp2, &temp3 );
+#endif
 	  Velocity[i] = temp2*Scale_Factor;
 	  Displacement[i] = temp3*Scale_Factor;
      }
@@ -330,12 +378,12 @@ void Algorithm_ReadDataEarthquake_AbsValues( const unsigned int NumSteps, const 
 }
 
 void Algorithm_ReadDataEarthquake_RelValues( const unsigned int NumSteps, const char *Filename, 
-					     const double Scale_Factor, double *const Acceleration )
+					     const HYSL_FLOAT Scale_Factor, HYSL_FLOAT *const Acceleration )
 {
 
      unsigned int i;		    /* A counter */
-     double unnecessary;	    /* Variable to store unnecessary data */
-     double temp1, temp2, temp3;
+     HYSL_FLOAT unnecessary;	    /* Variable to store unnecessary data */
+     HYSL_FLOAT temp1, temp2, temp3;
      FILE *InFile;
 
      InFile = fopen( Filename, "r" );
@@ -348,8 +396,13 @@ void Algorithm_ReadDataEarthquake_RelValues( const unsigned int NumSteps, const 
      }
 
      for ( i = 0; i < NumSteps; i++ ){
-//	  fscanf( InFile, "%lE %lE", &unnecessary, &temp1 );
-	  fscanf( InFile, "%lE %lE %lE %lE", &unnecessary, &temp1, &temp2, &temp3 );
+#if _FLOAT_
+	  fscanf( InFile, "%E %E", &unnecessary, &temp1 );
+//	  fscanf( InFile, "%E %E %E %E", &unnecessary, &temp1, &temp2, &temp3 );
+#else
+	  fscanf( InFile, "%lE %lE", &unnecessary, &temp1 );
+//	  fscanf( InFile, "%lE %lE %lE %lE", &unnecessary, &temp1, &temp2, &temp3 );
+#endif
 	  Acceleration[i] = temp1*Scale_Factor;
      }
 

@@ -4,6 +4,7 @@
 #include "Auxiliary_Math.h" /* For Max() */
 #include "MatrixVector.h"
 #include "Print_Messages.h" /* For Print_Header() */
+#include "Definitions.h"
 
 #if _MATRIXMARKET_
 #include "mmio.h"
@@ -25,7 +26,11 @@ void MatrixVector_FromFile( const char *Filename, MatrixVector_t *const MatVec )
      }
      
      for ( i = 0; i < MatVec->Rows*MatVec->Cols; i++ ){
+#if _FLOAT_
+	  fscanf( InFile,"%f", &MatVec->Array[i] );
+#else
 	  fscanf( InFile,"%lf", &MatVec->Array[i] );
+#endif
      }
      fclose( InFile );
      
@@ -40,7 +45,7 @@ void MatrixVector_FromFile_MM( const char *Filename, MatrixVector_t *const MatVe
      MM_typecode matcode;   /* MatrixMarket: type of the matrix (symmetric, dense, complex, ...)  */
      int return_code;       /* MatrixMarket: return code for the functions */
      int i, j;              /* Indexes of the position within the matrix of the readen value */
-     double Value;           /* Value to be saved in the position (i,j) of the matrix */
+     HYSL_FLOAT Value;           /* Value to be saved in the position (i,j) of the matrix */
      int Rows, Cols;        /* Number of Rows and Columns */
      int nnz;               /* Number of non-zero elements */
      int innz;              /* Counter for the number of non-zero elements */
@@ -89,7 +94,11 @@ void MatrixVector_FromFile_MM( const char *Filename, MatrixVector_t *const MatVe
       * requiring transposing it.
       */
      for( innz = 0; innz < nnz; innz++ ){
+#if _FLOAT_
+	  fscanf( InFile, "%d %d %E", &i, &j, &Value );
+#else
 	  fscanf( InFile, "%d %d %lE", &i, &j, &Value );
+#endif
 	  MatVec->Array[(j-1)*MatVec->Cols + (i-1)] = Value;
      }
 
@@ -113,7 +122,11 @@ void MatrixVector_ToFile( const MatrixVector_t *const MatVec, const char *Filena
 
      for ( i = 0; i < MatVec->Rows; i++){
 	  for( j = 0; j < MatVec->Cols; j++ ){
-	       fprintf( OutFile,"%le\t", MatVec->Array[i + j*MatVec->Rows] );
+#if _FLOAT_
+	       fprintf( OutFile,"%E\t", MatVec->Array[i + j*MatVec->Rows] );
+#else
+	       fprintf( OutFile,"%lE\t", MatVec->Array[i + j*MatVec->Rows] );
+#endif
 	  }
 	  fprintf( OutFile, "\n" );
      }

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <getopt.h>  /* For getopt_long() */
+#include <time.h>    /* For time(), ctime() */
 
 #include "Print_Messages.h"
 
@@ -15,9 +16,14 @@
 #include "Rayleigh.h"
 #include "GainMatrix.h"
 #include "Substructure.h"
+#include "Substructure_Experimental.h"
 #include "Substructure_Auxiliary.h"  /* For Substructure_VectorXm(), Substructure_VectorXc(), ... */
 
+#include "Definitions.h"
+
+#if _HDF5_
 #include "HDF5_Operations.h"
+#endif
 
 #if _MKL_
 #include <mkl_pblas.h>
@@ -26,6 +32,34 @@
 #else
 #include "Netlib.h"
 #endif
+
+#include <mpi.h>
+
+const char *Entry_Names[NUM_CHANNELS] = { "Sub-step",
+					  "Control displacement actuator 1 [m]",
+					  "Control displacement actuator 2 [m]",
+					  "Measured displacement actuator 1 [m]",
+					  "Measured displacement actuator 2 [m]",
+					  "Control acceleration Actuator 1 [m/s^2]",
+					  "Control acceleration Actuator 2 [m/s^2]",
+					  "Measured acceleration actuator 1 [m/s^2]",
+					  "Measured acceleration actuator 2 [m/s^2]",
+					  "Acceleration TMD (y-direction) [m/s^2]",
+					  "Acceleration TMD (x-direction) [m/s^2]",
+					  "Acceleration Base-Frame (x-direction) [m/s^2]",
+					  "Coupling Force 1 (y-direction) [N]",
+					  "Coupling Force 2 (y-direction) [N]",
+					  "Coupling Force 3 (x-direction) [N]",
+					  "Displacement TMD (x-direction) [m]",
+					  "Displacement TMD (y-direction) [m]",
+					  "Control pressure [Pa]",
+					  "Measured pressure [Pa]",
+					  "Displacement at the coupling node [m]",
+					  "Time spent doing the sub-step [ms]", 
+					  "Sub-step time [ms]",
+					  "Synchronisation time between PC and ADwin [ms]",
+					  "Time between the first sub-step and arrival of the new update [ms]"
+};
 
 int main( int argc, char **argv ){
 
@@ -39,17 +73,19 @@ int main( int argc, char **argv ){
      int nprow, npcol, myrow, mycol;
 
      /* Algorithm variables */
-     unsigned int istep;
+     unsigned int i, istep;
      AlgConst_t InitCnt;
      const char *FileConf;
      
-     int hdf5_file;
-     
+#if _HDF5_
+     hid_t hdf5_file;
+#endif
+
      /* NETLIB Variables */
      int ione = 1;
      Scalars_t Constants;
      
-     double *AccAll, *VelAll, *DispAll;
+     HYSL_FLOAT *AccAll, *VelAll, *DispAll;
 
      PMatrixVector_t M, C, K;               /* Mass, Damping and Stiffness matrices */
      PMatrixVector_t Keinv;
@@ -76,7 +112,14 @@ int main( int argc, char **argv ){
      PMatrixVector_t Disp, Vel, Acc;
 
      CouplingNode_t CNodes;
-     HDF5time_t     Time;
+
+     /* Variables to store the information regarding where the coupling position is in the fc vector */
+     InfoLocation_t InfoLoc_fc, InfoLoc_fcprevsub, InfoLoc_DispTdT;
+     int *TempIntArray;
+
+     /* Time control variables */
+     SaveTime_MPI_t Time;
+
      /* Options */
      int Selected_Option;
      struct option long_options[] = {
@@ -100,12 +143,12 @@ int main( int argc, char **argv ){
 	  printf( "*                                                          *\n" );
 	  printf( "************************************************************\n\n" );
 	  /* Set de default value for the configuration file */
-	  FileConf = "ConfFile.conf";
+	  FileConf = "ConfFile_MPI.conf";
 
 	  /* This is only used if there are no arguments */
 	  if( argc == 1 ){
 	       Print_Header( INFO );
-	       printf( "Assuming the configuration file to be: ConfFile.conf.\n" );
+	       printf( "Assuming the configuration file to be: %s\n", FileConf );
 
 	  }
 
@@ -135,22 +178,21 @@ int main( int argc, char **argv ){
 	  Algorithm_Init_MPI( FileConf, &InitCnt );
 
 	  /* Read the coupling nodes from a file */
-	  Substructure_ReadCouplingNodes( &CNodes, InitCnt.NStep, InitCnt.NSubstep, InitCnt.OrderSub,
-					  InitCnt.DeltaT_Sub, InitCnt.FileCNodes );
+	  Substructure_ReadCouplingNodes( &InitCnt, &CNodes );
      }
 
      /* Send the Information read in process 0 to all the other processes using MPI_Bcast */
      Algorithm_BroadcastConfFile( &InitCnt );
      Substructure_BroadCastCouplingNodes( &CNodes );
-
+     Substructure_ReadCouplingNodes( &InitCnt, &CNodes );
      /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will be used
       * during the test */
      if( InitCnt.Use_Absolute_Values ){
 	  AccAll = NULL;
-	  VelAll = (double *) calloc( (size_t) InitCnt.NStep, sizeof(double) );
-	  DispAll = (double *) calloc( (size_t) InitCnt.NStep, sizeof(double) );
+	  VelAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+	  DispAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
      } else {
-	  AccAll = (double *) calloc( (size_t) InitCnt.NStep, sizeof(double) );
+	  AccAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
 	  VelAll = NULL;
 	  DispAll = NULL;
      }
@@ -270,36 +312,62 @@ int main( int argc, char **argv ){
 	  Substructure_MatrixXcm_MPI( MPI_COMM_WORLD, &Keinv, &CNodes, &Keinv_m );  
 	  if ( rank == 0 ){
 	       /* Send the coupling part of the effective matrix if we are performing a distributed test */
-	       // Send_Effective_Matrix( Keinv_c.Array, (unsigned int) CNodes.Order, &Socket, InitCnt.Remote );
+	       for( i = 0; i < (unsigned int) CNodes.Order; i++ ){
+		    if( CNodes.Sub[i].Type == EXP_ADWIN || CNodes.Sub[i].Type == REMOTE ){
+			 Substructure_SendGainMatrix( Keinv_c.Array, (unsigned int) CNodes.Order, &CNodes.Sub[i] );
+		    }
+	       }
 	  }
      }
+
+     /*
+      * Get the information about the position of the coupling force in the vector fc and its coordinates in
+      * the process grid. Used when receiving the information from the server
+      */
+     Substructure_InfoLocation_Init( CNodes.Order, CNodes.Array, fc.Desc, &InfoLoc_fc );
+     Substructure_InfoLocation_Init( CNodes.Order, CNodes.Array, DispTdT.Desc, &InfoLoc_DispTdT );
+
+     /* Since fcprevsub is an array of order CNodes.Order and it contains only the coupling nodes in ascending
+      * order, a temp array has to be first initialised in order to get the local coordinates. This cannot be
+      * done with CNodes.Array since it contains the coupling positions in the arrays of length InitCnt.Order */
+     TempIntArray = (int *) calloc( (size_t) CNodes.Order, sizeof(int) );
+     for( i = 0; i < (unsigned int) CNodes.Order; i++ ){
+	  TempIntArray[i] = (int) i + 1;  /* One based index since infog2l_(), a FORTRAN routine, is going to be
+				     * used in order to retrieve the information */
+     }
+     Substructure_InfoLocation_Init( CNodes.Order, TempIntArray, fcprevsub.Desc, &InfoLoc_fcprevsub );
+     free( TempIntArray );
 
      /* Read the earthquake data from a file */
      if( rank == 0 ){
 	  if( InitCnt.Use_Absolute_Values ){
-	       Algorithm_ReadDataEarthquake_AbsValues( InitCnt.NStep, InitCnt.FileData, VelAll, DispAll );
+	       Algorithm_ReadDataEarthquake_AbsValues( InitCnt.NStep, InitCnt.FileData, InitCnt.Scale_Factor,
+						  VelAll, DispAll );
 	  } else {
-	       Algorithm_ReadDataEarthquake_RelValues( InitCnt.NStep, InitCnt.FileData, AccAll );
+	       Algorithm_ReadDataEarthquake_RelValues( InitCnt.NStep, InitCnt.FileData, InitCnt.Scale_Factor,
+						       AccAll );
 	  }
      }
 
      /* Broadcast the earthquake data */
      if( InitCnt.Use_Absolute_Values ){
-	  MPI_Bcast( DispAll, (int) InitCnt.NStep, MPI_DOUBLE, 0, MPI_COMM_WORLD );
-	  MPI_Bcast( VelAll, (int) InitCnt.NStep, MPI_DOUBLE, 0, MPI_COMM_WORLD );
+	  MPI_Bcast( DispAll, (int) InitCnt.NStep, MPI_HYSL_FLOAT, 0, MPI_COMM_WORLD );
+	  MPI_Bcast( VelAll, (int) InitCnt.NStep, MPI_HYSL_FLOAT, 0, MPI_COMM_WORLD );
      } else {
-	  MPI_Bcast( AccAll, (int) InitCnt.NStep, MPI_DOUBLE, 0, MPI_COMM_WORLD );
+	  MPI_Bcast( AccAll, (int) InitCnt.NStep, MPI_HYSL_FLOAT, 0, MPI_COMM_WORLD );
      }
 
      /* Open Output file. If the file cannot be opened, the program will exit, since the results cannot be
       * stored. */
-     hdf5_file = HDF5_CreateFile( InitCnt.FileOutput );
-     HDF5_CreateGroup_Parameters( hdf5_file, &InitCnt, &CNodes );
+#if _HDF5_
+     HDF5_CreateFile_MPI( MPI_COMM_WORLD, InitCnt.FileOutput, &hdf5_file );
+     HDF5_CreateGroup_Parameters( hdf5_file, &InitCnt, &CNodes, AccAll, VelAll, DispAll );
      HDF5_CreateGroup_TimeIntegration( hdf5_file, &InitCnt );
+#endif
 
+     Time.Start = MPI_Wtime();
      Time.Date_start = time( NULL );
-     Time.Date_time = strdup( ctime( &Time.Date_start) );
-     gettimeofday( &Time.start, NULL );        
+     strcpy( Time.Date_time, ctime( &Time.Date_start ) );
 
      /* Calculate the input load */
      istep = 1;
@@ -316,12 +384,13 @@ int main( int argc, char **argv ){
 	  Print_Header( INFO );
 	  printf( "Starting stepping process.\n" );
      }
-     while ( istep <= InitCnt.NStep ){
 
+     while ( istep <= InitCnt.NStep ){
 	  /* Calculate the effective force vector Fe = M*(a0*u + a2*v + a3*a) + C*(a1*u + a4*v + a5*a) */
 	  EffK_EffectiveForce_MPI( &M, &C, &DispT, &VelT, &AccT, &tempvec, InitCnt.a0, InitCnt.a1, InitCnt.a2,
 				   InitCnt.a3, InitCnt.a4, InitCnt.a5, &EffT );
 
+	  /* Compute the new Displacement u0 */
 	  Compute_NewState_MPI( &Keinv, &EffT, &LoadTdT, &fu, &tempvec, &DispTdT0 );
 
 	  /* Split DispTdT into coupling and non-coupling part */
@@ -332,9 +401,13 @@ int main( int argc, char **argv ){
 
 	  /* Perform substepping */
 	  if( CNodes.Order >= 1 ){
-	       Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(double) istep,
-					 InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array,
-					 fcprevsub.Array, fc.Array );
+/*	       Substructure_Substepping_MPI( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep,
+					     AccAll[istep -1], InitCnt.NSubstep, InitCnt.DeltaT_Sub, MPI_COMM_WORLD,
+					     &InfoLoc_DispTdT, &InfoLoc_fcprevsub, &InfoLoc_fc, &CNodes, &DispTdT,
+					     &fcprevsub, &fc );*/
+	       Substructure_Substepping_MPI( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep,
+					     0.0, InitCnt.NSubstep, InitCnt.DeltaT_Sub, MPI_COMM_WORLD, &InfoLoc_DispTdT,
+					     &InfoLoc_fcprevsub, &InfoLoc_fc, &CNodes, &DispTdT, &fcprevsub, &fc );
 	  }
 
 	  if ( istep < InitCnt.NStep ){
@@ -355,7 +428,7 @@ int main( int argc, char **argv ){
 	  if( CNodes.Order >= 1 ){
 	       Substructure_JoinNonCouplingPart_MPI( &DispTdT0_m, &Keinv_m, &fcprevsub, &CNodes,  &DispTdT );
 	  } else {
-	       pdcopy_( &DispTdT0.GlobalSize.Row, DispTdT0.Array, &ione, &ione, DispTdT0.Desc, &ione,
+	       hysl_pcopy( &DispTdT0.GlobalSize.Row, DispTdT0.Array, &ione, &ione, DispTdT0.Desc, &ione,
 			DispTdT.Array, &ione, &ione, DispTdT.Desc, &ione );
 	  }
 
@@ -371,33 +444,38 @@ int main( int argc, char **argv ){
 	       ErrorForce_PID_MPI( &M, &C, &K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &InitCnt.PID, &fu );
 	  }
 
+#if _HDF5_
 	  /* Save the result in a HDF5 file format */
-	  HDF5_Store_TimeHistoryData( hdf5_file, &AccTdT, &VelTdT, &DispTdT, &LoadTdT, &fc, &fu, (int) istep,
-				      &InitCnt );
+	  HDF5_Store_TimeHistoryData_MPI( hdf5_file, &AccTdT, &VelTdT, &DispTdT, &fc, &fu, (int) istep, nprow, myrow, &InitCnt );
+#endif
 
 	  /* Backup vectors */
-	  pdcopy_( &LoadTdT.GlobalSize.Row, LoadTdT1.Array, &ione, &ione, LoadTdT1.Desc, &ione, LoadTdT.Array,
+	  hysl_pcopy( &LoadTdT.GlobalSize.Row, LoadTdT1.Array, &ione, &ione, LoadTdT1.Desc, &ione, LoadTdT.Array,
 		   &ione, &ione, LoadTdT.Desc, &ione ); /* ui = ui1 */
 	  /* Backup vectors */
-	  pdcopy_( &DispTdT.GlobalSize.Row, DispTdT.Array, &ione, &ione, DispTdT.Desc, &ione, DispT.Array,
+	  hysl_pcopy( &DispTdT.GlobalSize.Row, DispTdT.Array, &ione, &ione, DispTdT.Desc, &ione, DispT.Array,
 		   &ione, &ione, DispT.Desc, &ione ); /* ui = ui1 */
-	  pdcopy_( &VelTdT.GlobalSize.Row, VelTdT.Array, &ione, &ione, VelTdT.Desc, &ione, VelT.Array, &ione,
+	  hysl_pcopy( &VelTdT.GlobalSize.Row, VelTdT.Array, &ione, &ione, VelTdT.Desc, &ione, VelT.Array, &ione,
 		   &ione, VelT.Desc, &ione ); /* vi = vi1 */
-	  pdcopy_( &AccTdT.GlobalSize.Row, AccTdT.Array, &ione, &ione, AccTdT.Desc, &ione, AccT.Array, &ione,
+	  hysl_pcopy( &AccTdT.GlobalSize.Row, AccTdT.Array, &ione, &ione, AccTdT.Desc, &ione, AccT.Array, &ione,
 		   &ione, AccT.Desc, &ione ); /* ai = ai1 */
 	  istep = istep + 1;
      }
 
-     gettimeofday( &Time.end, NULL );
-     Time.Elapsed_time = (double) (Time.end.tv_sec - Time.start.tv_sec)*1000.0;
-     Time.Elapsed_time += (double) (Time.end.tv_usec - Time.start.tv_usec)/1000.0;
-     HDF5_StoreTime( hdf5_file, &Time );
+     Time.End = MPI_Wtime();
+     /* Elapsed time in miliseconds */
+     Time.Elapsed_time = (Time.End - Time.Start)*1000.0;
+
+#if _HDF5_
+     HDF5_Store_Time_MPI( hdf5_file, &Time );
+     HDF5_CloseFile( &hdf5_file );
+#endif
+
      if( rank == 0 ){
 	  Print_Header( SUCCESS );
-	  printf( "The time integration process has finished in %lf ms.\n", Time.Elapsed_time );
+	  printf( "The time integration process has finished in %lf ms.\n",
+		  Time.Elapsed_time );
      }
-
-     HDF5_CloseFile( hdf5_file );
 
      /* Free initiation values */
      Algorithm_Destroy( &InitCnt );
@@ -410,17 +488,13 @@ int main( int argc, char **argv ){
 	  free( AccAll );
      }
 
-     /* Free Time string */
-     free( Time.Date_time );
-
      /* Destroy the data structures */
-     
      PMatrixVector_Destroy( &M );
      PMatrixVector_Destroy( &K );
      PMatrixVector_Destroy( &C );
 
      PMatrixVector_Destroy( &Keinv );
- 
+
      if( CNodes.Order >= 1 ){
 	  if( rank == 0 ){
 	       MatrixVector_Destroy( &Keinv_c );
@@ -466,7 +540,20 @@ int main( int argc, char **argv ){
      PMatrixVector_Destroy( &Acc );
 
      /* Free the coupling nodes memory */
-     Substructure_DeleteCouplingNodes( &CNodes );
+     if( CNodes.Order >= 1 ){
+	  Substructure_DeleteCouplingNodes( &CNodes );
+     }
+
+     /* Free information regarding the location of the coupling nodes in the distributed grid */
+     Substructure_InfoLocation_Destroy( &InfoLoc_fc );
+     Substructure_InfoLocation_Destroy( &InfoLoc_fcprevsub );
+     Substructure_InfoLocation_Destroy( &InfoLoc_DispTdT );
+
+     /* BLACS: Exit Grid and release bhandle */
+     Cblacs_gridexit( icontxt );
+     Cfree_blacs_system_handle( bhandle );
+
+     MPI_Finalize();
 
      return 0;
 }

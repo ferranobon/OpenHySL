@@ -5,8 +5,9 @@
 #include <string.h>
 
 #include "Substructure_UHYDEfbr.h"
+#include "Definitions.h"
 
-void Substructure_SimUHYDE_1D_Init( const double qyield, const double yield_factor, const double Friction, const char *Description, UHYDEfbrSim_t *const Num )
+void Substructure_SimUHYDE_1D_Init( const HYSL_FLOAT qyield, const HYSL_FLOAT yield_factor, const HYSL_FLOAT Friction, const char *Description, UHYDEfbrSim_t *const Num )
 {
 
      Num->Description = strdup( Description );
@@ -20,11 +21,11 @@ void Substructure_SimUHYDE_1D_Init( const double qyield, const double yield_fact
 
 }
 
-void Substructure_SimUHYDE_1D( const double u0c, const double DeltaT, UHYDEfbrSim_t *const Num, double *const Friction_Force )
+void Substructure_SimUHYDE_1D( const HYSL_FLOAT u0c, const HYSL_FLOAT DeltaT, UHYDEfbrSim_t *const Num, HYSL_FLOAT *const Friction_Force )
 {
 
-     double v;
-     double hq;
+     HYSL_FLOAT v;
+     HYSL_FLOAT hq;
   
      /* The notation here follows the one presented in Cascade Report No. 1 Seismic qualification
       * of passive mitigation devices page 40.

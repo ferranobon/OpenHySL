@@ -16,6 +16,8 @@
 #ifndef ADWIN_ROUTINES_H_
 #define ADWIN_ROUTINES_H_
 
+#include "Definitions.h"
+
 /**
  * \brief Routine to boot ADwin.
  * 
@@ -48,15 +50,15 @@ void ADwin_CheckProcessStatus( const int ProcessNumber );
  *
  * \warning The graphical interface written in QT4 is recomended to manage ADwin. This function is deprecated.
  *
+ * Depending on the value of the \c dowhat variable the process will be loaded (\f$ dowhat = 1\f$), started
+ * (\f$ dowhat = 2\f$) or stopped (\f$ dowhat = 3\f$). In the case of loading a process, only the \c PName
+ * variable is referenced, while in the other cases only the \c PNum variable is used.
+ *
  * \pre 
  * - ADwin should be booted through the ADwin_Boot() routine.
  * - The variable \c dowhat must fulfill the following expression \f$ 1 \leq dowhat \leq 3\f$.
  * - When loading a process, PName should point to the ADwin binary file specifically compiled for the ADwin
  *   processor that will be run on.
- *
- * Depending on the value of the \c dowhat variable the process will be loaded (\f$ dowhat = 1\f$), started
- * (\f$ dowhat = 2\f$) or stopped (\f$ dowhat = 3\f$). In the case of loading a process, only the \c PName
- * variable is referenced, while in the other cases only the \c PNum variable is used.
  *
  * \param[in] PName  Binary file to be loaded into ADwin. Only referenced if \f$dowhat = 1\f$.
  * \param[in] PNum   Process number to be started or stopped. Only referenced if \f$dowhat = 2\f$ or \f$dowhat
@@ -87,7 +89,7 @@ void ADwin_ManageProcess( const char* PName, const int PNum, const int dowhat );
  *
  * \post The number of variables contained in Array and transfered to ADwin is equal to \c Length.
  */
-void ADwin_SendArray( const unsigned int Index, double *const Array, const unsigned int Length );
+void ADwin_SendArray( const unsigned int Index, const HYSL_FLOAT *const Array, const unsigned int Length );
 
 /**
  * \brief Sub-stepping process in ADwin.
@@ -108,7 +110,6 @@ void ADwin_SendArray( const unsigned int Index, double *const Array, const unsig
  * - If \f$ADwinReady = 0\f$ the sub-stepping process is not finished and therefore the last coupling force is
  *   not yet measured. The routine will keep asking ADwin for the last coupling force until the first received
  *   value from ADwin is equal to -1.0. When this happens the substepping process is finished.
-
  *
  * \pre
  * - ADwin must be successfully booted and the substepping process must be running.
@@ -135,8 +136,8 @@ void ADwin_SendArray( const unsigned int Index, double *const Array, const unsig
  * \post The vectors \c VecTdT_c, \c fcprev_c, \c fc_c contain the last control values and the coupling force
  * at the previous and last sub-steps.
  */
-void ADwin_Substep( const double *const VecTdT_0c, const unsigned int OrderC, const double Time_To_Wait, double *const VecTdT_c,
-		    double *const fcprev_c, double *const fc_c );
+void ADwin_Substep( const HYSL_FLOAT *const VecTdT_0c, const unsigned int OrderC, const HYSL_FLOAT Time_To_Wait, HYSL_FLOAT *const VecTdT_c,
+		    HYSL_FLOAT *const fcprev_c, HYSL_FLOAT *const fc_c );
 
 /**
  * \brief Checks if the loaded driver matches the ADwin system.

@@ -3,6 +3,7 @@
 
 #include "MatrixVector_PS.h"
 #include "Print_Messages.h" /* For Print_Header() */
+#include "Definitions.h"
 
 #if _MATRIXMARKET_
 #include "mmio.h"
@@ -13,7 +14,7 @@ void MatrixVector_FromFile_GE2PS( const char *Filename, MatrixVector_t *const Ma
 
      FILE *InFile;
      int i, j;         /* A counter */
-     double temp;
+     HYSL_FLOAT temp;
 
      InFile = fopen( Filename, "r" );
 
@@ -28,9 +29,17 @@ void MatrixVector_FromFile_GE2PS( const char *Filename, MatrixVector_t *const Ma
 	  for ( j = 1; j <= MatVec->Cols; j++ ){
 	       /* Only the values in the upper part of the matrix are stored */
 	       if( i >= j ){
+#if _FLOAT_
+		    fscanf( InFile,"%f", &MatVec->Array[i + (2*MatVec->Cols - j)*(j - 1)/2 - 1] );
+#else 
 		    fscanf( InFile,"%lf", &MatVec->Array[i + (2*MatVec->Cols - j)*(j - 1)/2 - 1] );
+#endif
 	       } else {
+#if _FLOAT_
+		    fscanf( InFile, "%f", &temp );
+#else
 		    fscanf( InFile, "%lf", &temp );
+#endif
 	       }
 	  }
      }
@@ -47,7 +56,7 @@ void MatrixVector_FromFile_MM_PS( const char *Filename, MatrixVector_t *const Ma
      MM_typecode matcode;   /* MatrixMarket: type of the matrix (symmetric, dense, complex, ...)  */
      int return_code;       /* MatrixMarket: return code for the functions */
      int i, j;              /* Indexes of the position within the matrix of the readen value */
-     double Value;           /* Value to be saved in the position (i,j) of the matrix */
+     HYSL_FLOAT Value;           /* Value to be saved in the position (i,j) of the matrix */
      int Rows, Cols;        /* Number of Rows and Columns */
      int nnz;               /* Number of non-zero elements */
      int innz;              /* Counter for the number of non-zero elements */
@@ -96,7 +105,11 @@ void MatrixVector_FromFile_MM_PS( const char *Filename, MatrixVector_t *const Ma
       * part of the matrix without requiring transposing it.
       */
      for( innz = 0; innz < nnz; innz++ ){
+#if _FLOAT_
+	  fscanf( InFile, "%d %d %E", &i, &j, &Value );
+#else
 	  fscanf( InFile, "%d %d %lE", &i, &j, &Value );
+#endif
 	  MatVec->Array[i + (2*MatVec->Cols - j)*(j - 1)/2 - 1] = Value;
      }
 
@@ -109,7 +122,7 @@ void MatrixVector_ToFile_PS2Full( const MatrixVector_t *const MatVec, const char
 {
      int i, j;      /* Counters */
      FILE *OutFile;
-     const double dzero = 0.0;
+     const HYSL_FLOAT dzero = 0.0;
 
      OutFile = fopen( Filename, "w" );
 
@@ -122,9 +135,17 @@ void MatrixVector_ToFile_PS2Full( const MatrixVector_t *const MatVec, const char
      for ( i = 1; i <= MatVec->Rows; i++){
 	  for( j = 1; j <= MatVec->Cols; j++ ){
 	       if( i >= j ){
-		    fprintf( OutFile,"%le\t", MatVec->Array[i + (2*MatVec->Cols - j)*(j - 1)/2 - 1] );
+#if _FLOAT_
+		    fprintf( OutFile,"%E\t", MatVec->Array[i + (2*MatVec->Cols - j)*(j - 1)/2 - 1] );
+#else
+		    fprintf( OutFile,"%lE\t", MatVec->Array[i + (2*MatVec->Cols - j)*(j - 1)/2 - 1] );
+#endif
 	       } else {
-		    fprintf( OutFile, "%le\t", dzero );
+#if _FLOAT_
+		    fprintf( OutFile, "%E\t", dzero );
+#else
+		    fprintf( OutFile, "%lE\t", dzero );
+#endif
 	       }
 	  }
 	  fprintf( OutFile, "\n" );

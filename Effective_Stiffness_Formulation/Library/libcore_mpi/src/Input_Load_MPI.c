@@ -1,5 +1,6 @@
 #include "Input_Load.h"
 #include "MatrixVector_MPI.h"
+#include "Definitions.h"
 
 #if _MKL_
 #include <mkl_pblas.h>
@@ -16,7 +17,7 @@ void InputLoad_AbsValues_MPI( PMatrixVector_t *const Stiff, PMatrixVector_t *con
 
      int incx, incy;     /* Stride in the vectors for PBLAS library */
      int ione;           /* Integer variable of value 1 for PBLAS library */
-     double Alpha, Beta; /* Constants to use in the PBLAS library */
+     HYSL_FLOAT Alpha, Beta; /* Constants to use in the PBLAS library */
      char uplo;          /* Character to use in the PBLAS library */
 
      incx = 1; incy = 1;
@@ -25,12 +26,12 @@ void InputLoad_AbsValues_MPI( PMatrixVector_t *const Stiff, PMatrixVector_t *con
      ione = 1;
 
      /* PBLAS: li = K*ug */
-     pdsymv_( &uplo, &InLoad->GlobalSize.Row, &Alpha, Stiff->Array, &ione, &ione, Stiff->Desc, GDisp->Array,
+     hysl_psymv( &uplo, &InLoad->GlobalSize.Row, &Alpha, Stiff->Array, &ione, &ione, Stiff->Desc, GDisp->Array,
 	      &ione, &ione, GDisp->Desc, &incx, &Beta, InLoad->Array, &ione, &ione, InLoad->Desc, &incy );
 
      /* BLAS: li = K*ug + C*vg = li + C*vg */
      Beta = 1.0;
-     pdsymv_( &uplo, &InLoad->GlobalSize.Row, &Alpha, Damp->Array, &ione, &ione, Damp->Desc, GVel->Array,
+     hysl_psymv( &uplo, &InLoad->GlobalSize.Row, &Alpha, Damp->Array, &ione, &ione, Damp->Desc, GVel->Array,
 	      &ione, &ione, GVel->Desc, &incx, &Beta, InLoad->Array, &ione, &ione, InLoad->Desc, &incy );
 }
 
@@ -39,14 +40,15 @@ void InputLoad_RelValues_MPI( PMatrixVector_t *const Mass, PMatrixVector_t *cons
 {
      int incx, incy;     /* Stride in the vectors for PBLAS library */
      int ione;           /* Integer variable of value 1 for PBLAS library */
-     double Alpha, Beta; /* Constants to use in the PBLAS library */
+     HYSL_FLOAT Alpha, Beta; /* Constants to use in the PBLAS library */
      char uplo;          /* Character to use in the PBLAS library */
 
      incx = 1; incy = 1;
      Alpha = -1.0; Beta = 0.0;
      uplo = 'L';
+     ione = 1;
 
-     pdsymv_( &uplo, &InLoad->GlobalSize.Row, &Alpha, Mass->Array, &ione, &ione, Mass->Desc, GAcc->Array,
+     hysl_psymv( &uplo, &InLoad->GlobalSize.Row, &Alpha, Mass->Array, &ione, &ione, Mass->Desc, GAcc->Array,
 	      &ione, &ione, GAcc->Desc, &incx, &Beta, InLoad->Array, &ione, &ione, InLoad->Desc, &incy );
 }
 
@@ -70,24 +72,24 @@ void InputLoad_Generate_LoadVectorForm_MPI( int *DOF, PMatrixVector_t *const Loa
 	       /* If its the right process, assign the value */
 	       if ( (Cblacs_pnum( LoadVectorForm->Desc[1], RowProcess, ColProcess ) == 0) &&
 		    (myrow == RowProcess) && (mycol == ColProcess) ){ 
-		    LoadVectorForm->Array[i] = (double) DOF[j];
+		    LoadVectorForm->Array[i] = (HYSL_FLOAT) DOF[j];
 	       }
 	       i = i + 1;
 	  }
      }
 }
 
-void InputLoad_Apply_LoadVectorForm_MPI( PMatrixVector_t *const LoadForm, const double Value,
+void InputLoad_Apply_LoadVectorForm_MPI( PMatrixVector_t *const LoadForm, const HYSL_FLOAT Value,
 					 PMatrixVector_t *const LoadVector )
 {
      int incx = 1;
      int incy = 1;
      int ione = 1;
-     double Scalar;
+     HYSL_FLOAT Scalar;
 
      Scalar = Value;
      
-     pdcopy_( &LoadVector->GlobalSize.Row, LoadForm->Array, &ione, &ione, LoadForm->Desc, &ione,
+     hysl_pcopy( &LoadVector->GlobalSize.Row, LoadForm->Array, &ione, &ione, LoadForm->Desc, &ione,
 	      LoadVector->Array, &ione, &ione, LoadVector->Desc, &incy );
-     pdscal_( &LoadVector->GlobalSize.Row, &Scalar, LoadVector->Array, &ione, &ione, LoadVector->Desc, &incx );
+     hysl_pscal( &LoadVector->GlobalSize.Row, &Scalar, LoadVector->Array, &ione, &ione, LoadVector->Desc, &incx );
 }

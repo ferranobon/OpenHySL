@@ -5,6 +5,7 @@
 #include "MatrixVector.h"   /* MatrixVector definition */
 #include "Print_Messages.h" /* For Print_Header() */
 #include "Rayleigh.h"       /* Rayleigh damping routines */
+#include "Definitions.h"
 
 #if _MKL_
 #include <mkl_blas.h>
@@ -20,10 +21,10 @@ void Rayleigh_Damping( const MatrixVector_t *const Mass, const MatrixVector_t *c
      int ione;
      int incx, incy;
      int info, lda, ldb;
-     double done;
+     HYSL_FLOAT done;
 
      int Rows, Cols, Length;
-     double alpha, beta;
+     HYSL_FLOAT alpha, beta;
 
      int i;
 
@@ -40,10 +41,10 @@ void Rayleigh_Damping( const MatrixVector_t *const Mass, const MatrixVector_t *c
      ldb = Max( 1, Damp->Rows );
 
      /* LAPACK: C = M */
-     dlacpy_( &uplo, &Rows, &Cols, Mass->Array, &lda, Damp->Array, &ldb );
+     hysl_lacpy( &uplo, &Rows, &Cols, Mass->Array, &lda, Damp->Array, &ldb );
 
      /* LAPACK: C = Rayleigh.alpha*M = Rayleigh.alpha*C */
-     dlascl_( &uplo, &ione, &ione, &done, &alpha, &Damp->Rows, &Damp->Cols, Damp->Array, &lda, &info );
+     hysl_lascl( &uplo, &ione, &ione, &done, &alpha, &Damp->Rows, &Damp->Cols, Damp->Array, &lda, &info );
 
      if ( info < 0 ){
 	  Print_Header( ERROR );
@@ -54,7 +55,7 @@ void Rayleigh_Damping( const MatrixVector_t *const Mass, const MatrixVector_t *c
      /* BLAS: C = alpha*M + beta*K = C + beta*K. Only half of the matrix is calculated */
      for ( i = 0; i < Damp->Rows; i++ ){
 	  Length = Damp->Rows - i;
-	  daxpy( &Length, &beta, &Stiff->Array[i*Stiff->Rows + i], &incx, &Damp->Array[i*Damp->Rows +i], &incy);
+	  hysl_axpy( &Length, &beta, &Stiff->Array[i*Stiff->Rows + i], &incx, &Damp->Array[i*Damp->Rows +i], &incy);
      }
 
      Print_Header( SUCCESS );
@@ -66,7 +67,7 @@ void Rayleigh_Damping_PS( const MatrixVector_t *const Mass, const MatrixVector_t
 {
      int incx, incy;
      int Length;
-     double alpha, beta;
+     HYSL_FLOAT alpha, beta;
 
      incx = 1; incy = 1;
 
@@ -76,13 +77,13 @@ void Rayleigh_Damping_PS( const MatrixVector_t *const Mass, const MatrixVector_t
      Length = (Damp->Rows*Damp->Cols + Damp->Rows)/2;
 
      /* BLAS: C = M */
-     dcopy( &Length, Mass->Array, &incx, Damp->Array, &incy );
+     hysl_copy( &Length, Mass->Array, &incx, Damp->Array, &incy );
 
      /* BLAS: C = Rayleigh.alpha*M = Rayleigh.alpha*C */
-     dscal( &Length, &alpha, Damp->Array, &incx );
+     hysl_scal( &Length, &alpha, Damp->Array, &incx );
 
      /* BLAS: C = alpha*M + beta*K = C + beta*K. Only half of the matrix is calculated */
-     daxpy( &Length, &beta, Stiff->Array, &incx, Damp->Array, &incy);
+     hysl_axpy( &Length, &beta, Stiff->Array, &incx, Damp->Array, &incy);
      
      Print_Header( SUCCESS );
      printf("Damping matrix successfully calculated.\n" );

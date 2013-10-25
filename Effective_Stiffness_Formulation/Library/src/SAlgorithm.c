@@ -1,7 +1,10 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <getopt.h>  /* For getopt_long() */
+
+#include <time.h>
 
 #include "Print_Messages.h"
 
@@ -18,7 +21,11 @@
 #include "Substructure_Experimental.h"
 #include "Substructure_Auxiliary.h"  /* For Substructure_VectorXm(), Substructure_VectorXc(), ... */
 
+#include "Definitions.h"
+
+#if _HDF5_
 #include "HDF5_Operations.h"
+#endif
 
 #include "ADwin_Routines.h"
 
@@ -61,13 +68,15 @@ int main( int argc, char **argv ){
      AlgConst_t InitCnt;
      const char *FileConf;
      
-     int hdf5_file;
-     
+#if _HDF5_
+     hid_t hdf5_file;
+#endif
+
      /* NETLIB Variables */
      int incx, incy;
      Scalars_t Constants;
      
-     double *AccAll, *VelAll, *DispAll;
+     HYSL_FLOAT *AccAll, *VelAll, *DispAll;
 
      MatrixVector_t M, C, K;               /* Mass, Damping and Stiffness matrices */
      MatrixVector_t Keinv;
@@ -97,7 +106,8 @@ int main( int argc, char **argv ){
 #endif
 
      CouplingNode_t CNodes;
-     HDF5time_t     Time;
+     SaveTime_t     Time;
+
      /* Options */
      int Selected_Option;
      struct option long_options[] = {
@@ -155,10 +165,10 @@ int main( int argc, char **argv ){
       * during the test */
      if( InitCnt.Use_Absolute_Values ){
 	  AccAll = NULL;
-	  VelAll = (double *) calloc( (size_t) InitCnt.NStep, sizeof(double) );
-	  DispAll = (double *) calloc( (size_t) InitCnt.NStep, sizeof(double) );
+	  VelAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+	  DispAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
      } else {
-	  AccAll = (double *) calloc( (size_t) InitCnt.NStep, sizeof(double) );
+	  AccAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
 	  VelAll = NULL;
 	  DispAll = NULL;
      }
@@ -338,13 +348,15 @@ int main( int argc, char **argv ){
 
      /* Open Output file. If the file cannot be opened, the program will exit, since the results cannot be
       * stored. */
+#if _HDF5_
      hdf5_file = HDF5_CreateFile( InitCnt.FileOutput );
      HDF5_CreateGroup_Parameters( hdf5_file, &InitCnt, &CNodes, AccAll, VelAll, DispAll );
      HDF5_CreateGroup_TimeIntegration( hdf5_file, &InitCnt );
+#endif
 
      Time.Date_start = time( NULL );
      Time.Date_time = strdup( ctime( &Time.Date_start) );
-     gettimeofday( &Time.start, NULL );        
+     gettimeofday( &Time.Start, NULL );
 
      /* Calculate the input load */
      istep = 1;
@@ -410,13 +422,12 @@ int main( int argc, char **argv ){
 
 	  /* Perform substepping */
 	  if( CNodes.Order >= 1 ){
-/*	       Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(double) istep,
-					 AccAll[istep - 1], InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array,
-					 fcprevsub.Array, fc.Array );
-*/
-	       Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(double) istep,
-					 0.0, InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array,
-					 fcprevsub.Array, fc.Array );
+	       Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep,
+					 AccAll[istep-1], InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes,
+					 DispTdT.Array, fcprevsub.Array, fc.Array );
+/*	       Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep, 0.0,
+					 InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array, fcprevsub.Array,
+					 fc.Array );*/
 	  }
 
 	  if ( istep < InitCnt.NStep ){
@@ -454,7 +465,7 @@ int main( int argc, char **argv ){
 	  if( CNodes.Order >= 1 ){
 	       Substructure_JoinNonCouplingPart( &DispTdT0_m, &Keinv_m, &fcprevsub, &CNodes,  &DispTdT );
 	  } else {
-	       dcopy( &DispTdT0.Rows, DispTdT0.Array, &incx, DispTdT.Array, &incy ); /* ui = ui1 */
+	       hysl_copy( &DispTdT0.Rows, DispTdT0.Array, &incx, DispTdT.Array, &incy ); /* ui = ui1 */
 	  }
 
 	  /* Compute acceleration ai1 = a0*(ui1 -ui) - a2*vi -a3*ai */
@@ -478,22 +489,25 @@ int main( int argc, char **argv ){
 
 	  /* Save the result in a HDF5 file format */
 #if _HDF5_
-	  HDF5_Store_TimeHistoryData( hdf5_file, &AccTdT, &VelTdT, &DispTdT, &LoadTdT, &fc, &fu, (int) istep, &InitCnt );
+	  HDF5_Store_TimeHistoryData( hdf5_file, &AccTdT, &VelTdT, &DispTdT, &fc, &fu, (int) istep, &InitCnt );
 #else
 	  
 #endif
 	  /* Backup vectors */
-	  dcopy( &LoadTdT1.Rows, LoadTdT1.Array, &incx, LoadTdT.Array, &incy ); /* li = li1 */
-	  dcopy( &DispTdT.Rows, DispTdT.Array, &incx, DispT.Array, &incy ); /* ui = ui1 */
-	  dcopy( &VelTdT.Rows, VelTdT.Array, &incx, VelT.Array, &incy ); /* vi = vi1 */
-	  dcopy( &AccTdT.Rows, AccTdT.Array, &incx, AccT.Array, &incy ); /* ai = ai1 */
+	  hysl_copy( &LoadTdT1.Rows, LoadTdT1.Array, &incx, LoadTdT.Array, &incy ); /* li = li1 */
+	  hysl_copy( &DispTdT.Rows, DispTdT.Array, &incx, DispT.Array, &incy ); /* ui = ui1 */
+	  hysl_copy( &VelTdT.Rows, VelTdT.Array, &incx, VelT.Array, &incy ); /* vi = vi1 */
+	  hysl_copy( &AccTdT.Rows, AccTdT.Array, &incx, AccT.Array, &incy ); /* ai = ai1 */
 	  istep = istep + 1;
      }
 
-     gettimeofday( &Time.end, NULL );
-     Time.Elapsed_time = (double) (Time.end.tv_sec - Time.start.tv_sec)*1000.0;
-     Time.Elapsed_time += (double) (Time.end.tv_usec - Time.start.tv_usec)/1000.0;
-     HDF5_StoreTime( hdf5_file, &Time );
+     gettimeofday( &Time.End, NULL );
+     Time.Elapsed_time = (double) (Time.End.tv_sec - Time.Start.tv_sec)*1000.0;
+     Time.Elapsed_time += (double) (Time.End.tv_usec - Time.Start.tv_usec)/1000.0;
+#if _HDF5_
+     HDF5_Store_Time( hdf5_file, &Time );
+#endif
+
      Print_Header( SUCCESS );
      printf( "The time integration process has finished in %lf ms.\n", Time.Elapsed_time );
 
@@ -502,14 +516,18 @@ int main( int argc, char **argv ){
      if( CNodes.Order >= 1 ){
 	  for( i = 0; i < (unsigned int) CNodes.Order; i++ ){
 	       if( CNodes.Sub[i].Type == EXP_ADWIN ){
+#if _HDF5_
 		    ADwin_SaveData_HDF5( hdf5_file, (int) InitCnt.NStep, (int) InitCnt.NSubstep,
 					NUM_CHANNELS, Entry_Names, 97 );
+#endif
 	       }
 	  }
      }
 #endif
 
-     HDF5_CloseFile( hdf5_file );
+#if _HDF5_
+     HDF5_CloseFile( &hdf5_file );
+#endif
 
      /* Free initiation values */
      Algorithm_Destroy( &InitCnt );
