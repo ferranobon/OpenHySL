@@ -6,6 +6,8 @@
 #include "Print_Messages.h"   /* For Print_Header() */
 #include "Rayleigh.h"         /* Rayleigh damping routines */
 
+#include "Definitions.h"
+
 #include <mkl_blas.h>
 #include <mkl_spblas.h>
 
@@ -16,7 +18,7 @@ void Rayleigh_Damping_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVecto
      int  i;                  /* A counter */
      int Length;
      int incx, incy;          /* Stride in the operations */
-     double alpha, beta;      /* Constants */
+     HYSL_FLOAT alpha, beta;  /* Constants */
      char trans;
      int job, sort, info;     /* MKL variables */
 
@@ -27,7 +29,7 @@ void Rayleigh_Damping_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVecto
 
      incx = 1; incy = 1;
      Length = Temp.Num_Nonzero;
-     dcopy( &Length, Mass->Values, &incx, Temp.Values, &incy );
+     hysl_copy( &Length, Mass->Values, &incx, Temp.Values, &incy );
 
      /* Copy the column array */
 #pragma omp parallel for
@@ -36,7 +38,7 @@ void Rayleigh_Damping_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVecto
      }
 
      /* Scal the Values array */
-     dscal( &Length, &alpha, Temp.Values, &incx );
+     hysl_scal( &Length, &alpha, Temp.Values, &incx );
 
      /* Copy the RowIndex array */
      Length = Temp.Rows + 1;
@@ -48,9 +50,9 @@ void Rayleigh_Damping_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVecto
      trans = 'N';  /* The operation C = Temp + beta*B is performed */
      job = 0;      /* The routine computes the addition */
      sort = 0;     /* The routine does not perform any reordering */
-     mkl_dcsradd( &trans, &job, &sort, &Temp.Rows, &Temp.Cols, Temp.Values, Temp.Columns, Temp.RowIndex,
-		  &beta, Stif->Values, Stif->Columns, Stif->RowIndex,
-		  Damp->Values, Damp->Columns, Damp->RowIndex, &Damp->Num_Nonzero, &info );
+     hysl_mkl_csradd( &trans, &job, &sort, &Temp.Rows, &Temp.Cols, Temp.Values, Temp.Columns, Temp.RowIndex,
+		      &beta, Stif->Values, Stif->Columns, Stif->RowIndex,
+		      Damp->Values, Damp->Columns, Damp->RowIndex, &Damp->Num_Nonzero, &info );
 
      /* Delete the previously allocated sparse matrix */
      MatrixVector_Destroy_Sp( &Temp );

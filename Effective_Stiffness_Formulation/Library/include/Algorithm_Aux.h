@@ -15,10 +15,31 @@
 #define _ALGORITHM_AUX_H_
 
 #include <stdbool.h>
+#include <sys/time.h>           /* For struct timeval */
 
 #include "Rayleigh.h"           /* For Rayleigh_t */
 #include "Error_Compensation.h" /* For PID_t */
 #include "Conf_Parser.h"        /* For ConfFile_t */
+#include "Definitions.h"
+
+#define MPI_TIME_SLENGTH 30
+
+typedef struct SaveTime {
+     time_t Date_start;
+     char *Date_time;
+     double Elapsed_time;
+     struct timeval Start;
+     struct timeval End;
+} SaveTime_t;
+
+typedef struct SaveTime_MPI {
+     time_t Date_start;
+     char Date_time[MPI_TIME_SLENGTH]; /* Fixed length because HDF5 does not support variable types in mpi
+					  mode */
+     double Elapsed_time;
+     double Start;
+     double End;
+} SaveTime_MPI_t;
 
 /**
  * \brief Structure to handle the time integration constants.
@@ -27,8 +48,8 @@
  * Newmark-\f$beta\f$ method: \f$\gamma\f$ and \f$\beta\f$.
  */
 typedef struct TIntegration{
-     double Gamma; /*!< \brief First constant.*/
-     double Beta;  /*!< \brief Second constant.*/
+     HYSL_FLOAT Gamma; /*!< \brief First constant.*/
+     HYSL_FLOAT Beta;  /*!< \brief Second constant.*/
 } TIntegration_t;
 
 /**
@@ -80,10 +101,10 @@ typedef struct AlgConst{
      int *ExcitedDOF;         /*!< \brief Integer string containing wich elements of the external load will be
 			       * applied.  \sa AlgorithM_GetExcitedDOF().
 			       */
-     double Delta_t;          /*!< \brief Time increment \f$\Delta t\f$ */
-     double DeltaT_Sub;       /*!< \brief Time increment for the sub-stepping process */
+     HYSL_FLOAT Delta_t;          /*!< \brief Time increment \f$\Delta t\f$ */
+     HYSL_FLOAT DeltaT_Sub;       /*!< \brief Time increment for the sub-stepping process */
 
-     double Scale_Factor;     /*!< \brief Scale factor for the time history of the input load */
+     HYSL_FLOAT Scale_Factor;     /*!< \brief Scale factor for the time history of the input load */
 
      Rayleigh_t Rayleigh;     /*!< \brief Stores Rayleigh Constants alpha (\c Rayleigh.Alpha or
 			       * \f$\alpha_R\f$) and beta (\c Rayleigh.Beta or \f$\beta_R\f$)
@@ -95,21 +116,22 @@ typedef struct AlgConst{
 			       * (\c PID.D) part.
 			       */
 
-     /* Constants for Calculations */
-     double Const1;           /*!< \brief \f$Const_1=\beta_N\Delta t^2\f$ */
-     double Const2;           /*!< \brief \f$Const_2 = (0.5 - 2*\beta_N + \gamma_N)*\Delta t^2\f$ */
-     double Const3;           /*!< \brief \f$Const_3 = (0.5 + \beta_N - \gamma_N)*\Delta t^2\f$ */
-
      /* Constants for Step ending */
-     double a0;               /*!< \brief \f$a_0 = \frac{1}{\beta_N\Delta t^2}\f$ */
-     double a1;               /*!< \brief \f$a_1 = \frac{\gamma_N}{\beta_N\Delta t}\f$ */
-     double a2;               /*!< \brief \f$a_2 = \frac{1}{\beta_N\Delta t}\f$ */
-     double a3;               /*!< \brief \f$a_3 = \frac{1}{2\beta_N\Delta t} - 1\f$ */
-     double a4;               /*!< \brief \f$a_4 = \frac{\gamma_N}{\beta_N} - 1\f$ */
-     double a5;               /*!< \brief \f$a_5 =
+     HYSL_FLOAT a0;               /*!< \brief \f$a_0 = \frac{1}{\beta_N\Delta t^2}\f$ */
+     HYSL_FLOAT a1;               /*!< \brief \f$a_1 = \frac{\gamma_N}{\beta_N\Delta t}\f$ */
+     HYSL_FLOAT a2;               /*!< \brief \f$a_2 = \frac{1}{\beta_N\Delta t}\f$ */
+     HYSL_FLOAT a3;               /*!< \brief \f$a_3 = \frac{1}{2\beta_N\Delta t} - 1\f$ */
+     HYSL_FLOAT a4;               /*!< \brief \f$a_4 = \frac{\gamma_N}{\beta_N} - 1\f$ */
+     HYSL_FLOAT a5;               /*!< \brief \f$a_5 =
 			       * \Delta_t\biggl(\frac{\gamma_N}{2\beta_N} - 1\biggr)\f$ */
-     double a6;               /*!< \brief \f$a_6= \frac{1 - \gamma_N}{\Delta t}\f$ */
-     double a7;               /*!< \brief \f$a_7 = \gamma_N\Delta t\f$ */
+     HYSL_FLOAT a6;               /*!< \brief \f$a_6= \frac{1 - \gamma_N}{\Delta t}\f$ */
+     HYSL_FLOAT a7;               /*!< \brief \f$a_7 = \gamma_N\Delta t\f$ */
+
+     HYSL_FLOAT a8;               /*!< \brief \f$a_8 = \beta_N\Delta t^2\f$ */
+
+     HYSL_FLOAT a9;               /*!< \brief \f$a_9 = \Delta t\f$ */
+
+     HYSL_FLOAT a10;              /*!< \brief \f$a_{10} = \biggl(\frac{1}{2} - \beta_N\biggr)\Delta t^2\f$ */
 
      /* Files where data are located */
      char* FileM;            /*!< \brief Stores the name of the file that contains the Mass Matrix */
@@ -141,6 +163,7 @@ typedef struct AlgConst{
  * - The size of the matrices will determine the memory that will be allocated when defining a \c
  *   MatrixVector_t type and also also how many elements will be read/written from/to the files.
  * - The number of steps must be equal to the number of rows of the file "DataFile".
+ * - The memory should be deallocated through the Algorithm_Destroy() routine.
  *
  * \sa AlgoConst_t, PID_t, Rayleigh_t and TIntegration_t.
  */
@@ -176,6 +199,9 @@ void Change_Filename( char *Name );
 /**
  * \brief Definition of constant values and filenames that will be used during the Algorithm. MPI version.
  *
+ * \warning This routine should only be called by a single MPI process (usually process 0) and then
+ * broadcasted to the rest through the Algorithm_BroadcastConfFile() routine.
+ *
  * This routine reads the values specified in a configuration file, such as the order of the matrices, the
  * number of steps and file names of the Mass and Stiffness matrices (the damping matrix is optional), and are
  * stored for further reference. This is the MPI version.
@@ -190,6 +216,7 @@ void Change_Filename( char *Name );
  * - The size of the matrices will determine the memory that will be allocated when defining a \c
  *   MatrixVector_t type and also also how many elements will be read/written from/to the files.
  * - The number of steps must be equal to the number of rows of the file "DataFile".
+ * - The memory should be deallocated through the Algorithm_Destroy() routine.
  *
  * \sa AlgoConst_t, PID_t, Rayleigh_t and TIntegration_t, MPIInfo_t.
  */
@@ -200,13 +227,16 @@ void Algorithm_Init_MPI( const char *FileName, AlgConst_t *const InitConst );
  *
  * \warning This routine requires MPI.
  *
- * \pre InitConst must be properly initialised through Algorithm_Init() in MPI process 0.
+ * \pre \c InitConst must be properly initialised through Algorithm_Init() in MPI process 0.
  *
  * \param[in] InitConst Struct to be broadcasted.
  *
  * \sa AlgConst_t.
  */
 void Algorithm_BroadcastConfFile( AlgConst_t *const InitConst );
+
+char* Algorithm_BroadcastString( char *String );
+int* Algorithm_BroadcastExcitedDOF( int *IntArray );
 
 /**
  * \brief Frees the memory allocated during the Algorithm_Init() routine.
@@ -221,17 +251,6 @@ void Algorithm_Destroy( AlgConst_t *const InitConst );
 
 /**
  * \brief Transforms a string with the desired DOFs to be excited into an integer array.
- *
- * \pre
- * - The first element of the list should contain the number of DOFs per node.
- * - The next \f$n\f$ entries are the degrees of freedom that are being excited (1) or not (0) by the external
- *   load.
- * - The order of which DOFs will have an external load applied must remain constant and keep the same patern.
- * - The rest of \f$\frac{Order}{n}\f$ must be equal to 0, where \f$Order\f$ is the length of the external
- *   load vector.
- * - \c Config must be properly initialised through ConfFile_Create() and have entries stored through
- *   ConfFile_ReadFile().
- * - \c Expression must be a valid entry in \c Config.
  *
  * Transforms a string with the desired sequence of DOFs that will have an external load applied. The string
  * consist of a first element that determines how many values will follow, \f$n\f$. The next \f$n\f$ values
@@ -251,6 +270,17 @@ void Algorithm_Destroy( AlgConst_t *const InitConst );
  * <tt>4 1 0 1 1</tt>
  *
  * Only the second element of every four positions in the external load vector will be set to 0.0.
+ *
+ * \pre
+ * - The first element of the list should contain the number of DOFs per node.
+ * - The next \f$n\f$ entries are the degrees of freedom that are being excited (1) or not (0) by the external
+ *   load.
+ * - The order of which DOFs will have an external load applied must remain constant and keep the same patern.
+ * - The rest of \f$\frac{Order}{n}\f$ must be equal to 0, where \f$Order\f$ is the length of the external
+ *   load vector.
+ * - \c Config must be properly initialised through ConfFile_Create() and have entries stored through
+ *   ConfFile_ReadFile().
+ * - \c Expression must be a valid entry in \c Config.
  *
  * \param[in] Config Structure containing the entries of the configuration file.
  * \param[in] Expression String with the desired DOFs to be excited.
@@ -290,8 +320,8 @@ int* Algorithm_GetExcitedDOF( const ConfFile_t *const Config, const char *Expres
  * \sa Algorithm_Initnit().
  */
 void Algorithm_ReadDataEarthquake_AbsValues( const unsigned int NumSteps, const char *Filename,
-					     const double Scale_Factor, double *const Velocity,
-					     double *const Displacement );
+					     const HYSL_FLOAT Scale_Factor, HYSL_FLOAT *const Velocity,
+					     HYSL_FLOAT *const Displacement );
 
 /**
  * \brief Reads the accelerations of an earthquake from a file.
@@ -322,7 +352,7 @@ void Algorithm_ReadDataEarthquake_AbsValues( const unsigned int NumSteps, const 
  * \sa Algorithm_Init().
  */
 void Algorithm_ReadDataEarthquake_RelValues( const unsigned int NumSteps, const char *Filename,
-					     const double Scale_Factor, double *const Acceleration );
+					     const HYSL_FLOAT Scale_Factor, HYSL_FLOAT *const Acceleration );
 
 /**
  * \brief Prints a help text with the different options available when launching the program.

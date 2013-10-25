@@ -6,6 +6,7 @@
 #include "Print_Messages.h"  /* For Print_Header() */
 
 #include "Auxiliary_Math.h"
+#include "Definitions.h"
 
 #if _MKL_
 #include <mkl_scalapack.h>
@@ -20,8 +21,8 @@ void IGainMatrix_MPI( PMatrixVector_t *const IGain, PMatrixVector_t *const Mass,
      
      char uplo;
      int ione, info;
-     double Scalar;
-     double one = 1.0;
+     HYSL_FLOAT Scalar;
+     HYSL_FLOAT one = 1.0;
 
      ione = 1;
      uplo = 'L';  /* The lower part of the matrix will be used; the upper part will strictly not be
@@ -31,7 +32,7 @@ void IGainMatrix_MPI( PMatrixVector_t *const IGain, PMatrixVector_t *const Mass,
      PMatrixVector_Add3Mat( Mass, Damp, Stiff, Const, IGain );
 	
      /* ScaLAPACK: Compute the Cholesky factorization of the symmetric positive definite matrix IGain */
-     pdpotrf_( &uplo, &IGain->GlobalSize.Row, IGain->Array, &ione, &ione, IGain->Desc, &info );
+     hysl_ppotrf( &uplo, &IGain->GlobalSize.Row, IGain->Array, &ione, &ione, IGain->Desc, &info );
 	
      if ( info == 0 ){
 	  Print_Header( SUCCESS );
@@ -42,12 +43,11 @@ void IGainMatrix_MPI( PMatrixVector_t *const IGain, PMatrixVector_t *const Mass,
 	  exit( EXIT_FAILURE );
      } else if (info > 0){
 	  Print_Header( ERROR );
-	  fprintf( stderr, "Cholesky factorization: the leading minor of order %d is not positive definite,", info );
-	  fprintf( stderr, " and the factorization could not be completed.\n" );
+	  fprintf( stderr, "Cholesky factorization: the leading minor of order %d is not positive definite, and the factorization could not be completed.\n", info );
 	  exit( EXIT_FAILURE );
      }
      /* SCALAPACK: Compute the inverse of Me using the Cholesky factorization computed by pdpotrf_() */
-     pdpotri_( &uplo, &IGain->GlobalSize.Row, IGain->Array, &ione, &ione, IGain->Desc, &info );
+     hysl_ppotri( &uplo, &IGain->GlobalSize.Row, IGain->Array, &ione, &ione, IGain->Desc, &info );
 
      if ( info == 0 ){
 	  Print_Header( SUCCESS );
@@ -64,7 +64,7 @@ void IGainMatrix_MPI( PMatrixVector_t *const IGain, PMatrixVector_t *const Mass,
      }
 
      Scalar = Const.Lambda;
-     pdlascl( &uplo, &one, &Scalar, &IGain->GlobalSize.Row, &IGain->GlobalSize.Col, IGain->Array, &ione, &ione, IGain->Desc, &info );
+     hysl_plascl( &uplo, &one, &Scalar, &IGain->GlobalSize.Row, &IGain->GlobalSize.Col, IGain->Array, &ione, &ione, IGain->Desc, &info );
      
      if( info < 0 ){
 	  Print_Header( ERROR );

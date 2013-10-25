@@ -4,6 +4,7 @@
 
 #include "Print_Messages.h"
 #include "Substructure_SimMeasured.h"
+#include "Definitions.h"
 
 void Substructure_SimMeasured_Init( const char *FileName, const unsigned int NSteps, const unsigned int NSubsteps, const char *Description, MeasuredSim_t *const Sub )
 {
@@ -14,7 +15,7 @@ void Substructure_SimMeasured_Init( const char *FileName, const unsigned int NSt
 
      Sub->Length = NSteps*NSubsteps;
 
-     Sub->Values = (double *) calloc( (size_t) Sub->Length, sizeof(double) );
+     Sub->Values = (HYSL_FLOAT *) calloc( (size_t) Sub->Length, sizeof(HYSL_FLOAT) );
      if ( Sub->Values == NULL ){
 	  Print_Header( ERROR );
 	  fprintf(stderr, "Substructure_SimMeasured_Init: Out of memory.\n" );
@@ -30,7 +31,11 @@ void Substructure_SimMeasured_Init( const char *FileName, const unsigned int NSt
      }
 
      i = 0;
+#if _FLOAT_
+     while( i < Sub->Length && (fscanf( InFile, "%E", &Sub->Values[i] ) != EOF) ){  
+#else
      while( i < Sub->Length && (fscanf( InFile, "%lE", &Sub->Values[i] ) != EOF) ){  
+#endif
 	  i = i + 1;
      }
 
@@ -43,7 +48,7 @@ void Substructure_SimMeasured_Init( const char *FileName, const unsigned int NSt
 }
 
 
-void Substructure_SimMeasured( const MeasuredSim_t *const Sub, double *const fc )
+void Substructure_SimMeasured( const MeasuredSim_t *const Sub, HYSL_FLOAT *const fc )
 {
      static unsigned int i = 0;
 

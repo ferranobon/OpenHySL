@@ -7,6 +7,7 @@
 
 #include "Print_Messages.h"
 #include "Auxiliary_Math.h"  /* For max() */
+#include "Definitions.h"
 
 #if _MKL_
 #include <mkl_blas.h>
@@ -30,8 +31,8 @@ void MatrixVector_Create_PS( const int Rows, const int Cols, MatrixVector_t *con
      
      /* Allocate the memory */
      Matrix->Array = NULL;
-     Matrix->Array = (double *) calloc( ((size_t) Matrix->Rows*(size_t) Matrix->Cols + (size_t) Matrix->Rows)/2,
-					sizeof(double));
+     Matrix->Array = (HYSL_FLOAT *) calloc( ((size_t) Matrix->Rows*(size_t) Matrix->Cols + (size_t) Matrix->Rows)/2,
+					sizeof(HYSL_FLOAT));
      if ( Matrix->Array == NULL ){
 	  Print_Header( ERROR );
 	  fprintf( stderr, "MatrixVector_Create_PS(): Out of memory.\n" );
@@ -39,21 +40,21 @@ void MatrixVector_Create_PS( const int Rows, const int Cols, MatrixVector_t *con
      }
 }
 
-void MatrixVector_Set2Value_PS( const double Value, MatrixVector_t *const Matrix )
+void MatrixVector_Set2Value_PS( const HYSL_FLOAT Value, MatrixVector_t *const Matrix )
 {
      int incx = 0;  /* No stride in the vector */
      int incy = 1;  /* Stride of one */
      int Length;
-     double Val;
+     HYSL_FLOAT Val;
 
      Length = (Matrix->Rows*Matrix->Cols + Matrix->Rows)/2;
      Val = Value;
 
      /* BLAS: X = Val*X */ 
-     dcopy( &Length, &Val, &incx, Matrix->Array, &incy );
+     hysl_copy( &Length, &Val, &incx, Matrix->Array, &incy );
 }
 
-void MatrixVector_ModifyElement_PS( const int RowIndex, const int ColIndex, const double Alpha,
+void MatrixVector_ModifyElement_PS( const int RowIndex, const int ColIndex, const HYSL_FLOAT Alpha,
 				    const char *Operation, MatrixVector_t *const Matrix )
 {
 
@@ -96,7 +97,7 @@ void MatrixVector_Add3Mat_PS( const MatrixVector_t *const MatA, const MatrixVect
 
      int Length;      /* Variable to store the size of the vector to multiply. */
      int incx, incy;  /* Stride in the vectors for BLAS library */
-     double Scalar;   /* Constant to use in the BLAS library */
+     HYSL_FLOAT Scalar;   /* Constant to use in the BLAS library */
 
      incx = 1; incy = 1;
 
@@ -104,19 +105,19 @@ void MatrixVector_Add3Mat_PS( const MatrixVector_t *const MatA, const MatrixVect
      Length = (MatY->Rows*MatY->Cols + MatY->Rows)/2;
 
      /* BLAS: Y = A */
-     dcopy( &Length, MatA->Array, &incx,  MatY->Array, &incy );
+     hysl_copy( &Length, MatA->Array, &incx,  MatY->Array, &incy );
 
      /* BLAS: Calculates Y = A  */
      Scalar = Const.Alpha;
-     dscal( &Length, &Scalar, MatY->Array, &incx );
+     hysl_scal( &Length, &Scalar, MatY->Array, &incx );
 
      /* BLAS: Calculates Y = Beta*B + Y. Only computes half of the matrix */
      Scalar = Const.Beta;
-     daxpy( &Length, &Scalar, MatB->Array, &incx, MatY->Array, &incy);
+     hysl_axpy( &Length, &Scalar, MatB->Array, &incx, MatY->Array, &incy);
 
      /* BLAS: Calculates Y = Gamma*C + Y. Only computes half of the matrix */
      Scalar = Const.Gamma;
-     daxpy( &Length, &Scalar, MatC->Array, &incx, MatY->Array, &incy);
+     hysl_axpy( &Length, &Scalar, MatC->Array, &incx, MatY->Array, &incy);
      
 }
 

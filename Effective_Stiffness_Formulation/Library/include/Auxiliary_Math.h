@@ -18,7 +18,7 @@
 /**
  * \brief Returns the maximum of two values
  *
- * The maximum of two double values is returned at the end of the function.
+ * The maximum of two integer values is returned at the end of the function.
  *
  * \param a First value.
  * \param b Second value.
@@ -29,7 +29,7 @@ int Max ( const int a, const int b );
 /**
  * \brief Returns the minimum of two values
  *
- * The minimum of two double values is returned at the end of the function.
+ * The minimum of two integer values is returned at the end of the function.
  *
  * \param a First value.
  * \param b Second value.

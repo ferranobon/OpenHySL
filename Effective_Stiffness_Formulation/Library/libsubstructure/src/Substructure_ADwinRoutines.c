@@ -9,6 +9,8 @@
 #include "ADwin_Routines.h"
 #include "Print_Messages.h"  /* For Print_Header() */
 
+#include "Definitions.h"
+
 void ADwin_Boot( const int32_t Device_Number, const char *Boot_Path  )
 {
      /* Set the device into 0x150 (hexadecimal) or 336 */
@@ -65,23 +67,27 @@ void ADwin_ManageProcess( const char* PName, const int PNum, const int dowhat )
      } else assert( 0 );
 }
 
-void ADwin_SendArray( const unsigned int Index, double *const Array, const unsigned int Length )
+void ADwin_SendArray( const unsigned int Index, const HYSL_FLOAT *const Array, const unsigned int Length )
 {
    
      Set_DeviceNo( (int32_t) 336 );
 
+#if _FLOAT_
+     SetData_Float( (int32_t) Index, Array, 1, (int32_t) Length );
+#else
      SetData_Double( (int32_t) Index, Array, 1, (int32_t) Length );
+#endif
 
 }
 
-void ADwin_Substep( const double *const VecTdT_0c, const unsigned int OrderC, const double Time_To_Wait, double *const VecTdT_c,
-		    double *const fcprev_c, double *const fc_c )
+void ADwin_Substep( const HYSL_FLOAT *const VecTdT_0c, const unsigned int OrderC, const HYSL_FLOAT Time_To_Wait, HYSL_FLOAT *const VecTdT_c,
+		    HYSL_FLOAT *const fcprev_c, HYSL_FLOAT *const fc_c )
 {
 
      unsigned int i;
      unsigned int Length_Receive, Length_Send;
      
-     double *Send_ADwin = NULL, *ReceiveADwin = NULL;
+     HYSL_FLOAT *Send_ADwin = NULL, *ReceiveADwin = NULL;
      int ADWinReady;
 
      struct timeval t1;
@@ -92,8 +98,8 @@ void ADwin_Substep( const double *const VecTdT_0c, const unsigned int OrderC, co
      Length_Receive = 3*OrderC + 1;
      Length_Send = OrderC + 1;
 
-     Send_ADwin = (double *) calloc( (size_t) Length_Send, sizeof(double) );
-     ReceiveADwin = (double *) calloc( (size_t) Length_Receive, sizeof(double) );
+     Send_ADwin = (HYSL_FLOAT *) calloc( (size_t) Length_Send, sizeof(HYSL_FLOAT) );
+     ReceiveADwin = (HYSL_FLOAT *) calloc( (size_t) Length_Receive, sizeof(HYSL_FLOAT) );
 
      for ( i = 0; i < Length_Receive; i++ ){
 	  ReceiveADwin[i] = 0.0;
@@ -108,7 +114,11 @@ void ADwin_Substep( const double *const VecTdT_0c, const unsigned int OrderC, co
      }
 
      /* Set the displacement. In ADwin the array storing the displacement is DATA_2 */
+#if _FLOAT_
+     SetData_Float( 2, Send_ADwin, 1, (int32_t) Length_Send );
+#else
      SetData_Double( 2, Send_ADwin, 1, (int32_t) Length_Send );
+#endif
 
      /* Do nothing until a certain time has passed to avoid overloading adwin system */
      gettimeofday( &t1, NULL );
@@ -122,7 +132,11 @@ void ADwin_Substep( const double *const VecTdT_0c, const unsigned int OrderC, co
 
      /* Get the displacement when substep is over */
      while( ADWinReady == 0 ){
+#if _FLOAT_
+	  GetData_Float( 3, ReceiveADwin, 1, (int32_t) Length_Receive );
+#else
 	  GetData_Double( 3, ReceiveADwin, 1, (int32_t) Length_Receive );
+#endif
 	  if ( ReceiveADwin[0] == -1.0){
 
 	       /* Get the data from ADWIN (DATA_3) */
@@ -173,7 +187,7 @@ void ADwin_SaveData_ASCII( const char *FileName, const unsigned int Num_Steps, c
 			   const unsigned short int Num_Channels, const char **Chan_Names, const int DataIndex )
 {
      unsigned int i, j, Length;
-     double *Data;
+     HYSL_FLOAT *Data;
      FILE *OutFile;
 
      OutFile = fopen( FileName, "w" );
@@ -184,14 +198,18 @@ void ADwin_SaveData_ASCII( const char *FileName, const unsigned int Num_Steps, c
      }
 
      Length = Num_Sub*Num_Steps*Num_Channels;
-     Data = (double *) calloc( (size_t) Length, sizeof( double ) );
+     Data = (HYSL_FLOAT *) calloc( (size_t) Length, sizeof( HYSL_FLOAT ) );
      if( Data == NULL ){
 	  Print_Header( WARNING );
 	  fprintf( stderr, "ADwin_SaveData_HDF5: Out of memory. Manual extraction of the data required.\n" );
      }
 
      /* Get the data from ADwin */
+#if _FLOAT_
+     GetData_Float( (int32_t) DataIndex, Data, 1, (int32_t) Length );
+#else
      GetData_Double( (int32_t) DataIndex, Data, 1, (int32_t) Length );
+#endif
 
      for( i = 0; i < Num_Channels; i++ ){
 	  fprintf( OutFile, "%s\t", Chan_Names[i] );

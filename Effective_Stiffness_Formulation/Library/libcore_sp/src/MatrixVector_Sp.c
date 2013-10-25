@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>  /* For assert() */
+#include <assert.h>         /* For assert() */
 
 #include "MatrixVector_Sp.h"
 #include "Print_Messages.h"
 #include "Auxiliary_Math.h" /* For Max() */
+
+#include "Definitions.h"
 
 #include <mkl_blas.h>
 #include <mkl_spblas.h>
@@ -38,7 +40,7 @@ void MatrixVector_AllocateSpace_Sp( const int nnz, MatrixVector_Sp_t *const MatV
 	  MatVec_Sp->Num_Nonzero = nnz;
 
 	  /* Allocate the memory for the Values and Columns matrices */
-	  MatVec_Sp->Values = (double *) calloc( (size_t) MatVec_Sp->Num_Nonzero, sizeof(double) );
+	  MatVec_Sp->Values = (HYSL_FLOAT *) calloc( (size_t) MatVec_Sp->Num_Nonzero, sizeof(HYSL_FLOAT) );
 	  if( MatVec_Sp->Values == NULL ){
 	       Print_Header( ERROR );
 	       fprintf( stderr, "MatrixVector_AllocateSpace_Sp: Out of memory.\n");
@@ -65,7 +67,7 @@ void MatrixVector_Create_Sp( const int Rows, const int Cols, const int nnz,
      MatrixVector_AllocateSpace_Sp( nnz, MatVec_Sp );
 }
 
-int MatrixVector_CountNNZ_GE( const double *const Matrix, const int Rows, const int Cols )
+int MatrixVector_CountNNZ_GE( const HYSL_FLOAT *const Matrix, const int Rows, const int Cols )
 {
      int i, j;
      int Count;
@@ -82,7 +84,7 @@ int MatrixVector_CountNNZ_GE( const double *const Matrix, const int Rows, const 
      return Count;
 }
 
-int MatrixVector_CountNNZ_SY( const double *const Sym_Matrix, const int Rows )
+int MatrixVector_CountNNZ_SY( const HYSL_FLOAT *const Sym_Matrix, const int Rows )
 {
      int i, j;
      int Count;
@@ -104,7 +106,7 @@ void MatrixVector_CSR2Packed( const MatrixVector_Sp_t *const MatVec_Sp,  MatrixV
      int NumZerosRow;         /* Number of non-zero elements in a row */
      int i, j, Position;
      int RowIndex, ColIndex;
-     double Value;
+     HYSL_FLOAT Value;
 
      if( MatVec_Sp->Rows != MatVec_PS->Rows || MatVec_Sp->Cols != MatVec_PS->Cols ){
 	  Print_Header( ERROR );
@@ -150,16 +152,17 @@ void MatrixVector_Dense2CSR( const MatrixVector_t *const MatVec, const int Opera
      job[1] = 0; /* Zero-based indexing is used for the dense matrix. */
      job[2] = 1; /* One-based indexing for the sparse matrix is used. */
 
-     if ( Operation == 0 ){ /* Symmetric matrix */
-	  job[3] = 1; /* Values will contain the upper triangular part of the dense matrix. */
+     if ( Operation == 0 ){        /* Symmetric matrix */
+	  job[3] = 1;              /* Values will contain the upper triangular part of the dense matrix. */
      } else if ( Operation == 1 ){ /* General matrix */
-	  job[3] = 2; /* All the elements of the dense matrix will be considered */
+	  job[3] = 2;              /* All the elements of the dense matrix will be considered */
      }
 
      job[4] = MatVec_Sp->Num_Nonzero; /* Maximum number of non-zero elements allowed. */
-     job[5] = 1; /* Values, Columns and RowIndex arrays are generated. */
+     job[5] = 1;                      /* Values, Columns and RowIndex arrays are generated. */
      lda = Max( 1, MatVec_Sp->Rows );
-     mkl_ddnscsr( job, &MatVec_Sp->Rows, &MatVec_Sp->Cols, MatVec->Array, &lda, MatVec_Sp->Values, MatVec_Sp->Columns, MatVec_Sp->RowIndex, &info );
+     hysl_mkl_dnscsr( job, &MatVec_Sp->Rows, &MatVec_Sp->Cols, MatVec->Array, &lda, MatVec_Sp->Values,
+		      MatVec_Sp->Columns, MatVec_Sp->RowIndex, &info );
 
      if (info != 0 ){
 	  Print_Header( ERROR );
@@ -180,23 +183,22 @@ void MatrixVector_CSR2Dense( const MatrixVector_Sp_t *const MatVec_Sp,  const in
 	  exit( EXIT_FAILURE );
      }
 
-     /* MKL: Transform the CSR-three array variation matrix into a dense matrix in
-      * general storage*/
+     /* MKL: Transform the CSR-three array variation matrix into a dense matrix in general storage*/
      job[0] = 1; /* The matrix is converted to dense format. */
      job[1] = 0; /* Zero-based indexing is used for the dense matrix. */
      job[2] = 1; /* One-based indexing for the sparse matrix is used. */
 
      if ( MatVec_Type == 0 ){ /* Symmetric matrix */
-	  job[3] = 1; /* Values will contain the upper triangular part of the sparse
-		       * matrix. */
+	  job[3] = 1;                /* Values will contain the upper triangular part of the sparse matrix. */
      } else if ( MatVec_Type == 1 ){ /* General matrix */
-	  job[3] = 2; /* All the elements of the sparse matrix will be considered */
+	  job[3] = 2;                /* All the elements of the sparse matrix will be considered */
      } else assert( MatVec_Type == 0 || MatVec_Type == 1 );
 
      job[4] = MatVec_Sp->Num_Nonzero; /* Maximum number of non-zero elements allowed. */
-     job[5] = 1; /* Values, Columns and RowIndex arrays are generated. */
+     job[5] = 1;                      /* Values, Columns and RowIndex arrays are generated. */
      lda = Max( 1, MatVec->Rows );
-     mkl_ddnscsr( job, &MatVec->Rows, &MatVec->Cols, MatVec->Array, &lda, MatVec_Sp->Values, MatVec_Sp->Columns, MatVec_Sp->RowIndex, &info );
+     hysl_mkl_dnscsr( job, &MatVec->Rows, &MatVec->Cols, MatVec->Array, &lda, MatVec_Sp->Values,
+		      MatVec_Sp->Columns, MatVec_Sp->RowIndex, &info );
 
      if (info != 0 ){
 	  Print_Header( ERROR );
@@ -212,7 +214,7 @@ void MatrixVector_Add3Mat_Sp( const MatrixVector_Sp_t *const MatA, const MatrixV
      MatrixVector_Sp_t Temp;
      int Length, i;
      int incx, incy;
-     double alpha, beta, gamma;
+     HYSL_FLOAT alpha, beta, gamma;
      char trans;
      int job, sort, info;
 
@@ -224,7 +226,7 @@ void MatrixVector_Add3Mat_Sp( const MatrixVector_Sp_t *const MatA, const MatrixV
 
      incx = 1; incy = 1;
      Length = Temp.Num_Nonzero;
-     dcopy( &Length, MatA->Values, &incx, Temp.Values, &incy );
+     hysl_copy( &Length, MatA->Values, &incx, Temp.Values, &incy );
 
 #pragma omp parallel for
      for (i = 0; i < Length; i++ ){
@@ -232,7 +234,7 @@ void MatrixVector_Add3Mat_Sp( const MatrixVector_Sp_t *const MatA, const MatrixV
      }
 
      /* Scal the Values array */
-     dscal( &Length, &alpha, Temp.Values, &incx );
+     hysl_scal( &Length, &alpha, Temp.Values, &incx );
 
      /* Copy the RowIndex array */
      Length = Temp.Rows + 1;
@@ -244,9 +246,9 @@ void MatrixVector_Add3Mat_Sp( const MatrixVector_Sp_t *const MatA, const MatrixV
      trans = 'N';  /* The operation C = Temp + beta*B is performed */
      job = 0;      /* The routine computes the addition */
      sort = 0;     /* The routine does not perform any reordering */
-     mkl_dcsradd( &trans, &job, &sort, &Temp.Rows, &Temp.Cols, Temp.Values, Temp.Columns, Temp.RowIndex,
-		  &beta, MatB->Values, MatB->Columns, MatB->RowIndex,
-		  MatY->Values, MatY->Columns, MatY->RowIndex, &MatY->Num_Nonzero, &info );
+     hysl_mkl_csradd( &trans, &job, &sort, &Temp.Rows, &Temp.Cols, Temp.Values, Temp.Columns, Temp.RowIndex,
+		      &beta, MatB->Values, MatB->Columns, MatB->RowIndex,
+		      MatY->Values, MatY->Columns, MatY->RowIndex, &MatY->Num_Nonzero, &info );
 
      if (info != 0 ){
 	  Print_Header( ERROR );
@@ -257,9 +259,9 @@ void MatrixVector_Add3Mat_Sp( const MatrixVector_Sp_t *const MatA, const MatrixV
      /* Delete the previously allocated sparse matrix */
      MatrixVector_Destroy_Sp( &Temp );
 
-     mkl_dcsradd( &trans, &job, &sort, &MatY->Rows, &MatY->Cols, MatY->Values, MatY->Columns, MatY->RowIndex,
-		  &gamma, MatC->Values, MatC->Columns, MatC->RowIndex,
-		  MatY->Values, MatY->Columns, MatY->RowIndex, &MatY->Num_Nonzero, &info );
+     hysl_mkl_csradd( &trans, &job, &sort, &MatY->Rows, &MatY->Cols, MatY->Values, MatY->Columns, MatY->RowIndex,
+		      &gamma, MatC->Values, MatC->Columns, MatC->RowIndex,
+		      MatY->Values, MatY->Columns, MatY->RowIndex, &MatY->Num_Nonzero, &info );
 
      if (info != 0 ){
 	  Print_Header( ERROR );

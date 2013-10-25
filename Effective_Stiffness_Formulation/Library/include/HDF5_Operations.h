@@ -17,35 +17,37 @@
 #include "MatrixVector.h"
 #include "Substructure.h"
 
-#include <sys/time.h> /* For struct timeval */
-#include <time.h> /* For time_t */
+#if _MPI_
+#include <mpi.h>
+#endif
 
-typedef struct {
-     time_t Date_start;
-     char *Date_time;
-     double Elapsed_time;
-     struct timeval start;
-     struct timeval end;
-} HDF5time_t;
-
-typedef struct{
+typedef struct HDF5_Exact_UHYDE {
      int Position;
-     double InitValues[3];
-     char *Description;
+     HYSL_FLOAT InitValues[3];
+     char Description[MAX_DESCRIPTION];
 } HDF5_Exact_UHYDE_t;
 
-typedef struct{
+typedef struct HDF5_Exp_Meas {
      int Position;
-     char *Description;
+     char Description[MAX_DESCRIPTION];
 } HDF5_Exp_Meas_t;
 
 int HDF5_CreateFile( const char *Filename );
-void HDF5_CreateGroup_Parameters( int hdf5_file, AlgConst_t *const InitCnt, CouplingNode_t *const CNode, const double *const Acc, const double *const Vel, const double *const Disp );
-void Save_InformationCNodes( hid_t file_id, const char *Name_path, CouplingNode_t *const CNodes );
-void HDF5_CreateGroup_TimeIntegration( int hdf5_file, AlgConst_t *const InitCnt );
-void HDF5_Store_TimeHistoryData( int hdf5_file, MatrixVector_t *const Acc, MatrixVector_t *const Vel, MatrixVector_t *const Disp, MatrixVector_t *const InLoad, MatrixVector_t *const fc, MatrixVector_t *const fu, int istep, AlgConst_t *InitCnt );
-void HDF5_StoreTime( int hdf5_file, const HDF5time_t *Time );
-void HDF5_StoreADwinData( const int hdf5_file, const double *Array, const char **Entry_Names, const int Length );
+
+#if _MPI_
+void HDF5_CreateFile_MPI( MPI_Comm Comm, const char *Filename, hid_t *const file_id );
+void HDF5_Store_TimeHistoryData_MPI( const int hdf5_file, const PMatrixVector_t *const Acc, const PMatrixVector_t *const Vel, const PMatrixVector_t *const Disp,
+				    const PMatrixVector_t *const fc, const PMatrixVector_t *const fu, int istep, const int nprow, const int myrow, const AlgConst_t *const InitCnt );
+void HDF5_AddResults_to_Dataset_MPI( const hid_t file_id, const char *Path_name, const PMatrixVector_t *const Data, const int Step_count, const int nprow, const int myrow );
+void HDF5_Store_Time_MPI( const hid_t hdf5_file, const SaveTime_MPI_t *const Time );
+#endif
+
+void HDF5_CreateGroup_Parameters( const hid_t hdf5_file, const AlgConst_t *const InitCnt, const CouplingNode_t *const CNode, const HYSL_FLOAT *const Acc, const HYSL_FLOAT *const Vel, const HYSL_FLOAT *const Disp );
+void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const CouplingNode_t *const CNodes );
+void HDF5_CreateGroup_TimeIntegration( const hid_t hdf5_file, const AlgConst_t *const InitCnt );
+void HDF5_Store_TimeHistoryData( const hid_t hdf5_file, const MatrixVector_t *const Acc, const MatrixVector_t *const Vel, const MatrixVector_t *const Disp, const MatrixVector_t *const fc, const MatrixVector_t *const fu, const int istep, const AlgConst_t *const InitCnt );
+void HDF5_Store_Time( const hid_t hdf5_file, const SaveTime_t *const Time );
+void HDF5_StoreADwinData( const int hdf5_file, const HYSL_FLOAT *Array, char **Entry_Names, const int Length );
 
 
 /**
@@ -73,12 +75,13 @@ void HDF5_StoreADwinData( const int hdf5_file, const double *Array, const char *
  * - Number of rows equal to \f$N_{step}\cdot N_{substep}\f$.
  */
 void ADwin_SaveData_HDF5( const int hdf5_file, const int Num_Steps, const int Num_Sub,
-			  const int Num_Channels, const char **Chan_Names, const int DataIndex );
+			  const int Num_Channels, char **Chan_Names, const int DataIndex );
 
-void HDF5_AddDoubleArray_AsTable( hid_t file_id, const char *Name_path, const char **Names, const double *Array, const int Num_param, const int Length );
-void HDF5_AddIntArray_AsTable( hid_t file_id, const char *Name_path, const char **Names, const int *Array, const int Num_param );
+void HDF5_AddFloatArray_AsTable( const hid_t file_id, const char *Name_path, char **Names, const HYSL_FLOAT *Array, const int Num_param, const int Length );
+void HDF5_AddIntArray_AsTable( const hid_t file_id, const char *Name_path, char **Names, const int *Array, const int Num_param );
 
-void HDF5_Create_Dataset( hid_t file_id, const char *Path_name, const int Nstep, const int Order );
-void HDF5_AddResults_to_Dataset( hid_t file_id, const char *Path_name, MatrixVector_t *const Data, const int Step_count );
-void HDF5_CloseFile( int hdf5_file );
+void HDF5_Create_Dataset( const hid_t file_id, const char *Path_name, const int Nstep, const int Order );
+void HDF5_AddResults_to_Dataset( const hid_t file_id, const char *Path_name, const MatrixVector_t *const Data, const int Step_count );
+void HDF5_CloseFile( hid_t *const hdf5_file );
+
 #endif

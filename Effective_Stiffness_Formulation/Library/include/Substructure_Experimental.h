@@ -19,7 +19,7 @@
 /**
  * \brief Definition of a experimental substructure.
  */
-typedef struct ExpSub{
+typedef struct ExpSub {
      char *Description;  /*!< \brief Description of the experimental sub-structure.*/
 } ExpSub_t;
 
@@ -27,11 +27,13 @@ typedef struct ExpSub{
  * \brief Initialises the experimental substructure.
  * 
  * \param[in]  Description Brief description of the sub-structure.
- * \param[out] Sub         Experimental substructure.
+ * \param[out] Sub         Experimental substructure of type \c EXP_ADWIN.
  *
- * \post \c Sub.Description is a duplicate of the string in \c Description.
+ * \post
+ * - \c Sub.Description is a duplicate of the string in \c Description.
+ * - The memory should be deallocated through Substructure_DeleteCouplingNodes() routine.
  *
- * \sa ExpSub_t.
+ * \sa ExpSub_t, MAX_DESCRIPTION, Substructure_Id.
  */ 
 void Substructure_Experimental_Init( const char *Description, ExpSub_t *const Sub );
 
@@ -40,12 +42,12 @@ void Substructure_Experimental_Init( const char *Description, ExpSub_t *const Su
  *
  * \pre \c Sub must be properly initialised through Substructure_Experimental_Init().
  *
- * \param[in,out] Sub Experimental substructure.
+ * \param[out] Sub Experimental substructure.
  *
  * \post
- * - \c The memory allocated in \c Sub.Description is freed.
+ * - The memory allocated in \c Sub.Description is freed.
  *
- * \sa ExpSub_t, Substructure_Experimental_Init().
+ * \sa ExpSub_t and Substructure_Experimental_Init().
  */
 void Substructure_Experimental_Destroy( ExpSub_t *const Sub );
 

@@ -15,6 +15,7 @@
 #define SUBSTRUCTURE_SIMMEASURED_H_
 
 #include "Substructure.h"
+#include "Substructure.h"
 
 /**
  * \brief Stores the information necessary to deal with substructures that come in form of a time history of
@@ -22,7 +23,7 @@
  */
 typedef struct MeasuredSim {
      char *Description;    /*!< \brief Description of the sub-structure.*/
-     double *Values;       /*!< \brief Time history of coupling force values. */
+     HYSL_FLOAT *Values;       /*!< \brief Time history of coupling force values. */
      unsigned int Length;  /*!< \brief Length of the \c Values array.*/
 } MeasuredSim_t;
 
@@ -46,6 +47,7 @@ typedef struct MeasuredSim {
  * - \c Sub.Values contains the first \f$N_{steps}\cdot N_{sub\-steps}\f$ entries in the file.
  * - \c Sub.Description is a duplicate of the string in \c Description.
  * - If there is not enough memory, the program exits with \c EXIT_FAILURE.
+ * - The memory should be deallocated through Substructure_DeleteCouplingNodes() routine.
  *
  * \sa MeasuredSim_t, MAX_DESCRIPTION, Substructure_Id.
  */
@@ -62,17 +64,16 @@ void Substructure_SimMeasured_Init( const char *FileName, const unsigned int NSt
  * \param[in]  Sub Sub-structure of type \c SIM_MEASURED.
  * \param[out] fc  Coupling force at the \a i-th postion of the array \c Sub.Value.
  *
- * 
  * \sa MeasuredSim_t, Substructure_SimMeasured_Init().
  */
-void Substructure_SimMeasured( const MeasuredSim_t *const Sub, double *const fc );
+void Substructure_SimMeasured( const MeasuredSim_t *const Sub, HYSL_FLOAT *const fc );
 
 /**
  * \brief Frees the memory dynamically allocated in Substructure_SimMeasured_Init().
  *
  * \pre \c Sub must be properly initialised through Substructure_SimMeasured_Init().
  *
- * \param[in,out] Sub Substructure of type \c SIM_MEASURED to be destroyed.
+ * \param[out] Sub Substructure of type \c SIM_MEASURED to be destroyed.
  *
  * \post
  * - \c Sub.Length is set to 0.
