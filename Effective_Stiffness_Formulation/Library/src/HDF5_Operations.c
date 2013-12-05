@@ -330,9 +330,6 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const C
 				  H5P_DEFAULT, H5P_DEFAULT);
 	       status = H5Dwrite ( dset, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Nodes_Exp );
 	       
-	       for( j = 0; j < count; j++ ){
-		    free( Nodes_Exp[j].Description );	     
-	       }
 	       free( Nodes_Exp );
 
 	       status = H5Dclose( dset );

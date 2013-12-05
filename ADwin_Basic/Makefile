@@ -1,4 +1,4 @@
-BINFILES = Substep_DFG_withDcomp_DelayFc Substep_DFG_withDcomp_DelayFc_New Substepping_Process Table_Control
+BINFILES = Substepping_Process Table_Control
 BUILDDIR = build
 
 default: $(BINFILES)
