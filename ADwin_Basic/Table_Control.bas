@@ -20,7 +20,8 @@ Rem                                                  the shake table can handle.
 #define Offset_DA_AD           32768               ' Zero offset of the DA and AD converter
 #define Max_Error_Int          0.1                 ' Limit value of the integration error
 #define Clock_To_Time_Conv     ((10.0/3.0)*1.0e-9) ' Conversion from clock to time units [seconds]
-#define Default_dtcontrol      0.00025             ' Default value of the time increment for the control loop. Possible values are
+#define ClockToTime                 ((10.0/3.0)*1.0e-9)
+#define Default_dtcontrol      0.0001             ' Default value of the time increment for the control loop. Possible values are
 Rem                                                         - 0.00010 in the case of real time tests.
 Rem                                                         - 0.0025 in the case of distributed tests with a step time of 2s
 #define Default_dtdata         0.5                 ' Time increment for displacement/new data. Ask Van Thuan
@@ -145,6 +146,8 @@ dim Tddis[Num_Channel] as float
 ' Variables to control the process time, working time etc
 dim Time_Event_Init as long     ' Time at the start of an EVENT
 dim Pressure_Transit_Time, Pressure_Transit_Time_0, Pressure_Transit_Time_1 as long
+dim TransitTime_t0,TransitTime_t1,readtimer0 as long
+dim TransitTime as float
 
 INIT:
   Init_Variables()
@@ -166,7 +169,8 @@ EVENT:
     EmergencyStop()
   Else
     ' Check the pressure control
-    Check_PressureControl() ' Partial
+    CHECK_PRESSURE_CONTROL()
+    'Check_PressureControl() ' Partial
     
     'Update Limits each event to match those set in the C++ interface
     Update_Limits()
@@ -312,12 +316,95 @@ SUB EmergencyStop()
   
   CURRENT_PRESSURE = 0                         ' As a result the pressure is set to 0.
 ENDSUB
+SUB CHECK_PRESSURE_CONTROL()
+  SelectCase NEW_PRESSURE_COMMAND
+    Case 1 ' require LOW
+      Selectcase CURRENT_PRESSURE 
+        Case 0 ' turn from nul to low
+          Y2 = 1
+          Y1 = 0
+          CURRENT_PRESSURE = 1
+          NEW_PRESSURE_COMMAND  = 0
+          NEW_STATUS_DOUT = 1
+        Case 1 ' keep low, 
+          NEW_PRESSURE_COMMAND  = 0
+        Case 2 ' do nothing
+          if(TransitTime = 0) then 'first time do here
+            TransitTime_t0 = read_timer()
+          endif
+          Y2 = 1
+          NEW_STATUS_DOUT = 1
+          TransitTime_t1 = read_timer()
+          if(TransitTime_t1 > TransitTime_t0) then
+            TransitTime = TransitTime + ((TransitTime_t1 - TransitTime_t0)*ClockToTime)
+          else
+            TransitTime = TransitTime + ((TransitTime_t1 - TransitTime_t0)*ClockToTime) + 14.30
+          endif
+          TransitTime_t0 = TransitTime_t1
+            
+          if(TransitTime < 2.0)then ' waiting TransitTime >= 2.0s
+            Y1 = Y1 ' not change , Y1 still = 1
+          else ' now turn off Y1 to 0 and finish changing Y1 & Y2
+            Y1 = 0
+            NEW_STATUS_DOUT = 1
+            CURRENT_PRESSURE = 1
+            NEW_PRESSURE_COMMAND  = 0
+            TransitTime = 0
+          endif
 
+      Endselect
+    Case 2 ' require HIGH
+      Selectcase CURRENT_PRESSURE 
+        Case 0 ' can not turn from nul to high, do nothing
+          NEW_PRESSURE_COMMAND  = 0
+        Case 1 ' from low to high
+          if(TransitTime = 0) then 'first time do here
+            TransitTime_t0 = read_timer()
+          endif
+          Y1 = 1
+          NEW_STATUS_DOUT = 1
+          TransitTime_t1 = read_timer()
+          if(TransitTime_t1 > TransitTime_t0) then
+            TransitTime = TransitTime + ((TransitTime_t1 - TransitTime_t0)*ClockToTime)
+          else
+            TransitTime = TransitTime + ((TransitTime_t1 - TransitTime_t0)*ClockToTime) + 14.30
+          endif
+          TransitTime_t0 = TransitTime_t1
+            
+          if(TransitTime < 2.0)then ' waiting TransitTime >= 2.0s
+            Y2 = Y2 ' not change , Y2 still = 1
+          else ' now turn off Y2 to 0 and finish changing Y1 & Y2
+            Y2 = 0
+            NEW_STATUS_DOUT = 1
+            CURRENT_PRESSURE = 2
+            NEW_PRESSURE_COMMAND  = 0
+            TransitTime = 0
+          endif
+        Case 2 ' do nothing
+          NEW_PRESSURE_COMMAND  = 0
+      Endselect
+    Case 3 ' Stop
+      Y1 = 0
+      Y2 = 0
+      CURRENT_PRESSURE = 0
+      NEW_STATUS_DOUT = 1
+      NEW_PRESSURE_COMMAND  = 0
+  Endselect  
+
+  'Write out new value of DOUT
+  if (NEW_STATUS_DOUT = 1) then
+    DIGOUT_F(1,1,Y1)  
+    DIGOUT_F(1,2,Y2)
+    NEW_STATUS_DOUT = 0
+  endif
+  
+    
+endsub
 ' Routine to control the pressure in the hydraulic block.
 SUB Check_PressureControl()
   SelectCase NEW_PRESSURE_COMMAND
     Case 0                                     ' This is the do nothing case
-      NEW_PRESSURE_COMMAND = 0
+      ' Do nothing NEW_PRESSURE_COMMAND = 0
     Case 1                                     ' In this case low pressure is required.
       SelectCase CURRENT_PRESSURE              ' Evaluate what is the current pressure in the hydraulic block and act accordingly.
         Case 0                                 ' The pressure should change from 'No pressure' to 'Low pressure'
@@ -331,7 +418,7 @@ SUB Check_PressureControl()
         Case 2                                 ' Change from high pressure to low pressure
           ' Since the pressure cannot be changed immediately due to the characteristics of the hydraulic block, timing
           ' functions have to be used to smooth the transition.
-          If (Pressure_Transit_Time = 0) Then
+          If(Pressure_Transit_Time = 0) Then
             Pressure_Transit_Time_0 = read_timer()
           EndIf
           
@@ -345,10 +432,10 @@ SUB Check_PressureControl()
             Pressure_Transit_Time = Pressure_Transit_Time + ((Pressure_Transit_Time_1 - Pressure_Transit_Time_0)*Clock_To_Time_Conv)
           Else
             Pressure_Transit_Time = Pressure_Transit_Time + ((Pressure_Transit_Time_1 - Pressure_Transit_Time_0)*Clock_To_Time_Conv) + 14.30
-          EndIf
+          Endif
           Pressure_Transit_Time_0 = Pressure_Transit_Time_1 ' Backup the new value for further use in the next event
-          
-          If (Pressure_Transit_time < 2.0) Then
+            
+          If(Pressure_Transit_Time < 2.0)Then
             Y1 = Y1                            ' Do nothing
           Else                                 ' Once the correct amount of time has been reached, the pressure can effectively
             Rem                                               be switched to 'Low pressure'
@@ -374,14 +461,15 @@ SUB Check_PressureControl()
           Rem                                  switch Y2 remains unmodified until a certain time (2 seconds) has passed
           NEW_STATUS_DOUT = 1                ' One of the digital output signals has changed
                     
+          
           Pressure_Transit_Time_1 = read_timer()
           ' Make sure that the long variable does not reset to 0 due to reaching its upper limit
-          If(Pressure_Transit_Time_1 > Pressure_Transit_Time_0) Then
+          if(Pressure_Transit_Time_1 > Pressure_Transit_Time_0) Then
             Pressure_Transit_Time = Pressure_Transit_Time + ((Pressure_Transit_Time_1 - Pressure_Transit_Time_0)*Clock_To_Time_Conv)
           Else
             Pressure_Transit_Time = Pressure_Transit_Time + ((Pressure_Transit_Time_1 - Pressure_Transit_Time_0)*Clock_To_Time_Conv) + 14.30
-          EndIf
-          Pressure_Transit_Time_0 = Pressure_Transit_Time_1 ' Backup the new value for further use in the next event
+          endif
+          Pressure_Transit_Time_0 = Pressure_Transit_Time_1
           
           If (Pressure_Transit_Time < 2.0) Then
             Y2 = Y2  ' Do nothing

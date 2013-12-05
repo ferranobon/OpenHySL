@@ -61,7 +61,7 @@ Rem                                     the end of the process.
 '#define dcomphsmax            0.0
 #define dcompnu                5
 #define dcomplamdaValue        0.99
-#define dcompndelay            12
+#define dcompndelay            15
 '#define dcompUsingUrUsingforwardstep   0
 #define dcomppumless           1
 #define dCompStartPoint        125
@@ -231,7 +231,8 @@ Rem                                       (value of 0)
 dim DID_RAMP_FUNCTION as short
 dim DO_PREVIOUS_RAMP as short           ' Variable to identify whether the ramp function from the previous step should be performed
 Rem                                       (value of 1) or not (value of 0). This only shoud be true when there has been no update from
-Rem                                       the PC at the desired time.
+Rem                                       the PC at the desired time
+dim HAS_DONE_PREVIOUS_RAMP as short
 
 dim vi[order] as float                  ' Stores the velocity within a sub-step. Used in the delay compensation.
 dim u0[order] as float                  ' To store the data received from the PC at the previous step
@@ -337,25 +338,41 @@ EVENT:
       If(dcompCompensation=1) Then
         Process_dcomp_Before()
       EndIf
-      
-      ' Update the ramp function values
-      ramp = Current_Substep / Num_Substep
-      ramp0= 1.0 - ramp
-      
+         
       ucprev[1] = uc[1]               ' Backup the displacement in order to calculate the velocity.
-      If (DO_PREVIOUS_RAMP = 0) Then       
+      If (DO_PREVIOUS_RAMP = 0) Then 
+        ' Update the ramp function values
+        
+        If (HAS_DONE_PREVIOUS_RAMP = 0)  Then
+          ramp = Current_Substep / Num_Substep
+        Else
+          ramp = (Current_Substep - 1)/ (Num_Substep - 1)         
+        EndIf
+        
+        ramp0= 1.0 - ramp
+              
         'mul_const_vector(ramp0,u0,order,vec1)
         'mul_const_vector(ramp,u01,order,vec2)
         'sum_vector_vector(vec1,order,vec2,vec3)
         'mul_matrix_vector(Gain,order,order,fc,vec1)
         'sum_vector_vector(vec3,order,vec1,uc)
-        uc[1] = ramp0 * u0[1] + ramp * u01[1] + Gain_Matrix[1]*fc[1]
+        uc[1] = ramp0 * u0[1] + ramp * u01[1]' + Gain_Matrix[1]*fc[1]
       Else
         ' Continue with the previous ramp function for one more substep
-        ramp = (Num_Substep + 1)/Num_Substep
+        If (HAS_DONE_PREVIOUS_RAMP = 0)  Then
+          ramp = (Num_Substep + 1)/Num_Substep  
+        Else
+          ramp = Num_Substep/(Num_Substep - 1)
+        EndIf
+        
         ramp0 = 1.0 - ramp
-        uc[1] = ramp0 * u0[1] + ramp * u01[1] + Gain_Matrix[1]*fc[1]
+        uc[1] = ramp0 * u0[1] + ramp * u01[1]' + Gain_Matrix[1]*fc[1]
+        
+        ' Update the next u0 value since this is going to be the starting point of the next function
+        u0[1] = ramp0*u0[1] + ramp*u01[1]
+        
         DO_PREVIOUS_RAMP = 0
+        HAS_DONE_PREVIOUS_RAMP = 1
       EndIf
            
       vi[1] = (uc[1]-ucprev[1])/dtsub  ' Velocity for delay compensation 
@@ -372,35 +389,35 @@ EVENT:
       If (Current_Event = Num_Event_Substep) Then
         ' Use the load cells to measure the force
         ForceMeasurement()
-        if (UseAccelerations_As_Fc = 0) then        
+        If (UseAccelerations_As_Fc = 0) then        
           Coupling_Force_LoadCells()
           fc[1] =  -FcoupX1
-        else
+        Else
           Coupling_Force_Accelerations()
           fc[1] = -FcoupX1
-        endif
-      
+        EndIf
+      fc[1] = 0.0
         ' Backup the coupling force vector at the Num_Substep -1 substep.
-        if ((Current_Substep = (Num_Substep -1)) or (Num_Substep = 1)) then
+        If ((Current_Substep = (Num_Substep -1)) or (Num_Substep = 1)) Then
           scopy(fc, Order, fcprev)
-        endif
+        EndIf
       
         ' Check the values for safety reasons
         Check_Limitation()
       
         If(dcompCompensation=1) Then
           Process_DComp_After()
-        endif      
+        EndIf      
       
         ADlog()
       
         If (Current_Substep = Num_Substep) Then
           ' Copy the data to Output_Data so that the PC can read it
-          for i = 1 to order
+          For i = 1 to order
             Output_Data[1+i] = uc[i]
             Output_Data[1+ (1*order)+i] = fcprev[i]
             Output_Data[1 +(2*order)+i] = fc[i]
-          next i
+          Next i
         
           SYNC_ADWIN = -1.0
           Output_Data[1] = SYNC_ADWIN
@@ -409,8 +426,9 @@ EVENT:
         
           Current_Substep = 1                    ' Reset the sub-step counter
           Current_Step = Current_Step + 1
-          scopy(u01,Order,u0)                    ' Copy the vector received from the PC during this step to u0 in order to compute
-          Rem                                      uc in the next step         
+          
+          'scopy(u01,Order,u0)                    ' Copy the vector received from the PC during this step to u0 in order to compute
+          Rem                                      uc in the next step
         Else
           Current_Substep = Current_Substep + 1  ' Increase the sub-step counter
         Endif
@@ -976,8 +994,8 @@ ENDSUB
 SUB dCompCheckInitationP()
   if(idcomp<(dCompStartPoint-1)) then
     'dcompPinvertStart = dcompPinvertStart + dcomperr*dcomperr + velvecj[1]*velvecj[1]
-    dcompPinvertStart = dcompPinvertStart + dcomperr*dcomperr + vi[1]*vi[1]
-    'dcompPinvertStart = dcompPinvertStart + dcomperr*dcomperr + uc[1]*uc[1]
+    'dcompPinvertStart = dcompPinvertStart + dcomperr*dcomperr + vi[1]*vi[1]
+    dcompPinvertStart = dcompPinvertStart + dcomperr*dcomperr + uc[1]*uc[1]
   else
     if(idcomp=(dCompStartPoint-1))then
       dcompPold = (1.0/dcompPinvertStart) / dcomp_devide_Po
