@@ -317,89 +317,103 @@ SUB EmergencyStop()
   CURRENT_PRESSURE = 0                         ' As a result the pressure is set to 0.
 ENDSUB
 SUB CHECK_PRESSURE_CONTROL()
+' Routine to control the pressure in the hydraulic block.
   SelectCase NEW_PRESSURE_COMMAND
-    Case 1 ' require LOW
-      Selectcase CURRENT_PRESSURE 
-        Case 0 ' turn from nul to low
-          Y2 = 1
-          Y1 = 0
-          CURRENT_PRESSURE = 1
-          NEW_PRESSURE_COMMAND  = 0
-          NEW_STATUS_DOUT = 1
-        Case 1 ' keep low, 
-          NEW_PRESSURE_COMMAND  = 0
-        Case 2 ' do nothing
-          if(TransitTime = 0) then 'first time do here
+    Case 1                                     ' In this case low pressure is required.
+      Selectcase CURRENT_PRESSURE              ' Evaluate what is the current pressure in the hydraulic block and act accordingly.
+        Case 0                                 ' The pressure should change from 'No pressure' to 'Low pressure'
+          Y2 = 1                               ' The second switch of the hydraulic block is set to 1.
+          Y1 = 0                               ' The first switch should remain with a value of 0.
+          CURRENT_PRESSURE = 1                 ' As a result the pressure is now set to 'Low pressure'
+          NEW_PRESSURE_COMMAND  = 0            ' Do nothing in the next events unless manually specified in the C++ interface.
+          NEW_STATUS_DOUT = 1                  ' One of the digital output signals has changed.
+        Case 1                                 ' Keep Low pressure
+          NEW_PRESSURE_COMMAND  = 0            ' This should not usually happen. Nevertheless, do nothing in this case except setting the NEW_PRESSURE_COMMAND variable to 0.
+        Case 2 ' do nothing                    ' Change from high pressure to low pressure
+          ' Since the pressure cannot be changed immediately due to the characteristics of the hydraulic block, timing
+          ' functions have to be used to smooth the transition.
+          If (TransitTime = 0) Then
             TransitTime_t0 = read_timer()
-          endif
-          Y2 = 1
-          NEW_STATUS_DOUT = 1
+          EndIf
+          
+          Y2 = 1                               ' Tell the hydraulic block that we want to change the pressure from high to low. The other
+          Rem                                    switch Y1 remains unmodified until a certain time (2 seconds) has passed
+          NEW_STATUS_DOUT = 1                  ' One of the digital output signals has changed
+          
           TransitTime_t1 = read_timer()
-          if(TransitTime_t1 > TransitTime_t0) then
+          ' Make sure that the long variable does not reset to 0 due to reaching its upper limit
+          If (TransitTime_t1 > TransitTime_t0) Then
             TransitTime = TransitTime + ((TransitTime_t1 - TransitTime_t0)*ClockToTime)
-          else
+          Else
             TransitTime = TransitTime + ((TransitTime_t1 - TransitTime_t0)*ClockToTime) + 14.30
-          endif
+          EndIf
           TransitTime_t0 = TransitTime_t1
             
-          if(TransitTime < 2.0)then ' waiting TransitTime >= 2.0s
-            Y1 = Y1 ' not change , Y1 still = 1
-          else ' now turn off Y1 to 0 and finish changing Y1 & Y2
-            Y1 = 0
-            NEW_STATUS_DOUT = 1
-            CURRENT_PRESSURE = 1
-            NEW_PRESSURE_COMMAND  = 0
+          If (TransitTime < 2.0) Then          ' Wait until TransitTime >= 2.0s
+            Y1 = Y1                            ' Do nothing' not change , Y1 still = 1
+          else                                 ' Once the correct amount of time has been reached, the pressure can effectively
+            Rem                                  be switched to 'Low pressure'
+            Y1 = 0                             ' Tell the hydraulic block that we effectively are in low pressure by switching Y1 to 0
+            NEW_STATUS_DOUT = 1                ' One of the digital output signals has changed
+            CURRENT_PRESSURE = 1               ' The new pressure is set to 'Low pressure'
+            NEW_PRESSURE_COMMAND  = 0          ' There is not a NEW_PRESSURE_COMMAND in the next event unless manually specified
             TransitTime = 0
-          endif
-
+          Endif
       Endselect
-    Case 2 ' require HIGH
+    Case 2                                     ' In this case high pressure is required
       Selectcase CURRENT_PRESSURE 
-        Case 0 ' can not turn from nul to high, do nothing
+        Case 0                                 ' The pressure cannot be changed from no pressure to high pressure in a single step.
           NEW_PRESSURE_COMMAND  = 0
-        Case 1 ' from low to high
-          if(TransitTime = 0) then 'first time do here
+        Case 1                                 ' Change the pressure from 'Low pressure' to 'High Pressure'
+          Rem                                    Since the pressure cannot be changed immediately due to the characteristics of the hydraulic block, timing
+          Rem                                    functions have to be used to smooth the transition.
+          
+          If(TransitTime = 0) Then
             TransitTime_t0 = read_timer()
-          endif
-          Y1 = 1
-          NEW_STATUS_DOUT = 1
+          EndIf
+          
+          Y1 = 1                               ' Tell the hydraulic block that we want to change the pressure from high to low. The other
+          Rem                                    switch Y2 remains unmodified until a certain time (2 seconds) has passed
+          NEW_STATUS_DOUT = 1                  ' One of the digital output signals has changed
+          
           TransitTime_t1 = read_timer()
-          if(TransitTime_t1 > TransitTime_t0) then
+          ' Make sure that the long variable does not reset to 0 due to reaching its upper limit
+          If (TransitTime_t1 > TransitTime_t0) Then
             TransitTime = TransitTime + ((TransitTime_t1 - TransitTime_t0)*ClockToTime)
-          else
+          Else
             TransitTime = TransitTime + ((TransitTime_t1 - TransitTime_t0)*ClockToTime) + 14.30
-          endif
+          EndIf
           TransitTime_t0 = TransitTime_t1
             
-          if(TransitTime < 2.0)then ' waiting TransitTime >= 2.0s
-            Y2 = Y2 ' not change , Y2 still = 1
-          else ' now turn off Y2 to 0 and finish changing Y1 & Y2
-            Y2 = 0
-            NEW_STATUS_DOUT = 1
-            CURRENT_PRESSURE = 2
-            NEW_PRESSURE_COMMAND  = 0
-            TransitTime = 0
-          endif
-        Case 2 ' do nothing
+          If (TransitTime < 2.0) Then          ' Wait until TransitTime >= 2.0s
+            Y2 = Y2                            ' Do nothing
+          Else                                 ' Once the correct amount of time has been reached, the pressure can effectively
+            Rem                                  be switched to 'High pressure'
+            Y2 = 0                             ' Tell the hydraulic block that we effectively are in high pressure by switching Y2 to 0
+            NEW_STATUS_DOUT = 1                ' One of the digital output signals has changed
+            CURRENT_PRESSURE = 2               ' The new pressure is set to 'High pressure'
+            NEW_PRESSURE_COMMAND  = 0          ' There is not a NEW_PRESSURE_COMMAND in the next event unless manually specified
+            TransitTime = 0                    ' Reset the time counter
+          EndIf
+        Case 2                                 ' Do nothing, we are already in high pressure.
           NEW_PRESSURE_COMMAND  = 0
       Endselect
-    Case 3 ' Stop
-      Y1 = 0
-      Y2 = 0
-      CURRENT_PRESSURE = 0
-      NEW_STATUS_DOUT = 1
-      NEW_PRESSURE_COMMAND  = 0
+    Case 3                                     ' Stop the pressure.
+      Y1 = 0                                   ' The first switch of the hydraulic block is set to 0.
+      Y2 = 0                                   ' The second switch of the hydraulic block is set to 0.
+      CURRENT_PRESSURE = 0                     ' The actual pressure variable is set to 0 since there is none.
+      NEW_STATUS_DOUT = 1                      ' There is one action to be taken. Change the pressure from 'High' or 'Low' to none.
+      NEW_PRESSURE_COMMAND  = 0                ' There is no new pressure command during this step.
   Endselect  
 
-  'Write out new value of DOUT
-  if (NEW_STATUS_DOUT = 1) then
-    DIGOUT_F(1,1,Y1)  
-    DIGOUT_F(1,2,Y2)
-    NEW_STATUS_DOUT = 0
-  endif
-  
+  ' If there has been a change in the pressure control, tell the digital signal to do so.
+  If (NEW_STATUS_DOUT = 1) Then
+    DIGOUT_F(1,1,Y1)                           ' Set the output of the first hydraulic block switch to Y1
+    DIGOUT_F(1,2,Y2)                           ' Set the output of the first hydraulic block switch to Y2
+    NEW_STATUS_DOUT = 0                        ' Reset the value to 0.
+  EndIf
     
-endsub
+ENDSUB
 ' Routine to control the pressure in the hydraulic block.
 SUB Check_PressureControl()
   SelectCase NEW_PRESSURE_COMMAND
