@@ -178,14 +178,23 @@ int main( int argc, char **argv ){
 	  (!InitCnt.Use_Sparse && InitCnt.Read_Sparse)) && !InitCnt.Use_Packed ){
 	  MatrixVector_Create( InitCnt.Order, InitCnt.Order, &M );
 	  MatrixVector_Create( InitCnt.Order, InitCnt.Order, &K );
+	  if( InitCnt.Read_CMatrix ){
+	       MatrixVector_Create( InitCnt.Order, InitCnt.Order, &C );
+	  }
      } else if( ((!InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (InitCnt.Use_Sparse && !InitCnt.Read_Sparse)
 		 || (!InitCnt.Use_Sparse && InitCnt.Read_Sparse)) && InitCnt.Use_Packed ){
 	  MatrixVector_Create_PS( InitCnt.Order, InitCnt.Order, &M );
 	  MatrixVector_Create_PS( InitCnt.Order, InitCnt.Order, &K );
+	  if( InitCnt.Read_CMatrix ){
+	       MatrixVector_Create_PS( InitCnt.Order, InitCnt.Order, &C );
+	  }
      } else if ( InitCnt.Use_Sparse && InitCnt.Read_Sparse ){
 #if _SPARSE_
 	  MatrixVector_SetRowsCols_Sp( InitCnt.Order, InitCnt.Order, &Sp_M );
 	  MatrixVector_SetRowsCols_Sp( InitCnt.Order, InitCnt.Order, &Sp_K );
+	  if( InitCnt.Read_CMatrix ){
+	       MatrixVector_SetRowsCols_Sp( InitCnt.Order, InitCnt.Order, &Sp_C );
+	  }
 #endif
      } else assert(0);
 
@@ -240,9 +249,15 @@ int main( int argc, char **argv ){
      if( !InitCnt.Read_Sparse && !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
 	  MatrixVector_FromFile( InitCnt.FileM, &M );
 	  MatrixVector_FromFile( InitCnt.FileK, &K );
+	  if( InitCnt.Read_CMatrix ){
+	       MatrixVector_FromFile( InitCnt.FileC, &C );
+	  }
      } else if ( !InitCnt.Read_Sparse && !InitCnt.Use_Sparse && InitCnt.Use_Packed ){
 	  MatrixVector_FromFile_GE2PS( InitCnt.FileM, &M );
 	  MatrixVector_FromFile_GE2PS( InitCnt.FileK, &K );
+	  if( InitCnt.Read_CMatrix ){
+	       MatrixVector_FromFile_GE2PS( InitCnt.FileC, &C );
+	  }
      } else if ( !InitCnt.Read_Sparse && InitCnt.Use_Sparse ){
 #if _SPARSE_
 	  MatrixVector_FromFile( InitCnt.FileM, &M );
@@ -252,17 +267,34 @@ int main( int argc, char **argv ){
 	  MatrixVector_FromFile( InitCnt.FileK, &K );
 	  MatrixVector_Dense2CSR( &K, 0, &Sp_K );        /* Transform into CSR format */
 	  MatrixVector_Destroy( &K );                    /* Destroy the dense matrix */
+
+	  if( InitCnt.Read_CMatrix ){
+	       MatrixVector_FromFile( InitCnt.FileK, &C );
+	       MatrixVector_Dense2CSR( &C, 0, &Sp_C );        /* Transform into CSR format */
+	       MatrixVector_Destroy( &C );                    /* Destroy the dense matrix */	  
+	  }     
 #endif
      } else if ( InitCnt.Read_Sparse && !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
 	  MatrixVector_FromFile_MM( InitCnt.FileM, &M );
 	  MatrixVector_FromFile_MM( InitCnt.FileK, &K );
+	  if( InitCnt.Read_CMatrix ){
+	       printf("%s\n", InitCnt.FileC );
+	       MatrixVector_FromFile_MM( InitCnt.FileC, &C );
+	       printf("1\n");
+	  }
      } else if ( InitCnt.Read_Sparse && !InitCnt.Use_Sparse && InitCnt.Use_Packed ){
 	  MatrixVector_FromFile_MM_PS( InitCnt.FileM, &M );
 	  MatrixVector_FromFile_MM_PS( InitCnt.FileK, &K );
+	  if( InitCnt.Read_CMatrix ){
+	       MatrixVector_FromFile_MM_PS( InitCnt.FileC, &C );
+	  }
      } else if ( InitCnt.Read_Sparse && InitCnt.Use_Sparse ){
 #if _SPARSE_
 	  MatrixVector_FromFile_MM_Sp( InitCnt.FileM, &Sp_M );
 	  MatrixVector_FromFile_MM_Sp( InitCnt.FileK, &Sp_K );
+	  if( InitCnt.Read_CMatrix ){
+	       MatrixVector_FromFile_MM_Sp( InitCnt.FileC, &Sp_C );
+	  }
 #endif
      } else assert(0);
 
@@ -273,18 +305,20 @@ int main( int argc, char **argv ){
      }
 
      /* Calculate damping matrix using Rayleigh. C = alpha*M + beta*K */
-     if ( InitCnt.Use_Sparse ) {
+     if( !InitCnt.Read_CMatrix ){
+	  if ( InitCnt.Use_Sparse ) {
 #if _SPARSE_
-	  MatrixVector_Create_Sp( InitCnt.Order, InitCnt.Order, Sp_K.Num_Nonzero, &Sp_C );
-	  Rayleigh_Damping_Sp( &Sp_M, &Sp_K, &Sp_C, &InitCnt.Rayleigh );
+	       MatrixVector_Create_Sp( InitCnt.Order, InitCnt.Order, Sp_K.Num_Nonzero, &Sp_C );
+	       Rayleigh_Damping_Sp( &Sp_M, &Sp_K, &Sp_C, &InitCnt.Rayleigh );
 #endif
-     } else if ( !InitCnt.Use_Packed && !InitCnt.Use_Sparse ){
-	  MatrixVector_Create( InitCnt.Order, InitCnt.Order, &C );
-	  Rayleigh_Damping( &M, &K, &C, &InitCnt.Rayleigh );
-     } else if ( InitCnt.Use_Packed && !InitCnt.Use_Sparse ){
-	  MatrixVector_Create_PS( InitCnt.Order, InitCnt.Order, &C );
-	  Rayleigh_Damping_PS( &M, &K, &C, &InitCnt.Rayleigh );
-     } else assert(0);
+	  } else if ( !InitCnt.Use_Packed && !InitCnt.Use_Sparse ){
+	       MatrixVector_Create( InitCnt.Order, InitCnt.Order, &C );
+	       Rayleigh_Damping( &M, &K, &C, &InitCnt.Rayleigh );
+	  } else if ( InitCnt.Use_Packed && !InitCnt.Use_Sparse ){
+	       MatrixVector_Create_PS( InitCnt.Order, InitCnt.Order, &C );
+	       Rayleigh_Damping_PS( &M, &K, &C, &InitCnt.Rayleigh );
+	  } else assert(0);
+     }
 
      /* Calculate Matrix Keinv = 1.0*[K + a0*M + a1*C]^(-1) */
      Constants.Alpha = InitCnt.a0;    /* Mass matrix coefficient */

@@ -79,6 +79,14 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
 	  InitConst->ExcitedDOF = NULL;
      }
 
+     /* Read the damping matrix or use rayleigh */
+     InitConst->Read_CMatrix = ConfFile_GetInt( Config, "General:Read_CMatrix" );
+     if ( !Valid_Value( InitConst->Read_CMatrix )){
+	  Error = true;
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Algorithm_Init(): Invalid option for Read_CMatrix.\n" );
+     }
+
      /* Number of steps and Time step */
      InitConst->NStep = (unsigned int) ConfFile_GetInt( Config, "General:Num_Steps" );
      if ( InitConst->NStep <= 0 ){
@@ -105,13 +113,16 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
 #endif
 
      /* Rayleigh values */
+     if( !InitConst->Read_CMatrix ){
 #if _FLOAT_
-     InitConst->Rayleigh.Alpha = ConfFile_GetFloat( Config, "Rayleigh:Alpha" );
-     InitConst->Rayleigh.Beta = ConfFile_GetFloat( Config, "Rayleigh:Beta" );
+	  InitConst->Rayleigh.Alpha = ConfFile_GetFloat( Config, "Rayleigh:Alpha" );
+	  InitConst->Rayleigh.Beta = ConfFile_GetFloat( Config, "Rayleigh:Beta" );
 #else
-     InitConst->Rayleigh.Alpha = ConfFile_GetDouble( Config, "Rayleigh:Alpha" );
-     InitConst->Rayleigh.Beta = ConfFile_GetDouble( Config, "Rayleigh:Beta" );
+	  InitConst->Rayleigh.Alpha = ConfFile_GetDouble( Config, "Rayleigh:Alpha" );
+	  InitConst->Rayleigh.Beta = ConfFile_GetDouble( Config, "Rayleigh:Beta" );
 #endif
+     }
+	  
 
      /* Newmark integration constants */
 #if _FLOAT_
@@ -172,7 +183,14 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
 	  fprintf( stderr, "%s: No such file or directory.\n", InitConst->FileK );
      }
 
-     InitConst->FileC = strdup( ConfFile_GetString( Config, "FileNames:Damping_Matrix" ) );
+     if( InitConst->Read_CMatrix ){
+	  InitConst->FileC = strdup( ConfFile_GetString( Config, "FileNames:Damping_Matrix" ) );
+	  if( !Valid_File( InitConst->FileC ) ){
+	       Error = true;
+	       Print_Header( ERROR );
+	       fprintf( stderr, "%s: No such file or directory.\n", InitConst->FileK );
+	  }
+     }
 
      if( InitConst->Read_LVector ){
 	  InitConst->FileLV = strdup( ConfFile_GetString( Config, "FileNames:Load_Vector" ) );
@@ -397,11 +415,11 @@ void Algorithm_ReadDataEarthquake_RelValues( const unsigned int NumSteps, const 
 
      for ( i = 0; i < NumSteps; i++ ){
 #if _FLOAT_
-	  fscanf( InFile, "%E %E", &unnecessary, &temp1 );
-//	  fscanf( InFile, "%E %E %E %E", &unnecessary, &temp1, &temp2, &temp3 );
+//	  fscanf( InFile, "%E %E", &unnecessary, &temp1 );
+	  fscanf( InFile, "%E %E %E %E", &unnecessary, &temp1, &temp2, &temp3 );
 #else
-	  fscanf( InFile, "%lE %lE", &unnecessary, &temp1 );
-//	  fscanf( InFile, "%lE %lE %lE %lE", &unnecessary, &temp1, &temp2, &temp3 );
+//	  fscanf( InFile, "%lE %lE", &unnecessary, &temp1 );
+	  fscanf( InFile, "%lE %lE %lE %lE", &unnecessary, &temp1, &temp2, &temp3 );
 #endif
 	  Acceleration[i] = temp1*Scale_Factor;
      }
