@@ -101,6 +101,7 @@ typedef struct AlgConst{
      int *ExcitedDOF;         /*!< \brief Integer string containing wich elements of the external load will be
 			       * applied.  \sa AlgorithM_GetExcitedDOF().
 			       */
+     int Read_CMatrix;        /*!< \brief Read the damping matrix from a file instead of using Rayleigh Damping. */
      HYSL_FLOAT Delta_t;          /*!< \brief Time increment \f$\Delta t\f$ */
      HYSL_FLOAT DeltaT_Sub;       /*!< \brief Time increment for the sub-stepping process */
 
