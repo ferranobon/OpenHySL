@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -164,7 +163,7 @@ int main( int argc, char **argv ){
      /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will be used
       * during the test */
      if( InitCnt.Use_Absolute_Values ){
-	  AccAll = NULL;
+	  AccAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
 	  VelAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
 	  DispAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
      } else {
@@ -360,6 +359,8 @@ int main( int argc, char **argv ){
      if( InitCnt.Use_Absolute_Values ){
 	  Algorithm_ReadDataEarthquake_AbsValues( InitCnt.NStep, InitCnt.FileData, InitCnt.Scale_Factor,
 						  VelAll, DispAll );
+	  Algorithm_ReadDataEarthquake_RelValues( InitCnt.NStep, InitCnt.FileData, InitCnt.Scale_Factor,
+						  AccAll );
      } else {
 	  Algorithm_ReadDataEarthquake_RelValues( InitCnt.NStep, InitCnt.FileData, InitCnt.Scale_Factor,
 						  AccAll );
