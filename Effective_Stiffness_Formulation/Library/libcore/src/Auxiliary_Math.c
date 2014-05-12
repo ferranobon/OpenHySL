@@ -1,5 +1,7 @@
 #include <stdio.h>              /* For printf(), fprintf() */
 #include <stdlib.h>             /* For exit() */
+#include <stdbool.h>            /* For bool, true and false */
+#include <math.h>               /* For sqrt(), log() */
 
 #include "Auxiliary_Math.h"
 #include "Print_Messages.h"
@@ -142,3 +144,88 @@ void Compute_Eigenvalues_Eigenvectors ( MatrixVector_t *const MatrixA, MatrixVec
      free( TempMat );
      free( work );
 }
+
+/* Routine based on ran1 from Numerical Receipes in C */
+HYSL_FLOAT RandomNumber( long int *const idum )
+{
+     int j;
+     long int k;
+     static long int iy = 0;
+     static long iv[NTAB];
+     HYSL_FLOAT temp;
+
+     if( *idum <= 0 || !iy ){
+	  if( -(*idum) < 1 ){
+	       *idum = 1;
+	  } else {
+	       *idum = -(*idum);
+	  }
+
+	  for( j = NTAB + 7; j>=0; j-- ){
+	       k = (*idum)/IQ;
+	       *idum = IA*(*idum-k*IQ) - IR*k;
+	       if( *idum < 0 ){
+		    *idum += IM;
+	       }
+	       if( j < NTAB ){
+		    iv[j] = *idum;
+	       }
+	  }
+	  iy = iv[0];
+     }
+  
+     k = (*idum)/(long int)IQ;
+     *idum = IA*(*idum - k*IQ) - IR*k;
+     if( *idum < 0 ){
+	  *idum += IM;
+     }
+  
+     j = iy/(long int)NDIV;
+     iy = iv[j];
+     iv[j] = *idum;
+     if( (temp = (HYSL_FLOAT) AM*(HYSL_FLOAT) iy) > (HYSL_FLOAT) RNMX ){
+	  return (HYSL_FLOAT) RNMX;
+     } else {
+	  return temp;
+     }
+
+}
+
+/* Routine based on Gasdev() from Numerical Receipes in C */
+HYSL_FLOAT Gaussian_Deviate( const HYSL_FLOAT *const mu, const HYSL_FLOAT *const sigma, long int *const idum )
+{
+     static bool iset;
+     static HYSL_FLOAT GD_value;
+     HYSL_FLOAT fac, rsq, v1, v2;
+
+     if( *idum < 0 ){   /* Reinitialise */
+	  iset = false;
+     }
+  
+     if( iset == false ){
+	  do{
+#if _FLOAT_
+	       v1 = 2.0*RandomNumber( idum ) - 1.0;
+	       v2 = 2.0*RandomNumber( idum ) - 1.0;
+#else
+	       v1 = 2.0*RandomNumber( idum ) - 1.0;
+	       v2 = 2.0*RandomNumber( idum ) - 1.0;
+#endif
+	       rsq = v1*v1 + v2*v2;
+	  } while ( rsq >= 1.0 || rsq == 0.0 );
+
+#if _FLOAT_
+	  fac = sqrtf(-2.0*logf(rsq)/rsq);
+#else
+	  fac = sqrt(-2.0*log(rsq)/rsq);
+#endif
+
+	  GD_value = (*mu) + (*sigma)*v1*fac;
+	  iset = true;
+	  return (*mu) + (*sigma)*v2*fac;
+     } else {
+	  iset = false;
+	  return GD_value;
+     }
+}
+

@@ -15,6 +15,16 @@
 
 #include "MatrixVector.h"
 
+#define IA 16807
+#define IM 2147483647
+#define AM (1.0/IM)
+#define IQ 127773
+#define IR 2836
+#define NTAB 32
+#define NDIV (1+(IM-1)/NTAB)
+#define EPS 1.2e-7
+#define RNMX (1.0 - EPS)
+
 /**
  * \brief Returns the maximum of two values
  *
@@ -126,5 +136,14 @@ unsigned int MatrixVector_ReturnIndex_LPS( const unsigned int RowIndex, const un
  * \sa MatrixVector_t.
  */
 void Compute_Eigenvalues_Eigenvectors ( MatrixVector_t *const MatrixA, MatrixVector_t *const MatrixB, MatrixVector_t *const Eigenvalues, MatrixVector_t *const Eigenvectors );
+
+/**
+ * From Numerical receipes in C \cite[Num_Recipes]..
+ */
+HYSL_FLOAT Gaussian_Deviate( const HYSL_FLOAT *const mu, const HYSL_FLOAT *const sigma, long int *const idum );
+/**
+ * From Numerical receipes in C \cite[Num_Recipes]..
+ */
+HYSL_FLOAT RandomNumber( long int *const idum );
 
 #endif /* AUXILIARY_MATH_H_ */
