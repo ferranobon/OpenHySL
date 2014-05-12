@@ -423,7 +423,7 @@ void Substructure_ExactSolutionESP_Init( const HYSL_FLOAT Mass, const HYSL_FLOAT
 	       omegadt = omega*DeltaT;
 	       omegaDdt = omegaD*DeltaT;
 
-	       Sub->A = expdt*(xi*omega*sinDdt/omega + cosDdt);
+	       Sub->A = expdt*(xi*omega*sinDdt/omegaD + cosDdt);
 	       Sub->B = expdt*sinDdt/omegaD;
 #if _FLOAT_
 	       Sub->C = (expdt*(((1.0f-2.0f*xi*xi)/omegaDdt-xi*omega/omegaD)*sinDdt-(1.0f+2.0f*xi/omegadt)*cosDdt)+2.0f*xi/omegadt)/Stiff;
@@ -455,8 +455,15 @@ void Substructure_ExactSolutionESP_Init( const HYSL_FLOAT Mass, const HYSL_FLOAT
      }
 }
 
-void Substructure_ExactSolutionESP_SDOF( const HYSL_FLOAT DispTdT, const HYSL_FLOAT ramp, const HYSL_FLOAT DeltaT, ExactSimESP_t *const Sub, HYSL_FLOAT *const fc )
+void Substructure_ExactSolutionESP_SDOF( const HYSL_FLOAT DispTdT, const HYSL_FLOAT ramp, const HYSL_FLOAT GAcc,const HYSL_FLOAT DeltaT, ExactSimESP_t *const Sub, HYSL_FLOAT *const fc )
 {
+
+     static FILE *TheFile;
+     static int k = 1, count = 1;
+
+     if (count == 1 ){
+	  TheFile = fopen( "SubstructureDisp.txt", "w");
+     }
 
      /* Compute initial velocity */
 #if _FLOAT_
@@ -475,7 +482,8 @@ void Substructure_ExactSolutionESP_SDOF( const HYSL_FLOAT DispTdT, const HYSL_FL
 
      /* Backup and computer new forcce */
      Sub->Force_0 = Sub->Force_1;
-     Sub->Force_1 = Sub->Stiff*DispTdT + Sub->Damp*Sub->VelTdT;
+     /* Sub->Force_1 = Sub->Stiff*DispTdT + Sub->Damp*Sub->VelTdT; */
+     Sub->Force_1 = -Sub->Mass*(GAcc + Sub->AccTdT);
 
      /* Backup the displacements */
      Sub->Init_Disp = Sub->End_Disp;
@@ -486,11 +494,22 @@ void Substructure_ExactSolutionESP_SDOF( const HYSL_FLOAT DispTdT, const HYSL_FL
      Sub->End_Vel = Sub->E*Sub->Init_Disp + Sub->F*Sub->Init_Vel + Sub->G*Sub->Force_0 + Sub->H*Sub->Force_1;
 
      /* Compute the coupling force */
-     *fc = Sub->Stiff*(Sub->End_Disp - DispTdT) + Sub->Damp*(Sub->End_Vel - Sub->VelTdT);
-
+//     *fc = Sub->Stiff*(Sub->End_Disp - DispTdT) + Sub->Damp*(Sub->End_Vel - Sub->VelTdT);
+     *fc = Sub->Stiff*Sub->End_Disp + Sub->Damp*Sub->End_Vel;
      /* Backup DispTdT vector */
 //     Sub->DispT = DispTdT;
-	 
+     
+     if ( k < 4 ){
+	  k = k + 1;
+     } else if ( k == 4 ){
+	  fprintf( TheFile, "%d\t%lE\n", count, Sub->End_Disp );
+	  if( count == 4096 ){
+	       fclose( TheFile );
+	  }
+	  count = count + 1;
+	  k = 1;
+     }
+
 }
 
 

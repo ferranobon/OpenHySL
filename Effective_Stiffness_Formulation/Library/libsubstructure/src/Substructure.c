@@ -226,7 +226,7 @@ void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const Vec
 		    break;
 	       case SIM_EXACT_ESP:
 		    ExactEsp = (ExactSimESP_t *) CNodes->Sub[i].SimStruct;
-		    Substructure_ExactSolutionESP_SDOF( VecTdT_c[i], ramp, DeltaT_Sub, ExactEsp, &CoupForce_c[i] );
+		    Substructure_ExactSolutionESP_SDOF( VecTdT_c[i], ramp, GAcc, DeltaT_Sub, ExactEsp, &CoupForce_c[i] );
 		    break;
 	       case SIM_UHYDE:
 		    UHYDE = (UHYDEfbrSim_t *) CNodes->Sub[i].SimStruct;
