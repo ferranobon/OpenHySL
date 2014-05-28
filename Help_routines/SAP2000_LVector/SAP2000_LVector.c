@@ -127,6 +127,7 @@ int main ( int argc, char **argv )
 	  }
      }
 
+     free( FullString );
      free( LVector );
 
      return 0;
