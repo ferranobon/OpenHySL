@@ -66,7 +66,7 @@ int main( int argc, char **argv ){
      unsigned int istep, i;
      AlgConst_t InitCnt;
      const char *FileConf;
-     
+
 #if _HDF5_
      hid_t hdf5_file;
 #endif
@@ -369,7 +369,7 @@ int main( int argc, char **argv ){
      /* Open Output file. If the file cannot be opened, the program will exit, since the results cannot be
       * stored. */
 #if _HDF5_
-     hdf5_file = HDF5_CreateFile( InitCnt.FileOutput );
+     hdf5_file = HDF5_CreateFile( Concatenate_Strings( 2, InitCnt.FileOutput, ".h5" ) );
      HDF5_CreateGroup_Parameters( hdf5_file, &InitCnt, &CNodes, AccAll, VelAll, DispAll );
      HDF5_CreateGroup_TimeIntegration( hdf5_file, &InitCnt );
 #endif

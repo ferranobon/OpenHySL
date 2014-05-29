@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdarg.h>  /* For va_arg( ), ... */  
 
 #include "Algorithm_Aux.h"
 #include "Conf_Parser.h"
@@ -220,16 +221,16 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
      }
 
      /* Since this is a write operation, a warning should be issued and the filename should be changed so that
-      * it does not overwrite. */
-     InitConst->FileOutput = strdup( ConfFile_GetString( Config, "FileNames:OutputFile" ) );
-     if( Valid_File( InitConst->FileOutput ) ){
+      * it does not get overwriten. */
+     if( Valid_File( Concatenate_Strings( 2, ConfFile_GetString( Config, "FileNames:OutputFile" ), ".h5") ) ){
 	  Print_Header( WARNING );
-	  fprintf( stderr, "Output data file %s would have been overwritten. ", InitConst->FileOutput );
+	  fprintf( stderr, "Output data file %s would have been overwritten. ", Concatenate_Strings( 2, ConfFile_GetString( Config, "FileNames:OutputFile" ), ".h5") );
 	  
-	  Change_Filename( InitConst->FileOutput );
+	  InitConst->FileOutput = Change_Filename( ConfFile_GetString( Config, "FileNames:OutputFile" ) );
 
-	  fprintf( stderr, "Renaming it to: %s\n", InitConst->FileOutput );
-
+	  fprintf( stderr, "Renaming it to: %s\n", Concatenate_Strings( 2, InitConst->FileOutput, ".h5") );
+     } else {
+	  InitConst->FileOutput = strdup( ConfFile_GetString( Config, "FileNames:OutputFile" ) );
      }
 
      /* Read the information regarding the numerical sub-structures */
@@ -282,38 +283,24 @@ bool Valid_File( const char *Filename )
      }
 }
 
-void Change_Filename( char *Name )
+char* Change_Filename( const char *const Name )
 {
 
-     char NewName[80];
-     char HelpChar[4];
-     char Extension[6];
-     unsigned int i;
-     size_t Pos;
+     char *NewName = NULL;
+     char HelpChar[5];
+     short unsigned int i;
 
-     Pos = strcspn( Name, "." );
-
-     i = 0;
-     while( Name[Pos + i] != '\0' && i < 6){
-	  Extension[i] = Name[Pos + i];
-	  i = i + 1;
-     }
-
-     strcpy( NewName, Name );
      i = 1;
-     while( Valid_File( NewName )){
-	  /* Reset the name */
-	  memset(NewName, 0, sizeof(NewName));
-	  sprintf( HelpChar, "%hu", i );
-	  strncpy( NewName, Name, Pos );
-	  strcat( NewName, "_" );
-	  strcat( NewName, HelpChar );	  
-	  strcat( NewName, Extension );
-	  i = i + 1;
-     }
+     do {
+	  if( NewName != NULL ){
+	       free( NewName );
+	  }
+	  sprintf( HelpChar, "_%hu", i );
+	  i = i + (short unsigned int) 1;
+	  NewName = Concatenate_Strings( 2, Name, HelpChar );
+     } while( Valid_File( Concatenate_Strings( 2, NewName, ".h5")));
 
-     free( Name );
-     Name =  strdup( NewName );
+     return NewName;
 }
 
 void Algorithm_Destroy( AlgConst_t *const InitConst )
@@ -436,4 +423,36 @@ void Algorithm_PrintHelp( const char *Program_Name )
      fprintf( stderr,
 	      "  -h  --help           This help text.\n"
 	      "  -c  --config-file    The name of the configuration file. Default value: ConfFile.conf\n" );
+}
+
+char* Concatenate_Strings( int count, ... )
+{
+     va_list ap;
+     int i;
+     char *merged, *s;
+     size_t len = 1, null_pos; /* Space for NULL */
+
+     /* Find required length to store merged string */
+     va_start( ap, count );
+
+     for( i = 0; i < count; i++ )
+	  len += strlen( va_arg( ap, char* ) );
+     va_end( ap );
+
+     /* Allocate memory to concat strings */
+     merged = calloc( sizeof(char), len );
+     null_pos = 0;
+
+     /* Actually concatenate strings */
+     va_start( ap, count );
+
+     for( i = 0; i < count; i++ )
+     {
+	  s = va_arg( ap, char* );
+	  strcpy( merged + null_pos, s );
+	  null_pos += strlen( s );
+     }
+     va_end( ap );
+
+     return merged;
 }
