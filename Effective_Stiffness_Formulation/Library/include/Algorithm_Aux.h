@@ -194,7 +194,7 @@ bool Valid_File( const char *Filename );
  * \param[in,out] Name On input it contains the conflicting name file. On output, a non-conflicting file name
  *                     is given.
  */
-void Change_Filename( char *Name );
+char* Change_Filename( const char *const Name );
 
 
 /**
@@ -361,5 +361,7 @@ void Algorithm_ReadDataEarthquake_RelValues( const unsigned int NumSteps, const 
  * \param[in] Program_Name Name of the executable.
  */
 void Algorithm_PrintHelp( const char *Program_Name );
+
+char* Concatenate_Strings( int count, ... );
 
 #endif /* _ALGORITHM_AUX_H_ */
