@@ -146,4 +146,25 @@ HYSL_FLOAT Gaussian_Deviate( const HYSL_FLOAT *const mu, const HYSL_FLOAT *const
  */
 HYSL_FLOAT RandomNumber( long int *const idum );
 
+/**
+ * Extrapolates a value from a given set of data. Routine based on \c polint from \cite[Num_Recipes].
+ * 
+ * Given arrayx \f$X[1..n]\f$ and \f$Y[1..n]\f$ and given a value \f$x\f$, this routine returns a value
+ * \f$y\f$, and an error estimate \f$d_y\f$. If \f$P(x)\f$ is the polynomial of degree \f$N-1\f$ such that
+ * \f$P(X_i) \f$ = Y_i\f$, \f$ = 1,...,n\f$, then the returned value \f$y = P(x)\f$.
+ *
+ * \pre 
+ * - All elements of type \c MatrixVector_t must be properly intialised through the MatrixVector_Create()
+ *   routine and be of the same length.
+ * 
+ * \param[in]  X  Array of x values to interpolate.
+ * \param[in]  Y  Array of y values to interpolate.
+ * \param[in]  x  Value whose result has to be extrapolated.
+ * \param[out] y  Extrapolated value \f$P(x) = y\f$.
+ * \param[out] dy Error estimate of the operation \f$P(x) = y\f$.
+ *
+ * \sa MatrixVector_t.
+ */
+void Interpolate_Extrapolate( const MatrixVector_t *const X, const MatrixVector_t *const Y, const HYSL_FLOAT x, HYSL_FLOAT *const y, HYSL_FLOAT *const dy );
+
 #endif /* AUXILIARY_MATH_H_ */

@@ -12,6 +12,8 @@
 #define MPI_HYSL_FLOAT MPI_FLOAT
 #endif
 
+#define hysl_abs fabsf
+
 #define hysl_copy scopy_
 #define hysl_scal sscal_
 #define hysl_axpy saxpy_
@@ -57,6 +59,8 @@
 #if _MPI_
 #define MPI_HYSL_FLOAT MPI_DOUBLE
 #endif
+
+#define hysl_abs fabs
 
 #define hysl_copy dcopy_
 #define hysl_scal dscal_

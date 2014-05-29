@@ -3,6 +3,8 @@
 *#
 .bin
 .bin.info
+*.txt
+*.h5
 build/
 Debug/
 Release/

@@ -229,3 +229,67 @@ HYSL_FLOAT Gaussian_Deviate( const HYSL_FLOAT *const mu, const HYSL_FLOAT *const
      }
 }
 
+/* Routine based on polint from Numerical Receipes in C */
+void Interpolate_Extrapolate( const MatrixVector_t *const X, const MatrixVector_t *const Y, const HYSL_FLOAT x, HYSL_FLOAT *const y, HYSL_FLOAT *const dy )
+{
+
+     int i, m, ns = 0;
+     HYSL_FLOAT den, dif, dift, ho, hp, w;
+
+     HYSL_FLOAT *c, *d;
+
+     /* Allocate space */
+     c = (HYSL_FLOAT *) calloc( (size_t) X->Rows, sizeof(HYSL_FLOAT) );
+     d = (HYSL_FLOAT *) calloc( (size_t) X->Rows, sizeof(HYSL_FLOAT) );
+     if( c == NULL || d == NULL ){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Interpolate_Extrapolate(): Out of memory.\n" );
+	  exit( EXIT_FAILURE );
+     }
+
+     /* Find the closest entry in the table and initialise c and d.*/
+     dif = hysl_abs( x - X->Array[0] );
+     for( i = 0; i < X->Rows; i++ ){
+	  dift = hysl_abs(x -X->Array[i]);
+	  if( dift < dif ){
+	       ns = i;
+	       dif = dift;
+	  }
+	  
+	  c[i] = Y->Array[i];
+	  d[i] = Y->Array[i];
+     }
+
+     /* Initial approximation to y. */
+     *y = Y->Array[ns - 1];
+
+     for ( m = 1; m < X->Rows; m++ ){
+	  for( i = 0; i < X->Rows - m; i++ ){
+	       ho = X->Array[i] - x;
+	       hp = X->Array[i+m] - x;
+	       den = ho - hp;
+	       w = c[i+1] - d[i];
+	       if( den == 0.0 ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Interpolate_Extrapolate(): Error in the routine.\n" );
+		    exit( EXIT_FAILURE );
+	       }
+	       den = w/den;
+	       d[i] = hp*den;
+	       c[i] = ho*den;
+	  }
+	  
+	  *dy = (2*ns < (X->Rows - m) ? c[ns] : d[ns - 1]);
+	  *y = *y + *dy;
+	  /* After each column in the tableau is completed, we decide which correction, c or d, we want to add
+	   * to our accumulating value of y, i.e., which path to take through the tableau—forking up or
+	   * down. We do this in such a way as to take the most “straight through the tableau to its apex,
+	   * updating ns accordingly to keep track of line” routewhere we are. This route keeps the partial
+	   * approximations centered (insofar as possible) on the target x. The last dy added is thus the
+	   * error indication.*/
+ 
+     }
+
+     free( c );
+     free( d );
+}
