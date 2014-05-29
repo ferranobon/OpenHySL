@@ -90,6 +90,9 @@ int main ( int argc, char **argv )
 			 j = j + 1;
 		    }
 	       }
+
+	       /* Release the memory */
+	       free( FullString );
 	       break;
 	  case 'h':
 	       print_help( argv, long_options );
@@ -127,7 +130,6 @@ int main ( int argc, char **argv )
 	  }
      }
 
-     free( FullString );
      free( LVector );
 
      return 0;
