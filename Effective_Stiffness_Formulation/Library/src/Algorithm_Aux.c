@@ -188,8 +188,10 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
 	  if( !Valid_File( InitConst->FileC ) ){
 	       Error = true;
 	       Print_Header( ERROR );
-	       fprintf( stderr, "%s: No such file or directory.\n", InitConst->FileK );
+	       fprintf( stderr, "%s: No such file or directory.\n", InitConst->FileC );
 	  }
+     } else {
+	  InitConst->FileC = NULL;
      }
 
      if( InitConst->Read_LVector ){
@@ -202,6 +204,7 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
      } else {
 	  InitConst->FileLV = NULL;
      }
+
      InitConst->FileCNodes = strdup( ConfFile_GetString( Config, "FileNames:Coupling_Nodes" ) );
      if( !Valid_File( InitConst->FileCNodes ) ){
 	  Error = true;
