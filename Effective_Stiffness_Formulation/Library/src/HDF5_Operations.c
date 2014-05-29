@@ -148,7 +148,6 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const C
      herr_t   status;
      HDF5_Exact_UHYDE_t *Nodes;
      HDF5_Exp_Meas_t *Nodes_Exp;
-     ExactSim_t *TMD;
      ExactSimESP_t *ExSim;
      UHYDEfbrSim_t *UHYDE;
      ExpSub_t *Experimental;
@@ -189,7 +188,7 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const C
 	  Nodes = NULL;
 	  if( is_uhyde || is_exact ){
 	       Nodes = (HDF5_Exact_UHYDE_t *) calloc( (size_t) count, sizeof( HDF5_Exact_UHYDE_t ) );
-	  } else {
+	  } else if ( is_adwin || is_measured ){
 	       Nodes_Exp = (HDF5_Exp_Meas_t *) calloc( (size_t) count, sizeof( HDF5_Exp_Meas_t ) );
 	  }
 
@@ -286,9 +285,6 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const C
 				  H5P_DEFAULT, H5P_DEFAULT);
 	       status = H5Dwrite ( dset, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Nodes );
 	       
-	       for( j = 0; j < count; j++ ){
-		    free( Nodes[j].Description );	     
-	       }
 	       free( Nodes );
 
 	       status = H5Dclose( dset );
@@ -308,9 +304,6 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const C
 				  H5P_DEFAULT, H5P_DEFAULT);
 	       status = H5Dwrite ( dset, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Nodes_Exp );
 	       
-	       for( j = 0; j < count; j++ ){
-		    free( Nodes_Exp[j].Description );	     
-	       }
 	       free( Nodes_Exp );
 
 	       status = H5Dclose( dset );

@@ -552,6 +552,7 @@ int main( int argc, char **argv ){
 
      /* Free the memory */
      if( InitCnt.Use_Absolute_Values ){
+	  free( AccAll );
 	  free( VelAll );
 	  free( DispAll );
      } else {
