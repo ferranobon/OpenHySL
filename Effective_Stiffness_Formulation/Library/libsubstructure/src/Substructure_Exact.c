@@ -471,12 +471,10 @@ void Substructure_ExactSolutionESP_SDOF( const HYSL_FLOAT DispTdT, const HYSL_FL
      Sub->VelTdT = (1.0 - ramp)*(Sub->Vel0 + Sub->a6*Sub->Acc0) + ramp*(Sub->VelT + Sub->a6*Sub->AccT) + Sub->a7*Sub->AccTdT;
 #endif
 
-     // Sub->VelTdT = (DispTdT - Sub->DispT)/DeltaT;
-
      /* Backup and computer new forcce */
      Sub->Force_0 = Sub->Force_1;
-     /* Sub->Force_1 = Sub->Stiff*DispTdT + Sub->Damp*Sub->VelTdT; */
-     Sub->Force_1 = -Sub->Mass*(GAcc + Sub->AccTdT);
+     Sub->Force_1 = Sub->Stiff*DispTdT + Sub->Damp*Sub->VelTdT;
+//     Sub->Force_1 = -Sub->Mass*(GAcc + Sub->AccTdT);
 
      /* Backup the displacements */
      Sub->Init_Disp = Sub->End_Disp;
@@ -487,10 +485,8 @@ void Substructure_ExactSolutionESP_SDOF( const HYSL_FLOAT DispTdT, const HYSL_FL
      Sub->End_Vel = Sub->E*Sub->Init_Disp + Sub->F*Sub->Init_Vel + Sub->G*Sub->Force_0 + Sub->H*Sub->Force_1;
 
      /* Compute the coupling force */
-//     *fc = Sub->Stiff*(Sub->End_Disp - DispTdT) + Sub->Damp*(Sub->End_Vel - Sub->VelTdT);
-     *fc = Sub->Stiff*Sub->End_Disp + Sub->Damp*Sub->End_Vel;
-     /* Backup DispTdT vector */
-//     Sub->DispT = DispTdT;
+     *fc = Sub->Stiff*(Sub->End_Disp - DispTdT) + Sub->Damp*(Sub->End_Vel - Sub->VelTdT);
+//     *fc = Sub->Stiff*Sub->End_Disp + Sub->Damp*Sub->End_Vel;
 
 }
 
