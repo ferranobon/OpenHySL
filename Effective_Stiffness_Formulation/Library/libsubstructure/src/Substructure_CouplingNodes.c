@@ -224,7 +224,10 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 		    Substructure_GetDescription( InFile, i, Description );
 		    
 		    for( j = 0; j < Count_Type; j++ ){
-			 CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(ExactSim_t) );
+			 CNodes->Sub[i + j].SimStruct = (void *) calloc( (size_t) 1, sizeof(ExactSimESP_t) );
+			 if( CNodes->Sub[i + j].SimStruct == NULL ){
+			      exit(EXIT_FAILURE );
+			 }
 			 
 			 Substructure_ExactSolutionESP_Init( ftemp[0], ftemp[1], ftemp[2], DeltaTSub, Description, (ExactSimESP_t *) CNodes->Sub[i + j].SimStruct );
 
