@@ -17,12 +17,12 @@ int main( int argc, char **argv )
      double Damp[2];       /* Damping ratios */
      double Rayleigh[2];   /* Rayleigh: Mass and stiffness proportional coefficients */
 
-     double factor;                /* A counter */
-
      char temp[2];
      char *MMatrix; char *KMatrix;
      char *OutputFile; char *ConfFile;
-     int rc, idx;
+     int rc, idx, i;
+
+     double factor[17] = {0.5, 0.65, 0.85, 0.9, 0.925, 0.95, 0.975, 1.0, 1.025, 1.05, 1.075, 1.1, 1.15, 1.2, 1.35, 1.5, 2};
 
      struct option long_options[] = 
 	  {
@@ -84,9 +84,12 @@ int main( int argc, char **argv )
 	  }
      }
 
-     factor = 0.5;
-     while( factor <= 2.0 ){
-	  sprintf( temp, "%.2lf", factor );
+     i = 0;
+     Rayleigh[0] = 0.0; Rayleigh[1] = 0.0;
+     Calculate_Rayleigh( Freq, Damp, Rayleigh );
+
+     while( i < 17 ){
+	  sprintf( temp, "%.2lf", factor[i] );
 
 	  TheFile = fopen( concat( 4, ConfFile, "_DampFactor" , temp , ".conf" ), "w" );
 	  if( TheFile == NULL ){
@@ -95,9 +98,6 @@ int main( int argc, char **argv )
 	       exit( EXIT_FAILURE );
 	  }
      
-	  Rayleigh[0] = 0.0; Rayleigh[1] = 0.0;
-	  Calculate_Rayleigh( Freq, Damp, Rayleigh );
-
 	  /* Print the contents of the configuration file */
 	  fprintf( TheFile, "[General]\n" );
 	  fprintf( TheFile, "Use_Absolute_Values = 1\n" );
@@ -125,8 +125,8 @@ int main( int argc, char **argv )
 
 	  fprintf( TheFile, "# This section defines the values of the Rayleigh damping.\n" );
 	  fprintf( TheFile, "[Rayleigh]\n" );
-	  fprintf( TheFile, "Alpha = %.6lE\n", Rayleigh[0]*factor );
-	  fprintf( TheFile, "Beta = %.6lE\n", Rayleigh[1]*factor );
+	  fprintf( TheFile, "Alpha = %.6lE\n", Rayleigh[0]*factor[i] );
+	  fprintf( TheFile, "Beta = %.6lE\n", Rayleigh[1]*factor[i] );
 	  fprintf( TheFile, "\n" );
 
 	  fprintf( TheFile, "# Newmark Alpha and Beta values\n" );
@@ -147,17 +147,17 @@ int main( int argc, char **argv )
 	  fprintf( TheFile, "Mass_Matrix = \"%s\"\n", MMatrix );
 	  fprintf( TheFile, "Stiffness_Matrix = \"%s\"\n", KMatrix );
 	  fprintf( TheFile, "Damping_Matrix = \"None\"\n" );
-	  fprintf( TheFile, "Load_Vector = \"960LV_MM.txt\"\n" );
+	  fprintf( TheFile, "Load_Vector = \"LV960_Test_MM.txt\"\n" );
 	  fprintf( TheFile, "Coupling_Nodes = \"Couple_Nodes.txt\"	# File containing the coupling nodes.\n" );
 	  fprintf( TheFile, "Ground_Motion = \"GroundMovement_Ref07.txt\"	# Ground movement.\n" );
-	  fprintf( TheFile, "OutputFile = \"%s_DFactor%.2lf.h5\"			# Output file\n", OutputFile, factor );
+	  fprintf( TheFile, "OutputFile = \"%s_DFactor%.2lf\"			# Output file\n", OutputFile, factor[i] );
 	  fprintf( TheFile, "\n" );
 
 	  fprintf( TheFile, "[Substructure]\n" );
 	  fprintf( TheFile, "Num_Substeps = 4			# Number of sub-steps.\n" );
 	  fprintf( TheFile, "Order = 1\n" );
 
-	  factor = factor + 0.05;
+	  i = i + 1;
      }
 
      fclose( TheFile );
