@@ -100,7 +100,7 @@ int main( int argc, char **argv )
      
 	  /* Print the contents of the configuration file */
 	  fprintf( TheFile, "[General]\n" );
-	  fprintf( TheFile, "Use_Absolute_Values = 1\n" );
+	  fprintf( TheFile, "Use_Absolute_Values = 0\n" );
 	  fprintf( TheFile, "Read_Sparse = 1\n" );
 	  fprintf( TheFile, "Use_Sparse = 1\n" );
 	  fprintf( TheFile, "Use_Packed = 0\n" );
@@ -149,7 +149,7 @@ int main( int argc, char **argv )
 	  fprintf( TheFile, "Damping_Matrix = \"None\"\n" );
 	  fprintf( TheFile, "Load_Vector = \"LV960_Test_MM.txt\"\n" );
 	  fprintf( TheFile, "Coupling_Nodes = \"Couple_Nodes.txt\"	# File containing the coupling nodes.\n" );
-	  fprintf( TheFile, "Ground_Motion = \"GroundMovement_Ref07.txt\"	# Ground movement.\n" );
+	  fprintf( TheFile, "Ground_Motion = \"GroundMovement_Sinesweep.txt\"	# Ground movement.\n" );
 	  fprintf( TheFile, "OutputFile = \"%s_DFactor%.2lf\"			# Output file\n", OutputFile, factor[i] );
 	  fprintf( TheFile, "\n" );
 
