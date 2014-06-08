@@ -21,7 +21,7 @@
 
 #define MAX_LINE 200          /*!< \brief Maximum input line length. */
 #define MAX_SUBTYPE 20        /*!< \brief Maximum length of the substructure type */
-#define MAX_DESCRIPTION 80    /*!< \brief Maximum description length for a substructure. */
+#define MAX_DESCRIPTION 200    /*!< \brief Maximum description length for a substructure. */
 #define MAX_FILENAME 20       /*!< \brief Maximum file name length. */
 
 #define NUM_TYPE_SUB  7  /*!< \brief Number of recognized sub-structure types */
