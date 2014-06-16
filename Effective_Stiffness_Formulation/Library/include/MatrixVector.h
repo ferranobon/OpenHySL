@@ -226,4 +226,6 @@ void MatrixVector_Set2Value( const HYSL_FLOAT Value, MatrixVector_t *const MatVe
  */
 void MatrixVector_ToFile( const MatrixVector_t *const MatVec, const char *Filename );
 
+void MatrixVector_ToFile_MM( const MatrixVector_t *const MatVec, const char *Filename );
+
 #endif /* MATRIXVECTOR_H_ */
