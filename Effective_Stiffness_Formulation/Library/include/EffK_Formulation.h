@@ -371,14 +371,14 @@ void EffK_ComputeAcceleration_MPI( PMatrixVector_t *const DispTdT, PMatrixVector
  * The velocity at \f$t+\Delta t\f$ is calculated according to the formulation using the effective stiffness
  * matrix described in page 53 (\cite Dorka_1998):
  *
- * \f[\dot{\vec u}^{t+\Delta t} = \dot{\vec u}^t + a_6\ddot{\vec u}^t + a_7\ddot{\vec u}^{t+\Delta t}\f]
+ * \f[\dot{\vec u}^{t+\Delta t} = a_1(\vec u^{t+\Delta t} - vec u^t) -a_4\dot{\vec u}^t - a_5\ddot{\vec u}^t\f]
  *
  * where:
  * - \f$\dot{\vec u}^{t+\Delta t}\f$ is the velocity vector at time \f$t\f$,
  * - \f$\dot{\vec u}^t\f$ is the velocity vector at time \f$t\f$,
  * - \f$\ddot{\vec u}^t\f$ is the acceleration vector at time \f$t\f$,
  * - \f$\ddot{\vec u}^{t+\Delta t}\f$ is the acceleration vector at time \f$t + \Delta t\f$,
- * - and \f$a_6\f$ and \f$a_7\f$ are integration constants (see \cite Dorka_1998).
+ * - and \f$a_1\f$, \f$a_4\f$ and \f$a_5\f$ are integration constants (see \cite Dorka_1998).
  *
  * It makes use of BLAS routines to perform the linear algebra operations.
  *
@@ -388,24 +388,26 @@ void EffK_ComputeAcceleration_MPI( PMatrixVector_t *const DispTdT, PMatrixVector
  * - The dimensions of the vectors must be identical.
  * - The integration constants must be properly initialised.
  * 
- * \param[in]     VelT   The velocity vector \f$\dot{\vec u}^t\f$.
- * \param[in]     AccT   The acceleration vector \f$\ddot{\vec u^t}\f$.
- * \param[in]     AccTdT The acceleration vector \f$\ddot{\vec u}^{t+\Delta t}\f$.
- * \param[in]     a6     The integration constant \f$a_0\f$ (\cite Dorka_1998).
- * \param[in]     a7     The integration constant \f$a_1\f$ (\cite Dorka_1998).
- * \param[in,out] VelTdT The velocity vector \f$\dot{\vec u}^{t+\Delta t}\f$. On input only the number of rows
- *                       is used.
+ * \param[in]     DispTdT The displacement vector \f$\vec u^{t+\Delta t}\f$.
+ * \param[in]     DispT   The displacement vector \f$\vec u^t\f$.
+ * \param[in]     VelT    The velocity vector \f$\dot{\vec u}^t\f$.
+ * \param[in]     AccT    The acceleration vector \f$\ddot{\vec u^t}\f$.
+ * \param[in]     a1      The integration constant \f$a_1\f$ (\cite Dorka_1998).
+ * \param[in]     a4      The integration constant \f$a_4\f$ (\cite Dorka_1998).
+ * \param[in]     a5      The integration constant \f$a_5\f$ (\cite Dorka_1998).
+ * \param[in,out] VelTdT  The velocity vector \f$\dot{\vec u}^{t+\Delta t}\f$. On input only the number of rows
+ *                        is used.
  *
  * \post
  * - \c VelTdT is the result of the operation:
  *
- * \f[\dot{\vec u}^{t+\Delta t} = \dot{\vec u}^t + a_6\ddot{\vec u}^t + a_7\ddot{\vec u}^{t+\Delta t}\f]
+ * \f[\dot{\vec u}^{t+\Delta t} = a_1(\vec u^{t+\Delta t} - vec u^t) -a_4\dot{\vec u}^t - a_5\ddot{\vec u}^t\f]
  *
  * \sa MatrixVector_t.
  */
-void EffK_ComputeVelocity( const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
-			   const MatrixVector_t *const AccTdT, const HYSL_FLOAT a6, const HYSL_FLOAT a7,
-			   MatrixVector_t *const VelTdT );
+void EffK_ComputeVelocity( const MatrixVector_t *const DispTdT, const MatrixVector_t *const DispT,
+			   const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
+			   const HYSL_FLOAT a1, const HYSL_FLOAT a4, const HYSL_FLOAT a5, MatrixVector_t *const VelTdT );
 
 /**
  * \brief Computes the new velocity according to the formulation using the effective stiffness matrix. MPI
