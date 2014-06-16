@@ -125,19 +125,25 @@ void EffK_ComputeAcceleration( const MatrixVector_t *const DispTdT, const Matrix
      hysl_axpy( &AccTdT->Rows, &Alpha, AccT->Array, &incx, AccTdT->Array, &incy );
 }
 
-void EffK_ComputeVelocity( const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
-			   const MatrixVector_t *const AccTdT, const HYSL_FLOAT a6, const HYSL_FLOAT a7,
-			   MatrixVector_t *const VelTdT )
+void EffK_ComputeVelocity( const MatrixVector_t *const DispTdT, const MatrixVector_t *const DispT,
+			   const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
+			   const HYSL_FLOAT a1, const HYSL_FLOAT a4, const HYSL_FLOAT a5, MatrixVector_t *const VelTdT )
 {
-     int incx = 1, incy= 1;  /* Stride in the vectors */
-     HYSL_FLOAT Alpha;           /* Constant for the BLAS routines */
+     int incx = 1, incy = 1;  /* Stride in the vectors */
+     HYSL_FLOAT Alpha;            /* Constant for the BLAS routines */
 
-     /* BLAS: VelTdT = VelT */
-     hysl_copy( &VelTdT->Rows, VelT->Array, &incx, VelTdT->Array, &incy );
-     /* BLAS: VelTdT = VelT + a6*AccT = VelTdT + a6*AccT */
-     Alpha = a6;
+     /* BLAS: VelTdT = DispTdT */
+     hysl_copy( &VelTdT->Rows, DispTdT->Array, &incx, VelTdT->Array, &incy ); 
+     /* BLAS: VelTdT = DispTdT - DispT = VeldT - DispT */
+     Alpha = -1.0;
+     hysl_axpy( &VelTdT->Rows, &Alpha, DispT->Array, &incx, VelTdT->Array, &incy );
+     /* BLAS: AccTdT = a1*(DispTdT - DispT) = a1*AccTdT */
+     Alpha = a1;
+     hysl_scal( &VelTdT->Rows, &Alpha, VelTdT->Array, &incx );
+     /* BLAS: VelTdT = a1*(DispTdT - DispT) - a4*VelT = VelTdT - a4*VelT */
+     Alpha = -a4;
+     hysl_axpy( &VelTdT->Rows, &Alpha, VelT->Array, &incx, VelTdT->Array, &incy );
+     /* BLAS: VelTdT = a1*(DispTdT - DispT) - a4*VelT - a5*AccT = VelTdT - a5*AccT */
+     Alpha = -a5;
      hysl_axpy( &VelTdT->Rows, &Alpha, AccT->Array, &incx, VelTdT->Array, &incy );
-     /* BLAS: VelTdT = VelT + a6*AccT + a7*AccTdT = VelTdT + a7*AccTdT */
-     Alpha = a7;
-     hysl_axpy( &VelTdT->Rows, &Alpha, AccTdT->Array, &incx, VelTdT->Array, &incy );
 }

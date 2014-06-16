@@ -489,8 +489,8 @@ int main( int argc, char **argv ){
 	  /* Compute acceleration ai1 = a0*(ui1 -ui) - a2*vi -a3*ai */
 	  EffK_ComputeAcceleration( &DispTdT, &DispT, &VelT, &AccT, InitCnt.a0, InitCnt.a2, InitCnt.a3, &AccTdT );
 
-	  /* Compute Velocity. vi = vi + a6*ai +a7*ai */
-	  EffK_ComputeVelocity( &VelT, &AccT, &AccTdT, InitCnt.a6, InitCnt.a7, &VelTdT );
+	  /* Compute Velocity. vi = a1*(ui1 - ui) - a4*vi - a5*ai */
+	  EffK_ComputeVelocity( &DispTdT, &DispT, &VelT, &AccT, InitCnt.a1, InitCnt.a4, InitCnt.a5, &VelTdT );
 
 	  /* Error Compensation. fu = LoatTdT + fc -(Mass*AccTdT + Damp*VelTdT + Stiff*DispTdT) */
 	  if( InitCnt.PID.P != 0.0 || InitCnt.PID.I != 0.0 || InitCnt.PID.D != 0.0 ){
