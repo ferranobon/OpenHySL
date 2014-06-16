@@ -105,6 +105,47 @@ void MatrixVector_FromFile_MM( const char *Filename, MatrixVector_t *const MatVe
      Print_Header( SUCCESS );
      printf( "MatrixVector_FromFile_MM: Contents of %s successfully readen.\n", Filename );
 }
+
+void MatrixVector_ToFile_MM( const MatrixVector_t *const MatVec, const char *Filename ){
+
+     int i, j, Num_Nonzero;      /* Counters */
+     FILE *OutFile;
+
+     OutFile = fopen( Filename, "w" );
+
+     if ( OutFile == NULL ){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "MatrixVector_ToFile_MM: It is not possible to open %s.\n", Filename );
+	  exit( EXIT_FAILURE );
+     }
+
+     fprintf( OutFile, "%%%%MatrixMarket matrix coordinate real symmetric\n" );
+
+     Num_Nonzero = 0;
+     /* Count the non-zero elements */
+     for( i = 0; i < MatVec->Rows; i++ ){
+	  for( j = i; j < MatVec->Cols; j++ ){
+	       if( MatVec->Array[i*MatVec->Cols + j] != 0.0 ){
+		    Num_Nonzero = Num_Nonzero + 1;
+	       }
+	  }
+     }
+     fprintf( OutFile, "%d %d %d\n", MatVec->Rows, MatVec->Cols, Num_Nonzero );
+
+     /* Print the elements (lower part = Transpose) */
+     for( i = 0; i < MatVec->Rows; i++ ){
+	  for( j = i; j < MatVec->Cols; j++ ){
+	       if( MatVec->Array[i*MatVec->Cols + j] != 0.0 ){
+		    fprintf( OutFile, "%d %d %.8lE\n", j+1, i+1, MatVec->Array[i*MatVec->Cols + j] );
+	       }
+	  }
+     }
+
+     fclose( OutFile );
+     
+     Print_Header( SUCCESS );
+     printf( "MatrixVector_ToFile_MM: Matrix successfully saved to %s.\n", Filename );
+}
 #endif /* _MATRIXMARKET_ */
 
 void MatrixVector_ToFile( const MatrixVector_t *const MatVec, const char *Filename )
