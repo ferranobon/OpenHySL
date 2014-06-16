@@ -162,16 +162,10 @@ int main( int argc, char **argv ){
 
      /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will be used
       * during the test */
-     if( InitCnt.Use_Absolute_Values ){
-	  AccAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-	  VelAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-	  DispAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     } else {
-	  AccAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-	  VelAll = NULL;
-	  DispAll = NULL;
-     }
-
+     AccAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     VelAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     DispAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     
      /* Initialise the matrices and vectors that will be used in the Time Integration process */
      if( ((!InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (InitCnt.Use_Sparse && !InitCnt.Read_Sparse) ||
 	  (!InitCnt.Use_Sparse && InitCnt.Read_Sparse)) && !InitCnt.Use_Packed ){
@@ -356,15 +350,8 @@ int main( int argc, char **argv ){
 	  }
      }
      /* Read the earthquake data from a file */
-     if( InitCnt.Use_Absolute_Values ){
-	  Algorithm_ReadDataEarthquake_AbsValues( InitCnt.NStep, InitCnt.FileData, InitCnt.Scale_Factor,
-						  VelAll, DispAll );
-	  Algorithm_ReadDataEarthquake_RelValues( InitCnt.NStep, InitCnt.FileData, InitCnt.Scale_Factor,
-						  AccAll );
-     } else {
-	  Algorithm_ReadDataEarthquake_RelValues( InitCnt.NStep, InitCnt.FileData, InitCnt.Scale_Factor,
-						  AccAll );
-     }
+     Algorithm_ReadDataEarthquake( InitCnt.NStep, InitCnt.FileData, InitCnt.Scale_Factor, AccAll,
+				   VelAll, DispAll );
 
      /* Open Output file. If the file cannot be opened, the program will exit, since the results cannot be
       * stored. */
@@ -440,18 +427,21 @@ int main( int argc, char **argv ){
 
 	  /* Perform substepping */
 	  if( CNodes.Order >= 1 ){
-/*	       Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep,
-					 AccAll[istep-1], InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes,
-					 DispTdT.Array, fcprevsub.Array, fc.Array );*/
-	       Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep, 0.0,
-					 InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array, fcprevsub.Array,
-					 fc.Array );
+	       if( InitCnt.Use_Absolute_Values ){
+		    Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep, 0.0,
+					      InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array, fcprevsub.Array,
+					      fc.Array );
+	       } else {
+		    Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep,
+					      AccAll[istep-1], InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes,
+					      DispTdT.Array, fcprevsub.Array, fc.Array );
+	       }
 	  }
 
 	  if ( istep < InitCnt.NStep ){
 	       if( InitCnt.Use_Absolute_Values ){
 		    /* Copy the diagonal elements of M */
-		    InputLoad_Apply_LoadVectorForm( &LoadVectorForm, DispAll[istep], &Disp );		    
+		    InputLoad_Apply_LoadVectorForm( &LoadVectorForm, DispAll[istep], &Disp );
 		    InputLoad_Apply_LoadVectorForm( &LoadVectorForm, VelAll[istep], &Vel );
 
 		    if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
@@ -551,13 +541,9 @@ int main( int argc, char **argv ){
      Algorithm_Destroy( &InitCnt );
 
      /* Free the memory */
-     if( InitCnt.Use_Absolute_Values ){
-	  free( AccAll );
-	  free( VelAll );
-	  free( DispAll );
-     } else {
-	  free( AccAll );
-     }
+     free( AccAll );
+     free( VelAll );
+     free( DispAll );
 
      /* Free Time string */
      free( Time.Date_time );

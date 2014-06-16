@@ -162,15 +162,9 @@ int main( int argc, char **argv ){
 
      /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will be used
       * during the test */
-     if( InitCnt.Use_Absolute_Values ){
-	  AccAll = NULL;
-	  VelAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-	  DispAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     } else {
-	  AccAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-	  VelAll = NULL;
-	  DispAll = NULL;
-     }
+     AccAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     VelAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     DispAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
 
      /* Initialise the matrices and vectors that will be used in the Time Integration process */
      if( ((!InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (InitCnt.Use_Sparse && !InitCnt.Read_Sparse) ||
@@ -321,14 +315,8 @@ int main( int argc, char **argv ){
 	       }
 	  }
      }
-     /* Read the earthquake data from a file */
-     if( InitCnt.Use_Absolute_Values ){
-	  Algorithm_ReadDataEarthquake_AbsValues( InitCnt.NStep, InitCnt.FileData, InitCnt.Scale_Factor,
-						  VelAll, DispAll );
-     } else {
-	  Algorithm_ReadDataEarthquake_RelValues( InitCnt.NStep, InitCnt.FileData, InitCnt.Scale_Factor,
-						  AccAll );
-     }
+     Algorithm_ReadDataEarthquake( InitCnt.NStep, InitCnt.FileData, InitCnt.Scale_Factor,
+				   AccAll, VelAll, DispAll );
 
      /* Open Output file. If the file cannot be opened, the program will exit, since the results cannot be
       * stored. */
@@ -513,13 +501,10 @@ int main( int argc, char **argv ){
      Algorithm_Destroy( &InitCnt );
 
      /* Free the memory */
-     if( InitCnt.Use_Absolute_Values ){
-	  free( VelAll );
-	  free( DispAll );
-     } else {
-	  free( AccAll );
-     }
-
+     free( VelAll );
+     free( DispAll );
+     free( AccAll );
+     
      /* Free Time string */
      free( Time.Date_time );
 

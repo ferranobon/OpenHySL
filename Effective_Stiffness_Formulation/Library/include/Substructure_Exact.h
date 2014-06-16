@@ -41,9 +41,9 @@ typedef struct ExactSim {
 } ExactSim_t;
 
 typedef struct ExactSimESP {
-     HYSL_FLOAT Mass, Stiff, Damp;
+     HYSL_FLOAT Mass, Stiff, Damp, xi, omega;
      HYSL_FLOAT Init_Disp, Init_Vel;
-     HYSL_FLOAT End_Disp, End_Vel;
+     HYSL_FLOAT End_Disp, End_Vel, End_Acc;
      HYSL_FLOAT Force_0, Force_1;
      HYSL_FLOAT Disp0, DispT;
      HYSL_FLOAT Vel0, VelT, VelTdT;

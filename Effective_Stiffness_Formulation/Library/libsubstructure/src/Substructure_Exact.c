@@ -185,8 +185,7 @@ void Substructure_ExactSolutionSDOF( const HYSL_FLOAT DispTdT, const HYSL_FLOAT 
 
      /* Calculate the new coupling force */
      *fc = Sub->Stiff.Array[0]*Sub->End_Disp.Array[0] + Sub->Damp.Array[0]*Sub->End_Vel.Array[0];
-//     *fc = Sub->Load.Array[0] - Sub->Mass.Array[0]*Sub->End_Acc.Array[0];
-     //printf( "fc = %le, fc1 = %le\n", fc[0], fc1 );
+//   *fc = Sub->Load.Array[0] - Sub->Mass.Array[0]*Sub->End_Acc.Array[0];
 
      /* Backup substructure values */
      Sub->Init_Disp.Array[0] = Sub->End_Disp.Array[0];
@@ -453,6 +452,9 @@ void Substructure_ExactSolutionESP_Init( const HYSL_FLOAT Mass, const HYSL_FLOAT
 	  fprintf( stderr, "Exact Solution: Negative vibration frequency.\n" );
 	  exit( EXIT_FAILURE );
      }
+
+     Sub->xi = xi;
+     Sub->omega = omega;
 }
 
 void Substructure_ExactSolutionESP_SDOF( const HYSL_FLOAT DispTdT, const HYSL_FLOAT ramp, const HYSL_FLOAT GAcc,const HYSL_FLOAT DeltaT, ExactSimESP_t *const Sub, HYSL_FLOAT *const fc )
@@ -483,10 +485,16 @@ void Substructure_ExactSolutionESP_SDOF( const HYSL_FLOAT DispTdT, const HYSL_FL
      /* Compute the new state */
      Sub->End_Disp = Sub->A*Sub->Init_Disp + Sub->B*Sub->Init_Vel + Sub->C*Sub->Force_0 + Sub->D*Sub->Force_1;
      Sub->End_Vel = Sub->E*Sub->Init_Disp + Sub->F*Sub->Init_Vel + Sub->G*Sub->Force_0 + Sub->H*Sub->Force_1;
+#if _FLOAT_
+     Sub->End_Acc = -(Sub->omega*Sub->omega)*Sub->End_Disp - 2.0f*Sub->xi*Sub->omega*Sub->End_Vel + Sub->Force_1/Sub->Mass;
+#else
+     Sub->End_Acc = -(Sub->omega*Sub->omega)*Sub->End_Disp - 2.0*Sub->xi*Sub->omega*Sub->End_Vel + Sub->Force_1/Sub->Mass;
+#endif
 
-     /* Compute the coupling force */
-     *fc = Sub->Stiff*(Sub->End_Disp - DispTdT) + Sub->Damp*(Sub->End_Vel - Sub->VelTdT);
-//     *fc = Sub->Stiff*Sub->End_Disp + Sub->Damp*Sub->End_Vel;
+     /* Compute the coupling force. Absolute values */
+//   *fc = Sub->Stiff*(Sub->End_Disp - DispTdT) + Sub->Damp*(Sub->End_Vel - Sub->VelTdT);
+     /* Compute the coupling force. Relative values */
+     *fc = Sub->Stiff*Sub->End_Disp + Sub->Damp*Sub->End_Vel;
 
 }
 
