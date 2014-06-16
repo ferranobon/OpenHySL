@@ -352,41 +352,9 @@ int* Algorithm_GetExcitedDOF( const ConfFile_t *const Config, const char *Expres
      return DOF_Table;
 }
 
-void Algorithm_ReadDataEarthquake_AbsValues( const unsigned int NumSteps, const char *Filename,
-					     const HYSL_FLOAT Scale_Factor, HYSL_FLOAT *const Velocity,
-					     HYSL_FLOAT *const Displacement )
-{
-
-     unsigned int i;		    /* A counter */
-     HYSL_FLOAT unnecessary;	    /* Variable to store unnecessary data */
-     HYSL_FLOAT temp1, temp2, temp3;
-     FILE *InFile;
-
-     InFile = fopen( Filename, "r" );
-
-     if ( InFile == NULL ){
-	  Print_Header( ERROR );
-	  fprintf( stderr, "The earthquake data cannot be read because it was not possible to open %s.\n",
-		   Filename );
-	  exit( EXIT_FAILURE );
-     }
-
-     for ( i = 0; i < NumSteps; i++ ){
-#if _FLOAT_
-	  fscanf( InFile, "%E %E %E %E", &unnecessary, &temp1, &temp2, &temp3 );
-#else
-	  fscanf( InFile, "%lE %lE %lE %lE", &unnecessary, &temp1, &temp2, &temp3 );
-#endif
-	  Velocity[i] = temp2*Scale_Factor;
-	  Displacement[i] = temp3*Scale_Factor;
-     }
-
-     /* Close File */
-     fclose( InFile );
-}
-
-void Algorithm_ReadDataEarthquake_RelValues( const unsigned int NumSteps, const char *Filename, 
-					     const HYSL_FLOAT Scale_Factor, HYSL_FLOAT *const Acceleration )
+void Algorithm_ReadDataEarthquake( const unsigned int NumSteps, const char *Filename,
+				   const HYSL_FLOAT Scale_Factor, HYSL_FLOAT *const Acceleration,
+				   HYSL_FLOAT *const Velocity, HYSL_FLOAT *const Displacement )
 {
 
      unsigned int i;		    /* A counter */
@@ -410,6 +378,8 @@ void Algorithm_ReadDataEarthquake_RelValues( const unsigned int NumSteps, const 
 	  fscanf( InFile, "%lE %lE %lE %lE", &unnecessary, &temp1, &temp2, &temp3 );
 #endif
 	  Acceleration[i] = temp1*Scale_Factor;
+	  Velocity[i] = temp2*Scale_Factor;
+	  Displacement[i] = temp3*Scale_Factor;
      }
 
      /* Close File */

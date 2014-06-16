@@ -90,11 +90,11 @@ int main( int argc, char **argv )
 
      for ( i = 0; i < Num_Elements; i++ ){
 
-	  fscanf( Acc_File, "%lf", &Acc );
-	  fscanf( Vel_File, "%lf", &Vel );
-	  fscanf( Disp_File, "%lf", &Disp );
+	  fscanf( Acc_File, "%lE", &Acc );
+	  fscanf( Vel_File, "%lE", &Vel );
+	  fscanf( Disp_File, "%lE", &Disp );
 
-	  fprintf( GM_File, "%i\t%lf\t%lf\t%lf\n", i+1, Acc, Vel, Disp );
+	  fprintf( GM_File, "%i\t%lE\t%lE\t%lE\n", i+1, Acc, Vel, Disp );
      }
 
      fclose( Acc_File );
