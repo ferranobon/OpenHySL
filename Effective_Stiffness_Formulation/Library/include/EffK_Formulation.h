@@ -142,6 +142,18 @@ void EffK_EffectiveForce_PS( const MatrixVector_t *const Mass, const MatrixVecto
 			     const HYSL_FLOAT a1, const HYSL_FLOAT a2, const HYSL_FLOAT a3, const HYSL_FLOAT a4, const HYSL_FLOAT a5,
 			     MatrixVector_t *const Eff_ForceT );
 
+void EffK_EffectiveForce_HHT( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp,
+			      const MatrixVector_t *const Stiff, const MatrixVector_t *const DispT,
+			      const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
+			      MatrixVector_t *const Tempvec, const HYSL_FLOAT a0, const HYSL_FLOAT a1,
+			      const HYSL_FLOAT a2, const HYSL_FLOAT a3, const HYSL_FLOAT a4,
+			      const HYSL_FLOAT a5, const HYSL_FLOAT Alpha_HHT, MatrixVector_t *const Eff_ForceT );
+void EffK_EffectiveForce_HHT_PS( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp,
+				 const MatrixVector_t *const Stiff, const MatrixVector_t *const DispT,
+				 const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
+				 MatrixVector_t *const Tempvec, const HYSL_FLOAT a0, const HYSL_FLOAT a1,
+				 const HYSL_FLOAT a2, const HYSL_FLOAT a3, const HYSL_FLOAT a4,
+				 const HYSL_FLOAT a5, const HYSL_FLOAT Alpha_HHT, MatrixVector_t *const Eff_ForceT );
 
 /**
  * \brief Calculates the effective force vector according to the formulation using the effective stiffness
@@ -206,6 +218,13 @@ void EffK_EffectiveForce_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVe
 			     const MatrixVector_t *const AccT, MatrixVector_t *const Tempvec, const HYSL_FLOAT a0,
 			     const HYSL_FLOAT a1, const HYSL_FLOAT a2, const HYSL_FLOAT a3, const HYSL_FLOAT a4,
 			     const HYSL_FLOAT a5, MatrixVector_t *const Eff_ForceT );
+
+void EffK_EffectiveForce_HHT_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp,
+				 const MatrixVector_Sp_t *const Stiff, const MatrixVector_t *const DispT,
+				 const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
+				 MatrixVector_t *const Tempvec, const HYSL_FLOAT a0, const HYSL_FLOAT a1,
+				 const HYSL_FLOAT a2, const HYSL_FLOAT a3, const HYSL_FLOAT a4, const HYSL_FLOAT a5,
+				 const HYSL_FLOAT Alpha_HHT, MatrixVector_t *const Eff_ForceT );
 
 /**
  * \brief Calculates the effective force vector according to the formulation using the effective

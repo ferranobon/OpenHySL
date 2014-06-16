@@ -159,6 +159,13 @@ else()
   target_link_libraries(SAlgorithm core substructure hdf5 hdf5_hl)
 endif()
 
+add_executable( SAlgorithm_HHT src/SAlgorithm_HHT.c src/Algorithm_Aux.c src/HDF5_Operations.c)# ${CORE_SRCS} ${SPARSE_SRCS} ${SUBS_SRCS})
+if( USE_SPARSE )
+  target_link_libraries(SAlgorithm_HHT core core_sp substructure hdf5 hdf5_hl)
+else()
+  target_link_libraries(SAlgorithm_HHT core substructure hdf5 hdf5_hl)
+endif()
+
 add_executable( SAlgorithm_EffM src/SAlgorithm_EffM.c src/Algorithm_Aux.c src/HDF5_Operations.c)# ${CORE_SRCS} ${SPARSE_SRCS} ${SUBS_SRCS})
 if( USE_SPARSE )
   target_link_libraries(SAlgorithm_EffM core core_sp substructure hdf5 hdf5_hl)
