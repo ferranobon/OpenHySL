@@ -42,7 +42,7 @@ int main( int argc, char **argv )
 
      MatrixVector_t LoadVectorForm, Acc;
 
-     HYSL_FLOAT *AccAll;
+     HYSL_FLOAT *AccAll, *VelAll, *DispAll;
 
      SaveTime_t     Time;
      /* Options */
@@ -89,6 +89,8 @@ int main( int argc, char **argv )
 
      /* Allocate memory for saving the acceleration (input files) that will be used during the test */
      AccAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     VelAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     DispAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
 
      /* Read the matrices */
      MatrixVector_Create( InitCnt.Order, InitCnt.Order, &Mass );
@@ -131,8 +133,8 @@ int main( int argc, char **argv )
      }
 
      /* Read the earthquake data from a file */
-     Algorithm_ReadDataEarthquake_RelValues( InitCnt.NStep, InitCnt.FileData, InitCnt.Scale_Factor,
-					     AccAll );
+     Algorithm_ReadDataEarthquake( InitCnt.NStep, InitCnt.FileData, InitCnt.Scale_Factor,
+				   AccAll, VelAll, DispAll );
 
      /* Compute Eigenvalues and eigenvectors */
      Compute_Eigenvalues_Eigenvectors( &Stiff, &Mass, &EValues, &EVectors );
@@ -190,6 +192,8 @@ int main( int argc, char **argv )
      Algorithm_Destroy( &InitCnt );
 
      free( AccAll );
+     free( VelAll );
+     free( DispAll );
 
      MatrixVector_Destroy( &Mass );
      MatrixVector_Destroy( &Stiff );
