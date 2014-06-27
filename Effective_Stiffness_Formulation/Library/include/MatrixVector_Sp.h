@@ -32,15 +32,15 @@ typedef struct MatrixVector_Sp {
      int Cols;            /*!< \brief Number of Columns of the matrix. */
      int Num_Nonzero;     /*!< \brief Number of non-zero elements. */
      HYSL_FLOAT *Values;  /*!< \brief A HYSL_FLOAT precision array that contains the non-zero elements of a
-		           * sparse matrix. The non-zero elements are mapped into the values array using the
-		           * row-major upper triangular storage mapping. The lenght of the array is equal to
-		           * the number of non-zero elements in the matrix. */
+		           *          sparse matrix. The non-zero elements are mapped into the values array
+		           *          using the row-major upper triangular storage mapping. The lenght of the
+		           *          array is equal to the number of non-zero elements in the matrix. */
      int *Columns;        /*!< \brief Element \a i of the integer array columns is the number of the column
-			   * that contains the i-th element in the values array. The lenght of the array is
-			   * equal to the number of non-zero elements in the matrix. */
+			   *          that contains the i-th element in the values array. The lenght of the
+			   *          array is equal to the number of non-zero elements in the matrix. */
      int *RowIndex;       /*!< \brief Element \a j of the integer array rowIndex gives the index of the
-			   * element in the values array that is first non-zero element in a row j. The length
-			   * of the array is equal to the number of rows plus one. */
+			   *          element in the values array that is first non-zero element in a row
+			   *          j. The length of the array is equal to the number of rows plus one. */
 } MatrixVector_Sp_t;
 
 /**
