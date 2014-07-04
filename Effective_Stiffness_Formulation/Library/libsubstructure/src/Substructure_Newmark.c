@@ -89,8 +89,6 @@ void Substructure_Newmark_Init( const HYSL_FLOAT Mass, const HYSL_FLOAT Damp, co
 
      Sub->DispT = 0.0;
      Sub->VelTdT = 0.0;
-
-     printf("A0 %lE A6 %lE a0 %lE a6 %lE\n", Sub->A0, Sub->A6, Sub->a0, Sub->a6 );
 }
 
 void Substructure_Newmark_SDOF( const HYSL_FLOAT DispTdT, const HYSL_FLOAT ramp, const HYSL_FLOAT GAcc, NewmarkSim_t *const Sub, HYSL_FLOAT *const fc )
