@@ -7,6 +7,7 @@
 
 #include "Substructure.h"
 #include "Substructure_Exact.h"
+#include "Substructure_Newmark.h"
 #include "Substructure_Remote.h"
 #include "Substructure_Remote_OpenFresco.h"
 #include "Substructure_Remote_NSEP.h"
@@ -114,6 +115,9 @@ void Substructure_Substepping( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *
 	       /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
 		* in the same routine.*/
 	  case SIM_EXACT_ESP:
+	  case SIM_NEWMARK:
+	       /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
+		* in the same routine.*/
 	  case SIM_UHYDE:
 	       /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
 		* in the same routine.*/
@@ -185,6 +189,7 @@ void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const Vec
      char uplo = 'L';
      ExactSim_t *Exact;
      ExactSimESP_t *ExactEsp;
+     NewmarkSim_t *Newmark;
      UHYDEfbrSim_t *UHYDE;  
      MeasuredSim_t *Measured;
 
@@ -228,6 +233,10 @@ void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const Vec
 		    ExactEsp = (ExactSimESP_t *) CNodes->Sub[i].SimStruct;
 		    Substructure_ExactSolutionESP_SDOF( VecTdT_c[i], ramp, GAcc, DeltaT_Sub, ExactEsp, &CoupForce_c[i] );
 		    break;
+	       case SIM_NEWMARK:
+		    Newmark = (NewmarkSim_t *) CNodes->Sub[i].SimStruct;
+		    Substructure_Newmark_SDOF( VecTdT_c[i], ramp, GAcc, Newmark, &CoupForce_c[i] );
+		    break;
 	       case SIM_UHYDE:
 		    UHYDE = (UHYDEfbrSim_t *) CNodes->Sub[i].SimStruct;
 		    Substructure_SimUHYDE_1D( VecTdT_c[i], DeltaT_Sub, UHYDE, &CoupForce_c[i] );
@@ -255,6 +264,11 @@ void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const Vec
 	       ExactEsp->Acc0 = ExactEsp->AccT; ExactEsp->AccT = ExactEsp->AccTdT;
 	       ExactEsp->Vel0 = ExactEsp->VelT; ExactEsp->VelT = ExactEsp->VelTdT;
 	       ExactEsp->Disp0 = ExactEsp->DispT; ExactEsp->DispT = VecTdT_c[0];
+	       break;
+	  case SIM_NEWMARK:
+	       Newmark->Acc0 = Newmark->AccT; Newmark->AccT = Newmark->AccTdT;
+	       Newmark->Vel0 = Newmark->VelT; Newmark->VelT = Newmark->VelTdT;
+	       Newmark->Disp0 = Newmark->DispT; Newmark->DispT = VecTdT_c[0];
 	       break;
 	  case SIM_UHYDE:
 	       break;

@@ -27,6 +27,12 @@ typedef struct HDF5_Exact_UHYDE {
      char Description[MAX_DESCRIPTION];
 } HDF5_Exact_UHYDE_t;
 
+typedef struct HDF5_Newmark {
+     int Position;
+     HYSL_FLOAT InitValues[6];
+     char Description[MAX_DESCRIPTION];
+} HDF5_Newmark_t;
+
 typedef struct HDF5_Exp_Meas {
      int Position;
      char Description[MAX_DESCRIPTION];
@@ -43,7 +49,7 @@ void HDF5_Store_Time_MPI( const hid_t hdf5_file, const SaveTime_MPI_t *const Tim
 #endif
 
 void HDF5_CreateGroup_Parameters( const hid_t hdf5_file, const AlgConst_t *const InitCnt, const CouplingNode_t *const CNode, const HYSL_FLOAT *const Acc, const HYSL_FLOAT *const Vel, const HYSL_FLOAT *const Disp );
-void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const CouplingNode_t *const CNodes );
+void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const AlgConst_t *const InitCnt, const CouplingNode_t *const CNodes );
 void HDF5_CreateGroup_TimeIntegration( const hid_t hdf5_file, const AlgConst_t *const InitCnt );
 void HDF5_Store_TimeHistoryData( const hid_t hdf5_file, const MatrixVector_t *const Acc, const MatrixVector_t *const Vel, const MatrixVector_t *const Disp, const MatrixVector_t *const fc, const MatrixVector_t *const fu, const int istep, const AlgConst_t *const InitCnt );
 void HDF5_Store_Time( const hid_t hdf5_file, const SaveTime_t *const Time );
