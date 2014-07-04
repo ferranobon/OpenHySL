@@ -33,11 +33,12 @@ enum Substructure_Id { SIM_EXACT_MDOF, /*!< \brief Simulate the substructure usi
 		       SIM_EXACT_SDOF, /*!< \brief Simulate the substructure using the exact solution. SDOF. */
 		       SIM_EXACT_ESP,  /*!< \brief Simulate the sub-structure using an exact integration
 					* method \cite Exact */
+		       SIM_NEWMARK,    /*!< \brief Simulate the sub-structure using the newmark integration scheme. */
 		       SIM_UHYDE,      /*!< \brief Simulate the substructure using the UHYDE-\em fbr device
 					* (1-Dimension).*/
 		       SIM_MEASURED,   /*!< \brief Simulate the substructure using measured values. */
 		       EXP_ADWIN,      /*!< \brief Run using ADwin. */
-		       REMOTE,         /*!< \brief Remote substructure. */
+		       REMOTE         /*!< \brief Remote substructure. */
 };
 
 /**
