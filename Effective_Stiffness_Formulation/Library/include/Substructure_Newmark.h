@@ -61,4 +61,4 @@ void Substructure_Newmark_SDOF( const HYSL_FLOAT DispTdT, const HYSL_FLOAT ramp,
  * \param[out] Sub
  */
 void Substructure_Newmark_Destroy( NewmarkSim_t *const Sub );
-#endif /* SUBSTRUCTURE_EXACT_H_ */
+#endif /* SUBSTRUCTURE_NEWMARK_H_ */

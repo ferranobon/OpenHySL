@@ -456,6 +456,9 @@ void Substructure_DeleteCouplingNodes( CouplingNode_t *CNodes )
 	  case SIM_EXACT_ESP:
 	       Substructure_ExactSolutionESP_Destroy( (ExactSimESP_t *) CNodes->Sub[i].SimStruct );
 	       break;
+	  case SIM_NEWMARK:
+	       Substructure_Newmark_Destroy( (NewmarkSim_t *) CNodes->Sub[i].SimStruct );
+	       break;
 	  case SIM_UHYDE:
 	       Substructure_SimUHYDE_Destroy( (UHYDEfbrSim_t *) CNodes->Sub[i].SimStruct );
 	       break;
