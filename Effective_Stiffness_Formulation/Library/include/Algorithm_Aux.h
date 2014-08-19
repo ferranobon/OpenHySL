@@ -133,6 +133,9 @@ typedef struct AlgConst{
      HYSL_FLOAT a9;               /*!< \brief \f$a_9 = \Delta t\f$ */
 
      HYSL_FLOAT a10;              /*!< \brief \f$a_{10} = \biggl(\frac{1}{2} - \beta_N\biggr)\Delta t^2\f$ */
+     HYSL_FLOAT a16;              /*!< \brief \f$a_{16} = (1-2\gamma_N)\Delta t\f$ */
+     HYSL_FLOAT a17;              /*!< \brief \f$a_{17} = \left(\frac{1}{2} - 2\beta_N + \gamma_N\right)\Delta t^2\f$ */
+     HYSL_FLOAT a18;              /*!< \brief \f$a_{18} = \left(\frac{1}{2} + \beta_N - \gamma_N\right)\Delta t^2\f$ */
 
      /* Files where data are located */
      char* FileM;            /*!< \brief Stores the name of the file that contains the Mass Matrix */
