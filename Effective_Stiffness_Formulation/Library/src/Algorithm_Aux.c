@@ -155,7 +155,7 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
      InitConst->a6 = (1.0f - InitConst->Newmark.Gamma)*InitConst->Delta_t;
      InitConst->a10 = (0.5f - InitConst->Newmark.Beta)*InitConst->Delta_t*InitConst->Delta_t;
      InitConst->a16 = (1.0f - 2.0f*InitConst->Newmark.Gamma)*InitConst->Delta_t;
-     InitConst->a17 = (0.5f -2.0f*InitConst->Newmark.Beta + Newmark.Gamma)*InitConst->Delta_t*InitConst->Delta_t;
+     InitConst->a17 = (0.5f -2.0f*InitConst->Newmark.Beta + InitConst->Newmark.Gamma)*InitConst->Delta_t*InitConst->Delta_t;
      InitConst->a18 = (0.5f + InitConst->Newmark.Beta - InitConst->Newmark.Gamma)*InitConst->Delta_t*InitConst->Delta_t;
 #else
      InitConst->a0 = 1.0/(InitConst->Newmark.Beta*InitConst->Delta_t*InitConst->Delta_t);
