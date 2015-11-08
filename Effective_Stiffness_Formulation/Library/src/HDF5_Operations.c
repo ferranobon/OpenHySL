@@ -366,6 +366,11 @@ void HDF5_CreateGroup_TimeIntegration( const hid_t hdf5_file, const AlgConst_t *
 	  HDF5_Create_Dataset( hdf5_file, "/Time Integration/Coupling force", (int) InitCnt->NStep,
 			       (int) InitCnt->Order );
 	  status = H5LTset_attribute_string( hdf5_file, "Time Integration/Coupling force", "Units", "N" );
+
+	  HDF5_Create_Dataset( hdf5_file, "/Time Integration/TMD", (int) InitCnt->NStep, 3 );
+	  status = H5LTset_attribute_string( hdf5_file, "Time Integration/TMD", "Column 0: Acceleration", "m/s^2" );
+	  status = H5LTset_attribute_string( hdf5_file, "Time Integration/TMD", "Column 1: Velocity", "m/s" );
+	  status = H5LTset_attribute_string( hdf5_file, "Time Integration/TMD", "Column 2: Displacement", "m" );
      }
 
      /* If the PID is used, then store the values */
@@ -399,6 +404,38 @@ void HDF5_Store_TimeHistoryData( const hid_t hdf5_file, const MatrixVector_t *co
      if( InitCnt->PID.P != 0.0 || InitCnt->PID.I != 0.0 || InitCnt->PID.D != 0.0 ){
 	  HDF5_AddResults_to_Dataset( hdf5_file, "/Time Integration/Error force", fu, istep );
      }
+}
+
+void HDF5_Store_TMD( const hid_t hdf5_file, const double *const Acc, const double *const Vel, const double *const Disp, const int istep )
+{
+     HYSL_FLOAT TMD[3];
+
+     TMD[0] = *Acc; TMD[1] = *Vel; TMD[2] = *Disp;
+     
+     hid_t   dataset_id, filespace_id, memspace_id;
+     herr_t  status;
+     hsize_t size[2], offset[2], dims[2];
+
+     size[0] = (hsize_t) istep; /* Num_Steps starts at 1 */
+     size[1] = (hsize_t) 3;
+
+     /* Create the data space for the dataset. */
+     dataset_id = H5Dopen( hdf5_file, "/Time Integration/TMD", H5P_DEFAULT );
+     H5Dextend( dataset_id, size );
+
+     filespace_id = H5Dget_space( dataset_id );
+     offset[0] = ((hsize_t) istep - 1);
+     offset[1] = 0;
+     dims[0] = 1; dims[1] = (hsize_t) 3;
+     status = H5Sselect_hyperslab( filespace_id, H5S_SELECT_SET, offset, NULL, dims, NULL );
+     
+     memspace_id = H5Screate_simple( 2, dims, NULL );
+     
+     status = H5Dwrite( dataset_id, H5T_NATIVE_HYSL_FLOAT, memspace_id, filespace_id, H5P_DEFAULT, TMD );
+
+     status = H5Dclose( dataset_id );
+     status = H5Sclose( memspace_id );
+     status = H5Sclose( filespace_id );
 }
 
 void HDF5_Store_Time( const hid_t hdf5_file, const SaveTime_t *const Time )

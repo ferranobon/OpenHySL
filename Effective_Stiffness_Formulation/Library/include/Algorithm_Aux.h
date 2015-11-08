@@ -22,6 +22,8 @@
 #include "Conf_Parser.h"        /* For ConfFile_t */
 #include "Definitions.h"
 
+#include "GSSSS.h"
+
 #define MPI_TIME_SLENGTH 30
 
 typedef struct SaveTime {
@@ -113,6 +115,7 @@ typedef struct AlgConst{
      TIntegration_t Newmark;  /*!< \brief Stores Newmark Constants gamma (\c Newmark.Gamma or \f$\gamma_N\f$)
 			       * and (\c Newmark.Beta or \f$\beta_N\f$)
 			       */
+     TIntegration_GSSSS_t GSSSS;
      PID_t PID;               /*!< \brief Stores proportional (\c PID.P), integral (\c PID.I) and derivative
 			       * (\c PID.D) part.
 			       */
