@@ -22,7 +22,7 @@ int main( int argc, char **argv )
      char *OutputFile; char *ConfFile;
      int rc, idx, i;
 
-     double factor[17] = {0.5, 0.65, 0.85, 0.9, 0.925, 0.95, 0.975, 1.0, 1.025, 1.05, 1.075, 1.1, 1.15, 1.2, 1.35, 1.5, 2};
+     double factor[18] = {0.5, 0.65, 0.80, 0.85, 0.9, 0.925, 0.95, 0.975, 1.0, 1.025, 1.05, 1.075, 1.1, 1.15, 1.2, 1.35, 1.5, 2};
 
      struct option long_options[] = 
 	  {

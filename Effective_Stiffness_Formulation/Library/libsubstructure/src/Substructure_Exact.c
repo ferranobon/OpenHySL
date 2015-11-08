@@ -3,6 +3,7 @@
 #include <math.h>
 #include <string.h>
 #include <assert.h>
+#include <time.h> /* For gaussian deviate */
 
 #include "Print_Messages.h"
 #include "Substructure_Exact.h"
@@ -382,6 +383,8 @@ void Substructure_ExactSolutionESP_Init( const HYSL_FLOAT Mass, const HYSL_FLOAT
      Sub->DispT = 0.0;
      Sub->VelTdT = 0.0;
 
+     Sub->idum = -time(0);
+
      /* Calculate the free vibration frequency */
      omega2 = Stiff/Mass;
 
@@ -460,6 +463,8 @@ void Substructure_ExactSolutionESP_Init( const HYSL_FLOAT Mass, const HYSL_FLOAT
 void Substructure_ExactSolutionESP_SDOF( const HYSL_FLOAT DispTdT, const HYSL_FLOAT ramp, const HYSL_FLOAT GAcc,const HYSL_FLOAT DeltaT, ExactSimESP_t *const Sub, HYSL_FLOAT *const fc )
 {
 
+     double Ffs = 60.0, Ffst = 325.0, epsilon = 0.000001, mu = 0.0, sigma = 1.0;
+
      /* Compute initial velocity */
 #if _FLOAT_
      Sub->AccTdT = (1.0f - ramp)*(-Sub->a0*Sub->Disp0 -Sub->a2*Sub->Vel0 -Sub->a3*Sub->Acc0)
@@ -475,9 +480,46 @@ void Substructure_ExactSolutionESP_SDOF( const HYSL_FLOAT DispTdT, const HYSL_FL
 
      /* Backup and computer new forcce */
      Sub->Force_0 = Sub->Force_1;
-     Sub->Force_1 = Sub->Stiff*DispTdT + Sub->Damp*Sub->VelTdT;
-//     Sub->Force_1 = -Sub->Mass*(GAcc + Sub->AccTdT);
 
+     Sub->Force_1 = -Sub->Mass*(GAcc + Sub->AccTdT);
+/*     if( Sub->End_Vel > epsilon ){
+	  Sub->Force_1 = -Sub->Mass*(GAcc + Sub->AccTdT) - Ffs;
+     }
+     if( Sub->End_Vel < -epsilon ){
+	  Sub->Force_1 = -Sub->Mass*(GAcc + Sub->AccTdT) + Ffs;
+     }
+     if( fabs(Sub->End_Vel) < epsilon ){
+	  if(-Sub->Mass*(GAcc + Sub->AccTdT) < -Ffst ){
+	       Sub->Force_1 = -Sub->Mass*(GAcc + Sub->AccTdT) + Ffst;
+	  }
+	  if(-Sub->Mass*(GAcc + Sub->AccTdT) > Ffst ){
+	       Sub->Force_1 = -Sub->Mass*(GAcc + Sub->AccTdT) - Ffst;
+	  }
+	  if( fabs(-Sub->Mass*(GAcc + Sub->AccTdT)) < Ffst ){
+	       Sub->Force_1 = 0.0;
+	  }
+	  }*/
+
+#if _ABSVALUES_
+     Sub->Force_1 = Sub->Stiff*DispTdT + Sub->Damp*Sub->VelTdT;
+     
+     if( Sub->End_Vel - Sub->VelTdT > epsilon ){
+	  Sub->Force_1 = Sub->Stiff*DispTdT + Sub->Damp*Sub->VelTdT - Ffs;
+     } else if (Sub->End_Vel - Sub->VelTdT < epsilon ){
+	  Sub->Force_1 = Sub->Stiff*DispTdT + Sub->Damp*Sub->VelTdT + Ffs;
+	  }
+     if( fabs(Sub->End_Vel -Sub->VelTdT) < epsilon ){
+	  if( (Sub->Stiff*DispTdT + Sub->Damp*Sub->VelTdT) <= -Ffst){
+	       Sub->Force_1 = Sub->Stiff*DispTdT + Sub->Damp*Sub->VelTdT + Ffst;
+	  } 
+	  if( (Sub->Stiff*DispTdT + Sub->Damp*Sub->VelTdT) > Ffst){
+	       Sub->Force_1 = Sub->Stiff*DispTdT + Sub->Damp*Sub->VelTdT - Ffst;
+	  }
+	  if ( fabs(Sub->Stiff*DispTdT + Sub->Damp*Sub->VelTdT) < Ffst ){
+	       Sub->Force_1 = 0;
+	  }
+	  }
+#endif
      /* Backup the displacements */
      Sub->Init_Disp = Sub->End_Disp;
      Sub->Init_Vel = Sub->End_Vel;
@@ -495,6 +537,9 @@ void Substructure_ExactSolutionESP_SDOF( const HYSL_FLOAT DispTdT, const HYSL_FL
 //   *fc = Sub->Stiff*(Sub->End_Disp - DispTdT) + Sub->Damp*(Sub->End_Vel - Sub->VelTdT);
      /* Compute the coupling force. Relative values */
      *fc = Sub->Stiff*Sub->End_Disp + Sub->Damp*Sub->End_Vel;
+
+     /* Plus white noise */
+     //*fc = *fc + 1500.0*Gaussian_Deviate( &mu, &sigma, &Sub->idum );
 
 }
 
