@@ -312,6 +312,7 @@ int main( int argc, char **argv ){
 	  } else if ( !InitCnt.Use_Packed && !InitCnt.Use_Sparse ){
 	       MatrixVector_Create( InitCnt.Order, InitCnt.Order, &C );
 	       Rayleigh_Damping( &M, &K, &C, &InitCnt.Rayleigh );
+	       MatrixVector_ToFile_MM( &C, "960C_MM.txt");
 	  } else if ( InitCnt.Use_Packed && !InitCnt.Use_Sparse ){
 	       MatrixVector_Create_PS( InitCnt.Order, InitCnt.Order, &C );
 	       Rayleigh_Damping_PS( &M, &K, &C, &InitCnt.Rayleigh );
@@ -560,7 +561,7 @@ int main( int argc, char **argv ){
 	       } else if (InitCnt.Order == 33 ){
 		    fprintf( GlobalOutput, "%d\t%lE\t%lE\t", istep, AccAll[istep - 1] + AccTdT.Array[CNodes.Array[0] - 1],
 			     DispAll[istep - 1] + DispTdT.Array[CNodes.Array[0]-1] );
-	       } else assert( 0 ); 
+	       } //else assert( 0 ); 
 	  }	       
 	  fprintf( GlobalOutput, "%lE\t%lE\t", fc.Array[CNodes.Array[0]-1], fu.Array[CNodes.Array[0]-1] );
 	  fprintf( GlobalOutput, "%lE\t%lE\t%lE\n", temp1, temp2, temp3);

@@ -24,23 +24,44 @@
 
 #include "GSSSS.h"
 
-#define MPI_TIME_SLENGTH 30
+#define MPI_TIME_SLENGTH 30 /*!< \brief Length of the array \c Date_time in MPI since HDF5 does not support
+			     * variable types in mpi mode. */
 
+
+/**
+ * \brief Structure to handle the elapsed time.
+ *
+ * This structure is used to store the starting time, ending time and elapsed time of the integration
+ * process. It is used in non-mpi versions of the program and their values are stored in the HDF5 file.
+ *
+ * \sa SaveTime_MPI_t.
+ */
 typedef struct SaveTime {
-     time_t Date_start;
-     char *Date_time;
-     double Elapsed_time;
-     struct timeval Start;
-     struct timeval End;
+     time_t Date_start;     /*!< \brief Date of the test. */
+     char *Date_time;       /*!< \brief Stores the conversion in string format of the value stored in
+			      \c Date_start. */
+     double Elapsed_time;   /*!< \brief Elapsed time between the start of the test and the end of it in
+			      millisencods. */
+     struct timeval Start;  /*!< \brief Clock start time. Resolution of nanoseconds. */
+     struct timeval End;    /*!< \brief Clock end time. Resolution of nanoseconds. */
 } SaveTime_t;
 
+/**
+ * \brief Structure to handle the elapsed time.
+ *
+ * This structure is used to store the starting time, ending time and elapsed time of the integration
+ * process. It is used in the mpi versions of the program and their values are stored in the HDF5 file.
+ *
+ * \sa SaveTime_t.
+ */
 typedef struct SaveTime_MPI {
-     time_t Date_start;
-     char Date_time[MPI_TIME_SLENGTH]; /* Fixed length because HDF5 does not support variable types in mpi
-					  mode */
-     double Elapsed_time;
-     double Start;
-     double End;
+     time_t Date_start;                /*!< \brief Date of the test. */
+     char Date_time[MPI_TIME_SLENGTH]; /*!< \brief Fixed length because HDF5 does not support variable types
+					* in mpi mode. */
+     double Elapsed_time;              /*!< \brief Elapsed time between the start of the test and the end of
+					* it in millisencods. */
+     double Start;                     /*!< \brief MPI Wall start time. Resolution of milliconds. */
+     double End;                       /*!< \brief MPI Wall end time. Resolution of miliseconds. */
 } SaveTime_MPI_t;
 
 /**
@@ -104,10 +125,10 @@ typedef struct AlgConst{
 			       * applied.  \sa AlgorithM_GetExcitedDOF().
 			       */
      int Read_CMatrix;        /*!< \brief Read the damping matrix from a file instead of using Rayleigh Damping. */
-     HYSL_FLOAT Delta_t;          /*!< \brief Time increment \f$\Delta t\f$ */
-     HYSL_FLOAT DeltaT_Sub;       /*!< \brief Time increment for the sub-stepping process */
+     HYSL_FLOAT Delta_t;      /*!< \brief Time increment \f$\Delta t\f$ */
+     HYSL_FLOAT DeltaT_Sub;   /*!< \brief Time increment for the sub-stepping process */
 
-     HYSL_FLOAT Scale_Factor;     /*!< \brief Scale factor for the time history of the input load */
+     HYSL_FLOAT Scale_Factor; /*!< \brief Scale factor for the time history of the input load */
 
      Rayleigh_t Rayleigh;     /*!< \brief Stores Rayleigh Constants alpha (\c Rayleigh.Alpha or
 			       * \f$\alpha_R\f$) and beta (\c Rayleigh.Beta or \f$\beta_R\f$)
@@ -121,21 +142,20 @@ typedef struct AlgConst{
 			       */
 
      /* Constants for Step ending */
-     HYSL_FLOAT a0;               /*!< \brief \f$a_0 = \frac{1}{\beta_N\Delta t^2}\f$ */
-     HYSL_FLOAT a1;               /*!< \brief \f$a_1 = \frac{\gamma_N}{\beta_N\Delta t}\f$ */
-     HYSL_FLOAT a2;               /*!< \brief \f$a_2 = \frac{1}{\beta_N\Delta t}\f$ */
-     HYSL_FLOAT a3;               /*!< \brief \f$a_3 = \frac{1}{2\beta_N\Delta t} - 1\f$ */
-     HYSL_FLOAT a4;               /*!< \brief \f$a_4 = \frac{\gamma_N}{\beta_N} - 1\f$ */
-     HYSL_FLOAT a5;               /*!< \brief \f$a_5 =
-			       * \Delta_t\biggl(\frac{\gamma_N}{2\beta_N} - 1\biggr)\f$ */
-     HYSL_FLOAT a6;               /*!< \brief \f$a_6= \frac{1 - \gamma_N}{\Delta t}\f$ */
-     HYSL_FLOAT a7;               /*!< \brief \f$a_7 = \gamma_N\Delta t\f$ */
-
-     HYSL_FLOAT a8;               /*!< \brief \f$a_8 = \beta_N\Delta t^2\f$ */
-
-     HYSL_FLOAT a9;               /*!< \brief \f$a_9 = \Delta t\f$ */
-
-     HYSL_FLOAT a10;              /*!< \brief \f$a_{10} = \biggl(\frac{1}{2} - \beta_N\biggr)\Delta t^2\f$ */
+     HYSL_FLOAT a0;           /*!< \brief \f$a_0 = \frac{1}{\beta_N\Delta t^2}\f$ */
+     HYSL_FLOAT a1;           /*!< \brief \f$a_1 = \frac{\gamma_N}{\beta_N\Delta t}\f$ */
+     HYSL_FLOAT a2;           /*!< \brief \f$a_2 = \frac{1}{\beta_N\Delta t}\f$ */
+     HYSL_FLOAT a3;           /*!< \brief \f$a_3 = \frac{1}{2\beta_N\Delta t} - 1\f$ */
+     HYSL_FLOAT a4;           /*!< \brief \f$a_4 = \frac{\gamma_N}{\beta_N} - 1\f$ */
+     HYSL_FLOAT a5;           /*!< \brief \f$a_5 = \Delta_t\biggl(\frac{\gamma_N}{2\beta_N} - 1\biggr)\f$ */
+     HYSL_FLOAT a6;           /*!< \brief \f$a_6= \frac{1 - \gamma_N}{\Delta t}\f$ */
+     HYSL_FLOAT a7;           /*!< \brief \f$a_7 = \gamma_N\Delta t\f$ */
+     HYSL_FLOAT a8;           /*!< \brief \f$a_8 = \beta_N\Delta t^2\f$ */
+     HYSL_FLOAT a9;           /*!< \brief \f$a_9 = \Delta t\f$ */
+     HYSL_FLOAT a10;          /*!< \brief \f$a_{10} = \biggl(\frac{1}{2} - \beta_N\biggr)\Delta t^2\f$ */
+     HYSL_FLOAT a16;          /*!< \brief \f$a_{16} = (1-2\gamma_N)\Delta t\f$ */
+     HYSL_FLOAT a17;          /*!< \brief \f$a_{17} = \left(\frac{1}{2} - 2\beta_N + \gamma_N\right)\Delta t^2\f$ */
+     HYSL_FLOAT a18;          /*!< \brief \f$a_{18} = \left(\frac{1}{2} + \beta_N - \gamma_N\right)\Delta t^2\f$ */
 
      /* Files where data are located */
      char* FileM;            /*!< \brief Stores the name of the file that contains the Mass Matrix */
@@ -239,7 +259,32 @@ void Algorithm_Init_MPI( const char *FileName, AlgConst_t *const InitConst );
  */
 void Algorithm_BroadcastConfFile( AlgConst_t *const InitConst );
 
+/**
+ * \brief Broadcasts a string to the rest of the MPI processes and allocates the necessary memory for the
+ * string to be stored in oder processes.
+ *
+ * \warning This routine requires MPI.
+ *
+ * \pre MPI must be properly initialised and the calling process must be the root process. The string must
+ * not be allocated in the other processes.
+ *
+ * \param[in] String String to be broadcasted.
+ *
+ * \return A pointer to the allocated memory where the string \c String is stored.
+ */
 char* Algorithm_BroadcastString( char *String );
+
+/**
+ * \brief Broadcasts the array containing which are the DOFs that get excited by the ground acceleration.
+ *
+ * \warning This routine requires MPI.
+ *
+ * \pre \c InitConst must be properly initialised through Algorithm_Init() in MPI process 0.
+ *
+ * \param[in] IntArray The pointer to the integer array that has to be passed on.
+ *
+ * \return A pointer to the allocated memory where the integer array IntArray is stored.
+ */
 int* Algorithm_BroadcastExcitedDOF( int *IntArray );
 
 /**
@@ -336,6 +381,27 @@ void Algorithm_ReadDataEarthquake( const unsigned int NumSteps, const char *File
  */
 void Algorithm_PrintHelp( const char *Program_Name );
 
+/**
+ * \brief Concatenates different strings into one.
+ *
+ * This function concatenates different strings into one. It takes any number of arguments but the first
+ * argument must be always the number of strings that are going to be passed. The strings are concatenated in
+ * the same order that is given in the arguments. For example:
+ * 
+ * <tt>StrConc = Concatenate_Strings( 2, "This is a ", "concatenated string." );</tt>
+ *
+ * will result in <tt>StrConc = "This is a concatenated string."</tt>
+ *
+ * \pre \c count is the number of strings that are going to be concatenated. All strings must be correctly
+ * initialised except for the newly created string that is given as a return.
+ *
+ * \param[in] count Number of strings to concatenate.
+ *
+ * \return A pointer to the allocated memory containing the concatenated strings.
+ *
+ * \post The initial strings are still accessible while a new string, with all the concatenated strings in it
+ * is given as return.
+ */
 char* Concatenate_Strings( int count, ... );
 
 #endif /* _ALGORITHM_AUX_H_ */
