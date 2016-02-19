@@ -11,6 +11,7 @@
 #include "Definitions.h"
 #include "Substructure_CouplingNodes.h"
 #include "Substructure_Exact.h"
+#include "Substructure_Newmark.h"
 #include "Substructure_UHYDEfbr.h"
 #include "Substructure_SimMeasured.h"
 #include "Substructure_Experimental.h"
@@ -65,8 +66,6 @@ void HDF5_CreateGroup_Parameters( const int hdf5_file, const AlgConst_t *const I
      dims[1] = 1;
      dataspace_id = H5Screate_simple( 2, dims, NULL );
      if( Acc != NULL ){
-	  /* assssssssssfa asfjajs asjfnakjsdfajksh fafa safsjdfaskjh asjdf ajsf aksjdf aksj aksjdfnak sjdfn a
-	   *  */
 	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input/Acceleration", H5T_NATIVE_HYSL_FLOAT,
 				   dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 	  status = H5LTset_attribute_string( hdf5_file, "Test Parameters/Input/Acceleration", "Units", "m/s^2" );
@@ -129,7 +128,7 @@ void HDF5_CreateGroup_Parameters( const int hdf5_file, const AlgConst_t *const I
      
      /* Save the coupling nodes and information */
      if( InitCnt->OrderSub > 0 ){
-	  Save_InformationCNodes( hdf5_file, "/Test Parameters/Substructures", CNodes );
+	  Save_InformationCNodes( hdf5_file, "/Test Parameters/Substructures", InitCnt, CNodes );
      }
 
      for( i = 0; i < 4; i++ ){
@@ -140,15 +139,17 @@ void HDF5_CreateGroup_Parameters( const int hdf5_file, const AlgConst_t *const I
 }
 
 
-void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const CouplingNode_t *const CNodes )
+void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const AlgConst_t *const InitCnt, const CouplingNode_t *const CNodes )
 {
-     int i, j, k, count, is_adwin, is_exact, is_uhyde, is_measured;
+     int i, j, k, count, is_adwin, is_exact, is_newmark, is_uhyde, is_measured;
      hid_t    group_id, strtype, memtype, space, dset;
      hsize_t  dims[1];
      herr_t   status;
      HDF5_Exact_UHYDE_t *Nodes;
+     HDF5_Newmark_t *Nodes_Newmark;
      HDF5_Exp_Meas_t *Nodes_Exp;
      ExactSimESP_t *ExSim;
+     NewmarkSim_t *Newmark;
      UHYDEfbrSim_t *UHYDE;
      ExpSub_t *Experimental;
 
@@ -166,7 +167,7 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const C
 
      for( i = 0; i <= NUM_TYPE_SUB; i++ ){
 	  count = 0;
-	  is_adwin = 0; is_exact = 0; is_uhyde=0; is_measured = 0;
+	  is_adwin = 0; is_exact = 0; is_newmark = 0; is_uhyde=0; is_measured = 0;
 
 	  for( j = 0; j < CNodes->Order; j++ ){
 	       if ( i == EXP_ADWIN && CNodes->Sub[j].Type == EXP_ADWIN ){
@@ -175,6 +176,9 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const C
 	       } else if ( i == SIM_EXACT_ESP && CNodes->Sub[j].Type == SIM_EXACT_ESP ){
 		    count = count + 1;
 		    is_exact = 1;
+	       } else if ( i == SIM_NEWMARK && CNodes->Sub[j].Type == SIM_NEWMARK ){
+		    count = count + 1;
+		    is_newmark = 1;
 	       } else if ( i == SIM_UHYDE && CNodes->Sub[j].Type == SIM_UHYDE ){
 		    count = count + 1;
 		    is_uhyde = 1;
@@ -185,9 +189,11 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const C
 	  }
 
 	  /* Allocate space */
-	  Nodes = NULL;
+	  Nodes = NULL; Nodes_Newmark = NULL; Nodes_Exp = NULL;
 	  if( is_uhyde || is_exact ){
 	       Nodes = (HDF5_Exact_UHYDE_t *) calloc( (size_t) count, sizeof( HDF5_Exact_UHYDE_t ) );
+	  } else if ( is_newmark ){
+	       Nodes_Newmark = (HDF5_Newmark_t *) calloc( (size_t) count, sizeof( HDF5_Newmark_t ) );
 	  } else if ( is_adwin || is_measured ){
 	       Nodes_Exp = (HDF5_Exp_Meas_t *) calloc( (size_t) count, sizeof( HDF5_Exp_Meas_t ) );
 	  }
@@ -210,6 +216,19 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const C
 		    Nodes[k].InitValues[2] = ExSim->Stiff;
 
 		    strcpy( Nodes[k].Description, ExSim->Description );	
+		    k = k + 1;
+	       } else if ( i == SIM_NEWMARK && CNodes->Sub[j].Type == SIM_NEWMARK ){
+		    Nodes_Newmark[k].Position = CNodes->Array[j] - 1;      /* 0-based index */
+
+		    Newmark = (NewmarkSim_t *) CNodes->Sub[j].SimStruct;
+		    Nodes_Newmark[k].InitValues[0] = Newmark->Mass;
+		    Nodes_Newmark[k].InitValues[1] = Newmark->Damp;
+		    Nodes_Newmark[k].InitValues[2] = Newmark->Stiff;
+		    Nodes_Newmark[k].InitValues[3] = InitCnt->Newmark.Beta;
+		    Nodes_Newmark[k].InitValues[4] = InitCnt->Newmark.Gamma;
+		    Nodes_Newmark[k].InitValues[5] = InitCnt->Delta_t/(HYSL_FLOAT) InitCnt->NSubstep;
+
+		    strcpy( Nodes_Newmark[k].Description, Newmark->Description );	
 		    k = k + 1;
 	       } else if ( i == SIM_UHYDE && CNodes->Sub[j].Type == SIM_UHYDE ){
 		    Nodes[k].Position = CNodes->Array[j] - 1;      /* 0-based index */
@@ -269,7 +288,49 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const C
 		    fprintf( stderr, "Error closing memtype in HDF5 file.\n" );
 		    exit( EXIT_FAILURE );
 	       }
+	  } else if ( (i == SIM_NEWMARK) && is_newmark ){
+	       memtype = H5Tcreate (H5T_COMPOUND, sizeof( HDF5_Newmark_t) );
+	       H5Tinsert( memtype, "Eq. column (0-based index)", HOFFSET( HDF5_Newmark_t, Position), H5T_NATIVE_INT );
+	       H5Tinsert( memtype, "Mass [kg]", HOFFSET( HDF5_Newmark_t, InitValues[0]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Damping", HOFFSET( HDF5_Newmark_t, InitValues[1]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Stiffness [N/m]", HOFFSET( HDF5_Newmark_t, InitValues[2]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Beta", HOFFSET( HDF5_Newmark_t, InitValues[3]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Gamma", HOFFSET( HDF5_Newmark_t, InitValues[4]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Delta T [s]", HOFFSET( HDF5_Newmark_t, InitValues[5]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Description", HOFFSET( HDF5_Newmark_t, Description), strtype );
 
+	       dims[0] = (hsize_t) count; 
+	       space = H5Screate_simple (1, dims, NULL);
+	       /* Create the dataset */
+	       dset = H5Dcreate ( group_id, "/Test Parameters/Substructures/Newmark", memtype, space, H5P_DEFAULT,
+				  H5P_DEFAULT, H5P_DEFAULT);
+	       status = H5Dwrite ( dset, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Nodes_Newmark );
+	       if( status < 0 ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Error writing to HDF5 file.\n" );
+		    exit( EXIT_FAILURE );
+	       }
+	       
+	       free( Nodes_Newmark );
+
+	       status = H5Dclose( dset );
+	       if( status < 0 ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Error closing dataset in HDF5 file.\n" );
+		    exit( EXIT_FAILURE );
+	       }
+	       status = H5Sclose( space );
+	       if( status < 0 ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Error closing dataspace in HDF5 file.\n" );
+		    exit( EXIT_FAILURE );
+	       }
+	       status = H5Tclose( memtype );
+	       if( status < 0 ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Error closing memtype in HDF5 file.\n" );
+		    exit( EXIT_FAILURE );
+	       }
 	  } else if ( (i == SIM_UHYDE) && is_uhyde ){
 	       memtype = H5Tcreate (H5T_COMPOUND, sizeof( HDF5_Exact_UHYDE_t) );
 	       H5Tinsert( memtype, "Eq. column (0-based index)", HOFFSET( HDF5_Exact_UHYDE_t, Position), H5T_NATIVE_INT );

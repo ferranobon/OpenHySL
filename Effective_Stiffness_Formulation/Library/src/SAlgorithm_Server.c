@@ -20,6 +20,8 @@
 #include "Substructure.h"
 #include "Substructure_Experimental.h"
 #include "Substructure_Exact.h"
+#include "Substructure_Newmark.h"
+#include "Substructure_Remote.h"
 #include "Substructure_Auxiliary.h"  /* For Substructure_VectorXm(), Substructure_VectorXc(), ... */
 
 #include "Definitions.h"
@@ -36,9 +38,6 @@
 #else
 #include "Netlib.h"
 #endif
-
-
-FILE *GlobalOutput;
 
 const char *Entry_Names[NUM_CHANNELS] = { "Sub-step",
 					  "Control displacement actuator 1 [m]",
@@ -69,7 +68,6 @@ const char *Entry_Names[NUM_CHANNELS] = { "Sub-step",
 int main( int argc, char **argv ){
 
      unsigned int istep, i;
-     double temp1, temp2, temp3, Alpha_HHT = 0.1;
      AlgConst_t InitCnt;
      const char *FileConf;
 
@@ -91,13 +89,14 @@ int main( int argc, char **argv ){
 
      MatrixVector_t DispT, DispTdT0, DispTdT;
      MatrixVector_t DispTdT0_c, DispTdT0_m;
+     MatrixVector_t DataToSend;
+     double ValueToScale;
      MatrixVector_t tempvec;
 
      MatrixVector_t VelT, VelTdT;
      MatrixVector_t AccT, AccTdT;
 
      MatrixVector_t LoadVectorForm, LoadTdT, LoadTdT1;
-     MatrixVector_t RotVectorForm, tempRot;
 
      MatrixVector_t fc, fcprevsub;
      MatrixVector_t fu;
@@ -114,7 +113,14 @@ int main( int argc, char **argv ){
      CouplingNode_t CNodes;
      SaveTime_t     Time;
 
-     ExactSimESP_t  *TMD;
+     /* Variables concerning data communication */
+     int Server_Socket;                /* Socket for the server */
+     int Client_Socket;                /* Socket for the client */
+
+     int Socket_Type;
+     const char *Port;
+     struct sockaddr_storage Client_Addr;
+     socklen_t Client_AddrLen;
 
      /* Options */
      int Selected_Option;
@@ -169,6 +175,32 @@ int main( int argc, char **argv ){
      /* Read the coupling nodes from a file */
      Substructure_ReadCouplingNodes( &InitCnt, &CNodes );
 
+     /* Initialise server */
+     /* Create a TCP/IP socket for the server */
+     Socket_Type = REMOTE_TCP;
+     Port = "3333";
+     Server_Socket = Substructure_Remote_SetupServer( Port, Socket_Type );
+     if( Server_Socket < -1 ){
+	  Print_Header( ERROR );
+	  fprintf( stderr, "Setup_Server_Socket() failed" );
+	  return EXIT_FAILURE;
+     } else {
+	  if( Socket_Type == REMOTE_TCP ){
+	  Print_Header( SUCCESS );
+	  printf( "TCP Server created.\n" );
+	  Print_Header( INFO );
+	  printf( "Listening on port %s for incoming client connections...\n", Port );
+	  } else {
+	       Print_Header( SUCCESS );
+	       printf( "UDP Server created.\nListening on port %s for incoming client connections...\n", Port );
+	  }
+     }
+
+     /* Accept the connection from the client in case of TCP sockets */
+     if ( Socket_Type == REMOTE_TCP ){
+	  Client_Socket = Substructure_Remote_AcceptTCPClientConnection( Server_Socket );
+     }
+
      /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will be used
       * during the test */
      AccAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
@@ -216,6 +248,7 @@ int main( int argc, char **argv ){
      MatrixVector_Create( InitCnt.Order, 1, &DispT );
      MatrixVector_Create( InitCnt.Order, 1, &DispTdT0 );
      MatrixVector_Create( InitCnt.Order, 1, &DispTdT );
+     MatrixVector_Create( InitCnt.Order, 1, &DataToSend );
 
      if( CNodes.Order >= 1 ){
 	  MatrixVector_Create( CNodes.Order, 1, &DispTdT0_c );
@@ -231,8 +264,6 @@ int main( int argc, char **argv ){
      MatrixVector_Create( InitCnt.Order, 1, &EffT );
 
      MatrixVector_Create( InitCnt.Order, 1, &LoadVectorForm );
-     MatrixVector_Create( InitCnt.Order, 1, &RotVectorForm );
-     MatrixVector_Create( InitCnt.Order, 1, &tempRot );
      MatrixVector_Create( InitCnt.Order, 1, &LoadTdT );
      MatrixVector_Create( InitCnt.Order, 1, &LoadTdT1 );
 
@@ -322,23 +353,41 @@ int main( int argc, char **argv ){
 	  } else assert(0);
      }
 
+//     MatrixVector_ToFile_MM( &C, "C.txt");
+
      /* Calculate Matrix Keinv = 1.0*[K + a0*M + a1*C]^(-1) */
      Constants.Alpha = InitCnt.a0;    /* Mass matrix coefficient */
-     Constants.Beta = InitCnt.a1*(1.0+Alpha_HHT);     /* Damping matrix coefficent */
-     Constants.Gamma = 1.0+Alpha_HHT;           /* Stiffness matrix coefficient */
+     Constants.Beta = InitCnt.a1;     /* Damping matrix coefficent */
+     Constants.Gamma = 1.0;           /* Stiffness matrix coefficient */
      Constants.Lambda = 1.0;          /* Matrix inversion coefficient */
 
      if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
+#if _FLOAT_
+	  IGainMatrix_Float2Double( &Keinv, &M, &C, &K, Constants );
+#else
 	  IGainMatrix( &Keinv, &M, &C, &K, Constants );
+#endif
      } else if( !InitCnt.Use_Sparse && InitCnt.Use_Packed ){
+#if _FLOAT_
+	  IGainMatrix_Float2Double_PS( &Keinv, &M, &C, &K, Constants );
+#else
 	  IGainMatrix_PS( &Keinv, &M, &C, &K, Constants );
+#endif
      } else if ( InitCnt.Use_Sparse && !InitCnt.Use_Packed ) {
 #if _SPARSE_
+#if _FLOAT_
+	  IGainMatrix_Float2Double_Sp( &Keinv, &Sp_M, &Sp_C, &Sp_K, Constants );
+#else
 	  IGainMatrix_Sp( &Keinv, &Sp_M, &Sp_C, &Sp_K, Constants );
+#endif
 #endif
      } else if ( InitCnt.Use_Sparse && InitCnt.Use_Packed ) {
 #if _SPARSE_
+#if _FLOAT_
+	  IGainMatrix_Float2Double_Sp_PS( &Keinv, &Sp_M, &Sp_C, &Sp_K, Constants );
+#else
 	  IGainMatrix_Sp_PS( &Keinv, &Sp_M, &Sp_C, &Sp_K, Constants );
+#endif
 #endif
      } else assert(0);
 
@@ -369,13 +418,6 @@ int main( int argc, char **argv ){
      HDF5_CreateGroup_Parameters( hdf5_file, &InitCnt, &CNodes, AccAll, VelAll, DispAll );
      HDF5_CreateGroup_TimeIntegration( hdf5_file, &InitCnt );
 #endif
-
-     GlobalOutput = fopen( Concatenate_Strings( 2, InitCnt.FileOutput, ".txt" ), "w" );
-     fprintf( GlobalOutput, "Step\tAcc1Right [m/s^2]\tAcc1Left [m/s^2]\tAcc2Right [m/s^2]\tAcc2Left [m/s^2]\tAcc2Right [m/s^2]\tAcc2Left [m/s^2]\t" );
-     fprintf( GlobalOutput, "Disp1 [m]\tDisp2 [m]\tDisp3Mid [m]\tDisp3Left [m]\tDisp3Right [m]\t" );
-     fprintf( GlobalOutput, "Coupling Force [N]\tError Force[N]\t" );
-     fprintf( GlobalOutput, "Acc TMD [m/s^2]\tVel TMD [m/s]\tDisp TMD [m]\n" );
-     TMD = CNodes.Sub[0].SimStruct;
      
      incx = 1; incy = 1;
      /* Calculate the input load */
@@ -415,18 +457,18 @@ int main( int argc, char **argv ){
      printf( "Starting stepping process.\n" );
 
      while ( istep <= InitCnt.NStep ){
-
+	  printf( "%d\n", istep );
 	  /* Calculate the effective force vector Fe = M*(a0*u + a2*v + a3*a) + C*(a1*u + a4*v + a5*a) */
 	  if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
-	       EffK_EffectiveForce_HHT( &M, &C, &K, &DispT, &VelT, &AccT, &tempvec, InitCnt.a0, InitCnt.a1, InitCnt.a2,
-					InitCnt.a3, InitCnt.a4, InitCnt.a5, Alpha_HHT, &EffT );
+	       EffK_EffectiveForce( &M, &C, &DispT, &VelT, &AccT, &tempvec, InitCnt.a0, InitCnt.a1, InitCnt.a2,
+				    InitCnt.a3, InitCnt.a4, InitCnt.a5, &EffT );
 	  } else if( !InitCnt.Use_Sparse && InitCnt.Use_Packed ){
-	       EffK_EffectiveForce_HHT_PS( &M, &C, &K, &DispT, &VelT, &AccT, &tempvec, InitCnt.a0, InitCnt.a1, InitCnt.a2,
-					   InitCnt.a3, InitCnt.a4, InitCnt.a5, Alpha_HHT, &EffT );
+	       EffK_EffectiveForce_PS( &M, &C, &DispT, &VelT, &AccT, &tempvec, InitCnt.a0, InitCnt.a1, InitCnt.a2,
+				       InitCnt.a3, InitCnt.a4, InitCnt.a5, &EffT );
 	  } else if( InitCnt.Use_Sparse ) {
 #if _SPARSE_
-	       EffK_EffectiveForce_HHT_Sp( &Sp_M, &Sp_C, &Sp_K, &DispT, &VelT, &AccT, &tempvec, InitCnt.a0, InitCnt.a1,
-					   InitCnt.a2, InitCnt.a3, InitCnt.a4, InitCnt.a5, Alpha_HHT, &EffT );
+	       EffK_EffectiveForce_Sp( &Sp_M, &Sp_C, &DispT, &VelT, &AccT, &tempvec, InitCnt.a0, InitCnt.a1,
+				       InitCnt.a2, InitCnt.a3, InitCnt.a4, InitCnt.a5, &EffT );
 #endif
 	  }
 
@@ -514,23 +556,20 @@ int main( int argc, char **argv ){
 	       } else assert(0);
 	  }
 
-	  /* Print the rest of the information */
-//	  temp1 = TMD->End_Acc + AccTdT.Array[47-1] + AccAll[istep-1];
-//	  temp2 = TMD->End_Vel;// - VelTdT.Array[CNodes.Array[0]-1];
-//	  temp3 = TMD->End_Disp;// - DispTdT.Array[CNodes.Array[0]-1];
-	  fprintf( GlobalOutput, "%d\t%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t", istep, AccAll[istep-1] + AccTdT.Array[811-1], AccAll[istep-1] + AccTdT.Array[799-1], AccAll[istep-1]+ AccTdT.Array[929-1], AccAll[istep-1] + AccTdT.Array[942-1], AccAll[istep-1] + AccTdT.Array[304-1], AccAll[istep-1] + AccTdT.Array[258-1] );
-	  fprintf( GlobalOutput, "%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t", DispAll[istep-1] + DispTdT.Array[720-1], DispAll[istep-1] + DispTdT.Array[227-1], DispAll[istep-1] + DispTdT.Array[179-1], DispAll[istep-1] + DispTdT.Array[258-1], DispAll[istep-1] + DispTdT.Array[304-1], DispAll[istep-1] + DispTdT.Array[CNodes.Array[0]-1] );
-	  fprintf( GlobalOutput, "%lE\t%lE\t", fc.Array[CNodes.Array[0]-1], fu.Array[CNodes.Array[0]-1] );
-	  fprintf( GlobalOutput, "%lE\t%lE\t%lE\n", temp1, temp2, temp3 );
 
 	  /* Save the result in a HDF5 file format */
 #if _HDF5_
 	  HDF5_Store_TimeHistoryData( hdf5_file, &AccTdT, &VelTdT, &DispTdT, &fc, &fu, (int) istep, &InitCnt );
-	  /* Store the relative displacements of the TMD */
-//	  HDF5_Store_TMD( hdf5_file, &temp1, &temp2, &temp3, (int) istep );
 #else
 	  
 #endif
+
+	  /* Send the information */
+	  hysl_copy( &DataToSend.Rows, DispTdT.Array, &incx, DataToSend.Array, &incy ); /* li = li1 */
+	  ValueToScale = 1000.0;
+	  hysl_scal( &DataToSend.Rows, &ValueToScale, DataToSend.Array, &incx );
+	  Substructure_Remote_Send( Client_Socket, (unsigned int) InitCnt.Order, sizeof(HYSL_FLOAT), (char *const) DataToSend.Array );
+
 	  /* Backup vectors */
 	  hysl_copy( &LoadTdT1.Rows, LoadTdT1.Array, &incx, LoadTdT.Array, &incy ); /* li = li1 */
 	  hysl_copy( &DispTdT.Rows, DispTdT.Array, &incx, DispT.Array, &incy ); /* ui = ui1 */
@@ -567,10 +606,13 @@ int main( int argc, char **argv ){
      HDF5_CloseFile( &hdf5_file );
 #endif
 
-     fclose( GlobalOutput );
-
      /* Free initiation values */
      Algorithm_Destroy( &InitCnt );
+
+     /* Close the connection */
+     DispTdT.Array[0] = -9999.0;
+     Substructure_Remote_Send( Client_Socket, (unsigned int) InitCnt.Order, sizeof(HYSL_FLOAT), (char *const) DispTdT.Array );
+     Substructure_Remote_CloseSocket( &Client_Socket );
 
      /* Free the memory */
      free( AccAll );
@@ -612,6 +654,7 @@ int main( int argc, char **argv ){
      MatrixVector_Destroy( &tempvec );
  
      MatrixVector_Destroy( &DispT );
+     MatrixVector_Destroy( &DataToSend );
      MatrixVector_Destroy( &DispTdT0 );
      if( CNodes.Order >= 1 ){
 	  MatrixVector_Destroy( &DispTdT0_c );
@@ -626,8 +669,6 @@ int main( int argc, char **argv ){
      MatrixVector_Destroy( &AccTdT );
 
      MatrixVector_Destroy( &LoadVectorForm );
-     MatrixVector_Destroy( &RotVectorForm );
-     MatrixVector_Destroy( &tempRot );
      MatrixVector_Destroy( &LoadTdT );
      MatrixVector_Destroy( &LoadTdT1 );
 

@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <getopt.h>  /* For getopt_long() */
-#include <math.h>
 #include <time.h>
 
 #include "Print_Messages.h"
@@ -21,6 +20,8 @@
 #include "Substructure_Experimental.h"
 #include "Substructure_Exact.h"
 #include "Substructure_Auxiliary.h"  /* For Substructure_VectorXm(), Substructure_VectorXc(), ... */
+
+#include "GSSSS.h"
 
 #include "Definitions.h"
 
@@ -69,7 +70,7 @@ const char *Entry_Names[NUM_CHANNELS] = { "Sub-step",
 int main( int argc, char **argv ){
 
      unsigned int istep, i;
-     double temp1, temp2, temp3, Alpha_HHT = 0.1;
+     double temp1, temp2, temp3, done = 1.0, dzero = 0.0;
      AlgConst_t InitCnt;
      const char *FileConf;
 
@@ -82,22 +83,22 @@ int main( int argc, char **argv ){
      Scalars_t Constants;
      
      HYSL_FLOAT *AccAll, *VelAll, *DispAll;
+     HYSL_FLOAT Substructure_Load;
 
      MatrixVector_t M, C, K;               /* Mass, Damping and Stiffness matrices */
-     MatrixVector_t Keinv;
-     MatrixVector_t Keinv_c, Keinv_m;
+     MatrixVector_t Meinv;
+     MatrixVector_t Meinv_c, Meinv_m;
 
      MatrixVector_t EffT;
 
-     MatrixVector_t DispT, DispTdT0, DispTdT;
-     MatrixVector_t DispTdT0_c, DispTdT0_m;
+     MatrixVector_t DispT, AccTdT0, DispTdT;
+     MatrixVector_t AccTdT0_c, AccTdT0_m;
      MatrixVector_t tempvec;
 
      MatrixVector_t VelT, VelTdT;
      MatrixVector_t AccT, AccTdT;
 
-     MatrixVector_t LoadVectorForm, LoadTdT, LoadTdT1;
-     MatrixVector_t RotVectorForm, tempRot;
+     MatrixVector_t LoadVectorForm, LoadT, LoadTdT, LoadTdT1;
 
      MatrixVector_t fc, fcprevsub;
      MatrixVector_t fu;
@@ -166,6 +167,18 @@ int main( int argc, char **argv ){
      /* Constants definitions. */
      Algorithm_Init( FileConf, &InitCnt );
 
+     /* Init GSSSS coefficients. */
+//     GSSSS_Init(1.0, 1.0, 0.0, &InitCnt.GSSSS );
+     GSSSS_Init( 9.0/11.0, 9.0/11.0, 9.0/11.0, &InitCnt.GSSSS );
+     double Rho1, Rho2, Rho3;
+
+     Rho1 = 9.0/11.0;
+     Rho2 = 9.0/11.0;
+
+     Rho3 = (1.0 - Rho2*Rho1)/(Rho1 + Rho2 +2.0*Rho1*Rho2);
+
+     GSSSS_Init( Rho1, Rho2, Rho3, &InitCnt.GSSSS );
+
      /* Read the coupling nodes from a file */
      Substructure_ReadCouplingNodes( &InitCnt, &CNodes );
 
@@ -174,7 +187,7 @@ int main( int argc, char **argv ){
      AccAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
      VelAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
      DispAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-
+     
      /* Initialise the matrices and vectors that will be used in the Time Integration process */
      if( ((!InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (InitCnt.Use_Sparse && !InitCnt.Read_Sparse) ||
 	  (!InitCnt.Use_Sparse && InitCnt.Read_Sparse)) && !InitCnt.Use_Packed ){
@@ -201,25 +214,25 @@ int main( int argc, char **argv ){
      } else assert(0);
 
      if( !InitCnt.Use_Packed ){
-	  MatrixVector_Create( InitCnt.Order, InitCnt.Order, &Keinv );
+	  MatrixVector_Create( InitCnt.Order, InitCnt.Order, &Meinv );
      } else {
-	  MatrixVector_Create_PS( InitCnt.Order, InitCnt.Order, &Keinv );
+	  MatrixVector_Create_PS( InitCnt.Order, InitCnt.Order, &Meinv );
      }
 
      if( CNodes.Order >= 1 ){
-	  MatrixVector_Create( CNodes.Order, CNodes.Order, &Keinv_c );
-	  MatrixVector_Create( InitCnt.Order - CNodes.Order, CNodes.Order, &Keinv_m );
+	  MatrixVector_Create( CNodes.Order, CNodes.Order, &Meinv_c );
+	  MatrixVector_Create( InitCnt.Order - CNodes.Order, CNodes.Order, &Meinv_m );
      }
 
      MatrixVector_Create( InitCnt.Order, 1, &tempvec );
 
      MatrixVector_Create( InitCnt.Order, 1, &DispT );
-     MatrixVector_Create( InitCnt.Order, 1, &DispTdT0 );
+     MatrixVector_Create( InitCnt.Order, 1, &AccTdT0 );
      MatrixVector_Create( InitCnt.Order, 1, &DispTdT );
 
      if( CNodes.Order >= 1 ){
-	  MatrixVector_Create( CNodes.Order, 1, &DispTdT0_c );
-	  MatrixVector_Create( InitCnt.Order-CNodes.Order, 1, &DispTdT0_m );
+	  MatrixVector_Create( CNodes.Order, 1, &AccTdT0_c );
+	  MatrixVector_Create( InitCnt.Order-CNodes.Order, 1, &AccTdT0_m );
      }
 
      MatrixVector_Create( InitCnt.Order, 1, &VelT );
@@ -231,8 +244,7 @@ int main( int argc, char **argv ){
      MatrixVector_Create( InitCnt.Order, 1, &EffT );
 
      MatrixVector_Create( InitCnt.Order, 1, &LoadVectorForm );
-     MatrixVector_Create( InitCnt.Order, 1, &RotVectorForm );
-     MatrixVector_Create( InitCnt.Order, 1, &tempRot );
+     MatrixVector_Create( InitCnt.Order, 1, &LoadT );
      MatrixVector_Create( InitCnt.Order, 1, &LoadTdT );
      MatrixVector_Create( InitCnt.Order, 1, &LoadTdT1 );
 
@@ -322,39 +334,39 @@ int main( int argc, char **argv ){
 	  } else assert(0);
      }
 
-     /* Calculate Matrix Keinv = 1.0*[K + a0*M + a1*C]^(-1) */
-     Constants.Alpha = InitCnt.a0;    /* Mass matrix coefficient */
-     Constants.Beta = InitCnt.a1*(1.0+Alpha_HHT);     /* Damping matrix coefficent */
-     Constants.Gamma = 1.0+Alpha_HHT;           /* Stiffness matrix coefficient */
-     Constants.Lambda = 1.0;          /* Matrix inversion coefficient */
+     /* Calculate Matrix Meinv = 1.0*[A6W1*M + A5W2*C + A3W3*K]^(-1) */
+     Constants.Alpha = InitCnt.GSSSS.A6W1;                                 /* Mass matrix coefficient */
+     Constants.Beta = InitCnt.GSSSS.A5W2*InitCnt.Delta_t;                  /* Damping matrix coefficent */
+     Constants.Gamma = InitCnt.GSSSS.A3W3*InitCnt.Delta_t*InitCnt.Delta_t; /* Stiffness matrix coefficient */
+     Constants.Lambda = 1.0;                                               /* Matrix inversion coefficient */
 
      if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
-	  IGainMatrix( &Keinv, &M, &C, &K, Constants );
+	  IGainMatrix( &Meinv, &M, &C, &K, Constants );
      } else if( !InitCnt.Use_Sparse && InitCnt.Use_Packed ){
-	  IGainMatrix_PS( &Keinv, &M, &C, &K, Constants );
+	  IGainMatrix_PS( &Meinv, &M, &C, &K, Constants );
      } else if ( InitCnt.Use_Sparse && !InitCnt.Use_Packed ) {
 #if _SPARSE_
-	  IGainMatrix_Sp( &Keinv, &Sp_M, &Sp_C, &Sp_K, Constants );
+	  IGainMatrix_Sp( &Meinv, &Sp_M, &Sp_C, &Sp_K, Constants );
 #endif
      } else if ( InitCnt.Use_Sparse && InitCnt.Use_Packed ) {
 #if _SPARSE_
-	  IGainMatrix_Sp_PS( &Keinv, &Sp_M, &Sp_C, &Sp_K, Constants );
+	  IGainMatrix_Sp_PS( &Meinv, &Sp_M, &Sp_C, &Sp_K, Constants );
 #endif
      } else assert(0);
 
      if( CNodes.Order >= 1 ){
 	  if( !InitCnt.Use_Packed ){
-	       Substructure_MatrixXc( &Keinv, &CNodes, &Keinv_c );
-	       Substructure_MatrixXcm( &Keinv, &CNodes, &Keinv_m );
+	       Substructure_MatrixXc( &Meinv, &CNodes, &Meinv_c );
+	       Substructure_MatrixXcm( &Meinv, &CNodes, &Meinv_m );
 	  } else {
-	       Substructure_MatrixXc_PS( &Keinv, &CNodes, &Keinv_c );
-	       Substructure_MatrixXcm_PS( &Keinv, &CNodes, &Keinv_m );
+	       Substructure_MatrixXc_PS( &Meinv, &CNodes, &Meinv_c );
+	       Substructure_MatrixXcm_PS( &Meinv, &CNodes, &Meinv_m );
 	  }
 
 	  /* Send the coupling part of the effective matrix if we are performing a distributed test */
 	  for( i = 0; i < (unsigned int) CNodes.Order; i++ ){
 	       if( CNodes.Sub[i].Type == EXP_ADWIN || CNodes.Sub[i].Type == REMOTE ){
-		    Substructure_SendGainMatrix( Keinv_c.Array, (unsigned int) CNodes.Order, &CNodes.Sub[i] );
+		    Substructure_SendGainMatrix( Meinv_c.Array, (unsigned int) CNodes.Order, &CNodes.Sub[i] );
 	       }
 	  }
      }
@@ -371,12 +383,17 @@ int main( int argc, char **argv ){
 #endif
 
      GlobalOutput = fopen( Concatenate_Strings( 2, InitCnt.FileOutput, ".txt" ), "w" );
+     fprintf( GlobalOutput, "All values are absolute in order to be compared against measured data in the DFG \"Subshake project\". The HDF5 with the same name contains unmodified data.\n" );
      fprintf( GlobalOutput, "Step\tAcc1Right [m/s^2]\tAcc1Left [m/s^2]\tAcc2Right [m/s^2]\tAcc2Left [m/s^2]\tAcc2Right [m/s^2]\tAcc2Left [m/s^2]\t" );
      fprintf( GlobalOutput, "Disp1 [m]\tDisp2 [m]\tDisp3Mid [m]\tDisp3Left [m]\tDisp3Right [m]\t" );
      fprintf( GlobalOutput, "Coupling Force [N]\tError Force[N]\t" );
      fprintf( GlobalOutput, "Acc TMD [m/s^2]\tVel TMD [m/s]\tDisp TMD [m]\n" );
      TMD = CNodes.Sub[0].SimStruct;
-     
+
+
+     Time.Date_start = time( NULL );
+     Time.Date_time = strdup( ctime( &Time.Date_start) );
+     gettimeofday( &Time.Start, NULL );
      incx = 1; incy = 1;
      /* Calculate the input load */
      istep = 1;
@@ -407,52 +424,51 @@ int main( int argc, char **argv ){
 	  } else assert(0);
      }
 
-     Time.Date_start = time( NULL );
-     Time.Date_time = strdup( ctime( &Time.Date_start) );
-     gettimeofday( &Time.Start, NULL );
 
      Print_Header( INFO );
      printf( "Starting stepping process.\n" );
-
      while ( istep <= InitCnt.NStep ){
 
 	  /* Calculate the effective force vector Fe = M*(a0*u + a2*v + a3*a) + C*(a1*u + a4*v + a5*a) */
 	  if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
-	       EffK_EffectiveForce_HHT( &M, &C, &K, &DispT, &VelT, &AccT, &tempvec, InitCnt.a0, InitCnt.a1, InitCnt.a2,
-					InitCnt.a3, InitCnt.a4, InitCnt.a5, Alpha_HHT, &EffT );
+	       GSSSS_EffectiveForce_AForm( &M, &C, &K, &DispT, &VelT, &AccT, &tempvec, &InitCnt.GSSSS, InitCnt.Delta_t, &EffT );
 	  } else if( !InitCnt.Use_Sparse && InitCnt.Use_Packed ){
-	       EffK_EffectiveForce_HHT_PS( &M, &C, &K, &DispT, &VelT, &AccT, &tempvec, InitCnt.a0, InitCnt.a1, InitCnt.a2,
-					   InitCnt.a3, InitCnt.a4, InitCnt.a5, Alpha_HHT, &EffT );
+	       GSSSS_EffectiveForce_AForm_PS( &M, &C, &K, &DispT, &VelT, &AccT, &tempvec, &InitCnt.GSSSS, InitCnt.Delta_t, &EffT );
 	  } else if( InitCnt.Use_Sparse ) {
 #if _SPARSE_
-	       EffK_EffectiveForce_HHT_Sp( &Sp_M, &Sp_C, &Sp_K, &DispT, &VelT, &AccT, &tempvec, InitCnt.a0, InitCnt.a1,
-					   InitCnt.a2, InitCnt.a3, InitCnt.a4, InitCnt.a5, Alpha_HHT, &EffT );
+	       GSSSS_EffectiveForce_AForm_Sp( &Sp_M, &Sp_C, &Sp_K, &DispT, &VelT, &AccT, &tempvec, &InitCnt.GSSSS, InitCnt.Delta_t, &EffT );
 #endif
 	  }
 
-	  /* Compute the new Displacement u0 */
+	  /* Compute the new Acceleration u0 */
 	  if( !InitCnt.Use_Packed ){
-	       Compute_NewState( &Keinv, &EffT, &LoadTdT, &fu, &tempvec, &DispTdT0 );
+	       GSSSS_Compute_NewState( &Meinv, &EffT, &LoadTdT, &fu, &LoadT, &InitCnt.GSSSS, &tempvec, &AccTdT0 );
 	  } else {
-	       Compute_NewState_PS( &Keinv, &EffT, &LoadTdT, &fu, &tempvec, &DispTdT0 );
+	       GSSSS_Compute_NewState_PS( &Meinv, &EffT, &LoadTdT, &fu, &LoadT, &InitCnt.GSSSS, &tempvec, &AccTdT0 );
 	  }
 
 	  /* Split DispTdT into coupling and non-coupling part */
 	  if( CNodes.Order >= 1 ){
-	       Substructure_VectorXm( &DispTdT0, &CNodes, &DispTdT0_m );
-	       Substructure_VectorXc( &DispTdT0, &CNodes, &DispTdT0_c );
+	       Substructure_VectorXm( &AccTdT0, &CNodes, &AccTdT0_m );
+	       Substructure_VectorXc( &AccTdT0, &CNodes, &AccTdT0_c );
 	  }
 
 	  /* Perform substepping */
 	  if( CNodes.Order >= 1 ){
 	       if( InitCnt.Use_Absolute_Values ){
-		    Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep, 0.0,
-					      InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array, fcprevsub.Array,
+		    Substructure_Substepping( Meinv_c.Array, AccTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep, 0.0,
+					      InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, AccTdT.Array, fcprevsub.Array,
 					      fc.Array );
 	       } else {
-		    Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep,
-					      AccAll[istep-1], InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes,
-					      DispTdT.Array, fcprevsub.Array, fc.Array );
+		    if( istep == 1 ){
+			 //Substructure_Load = AccAll[istep-1]*InitCnt.GSSSS.W1;
+		    } else {
+			 //Substructure_Load = AccAll[istep-1]*InitCnt.GSSSS.W1 + AccAll[istep-2]*(1.0 - InitCnt.GSSSS.W1);
+		    }
+		    Substructure_Load = AccAll[istep-1];
+		    Substructure_Substepping( Meinv_c.Array, AccTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep,
+					      Substructure_Load, InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes,
+					      AccTdT.Array, fcprevsub.Array, fc.Array );
 	       }
 	  }
 
@@ -473,7 +489,6 @@ int main( int argc, char **argv ){
 		    } else assert(0);
 	       } else {
 		    InputLoad_Apply_LoadVectorForm( &LoadVectorForm, AccAll[istep], &Acc );
-
 		    if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
 			 InputLoad_RelValues( &M, &Acc, &LoadTdT1 );
 		    } else if ( !InitCnt.Use_Sparse && InitCnt.Use_Packed ){
@@ -486,57 +501,111 @@ int main( int argc, char **argv ){
 	       }
 	  }
 
-	  /* Join the non-coupling part. DispTdT_m = Keinv_m*fc + DispTdT0_m. Although DispTdT0_m is what has
+	  /* Join the non-coupling part. DispTdT_m = Meinv_m*fc + AccTdT0_m. Although AccTdT0_m is what has
 	   * been received from the other computer, it has the name of DispTdT_m to avoid further operations
 	   * if using the NETLIB libraries. */
 	  if( CNodes.Order >= 1 ){
-	       Substructure_JoinNonCouplingPart( &DispTdT0_m, &Keinv_m, &fcprevsub, &CNodes,  &DispTdT );
+	       Substructure_JoinNonCouplingPart( &AccTdT0_m, &Meinv_m, &fcprevsub, &CNodes,  &AccTdT );
 	  } else {
-	       hysl_copy( &DispTdT0.Rows, DispTdT0.Array, &incx, DispTdT.Array, &incy ); /* ui = ui1 */
+	       hysl_copy( &AccTdT0.Rows, AccTdT0.Array, &incx, AccTdT.Array, &incy ); /* ui = ui1 */
 	  }
 
 	  /* Compute acceleration ai1 = a0*(ui1 -ui) - a2*vi -a3*ai */
-	  EffK_ComputeAcceleration( &DispTdT, &DispT, &VelT, &AccT, InitCnt.a0, InitCnt.a2, InitCnt.a3, &AccTdT );
+	  GSSSS_ComputeDisplacement_AForm( &DispT, &VelT, &AccT, &AccTdT, &InitCnt.GSSSS, InitCnt.Delta_t, &DispTdT );
 
 	  /* Compute Velocity. vi = a1*(ui1 - ui) - a4*vi - a5*ai */
-	  EffK_ComputeVelocity( &DispTdT, &DispT, &VelT, &AccT, InitCnt.a1, InitCnt.a4, InitCnt.a5, &VelTdT );
+	  GSSSS_ComputeVelocity_AForm( &VelT, &AccT, &AccTdT, &InitCnt.GSSSS, InitCnt.Delta_t, &VelTdT );
+
+	  printf("EffT %lE LoadTdT %lE AccTdT0 %lE AccTdT %lE DispTdT %lE VelTdT %lE\n", EffT.Array[46], LoadTdT.Array[46], AccTdT0.Array[46], AccTdT.Array[46], DispTdT.Array[46], VelTdT.Array[46]);
 
 	  /* Error Compensation. fu = LoatTdT + fc -(Mass*AccTdT + Damp*VelTdT + Stiff*DispTdT) */
 	  if( InitCnt.PID.P != 0.0 || InitCnt.PID.I != 0.0 || InitCnt.PID.D != 0.0 ){
 	       if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
-		    ErrorForce_PID( &M, &C, &K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &InitCnt.PID, &fu );
+		    GSSSS_ErrorForce_PID( &M, &C, &K, &AccTdT, &AccT, &VelT, &DispT, &fc, &LoadTdT, &LoadT, &InitCnt.GSSSS,
+					  InitCnt.Delta_t, &tempvec, &InitCnt.PID, &fu );
 	       } else if( !InitCnt.Use_Sparse && InitCnt.Use_Packed ) {
-		    ErrorForce_PID_PS( &M, &C, &K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &InitCnt.PID, &fu );
+		    GSSSS_ErrorForce_PID_PS( &M, &C, &K, &AccTdT, &AccT, &VelT, &DispT, &fc, &LoadTdT, &LoadT, &InitCnt.GSSSS,
+					     InitCnt.Delta_t, &tempvec, &InitCnt.PID, &fu );
 	       } else if( InitCnt.Use_Sparse ){
 #if _SPARSE_
-		    ErrorForce_PID_Sp( &Sp_M, &Sp_C, &Sp_K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &InitCnt.PID, &fu );
+		    GSSSS_ErrorForce_PID_Sp( &Sp_M, &Sp_C, &Sp_K, &AccTdT, &AccT, &VelT, &DispT, &fc, &LoadTdT, &LoadT,
+					     &InitCnt.GSSSS, InitCnt.Delta_t, &tempvec, &InitCnt.PID, &fu );
 #endif
 	       } else assert(0);
 	  }
 
-	  /* Print the rest of the information */
-//	  temp1 = TMD->End_Acc + AccTdT.Array[47-1] + AccAll[istep-1];
-//	  temp2 = TMD->End_Vel;// - VelTdT.Array[CNodes.Array[0]-1];
-//	  temp3 = TMD->End_Disp;// - DispTdT.Array[CNodes.Array[0]-1];
-	  fprintf( GlobalOutput, "%d\t%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t", istep, AccAll[istep-1] + AccTdT.Array[811-1], AccAll[istep-1] + AccTdT.Array[799-1], AccAll[istep-1]+ AccTdT.Array[929-1], AccAll[istep-1] + AccTdT.Array[942-1], AccAll[istep-1] + AccTdT.Array[304-1], AccAll[istep-1] + AccTdT.Array[258-1] );
-	  fprintf( GlobalOutput, "%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t", DispAll[istep-1] + DispTdT.Array[720-1], DispAll[istep-1] + DispTdT.Array[227-1], DispAll[istep-1] + DispTdT.Array[179-1], DispAll[istep-1] + DispTdT.Array[258-1], DispAll[istep-1] + DispTdT.Array[304-1], DispAll[istep-1] + DispTdT.Array[CNodes.Array[0]-1] );
+	  if( InitCnt.Use_Absolute_Values ){
+	       temp1 = TMD->End_Acc;
+	       temp2 = TMD->End_Vel - VelTdT.Array[CNodes.Array[0] - 1];
+	       temp3 = TMD->End_Disp - DispTdT.Array[CNodes.Array[0] - 1];
+	       if( InitCnt.Order == 960 ){
+		    /* Print out absolute values for analysing */
+		    fprintf( GlobalOutput, "%d\t%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t", istep, AccTdT.Array[811-1],
+			     AccTdT.Array[799-1], AccTdT.Array[929-1], AccTdT.Array[942-1], AccTdT.Array[304-1],
+			     AccTdT.Array[258-1] );
+		    fprintf( GlobalOutput, "%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t", DispTdT.Array[720-1],
+			     DispTdT.Array[227-1], DispTdT.Array[179-1], DispTdT.Array[258-1], DispTdT.Array[304-1],
+			     DispTdT.Array[CNodes.Array[0]-1] );
+	       } else if (InitCnt.Order == 504 ){
+		    fprintf( GlobalOutput, "%d\t%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t", istep, AccTdT.Array[74-1],
+			     AccTdT.Array[80-1], AccTdT.Array[502-1], AccTdT.Array[470-1], AccTdT.Array[289-1],
+			     AccTdT.Array[296-1] );
+		    fprintf( GlobalOutput, "%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t", DispTdT.Array[71-1],
+			     DispTdT.Array[120-1], DispTdT.Array[283-1], DispTdT.Array[296-1], DispTdT.Array[289-1],
+			     DispTdT.Array[CNodes.Array[0]-1] );
+	       } else if (InitCnt.Order == 33 ){
+		    fprintf( GlobalOutput, "%d\t%lE\t%lE\t", istep, AccTdT.Array[CNodes.Array[0] - 1],
+			     DispTdT.Array[CNodes.Array[0]-1] );
+	       }
+	  } else {
+	       /* Print the rest of the information */
+	       temp1 = TMD->End_Acc + AccTdT.Array[CNodes.Array[0]-1] + AccAll[istep - 1];
+	       temp2 = TMD->End_Vel;
+	       temp3 = TMD->End_Disp;
+	       if( InitCnt.Order == 960 ){
+		    /* Print out absolute values for analysing */
+		    fprintf( GlobalOutput, "%d\t%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t", istep, AccAll[istep - 1] + AccTdT.Array[811-1],
+			     AccAll[istep - 1] + AccTdT.Array[799-1], AccAll[istep - 1] + AccTdT.Array[929-1],
+			     AccAll[istep - 1] + AccTdT.Array[942-1], AccAll[istep - 1] + AccTdT.Array[304-1],
+			     AccAll[istep - 1] + AccTdT.Array[258-1] );
+		    fprintf( GlobalOutput, "%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t", DispAll[istep - 1] + DispTdT.Array[720-1],
+			     DispAll[istep - 1] + DispTdT.Array[227-1], DispAll[istep - 1] + DispTdT.Array[179-1],
+			     DispAll[istep - 1] + DispTdT.Array[258-1], DispAll[istep - 1] + DispTdT.Array[304-1],
+			     DispAll[istep - 1] + DispTdT.Array[CNodes.Array[0]-1] );
+	       } else if (InitCnt.Order == 504 ){
+		    fprintf( GlobalOutput, "%d\t%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t", istep, AccAll[istep - 1] + AccTdT.Array[74-1],
+			     AccAll[istep - 1] + AccTdT.Array[80-1], AccAll[istep - 1] + AccTdT.Array[502-1],
+			     AccAll[istep - 1] + AccTdT.Array[470-1], AccAll[istep - 1] + AccTdT.Array[289-1],
+			     AccAll[istep - 1] + AccTdT.Array[296-1] );
+		    fprintf( GlobalOutput, "%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t", DispAll[istep - 1] + DispTdT.Array[71-1],
+			     DispAll[istep - 1] + DispTdT.Array[120-1], DispAll[istep - 1] + DispTdT.Array[283-1],
+			     DispAll[istep - 1] + DispTdT.Array[296-1], DispAll[istep - 1] + DispTdT.Array[289-1],
+			     DispAll[istep - 1] + DispTdT.Array[CNodes.Array[0]-1] );
+	       } else if (InitCnt.Order == 33 ){
+		    fprintf( GlobalOutput, "%d\t%lE\t%lE\t", istep, AccAll[istep - 1] + AccTdT.Array[CNodes.Array[0] - 1],
+			     DispAll[istep - 1] + DispTdT.Array[CNodes.Array[0]-1] );
+	       }// else assert( 0 ); 
+	  }	       
 	  fprintf( GlobalOutput, "%lE\t%lE\t", fc.Array[CNodes.Array[0]-1], fu.Array[CNodes.Array[0]-1] );
-	  fprintf( GlobalOutput, "%lE\t%lE\t%lE\n", temp1, temp2, temp3 );
+	  fprintf( GlobalOutput, "%lE\t%lE\t%lE\n", temp1, temp2, temp3);
 
 	  /* Save the result in a HDF5 file format */
 #if _HDF5_
 	  HDF5_Store_TimeHistoryData( hdf5_file, &AccTdT, &VelTdT, &DispTdT, &fc, &fu, (int) istep, &InitCnt );
-	  /* Store the relative displacements of the TMD */
-//	  HDF5_Store_TMD( hdf5_file, &temp1, &temp2, &temp3, (int) istep );
+	  /* Store the relative values of the TMD */
+//	  HDF5_Store_TMD( hdf5_file, &TMD->End_Acc, &TMD->End_Vel, &TMD->End_Disp, (int) istep );
 #else
 	  
 #endif
 	  /* Backup vectors */
+	  hysl_copy( &LoadTdT1.Rows, LoadTdT.Array, &incx, LoadT.Array, &incy ); /* li = li1 */
 	  hysl_copy( &LoadTdT1.Rows, LoadTdT1.Array, &incx, LoadTdT.Array, &incy ); /* li = li1 */
 	  hysl_copy( &DispTdT.Rows, DispTdT.Array, &incx, DispT.Array, &incy ); /* ui = ui1 */
 	  hysl_copy( &VelTdT.Rows, VelTdT.Array, &incx, VelT.Array, &incy ); /* vi = vi1 */
 	  hysl_copy( &AccTdT.Rows, AccTdT.Array, &incx, AccT.Array, &incy ); /* ai = ai1 */
 	  istep = istep + 1;
+
+	  printf("AccT %lE VelT %lE DispT %lE LoadT%lE\n", AccT.Array[46], VelT.Array[46], DispT.Array[46], LoadT.Array[46] );
      }
 
      gettimeofday( &Time.End, NULL );
@@ -599,23 +668,23 @@ int main( int argc, char **argv ){
      }
 
      if ( !InitCnt.Use_Packed ){	  
-	  MatrixVector_Destroy( &Keinv );
+	  MatrixVector_Destroy( &Meinv );
      } else if ( InitCnt.Use_Packed ){	 
-	  MatrixVector_Destroy_PS( &Keinv );
+	  MatrixVector_Destroy_PS( &Meinv );
      }
  
      if( CNodes.Order >= 1 ){
-	  MatrixVector_Destroy( &Keinv_c );
-	  MatrixVector_Destroy( &Keinv_m );
+	  MatrixVector_Destroy( &Meinv_c );
+	  MatrixVector_Destroy( &Meinv_m );
      }
 
      MatrixVector_Destroy( &tempvec );
  
      MatrixVector_Destroy( &DispT );
-     MatrixVector_Destroy( &DispTdT0 );
+     MatrixVector_Destroy( &AccTdT0 );
      if( CNodes.Order >= 1 ){
-	  MatrixVector_Destroy( &DispTdT0_c );
-	  MatrixVector_Destroy( &DispTdT0_m );
+	  MatrixVector_Destroy( &AccTdT0_c );
+	  MatrixVector_Destroy( &AccTdT0_m );
      }
      MatrixVector_Destroy( &DispTdT );
 
@@ -626,8 +695,7 @@ int main( int argc, char **argv ){
      MatrixVector_Destroy( &AccTdT );
 
      MatrixVector_Destroy( &LoadVectorForm );
-     MatrixVector_Destroy( &RotVectorForm );
-     MatrixVector_Destroy( &tempRot );
+     MatrixVector_Destroy( &LoadT );
      MatrixVector_Destroy( &LoadTdT );
      MatrixVector_Destroy( &LoadTdT1 );
 

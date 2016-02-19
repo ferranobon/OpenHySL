@@ -7,6 +7,7 @@
 #include "Algorithm_Aux.h"
 #include "Print_Messages.h"
 #include "Substructure_Exact.h"
+#include "Substructure_Newmark.h"
 #include "Substructure_Remote.h"
 #include "Substructure_UHYDEfbr.h"
 #include "Substructure_SimMeasured.h"
@@ -18,6 +19,7 @@
 const char *Substructure_Type[] = {"Sim_Exact_MDOF",
 				   "Sim_Exact_SDOF",
 				   "Sim_Exact_ESP",
+				   "Sim_Newmark",
 				   "Sim_UHYDEfbr",
 				   "Sim_Measured",
 				   "Exp_ADwin",
@@ -238,6 +240,46 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 		    free( ftemp );
 	       }
 	       break;
+	  case SIM_NEWMARK:
+	       /* Ignore coma */
+	       fscanf( InFile, "%*[,] %i", &itemp );
+	       if ( itemp != NEWMARK_NUMPARAM_INIT ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Wrong number of parameters for the substructue number %i of type Exact_ESP.\n", i );
+		    fprintf( stderr, "The number of init parameters should be %i\n", NEWMARK_NUMPARAM_INIT );
+		    exit( EXIT_FAILURE );
+	       } else {
+		    ftemp = NULL;
+		    ftemp = (HYSL_FLOAT *) calloc( (size_t) NEWMARK_NUMPARAM_INIT, sizeof( HYSL_FLOAT ) );
+
+		    /* Read the input parameters */
+		    for( j = 0; j < NEWMARK_NUMPARAM_INIT; j++ ){
+#if _FLOAT_
+			 fscanf( InFile, "%f", &ftemp[j] );
+#else
+			 fscanf( InFile, "%lf", &ftemp[j] );
+#endif
+		    }
+
+		    /* Read the optional description */
+		    Substructure_GetDescription( InFile, i, Description );
+		    
+		    for( j = 0; j < Count_Type; j++ ){
+			 CNodes->Sub[i + j].SimStruct = (void *) calloc( (size_t) 1, sizeof(NewmarkSim_t) );
+			 if( CNodes->Sub[i + j].SimStruct == NULL ){
+			      exit(EXIT_FAILURE );
+			 }
+			 
+			 Substructure_Newmark_Init( ftemp[0], ftemp[1], ftemp[2], DeltaTSub, InitCnt->Delta_t, InitCnt->Newmark.Beta, InitCnt->Newmark.Gamma,
+						    Description, (NewmarkSim_t *) CNodes->Sub[i + j].SimStruct );
+
+			 Print_Header( INFO );
+			 printf( "Simulating the substructure in the coupling node %d as an exact integration method (ESP).\n",
+				 CNodes->Array[i + j] );
+		    }
+		    free( ftemp );
+	       }
+	       break;
 	  case SIM_UHYDE:
 	       /* Ignore coma */
 	       fscanf( InFile, "%*[,] %i", &itemp );
@@ -413,6 +455,9 @@ void Substructure_DeleteCouplingNodes( CouplingNode_t *CNodes )
 	       break;
 	  case SIM_EXACT_ESP:
 	       Substructure_ExactSolutionESP_Destroy( (ExactSimESP_t *) CNodes->Sub[i].SimStruct );
+	       break;
+	  case SIM_NEWMARK:
+	       Substructure_Newmark_Destroy( (NewmarkSim_t *) CNodes->Sub[i].SimStruct );
 	       break;
 	  case SIM_UHYDE:
 	       Substructure_SimUHYDE_Destroy( (UHYDEfbrSim_t *) CNodes->Sub[i].SimStruct );
