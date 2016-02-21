@@ -31,7 +31,7 @@ option(USE_SPARSE     "Build with sparse matrix support"        OFF)
 option(USE_THREADS    "Use thread implementation when possible" OFF)
 option(BUILD_REALTIME "Build also realtime application"         OFF)
 option(WITH_ADWIN     "Build with ADwin support"                OFF)
-option(WITH_MM        "Build with MatrixMarket suppoert"        OFF)
+option(WITH_MM        "Build with MatrixMarket support"         OFF)
 
 # Add support for Debian OS
 if(NOT "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
@@ -159,6 +159,13 @@ if( USE_SPARSE )
   target_link_libraries(SAlgorithm core core_sp substructure hdf5 hdf5_hl)
 else()
   target_link_libraries(SAlgorithm core substructure hdf5 hdf5_hl)
+endif()
+
+add_executable( SAlgorithm_GSSSS src/SAlgorithm_GSSSS.c src/Algorithm_Aux.c src/HDF5_Operations.c)# ${CORE_SRCS} ${SPARSE_SRCS} ${SUBS_SRCS})
+if( USE_SPARSE )
+  target_link_libraries(SAlgorithm_GSSSS core core_sp substructure hdf5 hdf5_hl)
+else()
+  target_link_libraries(SAlgorithm_GSSSS core substructure hdf5 hdf5_hl)
 endif()
 
 add_executable(SAlgorithm_Zienkiewicz src/SAlgorithm_Zienkiewicz.c src/Algorithm_Aux.c src/HDF5_Operations.c)# ${CORE_SRCS} ${SPARSE_SRCS} ${SUBS_SRCS})

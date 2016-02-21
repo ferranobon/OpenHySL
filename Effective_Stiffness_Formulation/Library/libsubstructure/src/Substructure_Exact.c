@@ -100,8 +100,6 @@ void Substructure_ExactSolutionSDOF_Init( const HYSL_FLOAT Mass, const HYSL_FLOA
 
      Sub->a0 = a0; Sub->a2 = a2; Sub->a3 = a3;
      Sub->a6 = a6; Sub->a7 = a7;
-
-     printf("a0 %le a2 %le a3 %le a6%le a7 %le\n", a0, a2, a3, a6, a7 );
 }
 
 void Compute_DampingRatios_Rayleigh( const HYSL_FLOAT Ray_Alpha, const HYSL_FLOAT Ray_Beta, const int Num_DOF,
@@ -382,6 +380,8 @@ void Substructure_ExactSolutionESP_Init( const HYSL_FLOAT Mass, const HYSL_FLOAT
      Sub->DispT = 0.0;
      Sub->VelTdT = 0.0;
 
+     Sub->idum = -time(0);
+
      /* Calculate the free vibration frequency */
      omega2 = Stiff/Mass;
 
@@ -475,8 +475,8 @@ void Substructure_ExactSolutionESP_SDOF( const HYSL_FLOAT DispTdT, const HYSL_FL
 
      /* Backup and computer new forcce */
      Sub->Force_0 = Sub->Force_1;
-     Sub->Force_1 = Sub->Stiff*DispTdT + Sub->Damp*Sub->VelTdT;
-//     Sub->Force_1 = -Sub->Mass*(GAcc + Sub->AccTdT);
+
+     Sub->Force_1 = -Sub->Mass*(GAcc + Sub->AccTdT);
 
      /* Backup the displacements */
      Sub->Init_Disp = Sub->End_Disp;
@@ -495,7 +495,6 @@ void Substructure_ExactSolutionESP_SDOF( const HYSL_FLOAT DispTdT, const HYSL_FL
 //   *fc = Sub->Stiff*(Sub->End_Disp - DispTdT) + Sub->Damp*(Sub->End_Vel - Sub->VelTdT);
      /* Compute the coupling force. Relative values */
      *fc = Sub->Stiff*Sub->End_Disp + Sub->Damp*Sub->End_Vel;
-
 }
 
 

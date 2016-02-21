@@ -22,8 +22,11 @@
 #include "Conf_Parser.h"        /* For ConfFile_t */
 #include "Definitions.h"
 
+#include "GSSSS.h"
+
 #define MPI_TIME_SLENGTH 30 /*!< \brief Length of the array \c Date_time in MPI since HDF5 does not support
 			     * variable types in mpi mode. */
+
 
 /**
  * \brief Structure to handle the elapsed time.
@@ -133,6 +136,7 @@ typedef struct AlgConst{
      TIntegration_t Newmark;  /*!< \brief Stores Newmark Constants gamma (\c Newmark.Gamma or \f$\gamma_N\f$)
 			       * and (\c Newmark.Beta or \f$\beta_N\f$)
 			       */
+     TIntegration_GSSSS_t GSSSS;
      PID_t PID;               /*!< \brief Stores proportional (\c PID.P), integral (\c PID.I) and derivative
 			       * (\c PID.D) part.
 			       */

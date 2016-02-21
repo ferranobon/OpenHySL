@@ -51,6 +51,7 @@ typedef struct ExactSimESP {
 
      HYSL_FLOAT A, B, C, D, E, F, G, H;
      HYSL_FLOAT a0, a2, a3, a6, a7;
+     long int idum;
      char *Description;  /*!< \brief Optional description of the substructure. */
 } ExactSimESP_t;
 

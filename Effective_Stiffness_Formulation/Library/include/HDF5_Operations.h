@@ -52,6 +52,7 @@ void HDF5_CreateGroup_Parameters( const hid_t hdf5_file, const AlgConst_t *const
 void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const AlgConst_t *const InitCnt, const CouplingNode_t *const CNodes );
 void HDF5_CreateGroup_TimeIntegration( const hid_t hdf5_file, const AlgConst_t *const InitCnt );
 void HDF5_Store_TimeHistoryData( const hid_t hdf5_file, const MatrixVector_t *const Acc, const MatrixVector_t *const Vel, const MatrixVector_t *const Disp, const MatrixVector_t *const fc, const MatrixVector_t *const fu, const int istep, const AlgConst_t *const InitCnt );
+void HDF5_Store_TMD( const hid_t hdf5_file, const double *const Acc, const double *const Vel, const double *const Disp, const int istep );
 void HDF5_Store_Time( const hid_t hdf5_file, const SaveTime_t *const Time );
 void HDF5_StoreADwinData( const int hdf5_file, const HYSL_FLOAT *Array, char **Entry_Names, const int Length );
 

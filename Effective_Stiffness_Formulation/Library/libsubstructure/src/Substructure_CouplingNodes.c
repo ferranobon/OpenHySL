@@ -6,6 +6,7 @@
 #include "MatrixVector.h"
 #include "Algorithm_Aux.h"
 #include "Print_Messages.h"
+#include "Substructure_BoucWen.h"
 #include "Substructure_Exact.h"
 #include "Substructure_Newmark.h"
 #include "Substructure_Remote.h"
@@ -21,6 +22,7 @@ const char *Substructure_Type[] = {"Sim_Exact_MDOF",
 				   "Sim_Exact_SDOF",
 				   "Sim_Exact_ESP",
 				   "Sim_Newmark",
+				   "Sim_BoucWen",
 				   "Sim_UHYDEfbr",
 				   "Sim_Measured",
 				   "Sim_StoneDrums",
@@ -281,6 +283,8 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 		    }
 		    free( ftemp );
 	       }
+	       break;
+	  case SIM_BOUCWEN:
 	       break;
 	  case SIM_UHYDE:
 	       /* Ignore coma */
