@@ -116,6 +116,8 @@ void Substructure_Substepping( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *
 	       /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
 		* in the same routine.*/
 	  case SIM_EXACT_ESP:
+	       /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
+		* in the same routine.*/
 	  case SIM_NEWMARK:
 	       /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
 		* in the same routine.*/
