@@ -297,6 +297,8 @@ int main( int argc, char **argv ){
 	  MatrixVector_FromFile_MM( InitCnt.FileLV, &LoadVectorForm );
      }
 
+     MatrixVector_ToFile( &M, "MatrixM.txt" );
+     MatrixVector_ToFile( &K, "MatrixK.txt" );
      /* Calculate damping matrix using Rayleigh. C = alpha*M + beta*K */
      if( !InitCnt.Read_CMatrix ){
 	  if ( InitCnt.Use_Sparse ) {
