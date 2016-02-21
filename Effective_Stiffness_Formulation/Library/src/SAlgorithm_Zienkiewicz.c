@@ -67,7 +67,7 @@ const char *Entry_Names[NUM_CHANNELS] = { "Sub-step",
 int main( int argc, char **argv ){
 
      unsigned int istep, i;
-     double temp1 = 0.0, temp2 = 0.0, temp3 = 0.0, done = 1.0, dzero = 0.0;
+     double temp1 = 0.0, temp2 = 0.0, temp3 = 0.0;
      AlgConst_t InitCnt;
      const char *FileConf;
 
@@ -317,8 +317,10 @@ int main( int argc, char **argv ){
      }
 
      if ( InitCnt.Use_Sparse ){
+#if _SPARSE_
 	  MatrixVector_Create_Sp( InitCnt.Order, InitCnt.Order, Sp_K.Num_Nonzero, &Sp_MatA );
 	  MatrixVector_Create_Sp( InitCnt.Order, InitCnt.Order, Sp_K.Num_Nonzero, &Sp_MatB );
+#endif
      } else if ( InitCnt.Use_Packed ){
 	  MatrixVector_Create_PS( InitCnt.Order, InitCnt.Order, &MatA );
 	  MatrixVector_Create_PS( InitCnt.Order, InitCnt.Order, &MatB );
@@ -334,7 +336,9 @@ int main( int argc, char **argv ){
      if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
 	  MatrixVector_Add3Mat( &M, &C, &K, Constants, &MatA );
      } else if ( InitCnt.Use_Sparse ){
+#if _SPARSE_
 	  MatrixVector_Add3Mat_Sp( &Sp_M, &Sp_C, &Sp_K, Constants, &Sp_MatA );
+#endif
      } else if ( InitCnt.Use_Packed ){
 	  MatrixVector_Add3Mat_PS( &M, &C, &K, Constants, &MatA );	  
      }
@@ -347,7 +351,9 @@ int main( int argc, char **argv ){
      if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
 	  MatrixVector_Add3Mat( &M, &C, &K, Constants, &MatB );
      } else if ( InitCnt.Use_Sparse ){
+#if _SPARSE_
 	  MatrixVector_Add3Mat_Sp( &Sp_M, &Sp_C, &Sp_K, Constants, &Sp_MatB );
+#endif
      } else if ( InitCnt.Use_Packed ){
 	  MatrixVector_Add3Mat_PS( &M, &C, &K, Constants, &MatB );	  
      }

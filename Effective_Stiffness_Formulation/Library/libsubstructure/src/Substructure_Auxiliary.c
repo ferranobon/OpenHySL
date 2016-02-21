@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
 #include "MatrixVector.h"
 
 #include "Substructure.h"
@@ -226,4 +230,28 @@ void Substructure_VectorXc( const MatrixVector_t *const VecX, const CouplingNode
      for( icoup = 0; icoup < CNodes->Order; icoup++ ){
 	  VecXc->Array[icoup] = VecX->Array[CNodes->Array[icoup] - 1];
      }
+}
+
+int Substructure_FindPosition( const int Pos_in_VecX, const CouplingNode_t *const CNodes )
+{
+     int pos;
+     bool found;
+
+     pos = 0;
+     found = false;
+     
+     while (!found && (pos < CNodes->Order)) {
+	  if (CNodes->Array[pos] == Pos_in_VecX){
+	       found = true;
+	  } else {
+	       pos = pos + 1;
+	  }
+     }
+
+     if (!found){
+	  printf( "Position not found" );
+	  exit( EXIT_FAILURE );
+     }
+
+     return pos;	  
 }
