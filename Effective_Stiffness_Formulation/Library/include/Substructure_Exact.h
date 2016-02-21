@@ -179,4 +179,5 @@ void Substructure_ExactSolutionESP_SDOF( const HYSL_FLOAT u0c, const HYSL_FLOAT 
  * \param[out] Sub
  */
 void Substructure_ExactSolutionESP_Destroy( ExactSimESP_t *const Sub );
+
 #endif /* SUBSTRUCTURE_EXACT_H_ */
