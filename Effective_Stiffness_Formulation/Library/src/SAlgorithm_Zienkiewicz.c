@@ -38,9 +38,6 @@
 #include "Netlib.h"
 #endif
 
-
-FILE *GlobalOutput;
-
 const char *Entry_Names[NUM_CHANNELS] = { "Sub-step",
 					  "Control displacement actuator 1 [m]",
 					  "Control displacement actuator 2 [m]",
@@ -114,8 +111,6 @@ int main( int argc, char **argv ){
 
      CouplingNode_t CNodes;
      SaveTime_t     Time;
-
-     NewmarkSim_t  *TMD;
 
      /* Options */
      int Selected_Option;
@@ -406,13 +401,6 @@ int main( int argc, char **argv ){
      HDF5_CreateGroup_Parameters( hdf5_file, &InitCnt, &CNodes, AccAll, VelAll, DispAll );
      HDF5_CreateGroup_TimeIntegration( hdf5_file, &InitCnt );
 #endif
-
-     GlobalOutput = fopen( Concatenate_Strings( 2, InitCnt.FileOutput, ".txt" ), "w" );
-     fprintf( GlobalOutput, "Step\tAcc1Right [m/s^2]\tAcc1Left [m/s^2]\tAcc2Right [m/s^2]\tAcc2Left [m/s^2]\tAcc2Right [m/s^2]\tAcc2Left [m/s^2]\t" );
-     fprintf( GlobalOutput, "Disp1 [m]\tDisp2 [m]\tDisp3Mid [m]\tDisp3Left [m]\tDisp3Right [m]\t" );
-     fprintf( GlobalOutput, "Coupling Force [N]\tError Force[N]\t" );
-     fprintf( GlobalOutput, "Acc TMD [m/s^2]\tVel TMD [m/s]\tDisp TMD [m]\n" );
-     TMD = CNodes.Sub[0].SimStruct;
      
      /* Calculate the input load */
      istep = 1;
@@ -449,8 +437,6 @@ int main( int argc, char **argv ){
 
      Print_Header( INFO );
      printf( "Starting stepping process.\n" );
-//     double Ffs = 60.0, Ffst = 325.0, epsilon = 0.000001;
-     double Ffs = 0.0, Ffst = 0.0, epsilon = 0.0;
 
      while ( istep <= InitCnt.NStep ){
 
@@ -545,15 +531,6 @@ int main( int argc, char **argv ){
 	       } else assert(0);
 	  }
 
-	  /* Print the rest of the information */
-	  temp1 = TMD->aTdT + AccTdT.Array[47-1] + AccAll[istep-1];
-	  temp2 = TMD->vTdT;// - VelTdT.Array[CNodes.Array[0]-1];
-	  temp3 = TMD->dTdT;// - DispTdT.Array[CNodes.Array[0]-1];
-	  fprintf( GlobalOutput, "%d\t%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t", istep, AccAll[istep-1] + AccTdT.Array[811-1], AccAll[istep-1] + AccTdT.Array[799-1], AccAll[istep-1]+ AccTdT.Array[929-1], AccAll[istep-1] + AccTdT.Array[942-1], AccAll[istep-1] + AccTdT.Array[304-1], AccAll[istep-1] + AccTdT.Array[258-1] );
-	  fprintf( GlobalOutput, "%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t", DispAll[istep-1] + DispTdT.Array[720-1], DispAll[istep-1] + DispTdT.Array[227-1], DispAll[istep-1] + DispTdT.Array[179-1], DispAll[istep-1] + DispTdT.Array[258-1], DispAll[istep-1] + DispTdT.Array[304-1], DispAll[istep-1] + DispTdT.Array[CNodes.Array[0]-1] );
-	  fprintf( GlobalOutput, "%lE\t%lE\t", fc.Array[CNodes.Array[0]-1], fu.Array[CNodes.Array[0]-1] );
-	  fprintf( GlobalOutput, "%lE\t%lE\t%lE\n", temp1, temp2, temp3 );
-
 	  /* Save the result in a HDF5 file format */
 #if _HDF5_
 	  HDF5_Store_TimeHistoryData( hdf5_file, &AccTdT, &VelTdT, &DispTdT, &fc, &fu, (int) istep, &InitCnt );
@@ -603,8 +580,6 @@ int main( int argc, char **argv ){
 #if _HDF5_
      HDF5_CloseFile( &hdf5_file );
 #endif
-
-     fclose( GlobalOutput );
 
      /* Free initiation values */
      Algorithm_Destroy( &InitCnt );

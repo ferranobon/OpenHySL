@@ -38,9 +38,6 @@
 #include "Netlib.h"
 #endif
 
-
-FILE *GlobalOutput;
-
 const char *Entry_Names[NUM_CHANNELS] = { "Sub-step",
 					  "Control displacement actuator 1 [m]",
 					  "Control displacement actuator 2 [m]",
@@ -114,8 +111,6 @@ int main( int argc, char **argv ){
 
      CouplingNode_t CNodes;
      SaveTime_t     Time;
-
-     ExactSimESP_t  *TMD;
 
      /* Options */
      int Selected_Option;
@@ -382,15 +377,6 @@ int main( int argc, char **argv ){
      HDF5_CreateGroup_TimeIntegration( hdf5_file, &InitCnt );
 #endif
 
-     GlobalOutput = fopen( Concatenate_Strings( 2, InitCnt.FileOutput, ".txt" ), "w" );
-     fprintf( GlobalOutput, "All values are absolute in order to be compared against measured data in the DFG \"Subshake project\". The HDF5 with the same name contains unmodified data.\n" );
-     fprintf( GlobalOutput, "Step\tAcc1Right [m/s^2]\tAcc1Left [m/s^2]\tAcc2Right [m/s^2]\tAcc2Left [m/s^2]\tAcc2Right [m/s^2]\tAcc2Left [m/s^2]\t" );
-     fprintf( GlobalOutput, "Disp1 [m]\tDisp2 [m]\tDisp3Mid [m]\tDisp3Left [m]\tDisp3Right [m]\t" );
-     fprintf( GlobalOutput, "Coupling Force [N]\tError Force[N]\t" );
-     fprintf( GlobalOutput, "Acc TMD [m/s^2]\tVel TMD [m/s]\tDisp TMD [m]\n" );
-     TMD = CNodes.Sub[0].SimStruct;
-
-
      Time.Date_start = time( NULL );
      Time.Date_time = strdup( ctime( &Time.Date_start) );
      gettimeofday( &Time.Start, NULL );
@@ -516,8 +502,6 @@ int main( int argc, char **argv ){
 	  /* Compute Velocity. vi = a1*(ui1 - ui) - a4*vi - a5*ai */
 	  GSSSS_ComputeVelocity_AForm( &VelT, &AccT, &AccTdT, &InitCnt.GSSSS, InitCnt.Delta_t, &VelTdT );
 
-	  printf("EffT %lE LoadTdT %lE AccTdT0 %lE AccTdT %lE DispTdT %lE VelTdT %lE\n", EffT.Array[46], LoadTdT.Array[46], AccTdT0.Array[46], AccTdT.Array[46], DispTdT.Array[46], VelTdT.Array[46]);
-
 	  /* Error Compensation. fu = LoatTdT + fc -(Mass*AccTdT + Damp*VelTdT + Stiff*DispTdT) */
 	  if( InitCnt.PID.P != 0.0 || InitCnt.PID.I != 0.0 || InitCnt.PID.D != 0.0 ){
 	       if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
@@ -534,60 +518,6 @@ int main( int argc, char **argv ){
 	       } else assert(0);
 	  }
 
-	  if( InitCnt.Use_Absolute_Values ){
-	       temp1 = TMD->End_Acc;
-	       temp2 = TMD->End_Vel - VelTdT.Array[CNodes.Array[0] - 1];
-	       temp3 = TMD->End_Disp - DispTdT.Array[CNodes.Array[0] - 1];
-	       if( InitCnt.Order == 960 ){
-		    /* Print out absolute values for analysing */
-		    fprintf( GlobalOutput, "%d\t%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t", istep, AccTdT.Array[811-1],
-			     AccTdT.Array[799-1], AccTdT.Array[929-1], AccTdT.Array[942-1], AccTdT.Array[304-1],
-			     AccTdT.Array[258-1] );
-		    fprintf( GlobalOutput, "%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t", DispTdT.Array[720-1],
-			     DispTdT.Array[227-1], DispTdT.Array[179-1], DispTdT.Array[258-1], DispTdT.Array[304-1],
-			     DispTdT.Array[CNodes.Array[0]-1] );
-	       } else if (InitCnt.Order == 504 ){
-		    fprintf( GlobalOutput, "%d\t%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t", istep, AccTdT.Array[74-1],
-			     AccTdT.Array[80-1], AccTdT.Array[502-1], AccTdT.Array[470-1], AccTdT.Array[289-1],
-			     AccTdT.Array[296-1] );
-		    fprintf( GlobalOutput, "%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t", DispTdT.Array[71-1],
-			     DispTdT.Array[120-1], DispTdT.Array[283-1], DispTdT.Array[296-1], DispTdT.Array[289-1],
-			     DispTdT.Array[CNodes.Array[0]-1] );
-	       } else if (InitCnt.Order == 33 ){
-		    fprintf( GlobalOutput, "%d\t%lE\t%lE\t", istep, AccTdT.Array[CNodes.Array[0] - 1],
-			     DispTdT.Array[CNodes.Array[0]-1] );
-	       }
-	  } else {
-	       /* Print the rest of the information */
-	       temp1 = TMD->End_Acc + AccTdT.Array[CNodes.Array[0]-1] + AccAll[istep - 1];
-	       temp2 = TMD->End_Vel;
-	       temp3 = TMD->End_Disp;
-	       if( InitCnt.Order == 960 ){
-		    /* Print out absolute values for analysing */
-		    fprintf( GlobalOutput, "%d\t%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t", istep, AccAll[istep - 1] + AccTdT.Array[811-1],
-			     AccAll[istep - 1] + AccTdT.Array[799-1], AccAll[istep - 1] + AccTdT.Array[929-1],
-			     AccAll[istep - 1] + AccTdT.Array[942-1], AccAll[istep - 1] + AccTdT.Array[304-1],
-			     AccAll[istep - 1] + AccTdT.Array[258-1] );
-		    fprintf( GlobalOutput, "%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t", DispAll[istep - 1] + DispTdT.Array[720-1],
-			     DispAll[istep - 1] + DispTdT.Array[227-1], DispAll[istep - 1] + DispTdT.Array[179-1],
-			     DispAll[istep - 1] + DispTdT.Array[258-1], DispAll[istep - 1] + DispTdT.Array[304-1],
-			     DispAll[istep - 1] + DispTdT.Array[CNodes.Array[0]-1] );
-	       } else if (InitCnt.Order == 504 ){
-		    fprintf( GlobalOutput, "%d\t%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t", istep, AccAll[istep - 1] + AccTdT.Array[74-1],
-			     AccAll[istep - 1] + AccTdT.Array[80-1], AccAll[istep - 1] + AccTdT.Array[502-1],
-			     AccAll[istep - 1] + AccTdT.Array[470-1], AccAll[istep - 1] + AccTdT.Array[289-1],
-			     AccAll[istep - 1] + AccTdT.Array[296-1] );
-		    fprintf( GlobalOutput, "%lE\t%lE\t%lE\t%lE\t%lE\t%lE\t", DispAll[istep - 1] + DispTdT.Array[71-1],
-			     DispAll[istep - 1] + DispTdT.Array[120-1], DispAll[istep - 1] + DispTdT.Array[283-1],
-			     DispAll[istep - 1] + DispTdT.Array[296-1], DispAll[istep - 1] + DispTdT.Array[289-1],
-			     DispAll[istep - 1] + DispTdT.Array[CNodes.Array[0]-1] );
-	       } else if (InitCnt.Order == 33 ){
-		    fprintf( GlobalOutput, "%d\t%lE\t%lE\t", istep, AccAll[istep - 1] + AccTdT.Array[CNodes.Array[0] - 1],
-			     DispAll[istep - 1] + DispTdT.Array[CNodes.Array[0]-1] );
-	       }// else assert( 0 ); 
-	  }	       
-	  fprintf( GlobalOutput, "%lE\t%lE\t", fc.Array[CNodes.Array[0]-1], fu.Array[CNodes.Array[0]-1] );
-	  fprintf( GlobalOutput, "%lE\t%lE\t%lE\n", temp1, temp2, temp3);
 
 	  /* Save the result in a HDF5 file format */
 #if _HDF5_
@@ -604,8 +534,6 @@ int main( int argc, char **argv ){
 	  hysl_copy( &VelTdT.Rows, VelTdT.Array, &incx, VelT.Array, &incy ); /* vi = vi1 */
 	  hysl_copy( &AccTdT.Rows, AccTdT.Array, &incx, AccT.Array, &incy ); /* ai = ai1 */
 	  istep = istep + 1;
-
-	  printf("AccT %lE VelT %lE DispT %lE LoadT%lE\n", AccT.Array[46], VelT.Array[46], DispT.Array[46], LoadT.Array[46] );
      }
 
      gettimeofday( &Time.End, NULL );
@@ -635,8 +563,6 @@ int main( int argc, char **argv ){
 #if _HDF5_
      HDF5_CloseFile( &hdf5_file );
 #endif
-
-     fclose( GlobalOutput );
 
      /* Free initiation values */
      Algorithm_Destroy( &InitCnt );
