@@ -5,6 +5,7 @@
 #include "Auxiliary_Math.h"
 #include "Definitions.h"
 #include "Substructure_BoucWen.h"
+#include "Print_Messages.h"
 
 void Substructure_BoucWen_Init( const HYSL_FLOAT alpha, const HYSL_FLOAT ko, const HYSL_FLOAT beta,
 				const HYSL_FLOAT gamma, const HYSL_FLOAT n, const int BoucWen_Type,
@@ -184,7 +185,7 @@ void Substructure_BoucWen ( HYSL_FLOAT DispTdT, BoucWen_t *const Sub, HYSL_FLOAT
 	  hze_ = deltaDisp*Sub->ko*Sub->p*Sub->vs0*exp(-pow(z_eval*signum(deltaDisp) - Sub->q*pow(1.0/((Sub->beta + Sub->gamma)*(Sub->nu0 + Sub->deltaNu*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)))), 1.0/Sub->n), 2.0)/(pow(Sub->lambda - Sub->vs0*(exp(-Sub->p*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0))) - 1.0), 2.0)*pow(Sub->psi0 + Sub->deltaPsi*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)), 2.0)))*exp(-Sub->p*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)))*(Sub->alpha - 1.0) - Sub->vs0*exp(-pow(z_eval*signum(deltaDisp) - Sub->q*pow(1.0/((Sub->beta + Sub->gamma)*(Sub->nu0 + Sub->deltaNu*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)))),1.0/Sub->n), 2.0)/(pow(Sub->lambda - Sub->vs0*(exp(-Sub->p*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0))) - 1.0), 2.0)*pow(Sub->psi0 + Sub->deltaPsi*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)), 2.0)))*(exp(-Sub->p*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0))) - 1.0)*((2*(signum(deltaDisp) - (Sub->deltaNu*deltaDisp*Sub->ko*Sub->q*(Sub->alpha - 1.0)*pow(1.0/((Sub->beta + Sub->gamma)*(Sub->nu0 + Sub->deltaNu*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)))),1.0/Sub->n - 1.0))/(Sub->n*(Sub->beta + Sub->gamma)*pow(Sub->nu0 + Sub->deltaNu*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)), 2.0)))*(z_eval*signum(deltaDisp) - Sub->q*pow(1.0/((Sub->beta + Sub->gamma)*(Sub->nu0 + Sub->deltaNu*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)))),1.0/Sub->n)))/(pow(Sub->lambda - Sub->vs0*(exp(-Sub->p*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0))) - 1.0), 2.0)*pow(Sub->psi0 + Sub->deltaPsi*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)), 2.0)) + (2*Sub->deltaPsi*deltaDisp*Sub->ko*(Sub->alpha - 1.0)*pow(z_eval*signum(deltaDisp) - Sub->q*pow(1.0/((Sub->beta + Sub->gamma)*(Sub->nu0 + Sub->deltaNu*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)))),1.0/Sub->n), 2.0))/(pow(Sub->lambda - Sub->vs0*(exp(-Sub->p*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0))) - 1.0), 2.0)*pow(Sub->psi0 + Sub->deltaPsi*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)),3)) + (2*deltaDisp*Sub->ko*Sub->p*Sub->vs0*exp(-Sub->p*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)))*(Sub->alpha - 1.0)*pow(z_eval*signum(deltaDisp) - Sub->q*pow(1.0/((Sub->beta + Sub->gamma)*(Sub->nu0 + Sub->deltaNu*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)))),1.0/Sub->n), 2.0))/(pow(Sub->lambda - Sub->vs0*(exp(-Sub->p*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0))) - 1.0),3.0)*pow(Sub->psi0 + Sub->deltaPsi*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)), 2.0)));
 	      
 	  fz_new_ = 1.0 - (hze_*Phi*eta_new + hze*Phi_*eta_new - hze*Phi*eta_new_)/pow(eta_new, 2.0)*deltaDisp;
-	  printf("%lE %lE\n", hze, hze_);
+
 	  /* Perform a new step */
 	  z_new = z_eval - fz_new/fz_new_;
 	  
@@ -196,8 +197,8 @@ void Substructure_BoucWen ( HYSL_FLOAT DispTdT, BoucWen_t *const Sub, HYSL_FLOAT
 	  
 	  /* Warning if there is no convergence */
 	  if (count == Sub->maxIter) {
-	       printf( "WARNING: BoucWen() -- could not find the root z_{i+1}, after %i iterations and norm: %lE\n", Sub->maxIter, fabs(z_new_p - z_new) );
-	       //exit( EXIT_FAILURE);
+	       Print_Header( WARNING );
+	       fprintf( stderr, "Substructure_BoucWen(): could not find the root z_{i+1}, after %i iterations and norm: %lE\n", Sub->maxIter, fabs(z_new_p - z_new) );
 	  }
 	  
 	  // Compute restoring force.

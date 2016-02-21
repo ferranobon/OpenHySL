@@ -4,12 +4,17 @@
 #include "Substructure.h"
 #include "Definitions.h"
 
-#define BOUCWEN_NUMPARAM_INIT 3  /*!< \brief Number of required parameters in order to initialise a
-				    * substructure of type Exact fbr */
-#define BOUCWENDEG_NUMPARAM_INIT 3  /*!< \brief Number of required parameters in order to initialise a
-				    * substructure of type Exact fbr */
-#define BOUCWENBABERNOORI_NUMPARAM_INIT  3  /*!< \brief Number of required parameters in order to initialise a
-				    * substructure of type Exact fbr */
+#define BOUCWEN_NUMPARAM_INIT           5   /*!< \brief Number of required parameters in order to initialise a
+					     * substructure of type Bouc-Wen. */
+#define BOUCWENDEG_NUMPARAM_INIT        11   /*!< \brief Number of required parameters in order to initialise a
+					     * substructure of type Bouc-Wen with material degradation. */
+#define BOUCWENBABERNOORI_NUMPARAM_INIT 17  /*!< \brief Number of required parameters in order to initialise a
+					     * substructure of type Bouc-Wen-Baber-Noori. */
+
+enum BoucWen_Id { BOUC_WEN,            /*!< \brief Classic Bouc-Wen model. */
+		  BOUC_WEN_DEG,        /*!< \brief Bouc-Wen model with material degradation. */
+		  BOUC_WEN_BABER_NOORI /*!< \brief Bouc-Wen-Baber-Noori model. */
+};
 
 typedef struct BoucWen {
 
