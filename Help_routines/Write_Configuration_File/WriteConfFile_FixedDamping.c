@@ -22,7 +22,7 @@ int main( int argc, char **argv )
      char *OutputFile; char *ConfFile;
      int rc, idx, i;
 
-     double factor[18] = {0.5, 0.65, 0.80, 0.85, 0.9, 0.925, 0.95, 0.975, 1.0, 1.025, 1.05, 1.075, 1.1, 1.15, 1.2, 1.35, 1.5, 2};
+     double factor[3] = {0.02, 0.05, 0.1};
 
      struct option long_options[] = 
 	  {
@@ -86,12 +86,15 @@ int main( int argc, char **argv )
 
      i = 0;
      Rayleigh[0] = 0.0; Rayleigh[1] = 0.0;
-     Calculate_Rayleigh( Freq, Damp, Rayleigh );
 
-     while( i < 17 ){
+
+     while( i < 3 ){
+	  Damp[0] = factor[i];
+	  Damp[1] = factor[i];
+	  Calculate_Rayleigh( Freq, Damp, Rayleigh );
 	  sprintf( temp, "%.2lf", factor[i] );
 
-	  TheFile = fopen( concat( 4, ConfFile, "_DampFactor" , temp , ".conf" ), "w" );
+	  TheFile = fopen( concat( 4, ConfFile, "_Damping" , temp , ".conf" ), "w" );
 	  if( TheFile == NULL ){
 	       fprintf( stderr, "Could not open file %s.\n", ConfFile );
 	       fprintf( stderr, "Exiting.\n" );
@@ -125,8 +128,8 @@ int main( int argc, char **argv )
 
 	  fprintf( TheFile, "# This section defines the values of the Rayleigh damping.\n" );
 	  fprintf( TheFile, "[Rayleigh]\n" );
-	  fprintf( TheFile, "Alpha = %.6lE\n", Rayleigh[0]*factor[i] );
-	  fprintf( TheFile, "Beta = %.6lE\n", Rayleigh[1]*factor[i] );
+	  fprintf( TheFile, "Alpha = %.6lE\n", Rayleigh[0] );
+	  fprintf( TheFile, "Beta = %.6lE\n", Rayleigh[1] );
 	  fprintf( TheFile, "\n" );
 
 	  fprintf( TheFile, "# Newmark Alpha and Beta values\n" );
@@ -150,7 +153,7 @@ int main( int argc, char **argv )
 	  fprintf( TheFile, "Load_Vector = \"LV960_Test_MM.txt\"\n" );
 	  fprintf( TheFile, "Coupling_Nodes = \"Couple_Nodes.txt\"	# File containing the coupling nodes.\n" );
 	  fprintf( TheFile, "Ground_Motion = \"GroundMovement_Sinesweep.txt\"	# Ground movement.\n" );
-	  fprintf( TheFile, "OutputFile = \"%s_DFactor%.2lf\"			# Output file\n", OutputFile, factor[i] );
+	  fprintf( TheFile, "OutputFile = \"%s_Damping%.2lf\"			# Output file\n", OutputFile, factor[i] );
 	  fprintf( TheFile, "\n" );
 
 	  fprintf( TheFile, "[Substructure]\n" );

@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <getopt.h>  /* For getopt_long() */
-
 #include <time.h>
 
 #include "Print_Messages.h"
@@ -15,9 +14,11 @@
 #include "EffK_Formulation.h"
 #include "Error_Compensation.h"
 #include "Rayleigh.h"
+#include "Modal_Damping.h"
 #include "GainMatrix.h"
 #include "Substructure.h"
 #include "Substructure_Experimental.h"
+#include "Substructure_Exact.h"
 #include "Substructure_Auxiliary.h"  /* For Substructure_VectorXm(), Substructure_VectorXc(), ... */
 
 #include "Definitions.h"
@@ -64,6 +65,7 @@ const char *Entry_Names[NUM_CHANNELS] = { "Sub-step",
 int main( int argc, char **argv ){
 
      unsigned int istep, i;
+     double temp1, temp2, temp3, done = 1.0, dzero = 0.0;
      AlgConst_t InitCnt;
      const char *FileConf;
 
@@ -271,9 +273,7 @@ int main( int argc, char **argv ){
 	  MatrixVector_FromFile_MM( InitCnt.FileM, &M );
 	  MatrixVector_FromFile_MM( InitCnt.FileK, &K );
 	  if( InitCnt.Read_CMatrix ){
-	       printf("%s\n", InitCnt.FileC );
 	       MatrixVector_FromFile_MM( InitCnt.FileC, &C );
-	       printf("1\n");
 	  }
      } else if ( InitCnt.Read_Sparse && !InitCnt.Use_Sparse && InitCnt.Use_Packed ){
 	  MatrixVector_FromFile_MM_PS( InitCnt.FileM, &M );
@@ -366,7 +366,7 @@ int main( int argc, char **argv ){
      Time.Date_start = time( NULL );
      Time.Date_time = strdup( ctime( &Time.Date_start) );
      gettimeofday( &Time.Start, NULL );
-
+     incx = 1; incy = 1;
      /* Calculate the input load */
      istep = 1;
      if( InitCnt.Use_Absolute_Values ){
@@ -384,6 +384,7 @@ int main( int argc, char **argv ){
 	  } else assert(0);
      } else {
 	  InputLoad_Apply_LoadVectorForm( &LoadVectorForm, AccAll[istep - 1], &Acc );
+
 	  if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
 	       InputLoad_RelValues( &M, &Acc, &LoadTdT );
 	  } else if ( !InitCnt.Use_Sparse && InitCnt.Use_Packed ){
@@ -395,7 +396,7 @@ int main( int argc, char **argv ){
 	  } else assert(0);
      }
 
-     incx = 1; incy = 1;
+
      Print_Header( INFO );
      printf( "Starting stepping process.\n" );
      while ( istep <= InitCnt.NStep ){
@@ -496,6 +497,8 @@ int main( int argc, char **argv ){
 #endif
 	       } else assert(0);
 	  }
+
+
 
 	  /* Save the result in a HDF5 file format */
 #if _HDF5_
