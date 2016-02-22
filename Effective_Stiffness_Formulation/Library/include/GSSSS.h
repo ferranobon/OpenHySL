@@ -14,6 +14,8 @@
 #define _GSSSS_H_
 
 #include "MatrixVector.h"
+#include "MatrixVector_Sp.h"
+#include "Error_Compensation.h"
 #include "Definitions.h"
 
 /**
@@ -44,6 +46,7 @@ typedef struct TIntegration_GSSSS{
 			  *          \f$\rho_\infty\f$. See Eq. 61 in \cite[Tamma_2004].*/
 } TIntegration_GSSSS_t;
 
+void GSSSS_Init( const HYSL_FLOAT Rho1, const HYSL_FLOAT Rho2, const HYSL_FLOAT Rho3, TIntegration_GSSSS_t *const GSSSS );
 
 void GSSSS_EffectiveForce_AForm( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp,
 				 const MatrixVector_t *const Stiff, const MatrixVector_t *const DispT,
@@ -57,6 +60,22 @@ void GSSSS_EffectiveForce_AForm_PS( const MatrixVector_t *const Mass, const Matr
 				    MatrixVector_t *const Tempvec, const TIntegration_GSSSS_t *const GSSSS,
 				    const HYSL_FLOAT DeltaT, MatrixVector_t *const Eff_ForceT );
 
+void GSSSS_EffectiveForce_AForm_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp,
+				    const MatrixVector_Sp_t *const Stiff, const MatrixVector_t *const DispT,
+				    const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
+				    MatrixVector_t *const Tempvec, const TIntegration_GSSSS_t *const GSSSS,
+				    const HYSL_FLOAT DeltaT, MatrixVector_t *const Eff_ForceT );
+
+void GSSSS_Compute_NewState( const MatrixVector_t *const IGain, const MatrixVector_t *const Eff_ForceT,
+			     const MatrixVector_t *const LoadTdT, const MatrixVector_t *const Err_ForceT,
+			     const MatrixVector_t *const LoadT, const TIntegration_GSSSS_t *const GSSSS,
+			     MatrixVector_t *const Tempvec, MatrixVector_t *const VecTdT_0 );
+
+void GSSSS_Compute_NewState_PS( const MatrixVector_t *const IGain, const MatrixVector_t *const Eff_ForceT,
+				const MatrixVector_t *const LoadTdT, const MatrixVector_t *const Err_ForceT,
+				const MatrixVector_t *const LoadT, const TIntegration_GSSSS_t *const GSSSS,
+				MatrixVector_t *const Tempvec, MatrixVector_t *const VecTdT_0 );
+
 void GSSSS_ComputeDisplacement_AForm( const MatrixVector_t *const DispT, const MatrixVector_t *const VelT,
 				      const MatrixVector_t *const AccT, const MatrixVector_t *const AccTdT,
 				      const TIntegration_GSSSS_t *const GSSSS, const HYSL_FLOAT DeltaT,
@@ -65,5 +84,26 @@ void GSSSS_ComputeDisplacement_AForm( const MatrixVector_t *const DispT, const M
 void GSSSS_ComputeVelocity_AForm( const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
 				  const MatrixVector_t *const AccTdT, const TIntegration_GSSSS_t *const GSSSS,
 				  const HYSL_FLOAT DeltaT, MatrixVector_t *const VelTdT );
+
+void GSSSS_ErrorForce_PID( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp, const MatrixVector_t *Stiff,
+			   const MatrixVector_t *const AccTdT, const MatrixVector_t *const AccT, const MatrixVector_t *const VelT,
+			   const MatrixVector_t *const DispT, const MatrixVector_t *const fc, const MatrixVector_t *const LoadTdT,
+			   const MatrixVector_t *const LoadT, const TIntegration_GSSSS_t *const GSSSS, const HYSL_FLOAT DeltaT,
+			   const MatrixVector_t *const Tempvec, const PID_t *const PID, MatrixVector_t *const fe );
+
+void GSSSS_ErrorForce_PID_PS( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp, const MatrixVector_t *Stiff,
+			      const MatrixVector_t *const AccTdT, const MatrixVector_t *const AccT, const MatrixVector_t *const VelT,
+			      const MatrixVector_t *const DispT, const MatrixVector_t *const fc, const MatrixVector_t *const LoadTdT,
+			      const MatrixVector_t *const LoadT, const TIntegration_GSSSS_t *const GSSSS, const HYSL_FLOAT DeltaT,
+			      const MatrixVector_t *const Tempvec, const PID_t *const PID, MatrixVector_t *const fe );
+
+void GSSSS_ErrorForce_PID_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp,
+			      const MatrixVector_Sp_t *Stiff, const MatrixVector_t *const AccTdT,
+			      const MatrixVector_t *const AccT, const MatrixVector_t *const VelT,
+			      const MatrixVector_t *const DispT, const MatrixVector_t *const fc,
+			      const MatrixVector_t *const LoadTdT, const MatrixVector_t *const LoadT,
+			      const TIntegration_GSSSS_t *const GSSSS, const HYSL_FLOAT DeltaT,
+			      const MatrixVector_t *const Tempvec, const PID_t *const PID,
+			      MatrixVector_t *const fe );
 
 #endif

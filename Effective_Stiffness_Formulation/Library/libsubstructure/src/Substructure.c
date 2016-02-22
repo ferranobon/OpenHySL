@@ -6,6 +6,7 @@
 #include "Print_Messages.h"
 
 #include "Substructure.h"
+#include "Substructure_BoucWen.h"
 #include "Substructure_Exact.h"
 #include "Substructure_Newmark.h"
 #include "Substructure_Remote.h"
@@ -15,6 +16,7 @@
 #include "Substructure_SimMeasured.h"
 #include "Substructure_Experimental.h"
 #include "Substructure_CouplingNodes.h"
+#include "Substructure_StoneDrums.h"
 
 #include "Definitions.h"
 
@@ -115,10 +117,18 @@ void Substructure_Substepping( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *
 	       /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
 		* in the same routine.*/
 	  case SIM_EXACT_ESP:
+	       /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
+		* in the same routine.*/
 	  case SIM_NEWMARK:
 	       /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
 		* in the same routine.*/
+	  case SIM_BOUCWEN:
+	       /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
+		* in the same routine.*/
 	  case SIM_UHYDE:
+	       /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
+		* in the same routine.*/
+	  case SIM_STONEDRUMS:
 	       /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
 		* in the same routine.*/
 	  case SIM_MEASURED:
@@ -181,7 +191,7 @@ void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const Vec
 			    HYSL_FLOAT *const VecTdT_c, HYSL_FLOAT *const CoupForcePrev_c, HYSL_FLOAT *const CoupForce_c )
 {
 
-     unsigned int i, Substep;
+     unsigned int i, Substep, temp;
      HYSL_FLOAT ramp0, ramp;
      int incx = 1, incy = 1;
      HYSL_FLOAT One;
@@ -190,8 +200,10 @@ void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const Vec
      ExactSim_t *Exact;
      ExactSimESP_t *ExactEsp;
      NewmarkSim_t *Newmark;
+     BoucWen_t *BoucWen;
      UHYDEfbrSim_t *UHYDE;  
      MeasuredSim_t *Measured;
+     StoneDrums_t *StoneDrums, *StoneDrums_Prev;
 
      Length = (int) CNodes->Order;
      One = 1.0;
@@ -237,6 +249,10 @@ void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const Vec
 		    Newmark = (NewmarkSim_t *) CNodes->Sub[i].SimStruct;
 		    Substructure_Newmark_SDOF( VecTdT_c[i], ramp, GAcc, Newmark, &CoupForce_c[i] );
 		    break;
+	       case SIM_BOUCWEN:
+		    BoucWen = (BoucWen_t *) CNodes->Sub[i].SimStruct;
+		    Substructure_BoucWen( VecTdT_c[i], BoucWen, &CoupForce_c[i] );
+		    break;
 	       case SIM_UHYDE:
 		    UHYDE = (UHYDEfbrSim_t *) CNodes->Sub[i].SimStruct;
 		    Substructure_SimUHYDE_1D( VecTdT_c[i], DeltaT_Sub, UHYDE, &CoupForce_c[i] );
@@ -245,10 +261,34 @@ void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const Vec
 		    Measured = (MeasuredSim_t *) CNodes->Sub[i].SimStruct;
 		    Substructure_SimMeasured( Measured, &CoupForce_c[i] );
 		    break;
+	       case SIM_STONEDRUMS:
+		    StoneDrums = (StoneDrums_t *) CNodes->Sub[i].SimStruct;
+		    
+		    if (StoneDrums->PrevDOF >= 0){
+			 // Substructure_StoneDrums( VecTdT_c[i] - VecTdT_c[Substructure_FindPosition(
+			 // StoneDrums->PrevDOF, CNodes ) - 1], ramp, StoneDrums, &CoupForce_c[i] );
+			 Substructure_StoneDrums( VecTdT_c[i], ramp, StoneDrums, &CoupForce_c[i] );
+		    } else {
+			 Substructure_StoneDrums( VecTdT_c[i], ramp, StoneDrums, &CoupForce_c[i] );
+		    }
+		    printf("%d %lE %lE %lE %lE\n", Substep, StoneDrums->AccTdT, StoneDrums->VelTdT, VecTdT_c[i], CoupForce_c[i]);
+		    break;
 	       }
-	  }	  
+	  }
+
+	  for( i = 0; i < (unsigned int) CNodes->Order; i ++ ){
+	       if ( CNodes->Sub[i].Type == SIM_STONEDRUMS ) {
+		    if (StoneDrums->PrevDOF >= 0){
+			 temp = Substructure_FindPosition( StoneDrums->PrevDOF, CNodes ) - 1;
+			 StoneDrums = (StoneDrums_t *) CNodes->Sub[i].SimStruct;
+			 StoneDrums_Prev = (StoneDrums_t *) CNodes->Sub[temp].SimStruct;
+			 CoupForce_c[temp] = StoneDrums_Prev->Result_Fc - CoupForce_c[i];
+		    }
+	       }
+	  }
      }
 
+       
      /* Backup VecTdT0_c */
      hysl_copy( &Length, VecTdT0_c, &incx, CNodes->VecTdT0_c0, &incy );
      for( i = 0; i < (unsigned int) CNodes->Order; i ++ ){
@@ -258,21 +298,29 @@ void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const Vec
 	  case SIM_EXACT_SDOF:
 	       Exact->Acc0 = Exact->AccT; Exact->AccT = Exact->AccTdT;
 	       Exact->Vel0 = Exact->VelT; Exact->VelT = Exact->VelTdT;
-	       Exact->Disp0 = Exact->DispT; Exact->DispT = VecTdT_c[0];
+	       Exact->Disp0 = Exact->DispT; Exact->DispT = VecTdT_c[i];
 	       break;
 	  case SIM_EXACT_ESP:
 	       ExactEsp->Acc0 = ExactEsp->AccT; ExactEsp->AccT = ExactEsp->AccTdT;
 	       ExactEsp->Vel0 = ExactEsp->VelT; ExactEsp->VelT = ExactEsp->VelTdT;
-	       ExactEsp->Disp0 = ExactEsp->DispT; ExactEsp->DispT = VecTdT_c[0];
+	       ExactEsp->Disp0 = ExactEsp->DispT; ExactEsp->DispT = VecTdT_c[i];
 	       break;
 	  case SIM_NEWMARK:
 	       Newmark->Acc0 = Newmark->AccT; Newmark->AccT = Newmark->AccTdT;
 	       Newmark->Vel0 = Newmark->VelT; Newmark->VelT = Newmark->VelTdT;
-	       Newmark->Disp0 = Newmark->DispT; Newmark->DispT = VecTdT_c[0];
+	       Newmark->Disp0 = Newmark->DispT; Newmark->DispT = VecTdT_c[i];
+	       break;
+	  case SIM_BOUCWEN:
+	       BoucWen->DispT = VecTdT_c[i];
 	       break;
 	  case SIM_UHYDE:
 	       break;
 	  case SIM_MEASURED:
+	       break;
+	  case SIM_STONEDRUMS:
+	       StoneDrums->Acc0 = StoneDrums->AccT; StoneDrums->AccT = StoneDrums->AccTdT;
+	       StoneDrums->Vel0 = StoneDrums->VelT; StoneDrums->VelT = StoneDrums->VelTdT;
+	       StoneDrums->Disp0 = StoneDrums->DispT; StoneDrums->DispT = VecTdT_c[0];
 	       break;
 	  }
      }

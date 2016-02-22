@@ -51,6 +51,7 @@ typedef struct ExactSimESP {
 
      HYSL_FLOAT A, B, C, D, E, F, G, H;
      HYSL_FLOAT a0, a2, a3, a6, a7;
+     long int idum;
      char *Description;  /*!< \brief Optional description of the substructure. */
 } ExactSimESP_t;
 
@@ -179,4 +180,5 @@ void Substructure_ExactSolutionESP_SDOF( const HYSL_FLOAT DispTdT, const HYSL_FL
  * \param[out] Sub
  */
 void Substructure_ExactSolutionESP_Destroy( ExactSimESP_t *const Sub );
+
 #endif /* SUBSTRUCTURE_EXACT_H_ */

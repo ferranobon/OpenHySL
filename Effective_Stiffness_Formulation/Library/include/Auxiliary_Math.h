@@ -47,6 +47,8 @@ int Max ( const int a, const int b );
  */
 int Min ( const int a, const int b );
 
+HYSL_FLOAT signum ( const HYSL_FLOAT num );
+
 /**
  * \brief Generation of a Identity Matrix.
  *

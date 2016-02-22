@@ -2,10 +2,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <assert.h>
 
 #include "MatrixVector.h"
 #include "Algorithm_Aux.h"
 #include "Print_Messages.h"
+#include "Substructure_BoucWen.h"
 #include "Substructure_Exact.h"
 #include "Substructure_Newmark.h"
 #include "Substructure_Remote.h"
@@ -13,6 +15,7 @@
 #include "Substructure_SimMeasured.h"
 #include "Substructure_Experimental.h"
 #include "Substructure_CouplingNodes.h"
+#include "Substructure_StoneDrums.h"
 
 #include "Definitions.h"
 
@@ -20,8 +23,10 @@ const char *Substructure_Type[] = {"Sim_Exact_MDOF",
 				   "Sim_Exact_SDOF",
 				   "Sim_Exact_ESP",
 				   "Sim_Newmark",
+				   "Sim_BoucWen",
 				   "Sim_UHYDEfbr",
 				   "Sim_Measured",
+				   "Sim_StoneDrums",
 				   "Exp_ADwin",
 				   "Remote" };
 
@@ -280,6 +285,56 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 		    free( ftemp );
 	       }
 	       break;
+	  case SIM_BOUCWEN:
+	       /* Ignore coma */
+	       fscanf( InFile, "%*[,] %i", &itemp );
+	       if ( (itemp != BOUCWEN_NUMPARAM_INIT) && (itemp != BOUCWENDEG_NUMPARAM_INIT) && (itemp != BOUCWENBABERNOORI_NUMPARAM_INIT) ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Wrong number of parameters for the substructue number %i of type Exact_ESP.\n", i );
+		    fprintf( stderr, "The number of init parameters should be %i for classic Bouc-Wen, %i for Bouc-Wen with material degradation and %i for the Bouc-Wen-Baber-Noori model\n", BOUCWEN_NUMPARAM_INIT, BOUCWENDEG_NUMPARAM_INIT, BOUCWENBABERNOORI_NUMPARAM_INIT );
+		    exit( EXIT_FAILURE );
+	       } else {
+		    ftemp = NULL;
+		    ftemp = (HYSL_FLOAT *) calloc( (size_t) itemp, sizeof( HYSL_FLOAT ) );
+
+		    /* Read the input parameters */
+		    for( j = 0; j < itemp; j++ ){
+#if _FLOAT_
+			 fscanf( InFile, "%f", &ftemp[j] );
+#else
+			 fscanf( InFile, "%lf", &ftemp[j] );
+#endif
+		    }
+
+		    /* Read the optional description */
+		    Substructure_GetDescription( InFile, i, Description );
+		    
+		    for( j = 0; j < Count_Type; j++ ){
+			 CNodes->Sub[i + j].SimStruct = (void *) calloc( (size_t) 1, sizeof(BoucWen_t) );
+			 if( CNodes->Sub[i + j].SimStruct == NULL ){
+			      exit(EXIT_FAILURE );
+			 }
+
+			 if ( itemp == BOUCWEN_NUMPARAM_INIT ){
+			      Substructure_BoucWen_Init( ftemp[0], ftemp[1], ftemp[2], ftemp[3], ftemp[4], BOUC_WEN, Description, (BoucWen_t *) CNodes->Sub[i + j].SimStruct );
+			 } else if ( itemp == BOUCWENDEG_NUMPARAM_INIT ){
+			      Substructure_BoucWenBaberNoori_Init( ftemp[0], ftemp[1], ftemp[2], ftemp[3], ftemp[4],
+								   ftemp[5], ftemp[6], ftemp[7], ftemp[8], ftemp[9],
+								   ftemp[10], BOUC_WEN_DEG, Description, (BoucWen_t *) CNodes->Sub[i + j].SimStruct );
+			 } else if ( itemp == BOUCWENBABERNOORI_NUMPARAM_INIT ){
+			      Substructure_BoucWenBaberNoori_wPitching_Init( ftemp[0], ftemp[1], ftemp[2], ftemp[3], ftemp[4],
+									     ftemp[5], ftemp[6], ftemp[7], ftemp[8], ftemp[9],
+									     ftemp[10], ftemp[11], ftemp[12], ftemp[13], ftemp[14],
+									     ftemp[15], ftemp[16], BOUC_WEN_BABER_NOORI, Description, (BoucWen_t *) CNodes->Sub[i + j].SimStruct );
+			 } else assert((itemp == BOUCWEN_NUMPARAM_INIT) && (itemp == BOUCWENDEG_NUMPARAM_INIT) && (itemp == BOUCWENBABERNOORI_NUMPARAM_INIT));
+
+			 Print_Header( INFO );
+			 printf( "Simulating the substructure in the coupling node %d as an exact integration method (ESP).\n",
+				 CNodes->Array[i + j] );
+		    }
+		    free( ftemp );
+	       }
+	       break;
 	  case SIM_UHYDE:
 	       /* Ignore coma */
 	       fscanf( InFile, "%*[,] %i", &itemp );
@@ -325,6 +380,37 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 						   (MeasuredSim_t *) CNodes->Sub[i + j].SimStruct );
 		    Print_Header( INFO );
 		    printf( "Simulating the substructure in the coupling node %d using time history measured forces.\n", CNodes->Array[i + j] );
+	       }
+	       break;
+	  case SIM_STONEDRUMS:
+	       fscanf( InFile, "%*[,] %i", &itemp );
+	       if ( itemp != STONEDRUMS_NUMPARAM_INIT ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Wrong number of parameters for the substructue number %i of type UHYDE.\n", i );
+		    fprintf( stderr, "The number of init parameters should be %i\n", UHYDE_NUMPARAM_INIT );
+		    exit( EXIT_FAILURE );
+	       } else {
+		    ftemp = NULL;
+		    ftemp = (HYSL_FLOAT *) calloc( (size_t) STONEDRUMS_NUMPARAM_INIT, sizeof( HYSL_FLOAT ) );
+
+		    for( j = 0; j < UHYDE_NUMPARAM_INIT; j++ ){
+#if _FLOAT_
+			 fscanf( InFile, "%f", &ftemp[j] );
+#else
+			 fscanf( InFile, "%lf", &ftemp[j] );
+#endif
+		    }
+	       
+		    /* Read the optional description */
+		    Substructure_GetDescription( InFile, i, Description );
+		    
+		    for( j = 0; j < Count_Type; j++ ){			
+			 CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(StoneDrums_t) );
+			 Substructure_StoneDrums_Init( (int) ftemp[0], Description, (StoneDrums_t *) CNodes->Sub[i + j].SimStruct );
+			 Print_Header( INFO );
+			 printf( "Simulating the substructure in the coupling node %d as a Stone Drum.\n", CNodes->Array[i + j] );
+		    }
+		    free( ftemp );
 	       }
 	       break;
 	  case EXP_ADWIN:
@@ -464,6 +550,9 @@ void Substructure_DeleteCouplingNodes( CouplingNode_t *CNodes )
 	       break;
 	  case SIM_MEASURED:
 	       Substructure_SimMeasured_Destroy( (MeasuredSim_t *) CNodes->Sub[i].SimStruct );
+	       break;
+	  case SIM_STONEDRUMS:
+	       Substructure_StoneDrums_Destroy( (StoneDrums_t *) CNodes->Sub[i].SimStruct );
 	       break;
 	  case EXP_ADWIN:
 	       Substructure_Experimental_Destroy( (ExpSub_t *) CNodes->Sub[i].SimStruct );
