@@ -313,7 +313,7 @@ int main( int argc, char **argv ){
 	       MatrixVector_Create( InitCnt.Order, InitCnt.Order, &C );
 	       Rayleigh_Damping( &M, &K, &C, &InitCnt.Rayleigh );
 	  } else if ( InitCnt.Use_Packed && !InitCnt.Use_Sparse ){
-	       Matrixector_Create_PS( InitCnt.Order, InitCnt.Order, &C );
+	       MatrixVector_Create_PS( InitCnt.Order, InitCnt.Order, &C );
 	       Rayleigh_Damping_PS( &M, &K, &C, &InitCnt.Rayleigh );
 	  } else assert(0);
      }
