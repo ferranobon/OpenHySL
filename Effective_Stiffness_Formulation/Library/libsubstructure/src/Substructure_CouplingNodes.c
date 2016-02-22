@@ -57,6 +57,9 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 	  exit( EXIT_FAILURE );
      }
 
+     /* Number of ADwin coupling nodes is always 0 at the beginning */
+     CNodes->OrderADwin = 0;
+     
      /* The first value should be the number of Coupling nodes */
      fscanf( InFile, "%i", &CNodes->Order );
      fgets( InLine, MAX_LINE, InFile );
@@ -414,6 +417,7 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 	       }
 	       break;
 	  case EXP_ADWIN:
+	       CNodes->OrderADwin = CNodes->OrderADwin + 1;
 	       /* Read the optional description */
 	       Substructure_GetDescription( InFile, i, Description );
 
