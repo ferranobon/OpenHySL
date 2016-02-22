@@ -525,6 +525,8 @@ void Substructure_VectorXm_MPI(PMatrixVector_t *const VectorX, const CouplingNod
  */
 void Substructure_VectorXc( const MatrixVector_t *const VecX, const CouplingNode_t *const CNodes, MatrixVector_t *const VecXc );
 
+int Substructure_FindPosition( const int Pos_in_VecX, const CouplingNode_t *const CNodes );
+
 #if _MPI_
 /**
  * \brief Copies the coupling nodes of a vector. MPI version.

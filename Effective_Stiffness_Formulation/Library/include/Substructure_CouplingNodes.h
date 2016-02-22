@@ -24,7 +24,7 @@
 #define MAX_DESCRIPTION 200    /*!< \brief Maximum description length for a substructure. */
 #define MAX_FILENAME 20       /*!< \brief Maximum file name length. */
 
-#define NUM_TYPE_SUB  7  /*!< \brief Number of recognized sub-structure types */
+#define NUM_TYPE_SUB  8  /*!< \brief Number of recognized sub-structure types */
 
 /**
  * \brief Supported sub-structure types.
@@ -33,10 +33,13 @@ enum Substructure_Id { SIM_EXACT_MDOF, /*!< \brief Simulate the substructure usi
 		       SIM_EXACT_SDOF, /*!< \brief Simulate the substructure using the exact solution. SDOF. */
 		       SIM_EXACT_ESP,  /*!< \brief Simulate the sub-structure using an exact integration
 					* method \cite Exact */
-		       SIM_NEWMARK,    /*!< \brief Simulate the sub-structure using the newmark integration scheme. */
+		       SIM_NEWMARK,    /*!< \brief Simulate the sub-structure using the newmark integration
+					* scheme. */
+		       SIM_BOUCWEN,    /*!< \brief Simulate the sub-structure using a Bouc-Wen model. */
 		       SIM_UHYDE,      /*!< \brief Simulate the substructure using the UHYDE-\em fbr device
 					* (1-Dimension).*/
 		       SIM_MEASURED,   /*!< \brief Simulate the substructure using measured values. */
+		       SIM_STONEDRUMS, 
 		       EXP_ADWIN,      /*!< \brief Run using ADwin. */
 		       REMOTE         /*!< \brief Remote substructure. */
 };
