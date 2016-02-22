@@ -40,8 +40,8 @@ void Substructure_SendGainMatrix( const HYSL_FLOAT *const Gain, unsigned int Ord
 #if _ADWIN_
 
 	  /* Send matrix Gc to ADwin. */
-	  /* In the code of ADWIN, the variable G is stored in DATA_1 */
-	  ADwin_SendArray( 1, Gain, Order*Order );
+	  /* In the code of ADWIN, the variable G is stored in DATA_50 */
+	  ADwin_SendArray( 50, Gain, Order*Order );
 	  
 	  Print_Header( SUCCESS );
 	  printf("Gain Matrix successfully sent to ADwin system.\n" );
