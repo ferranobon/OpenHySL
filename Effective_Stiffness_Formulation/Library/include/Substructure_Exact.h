@@ -168,12 +168,12 @@ void Substructure_ExactSolutionSDOF_Destroy( ExactSim_t *const Sub );
 void Substructure_ExactSolutionESP_Init( const HYSL_FLOAT Mass, const HYSL_FLOAT Damp, const HYSL_FLOAT Stiff, const HYSL_FLOAT DeltaT, const char *Description, ExactSimESP_t *const Sub );
 
 /**
- * \param[in]     u0c
+ * \param[in]     DispTdT
  * \param[in]     DeltaT
  * \param[in,out] Sub
  * \param[out]    fc
  */
-void Substructure_ExactSolutionESP_SDOF( const HYSL_FLOAT u0c, const HYSL_FLOAT ramp, const HYSL_FLOAT GAcc, const HYSL_FLOAT DeltaT, ExactSimESP_t *const Sub, HYSL_FLOAT *const fc );
+void Substructure_ExactSolutionESP_SDOF( const HYSL_FLOAT DispTdT, const HYSL_FLOAT ramp, const HYSL_FLOAT GAcc, const HYSL_FLOAT DeltaT, ExactSimESP_t *const Sub, HYSL_FLOAT *const fc );
 
 /**
  * \param[out] Sub
