@@ -33,7 +33,7 @@
 void Substructure_SendGainMatrix( const HYSL_FLOAT *const Gain, unsigned int Order, const Substructure_t *const Substructure )
 {
      Remote_t *Remote = NULL;
-     unsigned int i, j;       /* Counters */
+     unsigned int i, j;           /* Counters */
      HYSL_FLOAT *Send, *Recv;     /* Only used in case of of substructures of remote type REMOTE_NSEP */
 
      if( Substructure->Type == EXP_ADWIN ){
@@ -94,18 +94,27 @@ void Substructure_Substepping( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *
 			       HYSL_FLOAT *const CoupForce )
 {
 
-     int i;
-     bool Called_Sub = false;
-     HYSL_FLOAT *Recv = NULL;
+     int i, pos;
+     bool Called_Sub = false, Called_ADwin = false;
+     HYSL_FLOAT *Recv = NULL, *Recv_ADwin = NULL, *VecTdT0_c_ADwin = NULL;
      HYSL_FLOAT *Send = NULL;
 
      Remote_t *Remote;
 
      Recv = (HYSL_FLOAT *) calloc( (size_t) 3*(size_t)CNodes->Order, sizeof(HYSL_FLOAT) );
-
+     Recv_ADwin = (HYSL_FLOAT *) calloc( (size_t) 3*(size_t)CNodes->OrderADwin, sizeof(HYSL_FLOAT) );
+     VecTdT0_c_ADwin = (HYSL_FLOAT *) calloc( (size_t) CNodes->OrderADwin, sizeof(HYSL_FLOAT) );
+     
+     
      /* Copy the older coupling force. This is necessary for simulations */
+     pos = 0;
      for( i = 0; i < CNodes->Order; i++ ){
 	  Recv[2*CNodes->Order + i] = CoupForce[CNodes->Array[i] - 1];
+	  if (CNodes->Sub[i].Type == EXP_ADWIN ){
+	       Recv_ADwin[2*CNodes->OrderADwin + pos] = CoupForce[CNodes->Array[i] - 1];
+	       VecTdT0_c_ADwin[CNodes->OrderADwin + pos] = VecTdT0_c[CNodes->Array[i] - 1];
+	       pos = pos + 1;
+	  }
      }
 
      for( i = 0; i < CNodes->Order; i++ ){
@@ -143,7 +152,10 @@ void Substructure_Substepping( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *
 #if _ADWIN_
 	  case EXP_ADWIN:
 	       /* Tell ADwin to perform the substepping process */
-	       ADwin_Substep( VecTdT0_c, (unsigned int) CNodes->Order, 0.75, &Recv[0], &Recv[1], &Recv[2] );
+	       if( !Called_ADwin ){
+		    ADwin_Substep( VecTdT0_c_ADwin, (unsigned int) CNodes->OrderADwin, 0.75, &Recv_ADwin[0], &Recv_ADwin[1], &Recv_ADwin[2] );
+		    Called_ADwin = true;
+	       }
 	       break;
 #endif
 	  case REMOTE:
@@ -176,14 +188,24 @@ void Substructure_Substepping( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *
 	  }
      }
 
-#pragma omp parallel for
+//#pragma omp parallel for
+     pos = 0;
      for ( i = 0; i < CNodes->Order; i++ ){
-	  VecTdT[CNodes->Array[i] - 1] = Recv[i];
-	  CoupForcePrev[i] = Recv[CNodes->Order + i];
-	  CoupForce[CNodes->Array[i] - 1] = Recv[2*CNodes->Order + i];
+	  if (CNodes->Sub[i].Type = EXP_ADWIN){
+	       VecTdT[CNodes->Array[i] - 1] = Recv_ADwin[pos];
+	       CoupForcePrev[i] = Recv_ADwin[CNodes->OrderADwin + pos];
+	       CoupForce[CNodes->Array[i] - 1] = Recv_ADwin[2*CNodes->OrderADwin + pos];
+	       pos = pos + 1;
+	  } else {
+	       VecTdT[CNodes->Array[i] - 1] = Recv[i];
+	       CoupForcePrev[i] = Recv[CNodes->Order + i];
+	       CoupForce[CNodes->Array[i] - 1] = Recv[2*CNodes->Order + i];
+	  }
      }
 
      free( Recv );
+     free( Recv_ADwin );
+     free( VecTdT0_c_ADwin );     
 }
 
 void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const VecTdT0_c, const HYSL_FLOAT GAcc, 

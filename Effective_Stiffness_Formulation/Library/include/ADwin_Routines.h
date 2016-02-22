@@ -91,6 +91,10 @@ void ADwin_ManageProcess( const char* PName, const int PNum, const int dowhat );
  */
 void ADwin_SendArray( const unsigned int Index, const HYSL_FLOAT *const Array, const unsigned int Length );
 
+void Substructure_MatrixXc_ADwin( const MatrixVector_t *const Mat, const CouplingNode_t *const CNodes,
+				  MatrixVector_t *const MatCouple );
+
+
 /**
  * \brief Sub-stepping process in ADwin.
  *

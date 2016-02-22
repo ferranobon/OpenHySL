@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <assert.h>
 #include <getopt.h>  /* For getopt_long() */
 #include <time.h>
@@ -81,7 +82,7 @@ int main( int argc, char **argv ){
 
      MatrixVector_t M, C, K;               /* Mass, Damping and Stiffness matrices */
      MatrixVector_t Keinv;
-     MatrixVector_t Keinv_c, Keinv_m;
+     MatrixVector_t Keinv_c, Keinv_m, KeinvADwin_c;
 
      MatrixVector_t EffT;
 
@@ -105,7 +106,8 @@ int main( int argc, char **argv ){
      /* Sparse matrices */
      MatrixVector_Sp_t Sp_M, Sp_C, Sp_K;     /* Sparse representation of the M, C and K matrices */
 #endif
-
+     
+     bool Matrix_Send_ADwin = false, MultipleTypes = true;
      CouplingNode_t CNodes;
      SaveTime_t     Time;
 
@@ -202,6 +204,9 @@ int main( int argc, char **argv ){
      if( CNodes.Order >= 1 ){
 	  MatrixVector_Create( CNodes.Order, CNodes.Order, &Keinv_c );
 	  MatrixVector_Create( InitCnt.Order - CNodes.Order, CNodes.Order, &Keinv_m );
+	  if (MultipleTypes){
+	       MatrixVector_Create( CNodes.OrderADwin, CNodes.OrderADwin, &KeinvADwin_c );
+	  }
      }
 
      MatrixVector_Create( InitCnt.Order, 1, &tempvec );
@@ -297,8 +302,6 @@ int main( int argc, char **argv ){
 	  MatrixVector_FromFile_MM( InitCnt.FileLV, &LoadVectorForm );
      }
 
-     MatrixVector_ToFile( &M, "MatrixM.txt" );
-     MatrixVector_ToFile( &K, "MatrixK.txt" );
      /* Calculate damping matrix using Rayleigh. C = alpha*M + beta*K */
      if( !InitCnt.Read_CMatrix ){
 	  if ( InitCnt.Use_Sparse ) {
@@ -310,7 +313,7 @@ int main( int argc, char **argv ){
 	       MatrixVector_Create( InitCnt.Order, InitCnt.Order, &C );
 	       Rayleigh_Damping( &M, &K, &C, &InitCnt.Rayleigh );
 	  } else if ( InitCnt.Use_Packed && !InitCnt.Use_Sparse ){
-	       MatrixVector_Create_PS( InitCnt.Order, InitCnt.Order, &C );
+	       Matrixector_Create_PS( InitCnt.Order, InitCnt.Order, &C );
 	       Rayleigh_Damping_PS( &M, &K, &C, &InitCnt.Rayleigh );
 	  } else assert(0);
      }
@@ -334,20 +337,31 @@ int main( int argc, char **argv ){
 	  IGainMatrix_Sp_PS( &Keinv, &Sp_M, &Sp_C, &Sp_K, Constants );
 #endif
      } else assert(0);
-
+     
      if( CNodes.Order >= 1 ){
 	  if( !InitCnt.Use_Packed ){
 	       Substructure_MatrixXc( &Keinv, &CNodes, &Keinv_c );
 	       Substructure_MatrixXcm( &Keinv, &CNodes, &Keinv_m );
+	       if( MultipleTypes ){
+		    Substructure_MatrixXc_ADwin( &Keinv, &CNodes, &KeinvADwin_c );
+	       }
 	  } else {
 	       Substructure_MatrixXc_PS( &Keinv, &CNodes, &Keinv_c );
 	       Substructure_MatrixXcm_PS( &Keinv, &CNodes, &Keinv_m );
+	       if( MultipleTypes ){
+		    Substructure_MatrixXc( &Keinv, &CNodes, &KeinvADwin_c );
+	       }
 	  }
 
 	  /* Send the coupling part of the effective matrix if we are performing a distributed test */
 	  for( i = 0; i < (unsigned int) CNodes.Order; i++ ){
-	       if( CNodes.Sub[i].Type == EXP_ADWIN || CNodes.Sub[i].Type == REMOTE ){
+	       if( CNodes.Sub[i].Type == REMOTE ){
 		    Substructure_SendGainMatrix( Keinv_c.Array, (unsigned int) CNodes.Order, &CNodes.Sub[i] );
+	       } else if ( CNodes.Sub[i].Type == EXP_ADWIN ){
+		    if (!Matrix_Send_ADwin){
+			 Substructure_SendGainMatrix( KeinvADwin_c.Array, (unsigned int) KeinvADwin_c.Rows, &CNodes.Sub[i] );
+			 Matrix_Send_ADwin = true;
+		    }
 	       }
 	  }
      }
@@ -580,6 +594,9 @@ int main( int argc, char **argv ){
      if( CNodes.Order >= 1 ){
 	  MatrixVector_Destroy( &Keinv_c );
 	  MatrixVector_Destroy( &Keinv_m );
+	  if (MultipleTypes){
+	       MatrixVector_Destroy( &KeinvADwin_c );
+	  }
      }
 
      MatrixVector_Destroy( &tempvec );

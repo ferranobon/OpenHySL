@@ -6,10 +6,14 @@
 #include <libadwin.h>        /* ADwin routines Boot(), Set_DeviceNo(), ... */
 #include <libadwin/errno.h>  /* ADwin error handling */
 
+#include "MatrixVector.h"
+#include "Substructure.h"
+#include "Substructure_CouplingNodes.h"
 #include "ADwin_Routines.h"
 #include "Print_Messages.h"  /* For Print_Header() */
 
 #include "Definitions.h"
+
 
 void ADwin_Boot( const int32_t Device_Number, const char *Boot_Path  )
 {
@@ -78,6 +82,36 @@ void ADwin_SendArray( const unsigned int Index, const HYSL_FLOAT *const Array, c
      SetData_Double( (int32_t) Index, Array, 1, (int32_t) Length );
 #endif
 
+}
+
+void Substructure_MatrixXc_ADwin( const MatrixVector_t *const Mat, const CouplingNode_t *const CNodes,
+				  MatrixVector_t *const MatCouple )
+{
+
+     int icoup;    /* Counter for the coupling nodes */
+     int jcoup;    /* Another counter */
+     int row = 0;
+     int col = 0;
+     
+     for( icoup = 0; icoup < CNodes->Order; icoup++ ){
+
+	  if (CNodes->Sub[icoup].Type == EXP_ADWIN){
+	       col = row;
+	       for (jcoup = icoup; jcoup < CNodes->Order; jcoup++){
+
+		    if (CNodes->Sub[jcoup].Type == EXP_ADWIN){
+			 MatCouple->Array[row*Mat->Rows + col] = Mat->Array[(CNodes->Array[icoup]-1)*Mat->Cols + CNodes->Array[jcoup] - 1];
+			 /* Now add the elements belonging to the same row as the current coupling node but also
+			  * belonging to the same column as the rest of the coupling nodes */
+			 if( icoup != jcoup ){
+			      MatCouple->Array[col*Mat->Rows + row] = MatCouple->Array[row*Mat->Rows + col];
+			 }
+			 col = col + 1;
+		    }
+	       }
+	       row = row + 1;
+	  }
+     }
 }
 
 void ADwin_Substep( const HYSL_FLOAT *const VecTdT_0c, const unsigned int OrderC, const HYSL_FLOAT Time_To_Wait, HYSL_FLOAT *const VecTdT_c,
