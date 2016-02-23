@@ -147,11 +147,11 @@ void ADwin_Substep( const HYSL_FLOAT *const VecTdT_0c, const unsigned int OrderC
 	  Send_ADwin[i + 1] = VecTdT_0c[i];
      }
 
-     /* Set the displacement. In ADwin the array storing the displacement is DATA_2 */
+     /* Set the displacement. In ADwin the array storing the displacement is DATA_51 */
 #if _FLOAT_
-     SetData_Float( 2, Send_ADwin, 1, (int32_t) Length_Send );
+     SetData_Float( 51, Send_ADwin, 1, (int32_t) Length_Send );
 #else
-     SetData_Double( 2, Send_ADwin, 1, (int32_t) Length_Send );
+     SetData_Double( 51, Send_ADwin, 1, (int32_t) Length_Send );
 #endif
 
      /* Do nothing until a certain time has passed to avoid overloading adwin system */
@@ -167,9 +167,9 @@ void ADwin_Substep( const HYSL_FLOAT *const VecTdT_0c, const unsigned int OrderC
      /* Get the displacement when substep is over */
      while( ADWinReady == 0 ){
 #if _FLOAT_
-	  GetData_Float( 3, ReceiveADwin, 1, (int32_t) Length_Receive );
+	  GetData_Float( 52, ReceiveADwin, 1, (int32_t) Length_Receive );
 #else
-	  GetData_Double( 3, ReceiveADwin, 1, (int32_t) Length_Receive );
+	  GetData_Double( 52, ReceiveADwin, 1, (int32_t) Length_Receive );
 #endif
 	  if ( ReceiveADwin[0] == -1.0){
 
