@@ -144,6 +144,7 @@ void Substructure_Substepping( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *
 	       /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
 		* in the same routine.*/
 	  case SIM_MEASURED:
+	       
 	       /* Call the Simulate_Substructures() function only once. All the simulated substructures are
 		* handled together in this routine */
 	       if( !Called_Sub ){
@@ -194,7 +195,7 @@ void Substructure_Substepping( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *
 //#pragma omp parallel for
      pos = 0;
      for ( i = 0; i < CNodes->Order; i++ ){
-	  if ((CNodes->Sub[i].Type = EXP_ADWIN) && MultipleTypes){
+	  if ((CNodes->Sub[i].Type == EXP_ADWIN) && MultipleTypes){
 	       VecTdT[CNodes->Array[i] - 1] = Recv_ADwin[pos];
 	       CoupForcePrev[i] = Recv_ADwin[CNodes->OrderADwin + pos];
 	       CoupForce[CNodes->Array[i] - 1] = Recv_ADwin[2*CNodes->OrderADwin + pos];
@@ -247,7 +248,7 @@ void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const Vec
 #else
 	  ramp0 = 1.0 - ramp;   
 #endif
-
+	  
 	  if ( CNodes->Order > 1 ){
 	       hysl_copy( &Length, CNodes->VecTdT0_c0, &incx, VecTdT_c, &incy );
 	       hysl_scal( &Length, &ramp0, VecTdT_c, &incx );
