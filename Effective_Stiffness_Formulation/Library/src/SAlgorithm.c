@@ -204,7 +204,7 @@ int main( int argc, char **argv ){
      if( CNodes.Order >= 1 ){
 	  MatrixVector_Create( CNodes.Order, CNodes.Order, &Keinv_c );
 	  MatrixVector_Create( InitCnt.Order - CNodes.Order, CNodes.Order, &Keinv_m );
-	  if (MultipleTypes){
+	  if (MultipleTypes && (CNodes.OrderADwin >= 1)){
 	       MatrixVector_Create( CNodes.OrderADwin, CNodes.OrderADwin, &KeinvADwin_c );
 	  }
      }
@@ -342,13 +342,13 @@ int main( int argc, char **argv ){
 	  if( !InitCnt.Use_Packed ){
 	       Substructure_MatrixXc( &Keinv, &CNodes, &Keinv_c );
 	       Substructure_MatrixXcm( &Keinv, &CNodes, &Keinv_m );
-	       if( MultipleTypes ){
+	       if( MultipleTypes && (CNodes.OrderADwin >= 1)){
 		    Substructure_MatrixXc_ADwin( &Keinv, &CNodes, &KeinvADwin_c );
 	       }
 	  } else {
 	       Substructure_MatrixXc_PS( &Keinv, &CNodes, &Keinv_c );
 	       Substructure_MatrixXcm_PS( &Keinv, &CNodes, &Keinv_m );
-	       if( MultipleTypes ){
+	       if( MultipleTypes && (CNodes.OrderADwin >= 1)){
 		    Substructure_MatrixXc( &Keinv, &CNodes, &KeinvADwin_c );
 	       }
 	  }
@@ -594,7 +594,7 @@ int main( int argc, char **argv ){
      if( CNodes.Order >= 1 ){
 	  MatrixVector_Destroy( &Keinv_c );
 	  MatrixVector_Destroy( &Keinv_m );
-	  if (MultipleTypes){
+	  if (MultipleTypes && (CNodes.OrderADwin >= 1)){
 	       MatrixVector_Destroy( &KeinvADwin_c );
 	  }
      }
