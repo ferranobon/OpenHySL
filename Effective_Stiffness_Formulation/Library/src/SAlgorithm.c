@@ -455,6 +455,7 @@ int main( int argc, char **argv ){
 	       }
 	  }
 
+
 	  if ( istep < InitCnt.NStep ){
 	       if( InitCnt.Use_Absolute_Values ){
 		    /* Copy the diagonal elements of M */
