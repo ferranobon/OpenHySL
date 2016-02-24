@@ -40,8 +40,8 @@ void Substructure_SendGainMatrix( const HYSL_FLOAT *const Gain, unsigned int Ord
 #if _ADWIN_
 
 	  /* Send matrix Gc to ADwin. */
-	  /* In the code of ADWIN, the variable G is stored in DATA_50 */
-	  ADwin_SendArray( 50, Gain, Order*Order );
+	  /* In the code of ADWIN, the variable G is stored in DATA_70 */
+	  ADwin_SendArray( 70, Gain, Order*Order );
 	  
 	  Print_Header( SUCCESS );
 	  printf("Gain Matrix successfully sent to ADwin system.\n" );
@@ -98,13 +98,12 @@ void Substructure_Substepping( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *
      bool Called_Sub = false, Called_ADwin = false;
      HYSL_FLOAT *Recv = NULL, *Recv_ADwin = NULL, *VecTdT0_c_ADwin = NULL;
      HYSL_FLOAT *Send = NULL;
-     bool MultipleTypes = false;
+     bool MultipleTypes = true;
 
      Remote_t *Remote;
 
      Recv = (HYSL_FLOAT *) calloc( (size_t) 3*(size_t)CNodes->Order, sizeof(HYSL_FLOAT) );
-
-     if (CNodes->OrderADwin >= 1 && MultipleTypes){
+     if ((CNodes->OrderADwin >= 1) && MultipleTypes){
 	  Recv_ADwin = (HYSL_FLOAT *) calloc( (size_t) 3*(size_t)CNodes->OrderADwin, sizeof(HYSL_FLOAT) );
 	  VecTdT0_c_ADwin = (HYSL_FLOAT *) calloc( (size_t) CNodes->OrderADwin, sizeof(HYSL_FLOAT) );
      }
@@ -115,7 +114,7 @@ void Substructure_Substepping( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *
 	  Recv[2*CNodes->Order + i] = CoupForce[CNodes->Array[i] - 1];
 	  if ((CNodes->Sub[i].Type == EXP_ADWIN) && MultipleTypes){
 	       Recv_ADwin[2*CNodes->OrderADwin + pos] = CoupForce[CNodes->Array[i] - 1];
-	       VecTdT0_c_ADwin[CNodes->OrderADwin + pos] = VecTdT0_c[CNodes->Array[i] - 1];
+	       VecTdT0_c_ADwin[pos] = VecTdT0_c[i];
 	       pos = pos + 1;
 	  }
      }
@@ -157,7 +156,7 @@ void Substructure_Substepping( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *
 	  case EXP_ADWIN:
 	       /* Tell ADwin to perform the substepping process */
 	       if( !Called_ADwin ){
-		    ADwin_Substep( VecTdT0_c_ADwin, (unsigned int) CNodes->OrderADwin, 0.75, &Recv_ADwin[0], &Recv_ADwin[1], &Recv_ADwin[2] );
+		    ADwin_Substep( VecTdT0_c_ADwin, (unsigned int) CNodes->OrderADwin, 75.0, &Recv_ADwin[0], &Recv_ADwin[CNodes->OrderADwin], &Recv_ADwin[2*CNodes->OrderADwin] );
 		    Called_ADwin = true;
 	       }
 	       break;
@@ -249,7 +248,7 @@ void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const Vec
 	  ramp0 = 1.0 - ramp;   
 #endif
 	  
-	  if ( CNodes->Order > 1 ){
+	  if ( (CNodes->Order - CNodes->OrderADwin) > 1 ){
 	       hysl_copy( &Length, CNodes->VecTdT0_c0, &incx, VecTdT_c, &incy );
 	       hysl_scal( &Length, &ramp0, VecTdT_c, &incx );
 	       hysl_axpy( &Length, &ramp, VecTdT0_c, &incx, VecTdT_c, &incy );
