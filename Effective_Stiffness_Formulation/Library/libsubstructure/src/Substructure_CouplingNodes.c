@@ -417,7 +417,7 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 	       }
 	       break;
 	  case EXP_ADWIN:
-	       CNodes->OrderADwin = CNodes->OrderADwin + 1;
+	       CNodes->OrderADwin = CNodes->OrderADwin + Count_Type;
 	       /* Read the optional description */
 	       Substructure_GetDescription( InFile, i, Description );
 

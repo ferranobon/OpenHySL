@@ -24,7 +24,7 @@
 #define MAX_DESCRIPTION 200    /*!< \brief Maximum description length for a substructure. */
 #define MAX_FILENAME 20       /*!< \brief Maximum file name length. */
 
-#define NUM_TYPE_SUB  8  /*!< \brief Number of recognized sub-structure types */
+#define NUM_TYPE_SUB  10  /*!< \brief Number of recognized sub-structure types */
 
 /**
  * \brief Supported sub-structure types.
