@@ -22,6 +22,7 @@ void Generate_SubEntries ( const int NumEntries, const JointInfo_t const* Info, 
 void Reorder_SubEntries ( const int NumJointSub, SubEntry_t *const SubEntries );
 void Print_CoupleNodes ( const int NumJointSub, const int NumDrums, const SubEntry_t *const SubEntries );
 void Reorder_JointEntries ( const int NumEntries, JointInfo_t *const JointEntries );
+int Find_EqPos ( const int JointID, const int NumEntries, const JointInfo_t const* Info );
 
 int main (int argc, char **argv)
 {
@@ -116,14 +117,14 @@ int main (int argc, char **argv)
      Reorder_JointEntries( NumEntries, JointEq);
 
      /* Generate substructure entries */
-     SubEntries = (SubEntry_t *) calloc( (size_t) NumJointSub, sizeof(SubEntry_t) );
-     Generate_SubEntries ( NumEntries, JointEq, NumJointSub, 9, Sub, SubEntries );
+     SubEntries = (SubEntry_t *) calloc( (size_t) NumJointSub*3, sizeof(SubEntry_t) );
+     Generate_SubEntries ( NumEntries, JointEq, NumJointSub*3, 9, Sub, SubEntries );
 
      /* Reorder entries */
-     Reorder_SubEntries ( NumJointSub, SubEntries );
+     Reorder_SubEntries ( NumJointSub*3, SubEntries );
 
      /* Print Couple_Nodes.txt */
-     Print_CoupleNodes ( NumJointSub, 9, SubEntries );
+     Print_CoupleNodes ( NumJointSub*3, 9, SubEntries );
 
      free( JointEq );
      free( Sub );
@@ -179,28 +180,72 @@ void Read_TXE_File (const char* FileName, const int NumEntries, JointInfo_t *con
 
 void Generate_SubEntries ( const int NumEntries, const JointInfo_t const* Info, const int NumJointSub, const int NumDrums, const Substructure_t *const Sub, SubEntry_t *const SubEntries )
 {
-     int i, Column, Drum;
+     int i, pos, posprev, Column, Drum;
      Column = 0; Drum = 0;
      
-     for (i = 0; i < NumJointSub; i++){
-	  SubEntries[i].EqNum = Info[Sub[i].JointID - 1].x;
+     for (i = 0; i < NumJointSub/3; i++){
+	  pos = Find_EqPos( Sub[i].JointID, NumEntries, Info);
+	  SubEntries[i].EqNum = Info[pos].x;
+	  SubEntries[NumJointSub/3 + i].EqNum = Info[pos].y;
+	  SubEntries[NumJointSub*2/3 + i].EqNum = Info[pos].z;
 	  if (SubEntries[i].EqNum == 0 || SubEntries[i].EqNum == -1){
-	       printf("Error assigning Eq. num to joint entry %d since %d\n", Sub[i].JointID, Info[Sub[i].JointID - 1].JointID);
+	       printf("Error assigning Eq. num to joint entry %d since %d\n", Sub[i].JointID, Info[pos].JointID);
 	       exit(EXIT_FAILURE);
 	  }
+	  if (SubEntries[NumJointSub/3 + i].EqNum == 0 || SubEntries[NumJointSub/3 + i].EqNum == -1){
+	       printf("Error assigning Eq. num to joint entry %d since %d\n", Sub[i].JointID, Info[pos].JointID);
+	       exit(EXIT_FAILURE);
+	  }
+	  if (SubEntries[NumJointSub*2/3 + i].EqNum == 0 || SubEntries[NumJointSub*2/3 + i].EqNum == -1){
+	       printf("Error assigning Eq. num to joint entry %d since %d\n", Sub[i].JointID, Info[pos].JointID);
+	       exit(EXIT_FAILURE);
+	  }	    
 	  if ( i % NumDrums == 0 ){
 	       SubEntries[i].PrevEqNum = -1;
+	       SubEntries[NumJointSub/3 + i].PrevEqNum = -1;
+	       SubEntries[NumJointSub*2/3 + i].PrevEqNum = -1;
 	       Column = Column + 1;
 	       Drum = 1;
 	  } else {
-	       SubEntries[i].PrevEqNum = Info[Sub[i-1].JointID - 1].x;
+	       posprev = Find_EqPos( Sub[i-1].JointID, NumEntries, Info);
+	       SubEntries[i].PrevEqNum = Info[posprev].x;
+	       SubEntries[NumJointSub/3 + i].PrevEqNum = Info[posprev].y;
+	       SubEntries[NumJointSub*2/3 + i].PrevEqNum = Info[posprev].z;
 	       Drum = Drum + 1;
 	  }
 	  SubEntries[i].Column = Column;
 	  SubEntries[i].Drum = Drum;
+	  SubEntries[NumJointSub/3 + i].Column = Column;
+	  SubEntries[NumJointSub/3 + i].Drum = Drum;
+	  SubEntries[NumJointSub*2/3 + i].Column = Column;
+	  SubEntries[NumJointSub*2/3 + i].Drum = Drum;
 	  printf("Eq number %i has as previous %i.\n", SubEntries[i].EqNum, SubEntries[i].PrevEqNum );
      }	  
 }
+
+int Find_EqPos ( const int JointID, const int NumEntries, const JointInfo_t const* Info )
+{
+     int i;
+     bool found = false;
+
+     i = 0;
+     while (i < NumEntries && !found ){
+	  if (Info[i].JointID == JointID){
+	       found = true;
+	  } else {
+	       i = i + 1;
+	  }
+	  printf("1\n");
+     }
+
+     if (!found){
+	  printf("Could not find Joint ID %d in the TXE file.\n", JointID);
+	  exit( EXIT_FAILURE );
+     }
+
+     return i;	 
+}
+
 
 void Reorder_JointEntries ( const int NumEntries, JointInfo_t *const JointEntries )
 {

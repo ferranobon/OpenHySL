@@ -45,9 +45,9 @@ void Substructure_StoneDrums ( const HYSL_FLOAT DispTdT, const HYSL_FLOAT ramp, 
 #endif
 
      if ( Sub->VelTdT > 0.0 ){
-	  *fc = -200.0;
+	  *fc = -35000;
      } else if (Sub->VelTdT < 0.0){
-	  *fc = 200.0;
+	  *fc = 35000;
      } else {
 	  *fc = 0.0;
      }
