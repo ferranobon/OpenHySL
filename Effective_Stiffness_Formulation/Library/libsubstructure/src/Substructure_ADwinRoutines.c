@@ -147,18 +147,18 @@ void ADwin_Substep( const HYSL_FLOAT *const VecTdT_0c, const unsigned int OrderC
 	  Send_ADwin[i + 1] = VecTdT_0c[i];
      }
 
-     /* Set the displacement. In ADwin the array storing the displacement is DATA_51 */
+     /* Set the displacement. In ADwin the array storing the displacement is DATA_71 */
 #if _FLOAT_
-     SetData_Float( 51, Send_ADwin, 1, (int32_t) Length_Send );
+     SetData_Float( 71, Send_ADwin, 1, (int32_t) Length_Send );
 #else
-     SetData_Double( 51, Send_ADwin, 1, (int32_t) Length_Send );
+     SetData_Double( 71, Send_ADwin, 1, (int32_t) Length_Send );
 #endif
 
      /* Do nothing until a certain time has passed to avoid overloading adwin system */
      gettimeofday( &t1, NULL );
      ElapsedTime = 0.0;
           
-     while ( ElapsedTime < Time_To_Wait ){ /*(NSub - 1.0)*Deltat_Sub*1000.0 - 0.5){*/
+     while ( ElapsedTime < 75.0){//Time_To_Wait ){ /*(NSub - 1.0)*Deltat_Sub*1000.0 - 0.5){*/
 	  gettimeofday(&t2, NULL );
 	  ElapsedTime = (double) (t2.tv_sec - t1.tv_sec)*1000.0;
 	  ElapsedTime += (double) (t2.tv_usec -t1.tv_usec)/1000.0;
@@ -167,10 +167,11 @@ void ADwin_Substep( const HYSL_FLOAT *const VecTdT_0c, const unsigned int OrderC
      /* Get the displacement when substep is over */
      while( ADWinReady == 0 ){
 #if _FLOAT_
-	  GetData_Float( 52, ReceiveADwin, 1, (int32_t) Length_Receive );
+	  GetData_Float( 72, ReceiveADwin, 1, (int32_t) Length_Receive );
 #else
-	  GetData_Double( 52, ReceiveADwin, 1, (int32_t) Length_Receive );
+	  GetData_Double( 72, ReceiveADwin, 1, (int32_t) Length_Receive );
 #endif
+	  
 	  if ( ReceiveADwin[0] == -1.0){
 
 	       /* Get the data from ADWIN (DATA_3) */
