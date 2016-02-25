@@ -107,7 +107,7 @@ int main( int argc, char **argv ){
      MatrixVector_Sp_t Sp_M, Sp_C, Sp_K;     /* Sparse representation of the M, C and K matrices */
 #endif
      
-     bool Matrix_Send_ADwin = false, MultipleTypes = true;
+     bool Matrix_Send_ADwin = false, MultipleTypes = false;
      CouplingNode_t CNodes;
      SaveTime_t     Time;
 

@@ -102,8 +102,8 @@ void Substructure_Substepping( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *
      Remote_t *Remote;
 
      Recv = (HYSL_FLOAT *) calloc( (size_t) 3*(size_t)CNodes->Order, sizeof(HYSL_FLOAT) );
-     Recv_ADwin = (HYSL_FLOAT *) calloc( (size_t) 3*(size_t)CNodes->OrderADwin, sizeof(HYSL_FLOAT) );
-     VecTdT0_c_ADwin = (HYSL_FLOAT *) calloc( (size_t) CNodes->OrderADwin, sizeof(HYSL_FLOAT) );
+     //    Recv_ADwin = (HYSL_FLOAT *) calloc( (size_t) 3*(size_t)CNodes->OrderADwin, sizeof(HYSL_FLOAT) );
+     //VecTdT0_c_ADwin = (HYSL_FLOAT *) calloc( (size_t) CNodes->OrderADwin, sizeof(HYSL_FLOAT) );
      
      
      /* Copy the older coupling force. This is necessary for simulations */
@@ -188,24 +188,24 @@ void Substructure_Substepping( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *
 	  }
      }
 
-//#pragma omp parallel for
      pos = 0;
+#pragma omp parallel for
      for ( i = 0; i < CNodes->Order; i++ ){
-	  if (CNodes->Sub[i].Type = EXP_ADWIN){
-	       VecTdT[CNodes->Array[i] - 1] = Recv_ADwin[pos];
-	       CoupForcePrev[i] = Recv_ADwin[CNodes->OrderADwin + pos];
-	       CoupForce[CNodes->Array[i] - 1] = Recv_ADwin[2*CNodes->OrderADwin + pos];
-	       pos = pos + 1;
-	  } else {
+	  // if (CNodes->Sub[i].Type = EXP_ADWIN){
+	  //     VecTdT[CNodes->Array[i] - 1] = Recv_ADwin[pos];
+	  //    CoupForcePrev[i] = Recv_ADwin[CNodes->OrderADwin + pos];
+	  //    CoupForce[CNodes->Array[i] - 1] = Recv_ADwin[2*CNodes->OrderADwin + pos];
+	  //     pos = pos + 1;
+	  // } else {
 	       VecTdT[CNodes->Array[i] - 1] = Recv[i];
 	       CoupForcePrev[i] = Recv[CNodes->Order + i];
 	       CoupForce[CNodes->Array[i] - 1] = Recv[2*CNodes->Order + i];
-	  }
+	       // }
      }
 
      free( Recv );
-     free( Recv_ADwin );
-     free( VecTdT0_c_ADwin );     
+     //free( Recv_ADwin );
+     //free( VecTdT0_c_ADwin );     
 }
 
 void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const VecTdT0_c, const HYSL_FLOAT GAcc, 
@@ -293,7 +293,7 @@ void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const Vec
 		    } else {
 			 Substructure_StoneDrums( VecTdT_c[i], ramp, StoneDrums, &CoupForce_c[i] );
 		    }
-		    printf("%d %lE %lE %lE %lE\n", Substep, StoneDrums->AccTdT, StoneDrums->VelTdT, VecTdT_c[i], CoupForce_c[i]);
+		    // printf("%d %lE %lE %lE %lE\n", Substep, StoneDrums->AccTdT, StoneDrums->VelTdT, VecTdT_c[i], CoupForce_c[i]);
 		    break;
 	       }
 	  }
