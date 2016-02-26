@@ -409,7 +409,10 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 		    
 		    for( j = 0; j < Count_Type; j++ ){			
 			 CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(StoneDrums_t) );
-			 Substructure_StoneDrums_Init( (int) ftemp[0], Description, (StoneDrums_t *) CNodes->Sub[i + j].SimStruct );
+			 Substructure_StoneDrums_Init( (int) ftemp[0], ftemp[1], ftemp[2], ftemp[3], ftemp[4],
+						       ftemp[5], ftemp[6], ftemp[7], ftemp[8], ftemp[9],
+						       ftemp[10], ftemp[11], BOUC_WEN_DEG, Description,
+						       (StoneDrums_t *) CNodes->Sub[i + j].SimStruct );
 			 Print_Header( INFO );
 			 printf( "Simulating the substructure in the coupling node %d as a Stone Drum.\n", CNodes->Array[i + j] );
 		    }
