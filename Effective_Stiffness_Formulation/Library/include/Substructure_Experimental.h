@@ -14,7 +14,7 @@
 
 #include "Substructure.h"
 
-#define NUM_CHANNELS 24  /*!< \brief Number of channels of recorded data in ADwin */
+#define NUM_CHANNELS 19  /*!< \brief Number of channels of recorded data in ADwin */
 
 /**
  * \brief Definition of a experimental substructure.
