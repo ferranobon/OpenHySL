@@ -346,7 +346,7 @@ void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const Vec
 	  case SIM_STONEDRUMS:
 	       StoneDrums->Acc0 = StoneDrums->AccT; StoneDrums->AccT = StoneDrums->AccTdT;
 	       StoneDrums->Vel0 = StoneDrums->VelT; StoneDrums->VelT = StoneDrums->VelTdT;
-	       StoneDrums->Disp0 = StoneDrums->DispT; StoneDrums->DispT = VecTdT_c[0];
+	       StoneDrums->Disp0 = StoneDrums->DispT; StoneDrums->DispT = VecTdT_c[i];
 	       break;
 	  }
      }

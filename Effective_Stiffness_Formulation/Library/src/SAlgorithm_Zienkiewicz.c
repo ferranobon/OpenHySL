@@ -67,7 +67,7 @@ const char *Entry_Names[NUM_CHANNELS] = { "Sub-step",
 int main( int argc, char **argv ){
 
      unsigned int istep, i;
-     double temp1 = 0.0, temp2 = 0.0, temp3 = 0.0;
+
      AlgConst_t InitCnt;
      const char *FileConf;
 
@@ -540,8 +540,6 @@ int main( int argc, char **argv ){
 	  /* Save the result in a HDF5 file format */
 #if _HDF5_
 	  HDF5_Store_TimeHistoryData( hdf5_file, &AccTdT, &VelTdT, &DispTdT, &fc, &fu, (int) istep, &InitCnt );
-	  /* Store the relative displacements of the TMD */
-//	  HDF5_Store_TMD( hdf5_file, &temp1, &temp2, &temp3, (int) istep );
 #else
 	  
 #endif
