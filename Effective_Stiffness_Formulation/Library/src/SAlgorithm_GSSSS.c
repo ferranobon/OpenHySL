@@ -67,7 +67,7 @@ const char *Entry_Names[NUM_CHANNELS] = { "Sub-step",
 int main( int argc, char **argv ){
 
      unsigned int istep, i;
-     double temp1, temp2, temp3, done = 1.0, dzero = 0.0;
+     
      AlgConst_t InitCnt;
      const char *FileConf;
 
