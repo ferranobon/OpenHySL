@@ -11,8 +11,10 @@
 #include "Definitions.h"
 #include "Substructure_CouplingNodes.h"
 #include "Substructure_Exact.h"
+#include "Substructure_BoucWen.h"
 #include "Substructure_Newmark.h"
 #include "Substructure_UHYDEfbr.h"
+#include "Substructure_StoneDrums.h"
 #include "Substructure_SimMeasured.h"
 #include "Substructure_Experimental.h"
 
@@ -141,17 +143,21 @@ void HDF5_CreateGroup_Parameters( const int hdf5_file, const AlgConst_t *const I
 
 void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const AlgConst_t *const InitCnt, const CouplingNode_t *const CNodes )
 {
-     int i, j, k, count, is_adwin, is_exact, is_newmark, is_uhyde, is_measured;
+     int i, j, k, count, is_adwin, is_exact, is_newmark, is_uhyde, is_boucwen, is_stonedrum, is_measured;
      hid_t    group_id, strtype, memtype, space, dset;
      hsize_t  dims[1];
      herr_t   status;
      HDF5_Exact_UHYDE_t *Nodes;
      HDF5_Newmark_t *Nodes_Newmark;
      HDF5_Exp_Meas_t *Nodes_Exp;
+     HDF5_BoucWen_t *Nodes_BoucWen;
+     HDF5_StoneDrum_t *Nodes_StoneDrum;
      ExactSimESP_t *ExSim;
      NewmarkSim_t *Newmark;
      UHYDEfbrSim_t *UHYDE;
      ExpSub_t *Experimental;
+     BoucWen_t *BoucWen;
+     StoneDrums_t *StoneDrum;
 
    
      group_id = H5Gcreate( file_id, Name_path, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT );     
@@ -168,7 +174,8 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const A
      for( i = 0; i <= NUM_TYPE_SUB; i++ ){
 	  count = 0;
 	  is_adwin = 0; is_exact = 0; is_newmark = 0; is_uhyde=0; is_measured = 0;
-
+	  is_boucwen = 0; is_stonedrum  = 0;
+	  
 	  for( j = 0; j < CNodes->Order; j++ ){
 	       if ( i == EXP_ADWIN && CNodes->Sub[j].Type == EXP_ADWIN ){
 		    count = count + 1;
@@ -185,6 +192,12 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const A
 	       } else if ( i == SIM_MEASURED && CNodes->Sub[j].Type == SIM_MEASURED ){
 		    count = count + 1;		    
 		    is_measured = 1;
+	       } else if ( i == SIM_BOUCWEN && CNodes->Sub[j].Type == SIM_BOUCWEN ){
+		    count = count + 1;
+		    is_boucwen = 1;
+	       } else if ( i == SIM_STONEDRUMS && CNodes->Sub[j].Type == SIM_STONEDRUMS ){
+		    count = count + 1;
+		    is_stonedrum = 1;
 	       }
 	  }
 
@@ -196,6 +209,10 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const A
 	       Nodes_Newmark = (HDF5_Newmark_t *) calloc( (size_t) count, sizeof( HDF5_Newmark_t ) );
 	  } else if ( is_adwin || is_measured ){
 	       Nodes_Exp = (HDF5_Exp_Meas_t *) calloc( (size_t) count, sizeof( HDF5_Exp_Meas_t ) );
+	  } else if ( is_boucwen ){
+	       Nodes_BoucWen = (HDF5_BoucWen_t *) calloc( (size_t) count, sizeof( HDF5_BoucWen_t ) );
+	  } else if ( is_stonedrum ){
+	       Nodes_StoneDrum = (HDF5_StoneDrum_t *) calloc( (size_t) count, sizeof( HDF5_StoneDrum_t ) );
 	  }
 
 	  /* Copy the matching entries into the newly created structure */
@@ -244,6 +261,54 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const A
 		    Nodes_Exp[k].Position = CNodes->Array[j] - 1; /* 0-based index */
 		    Experimental = (ExpSub_t *) CNodes->Sub[j].SimStruct;
 		    strcpy( Nodes_Exp[k].Description, Experimental->Description );
+		    k = k + 1;
+	       } else if ( i == SIM_BOUCWEN && CNodes->Sub[j].Type == SIM_BOUCWEN ){
+		    Nodes[k].Position = CNodes->Array[j] - 1;      /* 0-based index */
+
+		    BoucWen = (BoucWen_t*) CNodes->Sub[j].SimStruct;
+		    Nodes_BoucWen[k].InitValues[0] = BoucWen->alpha;
+		    Nodes_BoucWen[k].InitValues[1] = BoucWen->ko;
+		    Nodes_BoucWen[k].InitValues[2] = BoucWen->beta;
+		    Nodes_BoucWen[k].InitValues[3] = BoucWen->gamma;
+		    Nodes_BoucWen[k].InitValues[4] = BoucWen->n;
+		    Nodes_BoucWen[k].InitValues[5] = BoucWen->A0;
+		    Nodes_BoucWen[k].InitValues[6] = BoucWen->deltaA;
+		    Nodes_BoucWen[k].InitValues[7] = BoucWen->nu0;
+		    Nodes_BoucWen[k].InitValues[8] = BoucWen->deltaNu;
+		    Nodes_BoucWen[k].InitValues[9] = BoucWen->eta0;
+		    Nodes_BoucWen[k].InitValues[10] = BoucWen->deltaEta;
+		    Nodes_BoucWen[k].InitValues[11] = BoucWen->vs0;
+		    Nodes_BoucWen[k].InitValues[12] = BoucWen->p;
+		    Nodes_BoucWen[k].InitValues[13] = BoucWen->q;
+		    Nodes_BoucWen[k].InitValues[14] = BoucWen->psi0;
+		    Nodes_BoucWen[k].InitValues[15] = BoucWen->deltaPsi;
+		    Nodes_BoucWen[k].InitValues[16] = BoucWen->lambda;
+		    strcpy( Nodes_BoucWen[k].Description, BoucWen->Description );
+
+		    k = k + 1;
+	       } else if ( i == SIM_STONEDRUMS && CNodes->Sub[j].Type == SIM_STONEDRUMS ){
+		    Nodes[k].Position = CNodes->Array[j] - 1;      /* 0-based index */
+
+		    StoneDrum = (StoneDrums_t*) CNodes->Sub[j].SimStruct;
+		    Nodes_StoneDrum[k].InitValues[0] = StoneDrum->alpha;
+		    Nodes_StoneDrum[k].InitValues[1] = StoneDrum->ko;
+		    Nodes_StoneDrum[k].InitValues[2] = StoneDrum->beta;
+		    Nodes_StoneDrum[k].InitValues[3] = StoneDrum->gamma;
+		    Nodes_StoneDrum[k].InitValues[4] = StoneDrum->n;
+		    Nodes_StoneDrum[k].InitValues[5] = StoneDrum->A0;
+		    Nodes_StoneDrum[k].InitValues[6] = StoneDrum->deltaA;
+		    Nodes_StoneDrum[k].InitValues[7] = StoneDrum->nu0;
+		    Nodes_StoneDrum[k].InitValues[8] = StoneDrum->deltaNu;
+		    Nodes_StoneDrum[k].InitValues[9] = StoneDrum->eta0;
+		    Nodes_StoneDrum[k].InitValues[10] = StoneDrum->deltaEta;
+		    Nodes_StoneDrum[k].InitValues[11] = StoneDrum->vs0;
+		    Nodes_StoneDrum[k].InitValues[12] = StoneDrum->p;
+		    Nodes_StoneDrum[k].InitValues[13] = StoneDrum->q;
+		    Nodes_StoneDrum[k].InitValues[14] = StoneDrum->psi0;
+		    Nodes_StoneDrum[k].InitValues[15] = StoneDrum->deltaPsi;
+		    Nodes_StoneDrum[k].InitValues[16] = StoneDrum->lambda;
+		    strcpy( Nodes_StoneDrum[k].Description, StoneDrum->Description );
+
 		    k = k + 1;
 	       }
 	  }
@@ -390,7 +455,119 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const A
 	       status = H5Sclose( space );
 	       status = H5Tclose( memtype );
 
-	  }		  
+	  } else if ((i == SIM_BOUCWEN) && is_boucwen ){
+	       memtype = H5Tcreate (H5T_COMPOUND, sizeof( HDF5_BoucWen_t) );
+	       H5Tinsert( memtype, "Eq. column (0-based index)", HOFFSET( HDF5_BoucWen_t, Position), H5T_NATIVE_INT );
+	       H5Tinsert( memtype, "Alpha", HOFFSET( HDF5_BoucWen_t, InitValues[0]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Elastic stiffness ko [N/m]", HOFFSET( HDF5_BoucWen_t, InitValues[1]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Beta", HOFFSET( HDF5_BoucWen_t, InitValues[2]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Gamma", HOFFSET( HDF5_BoucWen_t, InitValues[3]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "n", HOFFSET( HDF5_BoucWen_t, InitValues[4]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "A0", HOFFSET( HDF5_BoucWen_t, InitValues[5]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Delta A", HOFFSET( HDF5_BoucWen_t, InitValues[6]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "nu0", HOFFSET( HDF5_BoucWen_t, InitValues[7]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Delta nu", HOFFSET( HDF5_BoucWen_t, InitValues[8]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Eta0", HOFFSET( HDF5_BoucWen_t, InitValues[9]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Delta Eta", HOFFSET( HDF5_BoucWen_t, InitValues[10]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "vs0", HOFFSET( HDF5_BoucWen_t, InitValues[11]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "p", HOFFSET( HDF5_BoucWen_t, InitValues[12]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "q", HOFFSET( HDF5_BoucWen_t, InitValues[13]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Psi0", HOFFSET( HDF5_BoucWen_t, InitValues[14]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "DeltaPsi", HOFFSET( HDF5_BoucWen_t, InitValues[15]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Lambda", HOFFSET( HDF5_BoucWen_t, InitValues[16]), H5T_NATIVE_HYSL_FLOAT );
+
+	       H5Tinsert( memtype, "Description", HOFFSET( HDF5_BoucWen_t, Description), strtype );
+
+	       dims[0] = (hsize_t) count; 
+	       space = H5Screate_simple (1, dims, NULL);
+	       /* Create the dataset */
+	       dset = H5Dcreate ( group_id, "/Test Parameters/Substructures/Bouc Wen", memtype, space, H5P_DEFAULT,
+				  H5P_DEFAULT, H5P_DEFAULT);
+	       status = H5Dwrite ( dset, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Nodes_Newmark );
+	       if( status < 0 ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Error writing to HDF5 file.\n" );
+		    exit( EXIT_FAILURE );
+	       }
+	       
+	       free( Nodes_BoucWen );
+
+	       status = H5Dclose( dset );
+	       if( status < 0 ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Error closing dataset in HDF5 file.\n" );
+		    exit( EXIT_FAILURE );
+	       }
+	       status = H5Sclose( space );
+	       if( status < 0 ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Error closing dataspace in HDF5 file.\n" );
+		    exit( EXIT_FAILURE );
+	       }
+	       status = H5Tclose( memtype );
+	       if( status < 0 ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Error closing memtype in HDF5 file.\n" );
+		    exit( EXIT_FAILURE );
+	       }
+	  } else if ((i == SIM_STONEDRUMS) && is_stonedrum ){
+	       memtype = H5Tcreate (H5T_COMPOUND, sizeof( HDF5_StoneDrum_t) );
+	       H5Tinsert( memtype, "Eq. column (0-based index)", HOFFSET( HDF5_StoneDrum_t, Position), H5T_NATIVE_INT );
+	       H5Tinsert( memtype, "Alpha", HOFFSET( HDF5_StoneDrum_t, InitValues[0]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Elastic stiffness ko [N/m]", HOFFSET( HDF5_StoneDrum_t, InitValues[1]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Beta", HOFFSET( HDF5_StoneDrum_t, InitValues[2]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Gamma", HOFFSET( HDF5_StoneDrum_t, InitValues[3]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "n", HOFFSET( HDF5_StoneDrum_t, InitValues[4]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "A0", HOFFSET( HDF5_StoneDrum_t, InitValues[5]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Delta A", HOFFSET( HDF5_StoneDrum_t, InitValues[6]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "nu0", HOFFSET( HDF5_StoneDrum_t, InitValues[7]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Delta nu", HOFFSET( HDF5_StoneDrum_t, InitValues[8]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Eta0", HOFFSET( HDF5_StoneDrum_t, InitValues[9]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Delta Eta", HOFFSET( HDF5_StoneDrum_t, InitValues[10]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "vs0", HOFFSET( HDF5_StoneDrum_t, InitValues[11]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "p", HOFFSET( HDF5_StoneDrum_t, InitValues[12]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "q", HOFFSET( HDF5_StoneDrum_t, InitValues[13]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Psi0", HOFFSET( HDF5_StoneDrum_t, InitValues[14]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "DeltaPsi", HOFFSET( HDF5_StoneDrum_t, InitValues[15]), H5T_NATIVE_HYSL_FLOAT );
+	       H5Tinsert( memtype, "Lambda", HOFFSET( HDF5_StoneDrum_t, InitValues[16]), H5T_NATIVE_HYSL_FLOAT );
+
+	       H5Tinsert( memtype, "Description", HOFFSET( HDF5_StoneDrum_t, Description), strtype );
+
+	       dims[0] = (hsize_t) count; 
+	       space = H5Screate_simple (1, dims, NULL);
+	       /* Create the dataset */
+	       dset = H5Dcreate ( group_id, "/Test Parameters/Substructures/Stone Drum", memtype, space, H5P_DEFAULT,
+				  H5P_DEFAULT, H5P_DEFAULT);
+	       status = H5Dwrite ( dset, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Nodes_Newmark );
+	       if( status < 0 ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Error writing to HDF5 file.\n" );
+		    exit( EXIT_FAILURE );
+	       }
+	       
+	       free( Nodes_StoneDrum );
+
+	       status = H5Dclose( dset );
+	       if( status < 0 ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Error closing dataset in HDF5 file.\n" );
+		    exit( EXIT_FAILURE );
+	       }
+	       status = H5Sclose( space );
+	       if( status < 0 ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Error closing dataspace in HDF5 file.\n" );
+		    exit( EXIT_FAILURE );
+	       }
+	       status = H5Tclose( memtype );
+	       if( status < 0 ){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Error closing memtype in HDF5 file.\n" );
+		    exit( EXIT_FAILURE );
+	       }
+	  }
+
+	  
 	  /* Close and release resources. */
      }    
 

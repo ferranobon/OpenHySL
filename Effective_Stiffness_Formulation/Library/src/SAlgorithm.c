@@ -40,27 +40,22 @@
 const char *Entry_Names[NUM_CHANNELS] = { "Sub-step",
 					  "Control displacement actuator 1 [m]",
 					  "Control displacement actuator 2 [m]",
+					  "Control displacement actuator 3 [m]",
+					  "Control displacement actuator 4 [m]",
 					  "Measured displacement actuator 1 [m]",
 					  "Measured displacement actuator 2 [m]",
-					  "Control acceleration Actuator 1 [m/s^2]",
-					  "Control acceleration Actuator 2 [m/s^2]",
-					  "Measured acceleration actuator 1 [m/s^2]",
-					  "Measured acceleration actuator 2 [m/s^2]",
-					  "Acceleration TMD (y-direction) [m/s^2]",
-					  "Acceleration TMD (x-direction) [m/s^2]",
-					  "Acceleration Base-Frame (x-direction) [m/s^2]",
-					  "Coupling Force 1 (y-direction) [N]",
-					  "Coupling Force 2 (y-direction) [N]",
-					  "Coupling Force 3 (x-direction) [N]",
-					  "Displacement TMD (x-direction) [m]",
-					  "Displacement TMD (y-direction) [m]",
-					  "Control pressure [Pa]",
-					  "Measured pressure [Pa]",
-					  "Displacement at the coupling node [m]",
-					  "Time spent doing the sub-step [ms]", 
-					  "Sub-step time [ms]",
-					  "Synchronisation time between PC and ADwin [ms]",
-					  "Time between the first sub-step and arrival of the new update [ms]"
+					  "Measured displacement actuator 3 [m]",
+					  "Measured displacement actuator 4 [m]",
+					  "Measured displacement actuator 5 [m]",
+					  "Control force actuator 5 [N]",
+					  "Measured force actuator 1 [N]",
+					  "Measured force actuator 2 [N]",
+					  "Measured force actuator 3 [N]",
+					  "Measured force actuator 4 [N]",
+					  "Measured force actuator 5 [N]",
+					  "Total vertical force (actuators 4 and 5) [N]",
+					  "Moment (actuators 4 and 5) [Nm]",
+					  "Total shear force (actuators 1, 2 and 3) [N]",
 };
 
 int main( int argc, char **argv ){
@@ -546,7 +541,7 @@ int main( int argc, char **argv ){
 	       if( CNodes.Sub[i].Type == EXP_ADWIN ){
 #if _HDF5_
 		    ADwin_SaveData_HDF5( hdf5_file, (int) InitCnt.NStep, (int) InitCnt.NSubstep,
-					NUM_CHANNELS, Entry_Names, 97 );
+					NUM_CHANNELS, Entry_Names, 90 );
 #endif
 	       }
 	  }

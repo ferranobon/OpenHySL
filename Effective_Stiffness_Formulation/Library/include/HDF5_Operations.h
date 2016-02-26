@@ -38,6 +38,18 @@ typedef struct HDF5_Exp_Meas {
      char Description[MAX_DESCRIPTION];
 } HDF5_Exp_Meas_t;
 
+typedef struct HDF5_BoucWen {
+     int Position;
+     HYSL_FLOAT InitValues[17];
+     char Description[MAX_DESCRIPTION];
+} HDF5_BoucWen_t;
+
+typedef struct HDF5_StoneDrum {
+     int Position;
+     HYSL_FLOAT InitValues[17];
+     char Description[MAX_DESCRIPTION];
+} HDF5_StoneDrum_t;
+
 int HDF5_CreateFile( const char *Filename );
 
 #if _MPI_

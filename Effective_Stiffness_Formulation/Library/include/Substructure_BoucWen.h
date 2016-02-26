@@ -27,7 +27,7 @@ typedef struct BoucWen {
      
      HYSL_FLOAT alpha;    /*!< \brief Post-yield stiffness ratio \f$\alpha = k_y/k_e\f$ with \f$k_y\$ the post
 			   * yield stiffness and \f$ke\f$ de pre-yield stiffness. */
-     double ko;           /* ko is the elasttic stiffness \f$k_0 = F_y/u_y\f$ where \f$F_y\f$ is the post
+     double ko;           /* ko is the elastic stiffness \f$k_0 = F_y/u_y\f$ where \f$F_y\f$ is the post
 			   * yield stiffness and \f$u_y\f$ the yield displacement. */
      HYSL_FLOAT beta;     /*!< \brief Bouc-Wen model coefficient. */
      HYSL_FLOAT gamma;    /*!< \brief Bouc-Wen model coefficient. */
