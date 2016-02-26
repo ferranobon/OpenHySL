@@ -390,7 +390,7 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 	       if ( itemp != STONEDRUMS_NUMPARAM_INIT ){
 		    Print_Header( ERROR );
 		    fprintf( stderr, "Wrong number of parameters for the substructue number %i of type UHYDE.\n", i );
-		    fprintf( stderr, "The number of init parameters should be %i\n", UHYDE_NUMPARAM_INIT );
+		    fprintf( stderr, "The number of init parameters should be %i\n", STONEDRUMS_NUMPARAM_INIT );
 		    exit( EXIT_FAILURE );
 	       } else {
 		    ftemp = NULL;
