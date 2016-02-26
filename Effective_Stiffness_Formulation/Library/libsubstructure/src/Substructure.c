@@ -290,12 +290,12 @@ void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const Vec
 	       case SIM_STONEDRUMS:
 		    StoneDrums = (StoneDrums_t *) CNodes->Sub[i].SimStruct;
 		    
-		    if (StoneDrums->PrevDOF >= 0){
-			 // Substructure_StoneDrums( VecTdT_c[i] - VecTdT_c[Substructure_FindPosition(
-			 // StoneDrums->PrevDOF, CNodes ) - 1], ramp, StoneDrums, &CoupForce_c[i] );
-			 Substructure_StoneDrums( VecTdT_c[i], ramp, StoneDrums, &CoupForce_c[i] );
+		    if (StoneDrums->PrevDOF > 0){
+			 Substructure_StoneDrums( VecTdT_c[i] - VecTdT_c[Substructure_FindPosition(StoneDrums->PrevDOF, CNodes ) - 1],
+						  StoneDrums, &CoupForce_c[i] );
+			 Substructure_StoneDrums( VecTdT_c[i], StoneDrums, &CoupForce_c[i] );
 		    } else {
-			 Substructure_StoneDrums( VecTdT_c[i], ramp, StoneDrums, &CoupForce_c[i] );
+			 Substructure_StoneDrums( VecTdT_c[i], StoneDrums, &CoupForce_c[i] );
 		    }
 		    // printf("%d %lE %lE %lE %lE\n", Substep, StoneDrums->AccTdT, StoneDrums->VelTdT, VecTdT_c[i], CoupForce_c[i]);
 		    break;
@@ -344,9 +344,7 @@ void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const Vec
 	  case SIM_MEASURED:
 	       break;
 	  case SIM_STONEDRUMS:
-	       StoneDrums->Acc0 = StoneDrums->AccT; StoneDrums->AccT = StoneDrums->AccTdT;
-	       StoneDrums->Vel0 = StoneDrums->VelT; StoneDrums->VelT = StoneDrums->VelTdT;
-	       StoneDrums->Disp0 = StoneDrums->DispT; StoneDrums->DispT = VecTdT_c[0];
+	       StoneDrums->DispT = VecTdT_c[i];
 	       break;
 	  }
      }
