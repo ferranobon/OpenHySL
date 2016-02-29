@@ -19,7 +19,7 @@
 #include "GainMatrix.h"
 #include "Substructure.h"
 #include "Substructure_Experimental.h"
-#include "Substructure_Exact.h"
+#include "Substructure_StoneDrums.h"
 #include "Substructure_Auxiliary.h"  /* For Substructure_VectorXm(), Substructure_VectorXc(), ... */
 
 #include "Definitions.h"
@@ -92,6 +92,7 @@ int main( int argc, char **argv ){
 
      MatrixVector_t fc, fcprevsub;
      MatrixVector_t fu;
+     MatrixVector_t BoucWen_Forces;
 
      MatrixVector_t ErrCompT, ErrCompTdT;
 
@@ -105,6 +106,8 @@ int main( int argc, char **argv ){
      bool Matrix_Send_ADwin = false, MultipleTypes = false;
      CouplingNode_t CNodes;
      SaveTime_t     Time;
+
+     StoneDrums_t *StoneDrum;
 
      /* Options */
      int Selected_Option;
@@ -230,6 +233,7 @@ int main( int argc, char **argv ){
      MatrixVector_Create( InitCnt.Order, 1, &fc );
      if( CNodes.Order >= 1 ){
 	  MatrixVector_Create( CNodes.Order, 1, &fcprevsub );
+	  MatrixVector_Create( CNodes.Order, 1, &BoucWen_Forces );
      }
      MatrixVector_Create( InitCnt.Order, 1, &fu );
 
@@ -513,6 +517,17 @@ int main( int argc, char **argv ){
 	  /* Save the result in a HDF5 file format */
 #if _HDF5_
 	  HDF5_Store_TimeHistoryData( hdf5_file, &AccTdT, &VelTdT, &DispTdT, &fc, &fu, (int) istep, &InitCnt );
+
+	  /* Store the BoucWen link forces */
+#pragma omp parallel for
+	  for (i = 0; i < CNodes.Order; i++){
+	       if( CNodes.Sub[i].Type = SIM_STONEDRUMS ){
+		    StoneDrum = (StoneDrums_t *) CNodes.Sub[i].SimStruct;
+		    BoucWen_Forces.Array[CNodes.Array[i] - 1] = StoneDrum->Result_Fc;
+	       }
+	  }
+	       
+	  HDF5_Store_BoucWen( hdf5_file, &BoucWen_Forces, (int) istep);
 #else
 	  
 #endif
@@ -620,6 +635,7 @@ int main( int argc, char **argv ){
      MatrixVector_Destroy( &fc );
      if( CNodes.Order >= 1 ){
 	  MatrixVector_Destroy( &fcprevsub );
+	  MatrixVector_Destroy( &BoucWen_Forces );
      }
      MatrixVector_Destroy( &fu );
 

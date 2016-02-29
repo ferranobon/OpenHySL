@@ -675,30 +675,10 @@ void HDF5_Store_TMD( const hid_t hdf5_file, const double *const Acc, const doubl
      status = H5Sclose( filespace_id );
 }
 
-void HDF5_Store_BoucWen( const hid_t hdf5_file, const CouplingNode_t *const CNodes, const int istep)
+void HDF5_Store_BoucWen( const hid_t hdf5_file, const MatrixVector_t *const HistLoop, const int istep)
 {
-     int i;
-     hid_t   dataset_id, filespace_id, memspace_id;
-     herr_t  status;
-     hsize_t size[2], offset[2], dims[2];
-
-
-     size[0] = (hsize_t) istep; /* Num_Steps starts at 1 */
-     size[1] = (hsize_t) 3;
-
-     /* Create the data space for the dataset. */
-     dataset_id = H5Dopen( hdf5_file, "/Time Integration/TMD", H5P_DEFAULT );
-     H5Dextend( dataset_id, size );
-
-     filespace_id = H5Dget_space( dataset_id );
-     offset[0] = ((hsize_t) istep - 1);
-//     for (
-
-     status = H5Dwrite( dataset_id, H5T_NATIVE_HYSL_FLOAT, memspace_id, filespace_id, H5P_DEFAULT, TMD );
-
-     status = H5Dclose( dataset_id );
-     status = H5Sclose( memspace_id );
-     status = H5Sclose( filespace_id );     
+     
+     HDF5_AddResults_to_Dataset( hdf5_file, "/Time Integration/Bouc-Wen Forces", HistLoop, istep );
 }
 
 void HDF5_Store_Time( const hid_t hdf5_file, const SaveTime_t *const Time )
