@@ -297,7 +297,7 @@ void Print_CoupleNodes ( const int NumJointSub, const int NumDrums, const SubEnt
      fprintf( TheFile, "%d\n", NumJointSub );
      
      for (i = 0; i < NumJointSub; i++ ){	  
-	  fprintf(TheFile, "Sim_StoneDrums, 1 %d, 12 %d 1.0 1E8 0.5 0.5 2.0 1.0 0.0 1.0 0.0 1.0 0.0, Column: %d, Drum: %d;\n", SubEntries[i].EqNum, SubEntries[i].PrevEqNum, SubEntries[i].Column, SubEntries[i].Drum);
+	  fprintf(TheFile, "Sim_StoneDrums, 1 %d, 12 %d 1.01 1.0 0.5 0.5 2.0 1.0 0.0 1.0 0.0 1.0 0.0, Column: %d, Drum: %d;\n", SubEntries[i].EqNum, SubEntries[i].PrevEqNum, SubEntries[i].Column, SubEntries[i].Drum);
      }
 
      fclose( TheFile );

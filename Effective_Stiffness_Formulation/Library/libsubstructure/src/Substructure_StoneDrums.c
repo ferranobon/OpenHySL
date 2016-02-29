@@ -33,7 +33,7 @@ void Substructure_StoneDrums_Init (const int PrevDOF, const HYSL_FLOAT alpha, co
      Sub->deltaNu = deltaNu;
      Sub->eta0 = eta0;
      Sub->deltaEta = deltaEta;
-
+     
      /* Initialisation of Newton-Raphson variables */
      Sub->maxIter = 100;
 #if _FLOAT_
@@ -84,15 +84,9 @@ void Substructure_StoneDrums ( HYSL_FLOAT DispTdT, StoneDrums_t *const Sub, HYSL
 	  sign = signum(deltaDisp*z_eval);
 	  Theta = Sub->gamma + Sub->beta*sign;
 	  Phi = A_new - pow(fabs(z_eval),Sub->n)*Theta*nu_new;
-	  
-	  vs_1 = Sub->vs0*(1.0 - exp(-Sub->p*e_new));
-	  vs_2 = (Sub->psi0 + Sub->deltaPsi*e_new)*(Sub->lambda + vs_1);
-	  zu = pow(1.0/((Sub->nu0 + Sub->deltaNu*e_new)*(Sub->beta + Sub->gamma)), 1.0/Sub->n);
-	  hze_exp = exp(-pow(z_eval*signum(deltaDisp) -Sub->q*zu, 2.0)/pow(vs_2, 2.0));
-	  hze = 1.0 - vs_1*hze_exp;
-	       
-	  fz_new = z_eval - Sub->z_old - hze*Phi/eta_new*deltaDisp;
-	  
+	  	       
+	  fz_new = z_eval - Sub->z_old - Phi/eta_new*deltaDisp;
+
 	  /* Evaluate function derivatives with respect to z_eval for the Newton-Rhapson scheme */
 	  e_new_ = (1.0 - Sub->alpha)*Sub->ko*deltaDisp;
 	  A_new_ = -Sub->deltaA*e_new_;
@@ -100,10 +94,8 @@ void Substructure_StoneDrums ( HYSL_FLOAT DispTdT, StoneDrums_t *const Sub, HYSL
 	  eta_new_ = Sub->deltaEta*e_new_;
 	  sign = signum(z_eval);
 	  Phi_ = A_new_ - Sub->n*pow(fabs(z_eval), Sub->n - 1.0)*sign*Theta*nu_new - pow(fabs(z_eval), Sub->n)*Theta*nu_new_;
-	  
-	  hze_ = deltaDisp*Sub->ko*Sub->p*Sub->vs0*exp(-pow(z_eval*signum(deltaDisp) - Sub->q*pow(1.0/((Sub->beta + Sub->gamma)*(Sub->nu0 + Sub->deltaNu*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)))), 1.0/Sub->n), 2.0)/(pow(Sub->lambda - Sub->vs0*(exp(-Sub->p*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0))) - 1.0), 2.0)*pow(Sub->psi0 + Sub->deltaPsi*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)), 2.0)))*exp(-Sub->p*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)))*(Sub->alpha - 1.0) - Sub->vs0*exp(-pow(z_eval*signum(deltaDisp) - Sub->q*pow(1.0/((Sub->beta + Sub->gamma)*(Sub->nu0 + Sub->deltaNu*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)))),1.0/Sub->n), 2.0)/(pow(Sub->lambda - Sub->vs0*(exp(-Sub->p*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0))) - 1.0), 2.0)*pow(Sub->psi0 + Sub->deltaPsi*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)), 2.0)))*(exp(-Sub->p*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0))) - 1.0)*((2*(signum(deltaDisp) - (Sub->deltaNu*deltaDisp*Sub->ko*Sub->q*(Sub->alpha - 1.0)*pow(1.0/((Sub->beta + Sub->gamma)*(Sub->nu0 + Sub->deltaNu*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)))),1.0/Sub->n - 1.0))/(Sub->n*(Sub->beta + Sub->gamma)*pow(Sub->nu0 + Sub->deltaNu*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)), 2.0)))*(z_eval*signum(deltaDisp) - Sub->q*pow(1.0/((Sub->beta + Sub->gamma)*(Sub->nu0 + Sub->deltaNu*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)))),1.0/Sub->n)))/(pow(Sub->lambda - Sub->vs0*(exp(-Sub->p*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0))) - 1.0), 2.0)*pow(Sub->psi0 + Sub->deltaPsi*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)), 2.0)) + (2*Sub->deltaPsi*deltaDisp*Sub->ko*(Sub->alpha - 1.0)*pow(z_eval*signum(deltaDisp) - Sub->q*pow(1.0/((Sub->beta + Sub->gamma)*(Sub->nu0 + Sub->deltaNu*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)))),1.0/Sub->n), 2.0))/(pow(Sub->lambda - Sub->vs0*(exp(-Sub->p*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0))) - 1.0), 2.0)*pow(Sub->psi0 + Sub->deltaPsi*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)),3)) + (2*deltaDisp*Sub->ko*Sub->p*Sub->vs0*exp(-Sub->p*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)))*(Sub->alpha - 1.0)*pow(z_eval*signum(deltaDisp) - Sub->q*pow(1.0/((Sub->beta + Sub->gamma)*(Sub->nu0 + Sub->deltaNu*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)))),1.0/Sub->n), 2.0))/(pow(Sub->lambda - Sub->vs0*(exp(-Sub->p*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0))) - 1.0),3.0)*pow(Sub->psi0 + Sub->deltaPsi*(Sub->e_old - deltaDisp*Sub->ko*z_eval*(Sub->alpha - 1.0)), 2.0)));
-	      
-	  fz_new_ = 1.0 - (hze_*Phi*eta_new + hze*Phi_*eta_new - hze*Phi*eta_new_)/pow(eta_new, 2.0)*deltaDisp;
+	  	      
+	  fz_new_ = 1.0 - (Phi_*eta_new - Phi*eta_new_)/pow(eta_new, 2.0)*deltaDisp;
 
 	  /* Perform a new step */
 	  z_new = z_eval - fz_new/fz_new_;
@@ -122,7 +114,7 @@ void Substructure_StoneDrums ( HYSL_FLOAT DispTdT, StoneDrums_t *const Sub, HYSL
 	  
 	  // Compute restoring force.
 	  *force = Sub->alpha*Sub->ko*DispTdT + (1.0 - Sub->alpha)*Sub->ko*z_eval;
-	  
+
 	  // Compute material degradation parameters.
 	  e_new = Sub->e_old + (1.0 - Sub->alpha)*Sub->ko*deltaDisp*z_eval;
 	  A_new = Sub->A0 - Sub->deltaA*e_new;
