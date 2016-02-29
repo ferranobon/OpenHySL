@@ -263,7 +263,7 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const A
 		    strcpy( Nodes_Exp[k].Description, Experimental->Description );
 		    k = k + 1;
 	       } else if ( i == SIM_BOUCWEN && CNodes->Sub[j].Type == SIM_BOUCWEN ){
-		    Nodes[k].Position = CNodes->Array[j] - 1;      /* 0-based index */
+		    Nodes_BoucWen[k].Position = CNodes->Array[j] - 1;      /* 0-based index */
 
 		    BoucWen = (BoucWen_t*) CNodes->Sub[j].SimStruct;
 		    Nodes_BoucWen[k].InitValues[0] = BoucWen->alpha;
@@ -287,7 +287,7 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const A
 
 		    k = k + 1;
 	       } else if ( i == SIM_STONEDRUMS && CNodes->Sub[j].Type == SIM_STONEDRUMS ){
-		    Nodes[k].Position = CNodes->Array[j] - 1;      /* 0-based index */
+		    Nodes_StoneDrum[k].Position = CNodes->Array[j] - 1;      /* 0-based index */
 
 		    StoneDrum = (StoneDrums_t*) CNodes->Sub[j].SimStruct;
 		    Nodes_StoneDrum[k].InitValues[0] = StoneDrum->alpha;
@@ -483,7 +483,7 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const A
 	       /* Create the dataset */
 	       dset = H5Dcreate ( group_id, "/Test Parameters/Substructures/Bouc Wen", memtype, space, H5P_DEFAULT,
 				  H5P_DEFAULT, H5P_DEFAULT);
-	       status = H5Dwrite ( dset, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Nodes_Newmark );
+	       status = H5Dwrite ( dset, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Nodes_BoucWen );
 	       if( status < 0 ){
 		    Print_Header( ERROR );
 		    fprintf( stderr, "Error writing to HDF5 file.\n" );
@@ -511,6 +511,7 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const A
 		    exit( EXIT_FAILURE );
 	       }
 	  } else if ((i == SIM_STONEDRUMS) && is_stonedrum ){
+
 	       memtype = H5Tcreate (H5T_COMPOUND, sizeof( HDF5_StoneDrum_t) );
 	       H5Tinsert( memtype, "Eq. column (0-based index)", HOFFSET( HDF5_StoneDrum_t, Position), H5T_NATIVE_INT );
 	       H5Tinsert( memtype, "Alpha", HOFFSET( HDF5_StoneDrum_t, InitValues[0]), H5T_NATIVE_HYSL_FLOAT );
@@ -538,7 +539,7 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const A
 	       /* Create the dataset */
 	       dset = H5Dcreate ( group_id, "/Test Parameters/Substructures/Stone Drum", memtype, space, H5P_DEFAULT,
 				  H5P_DEFAULT, H5P_DEFAULT);
-	       status = H5Dwrite ( dset, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Nodes_Newmark );
+	       status = H5Dwrite ( dset, memtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Nodes_StoneDrum );
 	       if( status < 0 ){
 		    Print_Header( ERROR );
 		    fprintf( stderr, "Error writing to HDF5 file.\n" );
@@ -605,10 +606,8 @@ void HDF5_CreateGroup_TimeIntegration( const hid_t hdf5_file, const AlgConst_t *
 			       (int) InitCnt->Order );
 	  status = H5LTset_attribute_string( hdf5_file, "Time Integration/Coupling force", "Units", "N" );
 
-	  HDF5_Create_Dataset( hdf5_file, "/Time Integration/TMD", (int) InitCnt->NStep, 3 );
-	  status = H5LTset_attribute_string( hdf5_file, "Time Integration/TMD", "Column 0: Acceleration", "m/s^2" );
-	  status = H5LTset_attribute_string( hdf5_file, "Time Integration/TMD", "Column 1: Velocity", "m/s" );
-	  status = H5LTset_attribute_string( hdf5_file, "Time Integration/TMD", "Column 2: Displacement", "m" );
+	  HDF5_Create_Dataset( hdf5_file, "/Time Integration/Bouc-Wen Forces", (int) InitCnt->NStep, (int) InitCnt->Order );
+	  status = H5LTset_attribute_string( hdf5_file, "/Time Integration/Bouc-Wen Forces", "Units", "N" );
      }
 
      /* If the PID is used, then store the values */
@@ -674,6 +673,32 @@ void HDF5_Store_TMD( const hid_t hdf5_file, const double *const Acc, const doubl
      status = H5Dclose( dataset_id );
      status = H5Sclose( memspace_id );
      status = H5Sclose( filespace_id );
+}
+
+void HDF5_Store_BoucWen( const hid_t hdf5_file, const CouplingNode_t *const CNodes, const int istep)
+{
+     int i;
+     hid_t   dataset_id, filespace_id, memspace_id;
+     herr_t  status;
+     hsize_t size[2], offset[2], dims[2];
+
+
+     size[0] = (hsize_t) istep; /* Num_Steps starts at 1 */
+     size[1] = (hsize_t) 3;
+
+     /* Create the data space for the dataset. */
+     dataset_id = H5Dopen( hdf5_file, "/Time Integration/TMD", H5P_DEFAULT );
+     H5Dextend( dataset_id, size );
+
+     filespace_id = H5Dget_space( dataset_id );
+     offset[0] = ((hsize_t) istep - 1);
+//     for (
+
+     status = H5Dwrite( dataset_id, H5T_NATIVE_HYSL_FLOAT, memspace_id, filespace_id, H5P_DEFAULT, TMD );
+
+     status = H5Dclose( dataset_id );
+     status = H5Sclose( memspace_id );
+     status = H5Sclose( filespace_id );     
 }
 
 void HDF5_Store_Time( const hid_t hdf5_file, const SaveTime_t *const Time )

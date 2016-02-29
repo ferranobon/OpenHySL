@@ -409,7 +409,7 @@ int main( int argc, char **argv ){
      Print_Header( INFO );
      printf( "Starting stepping process.\n" );
      while ( istep <= InitCnt.NStep ){
-
+	  printf("step: %d\n", istep );
 	  /* Calculate the effective force vector Fe = M*(a0*u + a2*v + a3*a) + C*(a1*u + a4*v + a5*a) */
 	  if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
 	       EffK_EffectiveForce( &M, &C, &DispT, &VelT, &AccT, &tempvec, InitCnt.a0, InitCnt.a1, InitCnt.a2,
@@ -541,7 +541,7 @@ int main( int argc, char **argv ){
 	       if( CNodes.Sub[i].Type == EXP_ADWIN ){
 #if _HDF5_
 		    ADwin_SaveData_HDF5( hdf5_file, (int) InitCnt.NStep, (int) InitCnt.NSubstep,
-					NUM_CHANNELS, Entry_Names, 90 );
+					 NUM_CHANNELS, Entry_Names, 90 );
 #endif
 	       }
 	  }

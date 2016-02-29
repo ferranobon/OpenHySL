@@ -396,7 +396,7 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 		    ftemp = NULL;
 		    ftemp = (HYSL_FLOAT *) calloc( (size_t) STONEDRUMS_NUMPARAM_INIT, sizeof( HYSL_FLOAT ) );
 
-		    for( j = 0; j < UHYDE_NUMPARAM_INIT; j++ ){
+		    for( j = 0; j < STONEDRUMS_NUMPARAM_INIT; j++ ){
 #if _FLOAT_
 			 fscanf( InFile, "%f", &ftemp[j] );
 #else
