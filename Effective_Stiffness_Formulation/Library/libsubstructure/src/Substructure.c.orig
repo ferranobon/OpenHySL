@@ -291,9 +291,9 @@ void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const Vec
 		    StoneDrums = (StoneDrums_t *) CNodes->Sub[i].SimStruct;
 		    
 		    if (StoneDrums->PrevDOF > 0){
-			 Substructure_StoneDrums( VecTdT_c[i] - VecTdT_c[Substructure_FindPosition(StoneDrums->PrevDOF, CNodes )],
+			 Substructure_StoneDrums( VecTdT_c[i] - VecTdT_c[Substructure_FindPosition(StoneDrums->PrevDOF, CNodes ) - 1],
 						  StoneDrums, &CoupForce_c[i] );
-			 //Substructure_StoneDrums( VecTdT_c[i], StoneDrums, &CoupForce_c[i] );
+			 Substructure_StoneDrums( VecTdT_c[i], StoneDrums, &CoupForce_c[i] );
 		    } else {
 			 Substructure_StoneDrums( VecTdT_c[i], StoneDrums, &CoupForce_c[i] );
 		    }
@@ -304,14 +304,11 @@ void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const Vec
 
 	  for( i = 0; i < (unsigned int) CNodes->Order; i ++ ){
 	       if ( CNodes->Sub[i].Type == SIM_STONEDRUMS ) {
-		    StoneDrums = (StoneDrums_t *) CNodes->Sub[i].SimStruct;
-		    if (StoneDrums->PrevDOF > 0){
-			 temp = Substructure_FindPosition( StoneDrums->PrevDOF, CNodes );
-			 //StoneDrums = (StoneDrums_t *) CNodes->Sub[i].SimStruct;
+		    if (StoneDrums->PrevDOF >= 0){
+			 temp = Substructure_FindPosition( StoneDrums->PrevDOF, CNodes ) - 1;
+			 StoneDrums = (StoneDrums_t *) CNodes->Sub[i].SimStruct;
 			 StoneDrums_Prev = (StoneDrums_t *) CNodes->Sub[temp].SimStruct;
-			 printf("CoupForce: %lE ", CoupForce_c[i]);
 			 CoupForce_c[temp] = StoneDrums_Prev->Result_Fc - CoupForce_c[i];
-			 printf("CoupForcePrev: %lE, Result fc %lE\n", StoneDrums_Prev->Result_Fc, CoupForce_c[temp]);
 		    }
 	       }
 	  }
@@ -347,7 +344,13 @@ void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const Vec
 	  case SIM_MEASURED:
 	       break;
 	  case SIM_STONEDRUMS:
+<<<<<<< HEAD
 	       StoneDrums->DispT = VecTdT_c[i];
+=======
+	       StoneDrums->Acc0 = StoneDrums->AccT; StoneDrums->AccT = StoneDrums->AccTdT;
+	       StoneDrums->Vel0 = StoneDrums->VelT; StoneDrums->VelT = StoneDrums->VelTdT;
+	       StoneDrums->Disp0 = StoneDrums->DispT; StoneDrums->DispT = VecTdT_c[i];
+>>>>>>> development
 	       break;
 	  }
      }

@@ -233,7 +233,7 @@ int main( int argc, char **argv ){
      MatrixVector_Create( InitCnt.Order, 1, &fc );
      if( CNodes.Order >= 1 ){
 	  MatrixVector_Create( CNodes.Order, 1, &fcprevsub );
-	  MatrixVector_Create( CNodes.Order, 1, &BoucWen_Forces );
+	  MatrixVector_Create( InitCnt.Order, 1, &BoucWen_Forces );
      }
      MatrixVector_Create( InitCnt.Order, 1, &fu );
 
