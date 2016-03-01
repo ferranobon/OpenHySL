@@ -304,11 +304,14 @@ void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const Vec
 
 	  for( i = 0; i < (unsigned int) CNodes->Order; i ++ ){
 	       if ( CNodes->Sub[i].Type == SIM_STONEDRUMS ) {
-		    if (StoneDrums->PrevDOF >= 0){
-			 temp = Substructure_FindPosition( StoneDrums->PrevDOF, CNodes ) - 1;
-			 StoneDrums = (StoneDrums_t *) CNodes->Sub[i].SimStruct;
+		    StoneDrums = (StoneDrums_t *) CNodes->Sub[i].SimStruct;
+		    if (StoneDrums->PrevDOF > 0){
+			 temp = Substructure_FindPosition( StoneDrums->PrevDOF, CNodes );
+			 //StoneDrums = (StoneDrums_t *) CNodes->Sub[i].SimStruct;
 			 StoneDrums_Prev = (StoneDrums_t *) CNodes->Sub[temp].SimStruct;
+			 printf("CoupForce: %lE ", CoupForce_c[i]);
 			 CoupForce_c[temp] = StoneDrums_Prev->Result_Fc - CoupForce_c[i];
+			 printf("CoupForcePrev: %lE, Result fc %lE\n", StoneDrums_Prev->Result_Fc, CoupForce_c[temp]);
 		    }
 	       }
 	  }
