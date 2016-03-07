@@ -194,7 +194,8 @@ int main (int argc, char **argv)
      /* Sanity check. No double entries */
      for (i = 0; i < NumJointSub*3 -1; i++ ){                    
 	  if( SubEntries[i].EqNum == SubEntries[i+1].EqNum ){
-	       printf("Critical Error\n");
+	       printf("Critical Error: Entry %d has the same equation assigned (Eq %d) as entry %d\n", i, SubEntries[i].EqNum, i+1 );
+	       exit( EXIT_FAILURE );
 	  }
      }
 
@@ -240,7 +241,6 @@ void Read_TXE_File (FILE *TheFile, const int numEntries, JointInfo_t *const Info
      
      fgets( Header, (size_t) 100, TheFile );
      while( fscanf( TheFile, "%i %i %i %i %i %i %i", &Info[i].JointID, &Info[i].x, &Info[i].y, &Info[i].z, &Info[i].rotx, &Info[i].roty, &Info[i].rotz ) != EOF ){
-	  //printf("Read Joint %i %i %i %i %i %i %i\n", Info[i].JointID, Info[i].x, Info[i].y, Info[i].z, Info[i].rotx, Info[i].roty, Info[i].rotz );
 	  i = i + 1;
      }
      
@@ -257,15 +257,15 @@ void Generate_SubEntries ( const int numEntries, const JointInfo_t const* Info, 
 	  SubEntries[NumJointSub/3 + i].EqNum = Info[pos].y;
 	  SubEntries[NumJointSub*2/3 + i].EqNum = Info[pos].z;
 	  if (SubEntries[i].EqNum == 0 || SubEntries[i].EqNum == -1){
-//	       printf("Error assigning Eq. num to joint entry %d since %d\n", Sub[i].JointID, Info[pos].JointID);
+	       printf("Error assigning Eq. num to joint entry %d since %d\n", Sub[i].JointID, Info[pos].JointID);
 	       exit(EXIT_FAILURE);
 	  }
 	  if (SubEntries[NumJointSub/3 + i].EqNum == 0 || SubEntries[NumJointSub/3 + i].EqNum == -1){
-//	       printf("Error assigning Eq. num to joint entry %d since %d\n", Sub[i].JointID, Info[pos].JointID);
+	       printf("Error assigning Eq. num to joint entry %d since %d\n", Sub[i].JointID, Info[pos].JointID);
 	       exit(EXIT_FAILURE);
 	  }
 	  if (SubEntries[NumJointSub*2/3 + i].EqNum == 0 || SubEntries[NumJointSub*2/3 + i].EqNum == -1){
-//	       printf("Error assigning Eq. num to joint entry %d since %d\n", Sub[i].JointID, Info[pos].JointID);
+	       printf("Error assigning Eq. num to joint entry %d since %d\n", Sub[i].JointID, Info[pos].JointID);
 	       exit(EXIT_FAILURE);
 	  }	    
 	  if ( i % NumDrums == 0 ){
@@ -287,7 +287,6 @@ void Generate_SubEntries ( const int numEntries, const JointInfo_t const* Info, 
 	  SubEntries[NumJointSub/3 + i].Drum = Drum;
 	  SubEntries[NumJointSub*2/3 + i].Column = Column;
 	  SubEntries[NumJointSub*2/3 + i].Drum = Drum;
-//	  printf("Eq number %i has as previous %i.\n", SubEntries[i].EqNum, SubEntries[i].PrevEqNum );
      }	  
 }
 
@@ -361,8 +360,33 @@ void Print_CoupleNodes ( const int NumJointSub, const int NumDrums, const SubEnt
 
      fprintf( TheFile, "%d\n", NumJointSub );
      
-     for (i = 0; i < NumJointSub; i++ ){	  
-	  fprintf(TheFile, "Sim_StoneDrums, 1 %d, 12 %d 1.01 1.0 0.5 0.5 2.0 1.0 0.0 1.0 0.0 1.0 0.0, Column: %d, Drum: %d;\n", SubEntries[i].EqNum, SubEntries[i].PrevEqNum, SubEntries[i].Column, SubEntries[i].Drum);
+     for (i = 0; i < NumJointSub; i++ ){
+	  switch  (SubEntries[i].Drum){
+	  case 1:
+	       fprintf(TheFile, "Sim_StoneDrums, 1 %d, 12 %d 1.01 1.0 0.5 0.5 2.0 1.0 0.0 1.0 0.0 1.0 0.0, Column: %d, Drum: %d;\n", SubEntries[i].EqNum, SubEntries[i].PrevEqNum, SubEntries[i].Column, SubEntries[i].Drum);
+	       break;
+	  case 2:
+	       fprintf(TheFile, "Sim_StoneDrums, 1 %d, 12 %d 1.01 1.0 0.5 0.5 2.0 1.0 0.0 1.0 0.0 1.0 0.0, Column: %d, Drum: %d;\n", SubEntries[i].EqNum, SubEntries[i].PrevEqNum, SubEntries[i].Column, SubEntries[i].Drum);
+	       break;
+	  case 3:
+	       fprintf(TheFile, "Sim_StoneDrums, 1 %d, 12 %d 1.01 1.0 0.5 0.5 2.0 1.0 0.0 1.0 0.0 1.0 0.0, Column: %d, Drum: %d;\n", SubEntries[i].EqNum, SubEntries[i].PrevEqNum, SubEntries[i].Column, SubEntries[i].Drum);
+	       break;
+	  case 4:
+	       fprintf(TheFile, "Sim_StoneDrums, 1 %d, 12 %d 1.01 1.0 0.5 0.5 2.0 1.0 0.0 1.0 0.0 1.0 0.0, Column: %d, Drum: %d;\n", SubEntries[i].EqNum, SubEntries[i].PrevEqNum, SubEntries[i].Column, SubEntries[i].Drum);
+	       break;
+	  case 5:
+	       fprintf(TheFile, "Sim_StoneDrums, 1 %d, 12 %d 1.01 1.0 0.5 0.5 2.0 1.0 0.0 1.0 0.0 1.0 0.0, Column: %d, Drum: %d;\n", SubEntries[i].EqNum, SubEntries[i].PrevEqNum, SubEntries[i].Column, SubEntries[i].Drum);
+	       break;
+	  case 6:
+	       fprintf(TheFile, "Sim_StoneDrums, 1 %d, 12 %d 1.01 1.0 0.5 0.5 2.0 1.0 0.0 1.0 0.0 1.0 0.0, Column: %d, Drum: %d;\n", SubEntries[i].EqNum, SubEntries[i].PrevEqNum, SubEntries[i].Column, SubEntries[i].Drum);
+	       break;
+	  case 7:
+	       fprintf(TheFile, "Sim_StoneDrums, 1 %d, 12 %d 1.01 1.0 0.5 0.5 2.0 1.0 0.0 1.0 0.0 1.0 0.0, Column: %d, Drum: %d;\n", SubEntries[i].EqNum, SubEntries[i].PrevEqNum, SubEntries[i].Column, SubEntries[i].Drum);
+	       break;
+	  default:
+	       printf("Drum %d not recognised. It should be between 1 and 7.\n", SubEntries[i].Drum);
+	       exit(EXIT_FAILURE);
+	  }
      }
 };
 
