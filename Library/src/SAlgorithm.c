@@ -19,7 +19,6 @@
 #include "GainMatrix.h"
 #include "Substructure.h"
 #include "Substructure_Experimental.h"
-#include "Substructure_StoneDrums.h"
 #include "Substructure_Auxiliary.h"  /* For Substructure_VectorXm(), Substructure_VectorXc(), ... */
 
 #include "Definitions.h"
@@ -61,7 +60,7 @@ const char *Entry_Names[NUM_CHANNELS] = { "Sub-step",
 int main( int argc, char **argv ){
 
      unsigned int istep, i;
-     double temp1, temp2, temp3, done = 1.0, dzero = 0.0;
+     
      AlgConst_t InitCnt;
      const char *FileConf;
 
@@ -72,8 +71,10 @@ int main( int argc, char **argv ){
      /* NETLIB Variables */
      int incx, incy;
      Scalars_t Constants;
-     
-     HYSL_FLOAT *AccAll, *VelAll, *DispAll;
+
+     HYSL_FLOAT *AccAll1, *VelAll1, *DispAll1;
+     HYSL_FLOAT *AccAll2, *VelAll2, *DispAll2;
+     HYSL_FLOAT *AccAll3, *VelAll3, *DispAll3;
 
      MatrixVector_t M, C, K;               /* Mass, Damping and Stiffness matrices */
      MatrixVector_t Keinv;
@@ -88,11 +89,10 @@ int main( int argc, char **argv ){
      MatrixVector_t VelT, VelTdT;
      MatrixVector_t AccT, AccTdT;
 
-     MatrixVector_t LoadVectorForm, LoadTdT, LoadTdT1;
+     MatrixVector_t LoadVectorForm1, LoadVectorForm2, LoadVectorForm3, LoadTdT, LoadTdT1;
 
      MatrixVector_t fc, fcprevsub;
      MatrixVector_t fu;
-     MatrixVector_t BoucWen_Forces;
 
      MatrixVector_t ErrCompT, ErrCompTdT;
 
@@ -107,8 +107,6 @@ int main( int argc, char **argv ){
      CouplingNode_t CNodes;
      SaveTime_t     Time;
 
-     StoneDrums_t *StoneDrum;
-
      /* Options */
      int Selected_Option;
      struct option long_options[] = {
@@ -122,7 +120,7 @@ int main( int argc, char **argv ){
      printf( "************************************************************\n" );
      printf( "*                                                          *\n" );
      printf( "*  This is Dorka's substructure algorithm as programed by  *\n" );
-     printf( "* Ferran Obón Santacana. Version alpha 0.5 'Heaven's Door' *\n" );
+     printf( "* Ferran Obón Santacana. Version alpha 0.9 'Heaven's Door' *\n" );
      printf( "*                                                          *\n" );
      printf( "************************************************************\n\n" );
      /* Set de default value for the configuration file */
@@ -164,9 +162,15 @@ int main( int argc, char **argv ){
 
      /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will be used
       * during the test */
-     AccAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     VelAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     DispAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     AccAll1 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     VelAll1 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     DispAll1 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     AccAll2 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     VelAll2 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     DispAll2 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     AccAll3 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     VelAll3 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     DispAll3 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
      
      /* Initialise the matrices and vectors that will be used in the Time Integration process */
      if( ((!InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (InitCnt.Use_Sparse && !InitCnt.Read_Sparse) ||
@@ -201,8 +205,11 @@ int main( int argc, char **argv ){
 
      if( CNodes.Order >= 1 ){
 	  MatrixVector_Create( CNodes.Order, CNodes.Order, &Keinv_c );
-	  MatrixVector_Create( InitCnt.Order - CNodes.Order, CNodes.Order, &Keinv_m );
-	  if (MultipleTypes && (CNodes.OrderADwin >= 1)){
+	  if(InitCnt.Order - CNodes.Order != 0){
+	       MatrixVector_Create( InitCnt.Order - CNodes.Order, CNodes.Order, &Keinv_m );
+	  }
+	  
+	  if (CNodes.OrderADwin >= 1){
 	       MatrixVector_Create( CNodes.OrderADwin, CNodes.OrderADwin, &KeinvADwin_c );
 	  }
      }
@@ -215,7 +222,9 @@ int main( int argc, char **argv ){
 
      if( CNodes.Order >= 1 ){
 	  MatrixVector_Create( CNodes.Order, 1, &DispTdT0_c );
-	  MatrixVector_Create( InitCnt.Order-CNodes.Order, 1, &DispTdT0_m );
+	  if( InitCnt.Order - CNodes.Order != 0){
+	       MatrixVector_Create( InitCnt.Order-CNodes.Order, 1, &DispTdT0_m );
+	  }
      }
 
      MatrixVector_Create( InitCnt.Order, 1, &VelT );
@@ -226,14 +235,15 @@ int main( int argc, char **argv ){
 
      MatrixVector_Create( InitCnt.Order, 1, &EffT );
 
-     MatrixVector_Create( InitCnt.Order, 1, &LoadVectorForm );
+     MatrixVector_Create( InitCnt.Order, 1, &LoadVectorForm1 );
+     MatrixVector_Create( InitCnt.Order, 1, &LoadVectorForm2 );
+     MatrixVector_Create( InitCnt.Order, 1, &LoadVectorForm3 );
      MatrixVector_Create( InitCnt.Order, 1, &LoadTdT );
      MatrixVector_Create( InitCnt.Order, 1, &LoadTdT1 );
 
      MatrixVector_Create( InitCnt.Order, 1, &fc );
      if( CNodes.Order >= 1 ){
 	  MatrixVector_Create( CNodes.Order, 1, &fcprevsub );
-	  MatrixVector_Create( InitCnt.Order, 1, &BoucWen_Forces );
      }
      MatrixVector_Create( InitCnt.Order, 1, &fu );
 
@@ -296,9 +306,11 @@ int main( int argc, char **argv ){
      } else assert(0);
 
      if ( !InitCnt.Read_LVector ){
-	  InputLoad_Generate_LoadVectorForm( InitCnt.ExcitedDOF, &LoadVectorForm );
+	  InputLoad_Generate_LoadVectorForm( InitCnt.ExcitedDOF, &LoadVectorForm1 );
      }  else {
-	  MatrixVector_FromFile_MM( InitCnt.FileLV, &LoadVectorForm );
+	  MatrixVector_FromFile_MM( InitCnt.FileLV1, &LoadVectorForm1 );
+	  MatrixVector_FromFile_MM( InitCnt.FileLV2, &LoadVectorForm2 );
+	  MatrixVector_FromFile_MM( InitCnt.FileLV3, &LoadVectorForm3 );
      }
 
      /* Calculate damping matrix using Rayleigh. C = alpha*M + beta*K */
@@ -341,13 +353,13 @@ int main( int argc, char **argv ){
 	  if( !InitCnt.Use_Packed ){
 	       Substructure_MatrixXc( &Keinv, &CNodes, &Keinv_c );
 	       Substructure_MatrixXcm( &Keinv, &CNodes, &Keinv_m );
-	       if( MultipleTypes && (CNodes.OrderADwin >= 1)){
+	       if( CNodes.OrderADwin >= 1){
 		    Substructure_MatrixXc_ADwin( &Keinv, &CNodes, &KeinvADwin_c );
 	       }
 	  } else {
 	       Substructure_MatrixXc_PS( &Keinv, &CNodes, &Keinv_c );
 	       Substructure_MatrixXcm_PS( &Keinv, &CNodes, &Keinv_m );
-	       if( MultipleTypes && (CNodes.OrderADwin >= 1)){
+	       if( CNodes.OrderADwin >= 1){
 		    Substructure_MatrixXc( &Keinv, &CNodes, &KeinvADwin_c );
 	       }
 	  }
@@ -364,15 +376,20 @@ int main( int argc, char **argv ){
 	       }
 	  }
      }
+     
      /* Read the earthquake data from a file */
-     Algorithm_ReadDataEarthquake( InitCnt.NStep, InitCnt.FileData, InitCnt.Scale_Factor, AccAll,
-				   VelAll, DispAll );
+     Algorithm_ReadDataEarthquake( InitCnt.NStep, InitCnt.FileData1, InitCnt.Scale_Factor, AccAll1,
+				   VelAll1, DispAll1 );
+     Algorithm_ReadDataEarthquake( InitCnt.NStep, InitCnt.FileData2, InitCnt.Scale_Factor, AccAll2,
+				   VelAll2, DispAll2 );
+     Algorithm_ReadDataEarthquake( InitCnt.NStep, InitCnt.FileData3, InitCnt.Scale_Factor, AccAll3,
+				   VelAll3, DispAll3 );
 
      /* Open Output file. If the file cannot be opened, the program will exit, since the results cannot be
       * stored. */
 #if _HDF5_
      hdf5_file = HDF5_CreateFile( Concatenate_Strings( 2, InitCnt.FileOutput, ".h5" ) );
-     HDF5_CreateGroup_Parameters( hdf5_file, &InitCnt, &CNodes, AccAll, VelAll, DispAll );
+     HDF5_CreateGroup_Parameters( hdf5_file, &InitCnt, &CNodes, AccAll1, VelAll1, DispAll1, AccAll2, VelAll2, DispAll2, AccAll3, VelAll3, DispAll3 );
      HDF5_CreateGroup_TimeIntegration( hdf5_file, &InitCnt );
 #endif
 
@@ -383,8 +400,8 @@ int main( int argc, char **argv ){
      /* Calculate the input load */
      istep = 1;
      if( InitCnt.Use_Absolute_Values ){
-	  InputLoad_Apply_LoadVectorForm( &LoadVectorForm, DispAll[istep - 1], &Disp );
-	  InputLoad_Apply_LoadVectorForm( &LoadVectorForm, VelAll[istep - 1], &Vel );
+	  InputLoad_Apply_LoadVectorForm( &LoadVectorForm1, &LoadVectorForm2, &LoadVectorForm3, DispAll1[istep - 1], DispAll2[istep - 1], DispAll3[istep - 1], &Disp );
+	  InputLoad_Apply_LoadVectorForm( &LoadVectorForm1, &LoadVectorForm2, &LoadVectorForm3, VelAll1[istep - 1], VelAll2[istep - 1], VelAll3[istep - 1], &Vel );
 
 	  if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
 	       InputLoad_AbsValues( &K, &C, &Disp, &Vel, &LoadTdT );
@@ -396,7 +413,7 @@ int main( int argc, char **argv ){
 #endif
 	  } else assert(0);
      } else {
-	  InputLoad_Apply_LoadVectorForm( &LoadVectorForm, AccAll[istep - 1], &Acc );
+	  InputLoad_Apply_LoadVectorForm( &LoadVectorForm1, &LoadVectorForm2, &LoadVectorForm3, AccAll1[istep - 1], AccAll2[istep - 1], AccAll3[istep - 1], &Acc );
 
 	  if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
 	       InputLoad_RelValues( &M, &Acc, &LoadTdT );
@@ -449,8 +466,8 @@ int main( int argc, char **argv ){
 					      fc.Array );
 	       } else {
 		    Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep,
-					      AccAll[istep-1], InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes,
-					      DispTdT.Array, fcprevsub.Array, fc.Array );
+					      AccAll1[istep-1], InitCnt.NSubstep,
+					      InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array, fcprevsub.Array, fc.Array );
 	       }
 	  }
 
@@ -458,8 +475,8 @@ int main( int argc, char **argv ){
 	  if ( istep < InitCnt.NStep ){
 	       if( InitCnt.Use_Absolute_Values ){
 		    /* Copy the diagonal elements of M */
-		    InputLoad_Apply_LoadVectorForm( &LoadVectorForm, DispAll[istep], &Disp );
-		    InputLoad_Apply_LoadVectorForm( &LoadVectorForm, VelAll[istep], &Vel );
+		    InputLoad_Apply_LoadVectorForm( &LoadVectorForm1, &LoadVectorForm2, &LoadVectorForm3, DispAll1[istep], DispAll2[istep], DispAll3[istep], &Disp );
+		    InputLoad_Apply_LoadVectorForm( &LoadVectorForm1, &LoadVectorForm2, &LoadVectorForm3, VelAll1[istep], VelAll2[istep], VelAll3[istep], &Vel );
 
 		    if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
 			 InputLoad_AbsValues( &K, &C, &Disp, &Vel, &LoadTdT1 );
@@ -471,7 +488,8 @@ int main( int argc, char **argv ){
 #endif
 		    } else assert(0);
 	       } else {
-		    InputLoad_Apply_LoadVectorForm( &LoadVectorForm, AccAll[istep], &Acc );
+		    InputLoad_Apply_LoadVectorForm( &LoadVectorForm1, &LoadVectorForm2, &LoadVectorForm3, AccAll1[istep], AccAll2[istep], AccAll3[istep], &Acc );
+		    
 		    if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
 			 InputLoad_RelValues( &M, &Acc, &LoadTdT1 );
 		    } else if ( !InitCnt.Use_Sparse && InitCnt.Use_Packed ){
@@ -517,17 +535,6 @@ int main( int argc, char **argv ){
 	  /* Save the result in a HDF5 file format */
 #if _HDF5_
 	  HDF5_Store_TimeHistoryData( hdf5_file, &AccTdT, &VelTdT, &DispTdT, &fc, &fu, (int) istep, &InitCnt );
-
-	  /* Store the BoucWen link forces */
-#pragma omp parallel for
-	  for (i = 0; i < CNodes.Order; i++){
-	       if( CNodes.Sub[i].Type = SIM_STONEDRUMS ){
-		    StoneDrum = (StoneDrums_t *) CNodes.Sub[i].SimStruct;
-		    BoucWen_Forces.Array[CNodes.Array[i] - 1] = StoneDrum->Result_Fc;
-	       }
-	  }
-	       
-	  HDF5_Store_BoucWen( hdf5_file, &BoucWen_Forces, (int) istep);
 #else
 	  
 #endif
@@ -551,17 +558,13 @@ int main( int argc, char **argv ){
 
 #if _ADWIN_
      /* Save the data in ADwin into the HDF5 File */
-     if( CNodes.Order >= 1 ){
-	  for( i = 0; i < (unsigned int) CNodes.Order; i++ ){
-	       if( CNodes.Sub[i].Type == EXP_ADWIN ){
+          if( CNodes.OrderADwin >= 1 ){
 #if _HDF5_
-		    ADwin_SaveData_HDF5( hdf5_file, (int) InitCnt.NStep, (int) InitCnt.NSubstep,
+	  ADwin_SaveData_HDF5( hdf5_file, (int) InitCnt.NStep, (int) InitCnt.NSubstep,
 					 NUM_CHANNELS, Entry_Names, 90 );
-#endif
-	       }
-	  }
+#endif // _HDF5_
      }
-#endif
+#endif // _ADWIN_
 
 #if _HDF5_
      HDF5_CloseFile( &hdf5_file );
@@ -571,9 +574,15 @@ int main( int argc, char **argv ){
      Algorithm_Destroy( &InitCnt );
 
      /* Free the memory */
-     free( AccAll );
-     free( VelAll );
-     free( DispAll );
+     free( AccAll1 );
+     free( VelAll1 );
+     free( DispAll1 );
+     free( AccAll2 );
+     free( VelAll2 );
+     free( DispAll2 );
+     free( AccAll3 );
+     free( VelAll3 );
+     free( DispAll3 );
 
      /* Free Time string */
      free( Time.Date_time );
@@ -605,7 +614,7 @@ int main( int argc, char **argv ){
      if( CNodes.Order >= 1 ){
 	  MatrixVector_Destroy( &Keinv_c );
 	  MatrixVector_Destroy( &Keinv_m );
-	  if (MultipleTypes && (CNodes.OrderADwin >= 1)){
+	  if (CNodes.OrderADwin >= 1){
 	       MatrixVector_Destroy( &KeinvADwin_c );
 	  }
      }
@@ -616,7 +625,9 @@ int main( int argc, char **argv ){
      MatrixVector_Destroy( &DispTdT0 );
      if( CNodes.Order >= 1 ){
 	  MatrixVector_Destroy( &DispTdT0_c );
-	  MatrixVector_Destroy( &DispTdT0_m );
+	  if (CNodes.Order - DispTdT.Rows != 0){
+	       MatrixVector_Destroy( &DispTdT0_m );
+	  };
      }
      MatrixVector_Destroy( &DispTdT );
 
@@ -626,7 +637,10 @@ int main( int argc, char **argv ){
      MatrixVector_Destroy( &AccT );
      MatrixVector_Destroy( &AccTdT );
 
-     MatrixVector_Destroy( &LoadVectorForm );
+     MatrixVector_Destroy( &LoadVectorForm1 );
+     MatrixVector_Destroy( &LoadVectorForm2 );
+     MatrixVector_Destroy( &LoadVectorForm3 );
+     
      MatrixVector_Destroy( &LoadTdT );
      MatrixVector_Destroy( &LoadTdT1 );
 
@@ -635,7 +649,6 @@ int main( int argc, char **argv ){
      MatrixVector_Destroy( &fc );
      if( CNodes.Order >= 1 ){
 	  MatrixVector_Destroy( &fcprevsub );
-	  MatrixVector_Destroy( &BoucWen_Forces );
      }
      MatrixVector_Destroy( &fu );
 

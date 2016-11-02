@@ -8,11 +8,12 @@ void print_help( char **argv, const struct option *long_opts );
 int main ( int argc, char **argv )
 {
 
-     int i, j, Num_Eqs, nnz;
-     int Info[7], *DOF_Table;
-     int *LVector;
+     int i, Num_Eqs, nnz;
+     int Info[7];
+     double DOF_Table[7];
+     double *LVector;
 
-     char Header[100], *FullString, Temp[1];
+     char Header[100], *FullString;
      FILE *InFile, *OutFile;
      int rc, idx;
 
@@ -61,34 +62,11 @@ int main ( int argc, char **argv )
 	       break;
 	  case 'd':
 	       FullString = strdup( optarg );
-	       strncpy( Temp, &FullString[0], (size_t) 1 );
-	       DOF_Table = (int *) calloc( (size_t) (atoi(Temp)+1), sizeof(int) );
-	       DOF_Table[0] = atoi( Temp );
-	       if( DOF_Table[0] <= 0 || DOF_Table[0] > 6 ){
-		    fprintf( stderr, "The input number of degrees of freedom must be between 1 and 6.\n" );
-		    fprintf( stderr, "Exiting.\n" );
-	       }
 
-	       if( strlen(FullString) != (size_t)(DOF_Table[0]*2 + 1) ){
-		    fprintf( stderr, "Invalid desired DOF format. The correct format should be something like \n" );
-		    fprintf( stderr, "\"3 1 0 0\"\t For a 3-degrees of freedom system where only x direction is desired or, \n" );
-		    fprintf( stderr, "\"6 1 0 0 1 0 0\"\t For a 6-degrees of freedom system where only x direction and x rotation are desired\n" );
+	       sscanf( FullString, "%lE %lE %lE %lE %lE %lE %lE", &DOF_Table[0], &DOF_Table[1], &DOF_Table[2], &DOF_Table[3], &DOF_Table[4], &DOF_Table[5], &DOF_Table[6]);
+	       if( DOF_Table[0] <= 0.0 || DOF_Table[0] > 6.0 ){
+		    fprintf( stderr, "The input number of degrees of freedom must be between 1 and 6 and not %lE\n", DOF_Table[0] );
 		    fprintf( stderr, "Exiting.\n" );
-		    exit( EXIT_FAILURE );
-	       }
-
-	       j = 1;
-	       for( i = 1; i < strlen( FullString ); i++ ){
-		    if ( FullString[i] != ' ' ){
-			 strncpy( Temp, &FullString[i], (size_t) 1 );
-			 DOF_Table[j] = atoi( Temp );
-			 if( DOF_Table[j] != 0 && DOF_Table[j] != 1 ){
-			      fprintf( stderr, "Invalid desired DOF format. The only accepted values are 0 and 1.\n" );
-			      fprintf( stderr, "Exiting.\n");
-			      exit( EXIT_FAILURE );
-			 }
-			 j = j + 1;
-		    }
 	       }
 
 	       /* Release the memory */
@@ -109,12 +87,12 @@ int main ( int argc, char **argv )
 
      fgets( Header, (size_t) 100, InFile );
 
-     LVector = (int *) calloc( (size_t) Num_Eqs, sizeof(int) );
+     LVector = (double *) calloc( (size_t) Num_Eqs, sizeof(double) );
      nnz = 0;
      while( fscanf( InFile, "%i %i %i %i %i %i %i", &Info[0], &Info[1], &Info[2], &Info[3], &Info[4], &Info[5], &Info[6] ) != EOF ){
 	  for( i = 1; i <= DOF_Table[0]; i++ ){
-	       if( Info[i] != 0 && DOF_Table[i] == 1){
-		    LVector[Info[i] - 1] = 1;
+	       if( Info[i] > 0 && DOF_Table[i] > 0.0){
+		    LVector[Info[i] - 1] = DOF_Table[i];
 		    nnz = nnz + 1;
 	       }
 	  }
@@ -125,8 +103,8 @@ int main ( int argc, char **argv )
      fprintf( OutFile, "%i 1 %i\n", Num_Eqs, nnz );
 
      for( i = 0; i < Num_Eqs; i++ ){
-	  if( LVector[i] == 1 ){
-	       fprintf( OutFile, "%i 1 1.0\n", i + 1 );
+	  if( LVector[i] > 0.0 ){
+	       fprintf( OutFile, "%i 1 %lf\n", i + 1, LVector[i] );
 	  }
      }
 

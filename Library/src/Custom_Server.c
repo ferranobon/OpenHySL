@@ -24,8 +24,8 @@
 
 int main( int argc, char **argv )
 {
-     int i;
-     bool Called_Sub;
+     int i, pos
+	  ;
      const char* FileConf;
      AlgConst_t InitCnt;
      CouplingNode_t CNodes;
@@ -44,10 +44,11 @@ int main( int argc, char **argv )
      int Length;
 
      HYSL_FLOAT *IGain;
-     HYSL_FLOAT *DispTdT0_c, *DispTdT_c;
+     bool Called_Sub = false, Called_ADwin = false;
+     HYSL_FLOAT *Recv = NULL, *Recv_ADwin = NULL, *VecTdT0_c_ADwin = NULL;
+     HYSL_FLOAT *Send = NULL;
+     HYSL_FLOAT *VecTdT0_c;
      HYSL_FLOAT *fcprev, *fc;
-     HYSL_FLOAT *Send;
-     HYSL_FLOAT *Recv;
 
      HYSL_FLOAT GAcc = 0.0;
 
@@ -144,8 +145,7 @@ int main( int argc, char **argv )
      /* Dynamically allocate memory */
      IGain = (HYSL_FLOAT *) calloc( (size_t) InitCnt.OrderSub*(size_t) InitCnt.OrderSub, sizeof( HYSL_FLOAT ) );
 
-     DispTdT0_c = (HYSL_FLOAT *) calloc( (size_t) InitCnt.OrderSub, sizeof( HYSL_FLOAT ) );
-     DispTdT_c = (HYSL_FLOAT *) calloc( (size_t) InitCnt.OrderSub, sizeof( HYSL_FLOAT ) );
+     VecTdT0_c = (HYSL_FLOAT *) calloc( (size_t) InitCnt.OrderSub, sizeof( HYSL_FLOAT ) );
 
      fcprev = (HYSL_FLOAT *) calloc( (size_t) InitCnt.OrderSub, sizeof( HYSL_FLOAT ) );
      fc = (HYSL_FLOAT *) calloc( (size_t) InitCnt.OrderSub, sizeof( HYSL_FLOAT ) );
@@ -196,14 +196,13 @@ int main( int argc, char **argv )
 	  }
   
 	  for( i = 0; i < CNodes.Order; i++ ){
-	       DispTdT0_c[i] = Recv[i];
+	       VecTdT0_c[i] = Recv[i];
 	  }
 	  GAcc = Recv[CNodes.Order];
 
-	  if ( DispTdT0_c[0] == -9999.0 ){
+	  if ( VecTdT0_c[0] == -9999.0 ){
 	       Is_Not_Finished = 0;
 	  } else {
-	       /* Perform the substepping process */
 	       for( i = 0; i < CNodes.Order; i++ ){
 		    switch ( CNodes.Sub[i].Type ){
 		    case SIM_EXACT_MDOF:
@@ -213,32 +212,59 @@ int main( int argc, char **argv )
 			 /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
 			  * in the same routine.*/
 		    case SIM_EXACT_ESP:
+			 /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
+			  * in the same routine.*/
+		    case SIM_NEWMARK:
+			 /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
+			  * in the same routine.*/
+		    case SIM_BOUCWEN:
+			 /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
+			  * in the same routine.*/
 		    case SIM_UHYDE:
-		    /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
-		     * in the same routine.*/
+			 /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
+			  * in the same routine.*/
+		    case SIM_STONEDRUMS:
+			 /* This is the same case as SIM_MEASURED. All the simulated substructures are treated together
+			  * in the same routine.*/
 		    case SIM_MEASURED:
 			 /* Call the Simulate_Substructures() function only once. All the simulated substructures are
 			  * handled together in this routine */
 			 if( !Called_Sub ){
-			      Substructure_Simulate( IGain, DispTdT0_c, GAcc, InitCnt.NSubstep, InitCnt.DeltaT_Sub,
-						     &CNodes, DispTdT_c, fcprev, fc );
+			      Substructure_Simulate( IGain, VecTdT0_c, GAcc, InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, &Recv[0],
+						     &Recv[CNodes.Order], &Recv[2*CNodes.Order] );
 			      Called_Sub = true;
 			 }
 			 break;
 #if _ADWIN_
 		    case EXP_ADWIN:
 			 /* Tell ADwin to perform the substepping process */
-			 ADwin_Substep( DispTdT0_c, (unsigned int) CNodes.Order, 0.75, DispTdT_c, fcprev, fc );
+			 if( !Called_ADwin ){
+			      ADwin_Substep_Pre( VecTdT0_c_ADwin, (unsigned int) CNodes.OrderADwin );
+			      Called_ADwin = true;
+			 }
 			 break;
 #endif
 		    }
 	       }
 
-	       /* Compose the data to send */
-	       for (i = 0; i < InitCnt.OrderSub; i++) {
-		    Send[i] = DispTdT_c[i];
-		    Send[i+InitCnt.OrderSub] = fcprev[i];
-		    Send[i+2*InitCnt.OrderSub] = fc[i];
+#if _ADWIN_
+	       if( CNodes.OrderADwin > 0 ){
+		    ADwin_Substep_Post( (unsigned int) CNodes.OrderADwin, 75.0, &Recv_ADwin[0], &Recv_ADwin[CNodes.OrderADwin], &Recv_ADwin[2*CNodes.OrderADwin] );
+	       }
+#endif
+
+	       pos = 0;
+	       for ( i = 0; i < CNodes.Order; i++ ){
+		    if (CNodes.Sub[i].Type == EXP_ADWIN){
+			 Send[i] = Recv_ADwin[pos];
+			 Send[i + InitCnt.OrderSub] = Recv_ADwin[CNodes.OrderADwin + pos];
+			 Send[i + 2*InitCnt.OrderSub] = Recv_ADwin[2*CNodes.OrderADwin + pos];
+			 pos = pos + 1;
+		    } else {
+			 Send[i] = Recv[i];
+			 Send[i + InitCnt.OrderSub]= Recv[CNodes.Order + i];
+			 Send[i + 2*InitCnt.OrderSub] = Recv[2*CNodes.Order + i];
+		    }
 	       }
 
 	       /* Send the response */
@@ -266,8 +292,7 @@ int main( int argc, char **argv )
      /* Free the dinamically allocated memory */
      free( IGain );
      
-     free( DispTdT0_c );
-     free( DispTdT_c );
+     free( VecTdT0_c );
 
      free( fcprev );
      free( fc );

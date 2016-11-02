@@ -11,6 +11,8 @@
  *
  * This file contains the prototypes of the routines that involve synchronisation, communication or process
  * management of ADwin.
+ *
+ * \todo{Document functions for ADwin_Substep_Pre and ADwin_Substep_Post}
  */
 
 #ifndef ADWIN_ROUTINES_H_
@@ -140,8 +142,9 @@ void Substructure_MatrixXc_ADwin( const MatrixVector_t *const Mat, const Couplin
  * \post The vectors \c VecTdT_c, \c fcprev_c, \c fc_c contain the last control values and the coupling force
  * at the previous and last sub-steps.
  */
-void ADwin_Substep( const HYSL_FLOAT *const VecTdT_0c, const unsigned int OrderC, const HYSL_FLOAT Time_To_Wait, HYSL_FLOAT *const VecTdT_c,
-		    HYSL_FLOAT *const fcprev_c, HYSL_FLOAT *const fc_c );
+void ADwin_Substep_Pre( const HYSL_FLOAT *const VecTdT_0c, const unsigned int OrderC );
+void ADwin_Substep_Post(  const unsigned int OrderC, const HYSL_FLOAT Time_To_Wait, HYSL_FLOAT *const VecTdT_c,
+			  HYSL_FLOAT *const fcprev_c, HYSL_FLOAT *const fc_c );
 
 /**
  * \brief Checks if the loaded driver matches the ADwin system.

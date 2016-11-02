@@ -40,9 +40,11 @@ int main( int argc, char **argv )
      MatrixVector_t Load;
      MatrixVector_t End_Disp, End_Vel, End_Acc;
 
-     MatrixVector_t LoadVectorForm, Acc;
+     MatrixVector_t LoadVectorForm1, LoadVectorForm2, LoadVectorForm3, Acc;
 
-     HYSL_FLOAT *AccAll, *VelAll, *DispAll;
+     HYSL_FLOAT *AccAll1, *VelAll1, *DispAll1;
+     HYSL_FLOAT *AccAll2, *VelAll2, *DispAll2;
+     HYSL_FLOAT *AccAll3, *VelAll3, *DispAll3;
 
      SaveTime_t     Time;
      /* Options */
@@ -88,9 +90,15 @@ int main( int argc, char **argv )
      Algorithm_Init( FileConf, &InitCnt );
 
      /* Allocate memory for saving the acceleration (input files) that will be used during the test */
-     AccAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     VelAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     DispAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     AccAll1 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     VelAll1 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     DispAll1 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     AccAll2 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     VelAll2 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     DispAll2 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     AccAll3 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     VelAll3 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     DispAll3 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
 
      /* Read the matrices */
      MatrixVector_Create( InitCnt.Order, InitCnt.Order, &Mass );
@@ -109,7 +117,9 @@ int main( int argc, char **argv )
 
      MatrixVector_Create( InitCnt.Order, 1, &Acc );
      MatrixVector_Create( InitCnt.Order, 1, &Load );
-     MatrixVector_Create( InitCnt.Order, 1, &LoadVectorForm );
+     MatrixVector_Create( InitCnt.Order, 1, &LoadVectorForm1 );
+     MatrixVector_Create( InitCnt.Order, 1, &LoadVectorForm2 );
+     MatrixVector_Create( InitCnt.Order, 1, &LoadVectorForm3 );
 
      /* Read Mass and Stiffness matrices in MatrixMarket format */
      MatrixVector_FromFile_MM( InitCnt.FileM, &Mass );
@@ -127,14 +137,20 @@ int main( int argc, char **argv )
 
      /* Read the load vector form */
      if ( !InitCnt.Read_LVector ){
-	  InputLoad_Generate_LoadVectorForm( InitCnt.ExcitedDOF, &LoadVectorForm );
+	  InputLoad_Generate_LoadVectorForm( InitCnt.ExcitedDOF, &LoadVectorForm1 );
      }  else {
-	  MatrixVector_FromFile_MM( InitCnt.FileLV, &LoadVectorForm );
+	  MatrixVector_FromFile_MM( InitCnt.FileLV1, &LoadVectorForm1 );
+	  MatrixVector_FromFile_MM( InitCnt.FileLV2, &LoadVectorForm2 );
+	  MatrixVector_FromFile_MM( InitCnt.FileLV3, &LoadVectorForm3 );
      }
 
      /* Read the earthquake data from a file */
-     Algorithm_ReadDataEarthquake( InitCnt.NStep, InitCnt.FileData, InitCnt.Scale_Factor,
-				   AccAll, VelAll, DispAll );
+     Algorithm_ReadDataEarthquake( InitCnt.NStep, InitCnt.FileData1, InitCnt.Scale_Factor, AccAll1,
+				   VelAll1, DispAll1 );
+     Algorithm_ReadDataEarthquake( InitCnt.NStep, InitCnt.FileData2, InitCnt.Scale_Factor, AccAll2,
+				   VelAll2, DispAll2 );
+     Algorithm_ReadDataEarthquake( InitCnt.NStep, InitCnt.FileData3, InitCnt.Scale_Factor, AccAll3,
+				   VelAll3, DispAll3 );
 
      /* Compute Eigenvalues and eigenvectors */
      Compute_Eigenvalues_Eigenvectors( &Stiff, &Mass, &EValues, &EVectors );
@@ -151,6 +167,7 @@ int main( int argc, char **argv )
       * stored. */
 #if _HDF5_
      hdf5_file = HDF5_CreateFile( InitCnt.FileOutput );
+     //HDF5_CreateGroup_Parameters( hdf5_file, &InitCnt, &CNodes, AccAll1, VelAll1, DispAll1, AccAll2, VelAll2, DispAll2, AccAll3, VelAll3, DispAll3 );
      HDF5_CreateGroup_TimeIntegration( hdf5_file, &InitCnt );
 #endif
 
@@ -162,7 +179,7 @@ int main( int argc, char **argv )
      incx = 1; incy = 1;
      while ( istep <= InitCnt.NStep ){
 
-	  InputLoad_Apply_LoadVectorForm( &LoadVectorForm, AccAll[istep - 1], &Acc );
+	  InputLoad_Apply_LoadVectorForm( &LoadVectorForm1, &LoadVectorForm2, &LoadVectorForm3, AccAll1[istep - 1], AccAll2[istep - 1], AccAll3[istep - 1], &Acc );
 	  InputLoad_RelValues( &Mass, &Acc, &Load );
 
 	  Duhamel_Integral( &Mass, &EValues, &EVectors, &Damping_Ratios, &Init_Disp,
@@ -191,9 +208,15 @@ int main( int argc, char **argv )
      /* Free initiation values */
      Algorithm_Destroy( &InitCnt );
 
-     free( AccAll );
-     free( VelAll );
-     free( DispAll );
+     free( AccAll1 );
+     free( VelAll1 );
+     free( DispAll1 );
+     free( AccAll2 );
+     free( VelAll2 );
+     free( DispAll2 );
+     free( AccAll3 );
+     free( VelAll3 );
+     free( DispAll3 );
 
      MatrixVector_Destroy( &Mass );
      MatrixVector_Destroy( &Stiff );
@@ -210,7 +233,9 @@ int main( int argc, char **argv )
      MatrixVector_Destroy( &End_Acc );
 
      MatrixVector_Destroy( &Load );
-     MatrixVector_Destroy( &LoadVectorForm );
+     MatrixVector_Destroy( &LoadVectorForm1 );
+     MatrixVector_Destroy( &LoadVectorForm2 );
+     MatrixVector_Destroy( &LoadVectorForm3 );
      MatrixVector_Destroy( &Acc );
 
      return 0;

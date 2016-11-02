@@ -1,144 +1,71 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <assert.h>
+#include <string.h>
 
+#include "Substructure_BoucWen.h"
 #include "Substructure_StoneDrums.h"
+
 #include "Auxiliary_Math.h"
 #include "Print_Messages.h"
 #include "Definitions.h"
 
-void Substructure_StoneDrums_Init (const int PrevDOF, const HYSL_FLOAT alpha, const HYSL_FLOAT ko,
-				   const HYSL_FLOAT beta, const HYSL_FLOAT gamma, const HYSL_FLOAT n,
-				   const HYSL_FLOAT A0, const HYSL_FLOAT deltaA, const HYSL_FLOAT nu0,
-				   const HYSL_FLOAT deltaNu, const HYSL_FLOAT eta0, const HYSL_FLOAT deltaEta,
-				   const int BoucWen_Type, const char *Description, StoneDrums_t *const Sub )
+void Substructure_StoneDrums_Init (const int JointID, const int PrevJointID, const int NextJointID,
+				   const int Dir, const HYSL_FLOAT *const BW,
+				   const int *const BoucWen_Type, const char *Description,
+				   StoneDrums_t *const Sub)
 {
+     int Pos;
+     
      Sub->Description = strdup( Description );
   
-     Sub->PrevDOF = PrevDOF;
+     Sub->JointID = JointID;
+     Sub->PrevJointID = PrevJointID;
+     Sub->NextJointID = NextJointID;
+     Sub->Dir = Dir;
 
-     Sub->BoucWen_Type = BoucWen_Type;
-
-     /* Basic Bouc-Wen parameters */
-     Sub->alpha = alpha;
-     Sub->ko = ko;
-     Sub->beta = beta;
-     Sub->gamma = gamma;
-     Sub->n = n;
-
-     /* Parameters for material degradation */
-     Sub->A0 = A0;
-     Sub->deltaA = deltaA;
-     Sub->nu0 = nu0;
-     Sub->deltaNu = deltaNu;
-     Sub->eta0 = eta0;
-     Sub->deltaEta = deltaEta;
+     Pos = 0;
+     Substructure_BoucWenSurface_Init( BW[Pos], BW[Pos + 1], BW[Pos + 2], BW[Pos + 3],
+				       BW[Pos + 4], BW[Pos + 5], BW[Pos + 6], BW[Pos + 7],
+				       BW[Pos + 8], BW[Pos + 9], BW[Pos + 10], BW[Pos + 11],
+				       BoucWen_Type[0], Sub->Description, &Sub->BoucWen_Sliding );
+     Pos =  Pos + BOUCWENDEG_NUMPARAM_INIT;
+     Substructure_BoucWen_Init( BW[Pos], BW[Pos + 1], BW[Pos + 2], BW[Pos + 3],
+				BW[Pos + 4], BW[Pos + 5], BW[Pos + 6], BW[Pos + 7],
+				BW[Pos + 8], BW[Pos + 9], BW[Pos + 10], BW[Pos + 11],
+				0.0, 0.0, 0.0, 0.0, 0.0, 0.0, BoucWen_Type[1],
+				Sub->Description, &Sub->BoucWen_Torsion );
+     Pos =  Pos + BOUCWENDEG_NUMPARAM_INIT;
+     Substructure_BoucWenSurface_Init( BW[Pos], BW[Pos + 1], BW[Pos + 2], BW[Pos + 3],
+				       BW[Pos + 4], BW[Pos + 5], BW[Pos + 6], BW[Pos + 7],
+				       BW[Pos + 8], BW[Pos + 9], BW[Pos + 10], BW[Pos + 11],
+				       BoucWen_Type[2], Sub->Description, &Sub->BoucWen_Bending );
      
-     /* Initialisation of Newton-Raphson variables */
-     Sub->maxIter = 100;
-#if _FLOAT_
-     Sub->tolerance = 1E-3f;
-     Sub->startPoint = 0.01f;
-     Sub->z_old = 0.0f;
-     Sub->e_old = 0.0f;
-     Sub->DispT = 0.0f;
-     Sub->Result_Fc = 0.0f;
-#else 
-     Sub->tolerance = 1E-3;
-     Sub->startPoint = 0.01;
-     Sub->z_old = 0.0;
-     Sub->e_old = 0.0;
-     Sub->DispT = 0.0;
-     Sub->Result_Fc = 0.0;
-#endif
-
 }
 
-void Substructure_StoneDrums ( HYSL_FLOAT DispTdT, StoneDrums_t *const Sub, HYSL_FLOAT *force )
+void Substructure_StoneDrums ( const HYSL_FLOAT *const DispTdT, const int Order, StoneDrums_t *const Sub, HYSL_FLOAT *force )
 {
-     int count;
-     HYSL_FLOAT sign;
-     HYSL_FLOAT e_new, A_new, nu_new, eta_new, Theta, Phi;     
-     HYSL_FLOAT e_new_, A_new_, nu_new_, eta_new_, Phi_;
-     HYSL_FLOAT vs_1, vs_2, zu, hze_exp, hze;
-     HYSL_FLOAT hze_;
-     HYSL_FLOAT fz_new, fz_new_;
-     HYSL_FLOAT z_new, z_new_p, z_eval;
-     HYSL_FLOAT deltaDisp;
-     
-     count = 0;
-#if _FLOAT_
-     z_new = 1.0f;
-#else
-     z_new = 1.0;
-#endif
-     z_new_p = Sub->startPoint; z_eval = Sub->startPoint;
-     deltaDisp = DispTdT - Sub->DispT;
+     HYSL_FLOAT alpha;
+     HYSL_FLOAT Rel_DispXY, Rel_Torsion, Rel_Bending;
+     HYSL_FLOAT Force_XY, Moment_Torsion, Moment_Bending;
 
-     while ( fabs(z_new_p - z_new) > Sub->tolerance && count < Sub->maxIter ){
-	  e_new = Sub->e_old + (1.0 - Sub->alpha)*Sub->ko*deltaDisp*z_eval;
-	  A_new = Sub->A0 - Sub->deltaA*e_new;
-	  nu_new = Sub->nu0 + Sub->deltaNu*e_new;
-	  eta_new = Sub->eta0 + Sub->deltaEta*e_new;
+     alpha = atan((DispTdT[0]-DispTdT[1])/(DispTdT[0] - DispTdT[1]));
 	  
-	  sign = signum(deltaDisp*z_eval);
-	  Theta = Sub->gamma + Sub->beta*sign;
-	  Phi = A_new - pow(fabs(z_eval),Sub->n)*Theta*nu_new;
-	  	       
-	  fz_new = z_eval - Sub->z_old - Phi/eta_new*deltaDisp;
+     Rel_DispXY = sqrt(pow(DispTdT[0] - DispTdT[1], 2.0) + pow(DispTdT[0] - DispTdT[1], 2.0));
+     Rel_Torsion = DispTdT[0];
+     Rel_Bending = DispTdT[1];
+     printf("DO NOT EXECUTE\n");
+//     Substructure_BoucWen ( Rel_DispXY, &Sub->BoucWen_Sliding, &Force_XY );
+     //   Substructure_BoucWen ( Rel_Torsion, &Sub->BoucWen_Torsion, &Moment_Torsion );
+     // Substructure_BoucWen ( Rel_Bending, &Sub->BoucWen_Bending, &Moment_Bending );
 
-	  /* Evaluate function derivatives with respect to z_eval for the Newton-Rhapson scheme */
-	  e_new_ = (1.0 - Sub->alpha)*Sub->ko*deltaDisp;
-	  A_new_ = -Sub->deltaA*e_new_;
-	  nu_new_ = Sub->deltaNu*e_new_;
-	  eta_new_ = Sub->deltaEta*e_new_;
-	  sign = signum(z_eval);
-	  Phi_ = A_new_ - Sub->n*pow(fabs(z_eval), Sub->n - 1.0)*sign*Theta*nu_new - pow(fabs(z_eval), Sub->n)*Theta*nu_new_;
-	  	      
-	  fz_new_ = 1.0 - (Phi_*eta_new - Phi*eta_new_)/pow(eta_new, 2.0)*deltaDisp;
-
-	  /* Perform a new step */
-	  z_new = z_eval - fz_new/fz_new_;
-	  
-	  /* Update the root */
-	  z_new_p = z_eval;
-	  z_eval = z_new;
-	  
-	  count = count + 1;
-	  
-	  /* Warning if there is no convergence */
-	  if (count == Sub->maxIter) {
-	       Print_Header( WARNING );
-	       fprintf( stderr, "Substructure_BoucWen(): could not find the root z_{i+1}, after %i iterations and norm: %lE\n", Sub->maxIter, fabs(z_new_p - z_new) );
-	  }
-	  
-	  // Compute restoring force.
-	  *force = Sub->alpha*Sub->ko*DispTdT + (1.0 - Sub->alpha)*Sub->ko*z_eval;
-
-	  // Compute material degradation parameters.
-	  e_new = Sub->e_old + (1.0 - Sub->alpha)*Sub->ko*deltaDisp*z_eval;
-	  A_new = Sub->A0 - Sub->deltaA*e_new;
-	  nu_new = Sub->nu0 + Sub->deltaNu*e_new;
-	  eta_new = Sub->eta0 + Sub->deltaEta*e_new;
-     }
-     Sub->DispT = DispTdT;
-     Sub->e_old = e_new;
-     Sub->z_old = z_eval;
-
-     Sub->Result_Fc = *force;
-}
-
-#if _1_
-void Substructure_StoneDrums ( const HYSL_FLOAT DispTdT, const HYSL_FLOAT ramp, StoneDrums_t * const Sub, HYSL_FLOAT *const fc )
-{
-     HYSL_FLOAT dStrain, Tstrain, strain;
-
-
-     /* Newton-Rhapson */
+     force[0] = Force_XY*cos(alpha);
+     force[1] = Force_XY*sin(alpha);
+     force[2] = Moment_Torsion;
+     force[3] = Moment_Bending;
      
 }
-#endif
-     
 
 void Substructure_StoneDrums_Destroy( StoneDrums_t *const Sub )
 {

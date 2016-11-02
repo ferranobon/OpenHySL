@@ -74,8 +74,10 @@ int main( int argc, char **argv ){
      /* NETLIB Variables */
      int incx, incy;
      Scalars_t Constants;
-     
-     HYSL_FLOAT *AccAll, *VelAll, *DispAll;
+
+     HYSL_FLOAT *AccAll1, *VelAll1, *DispAll1;
+     HYSL_FLOAT *AccAll2, *VelAll2, *DispAll2;
+     HYSL_FLOAT *AccAll3, *VelAll3, *DispAll3;
 
      MatrixVector_t M, C, K;               /* Mass, Damping and Stiffness matrices */
      MatrixVector_t Meinv;
@@ -90,7 +92,7 @@ int main( int argc, char **argv ){
      MatrixVector_t VelT, VelTdT;
      MatrixVector_t AccT, AccTdT;
 
-     MatrixVector_t LoadVectorForm, LoadTdT, LoadTdT1;
+     MatrixVector_t LoadVectorForm1, LoadVectorForm2, LoadVectorForm3, LoadTdT, LoadTdT1;
 
      MatrixVector_t fc, fcprevsub;
      MatrixVector_t fu;
@@ -162,9 +164,15 @@ int main( int argc, char **argv ){
 
      /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will be used
       * during the test */
-     AccAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     VelAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     DispAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     AccAll1 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     VelAll1 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     DispAll1 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     AccAll2 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     VelAll2 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     DispAll2 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     AccAll3 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     VelAll3 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     DispAll3 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
 
      /* Initialise the matrices and vectors that will be used in the Time Integration process */
      if( ((!InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (InitCnt.Use_Sparse && !InitCnt.Read_Sparse) ||
@@ -212,7 +220,9 @@ int main( int argc, char **argv ){
 
      MatrixVector_Create( InitCnt.Order, 1, &EffT );
 
-     MatrixVector_Create( InitCnt.Order, 1, &LoadVectorForm );
+     MatrixVector_Create( InitCnt.Order, 1, &LoadVectorForm1 );
+     MatrixVector_Create( InitCnt.Order, 1, &LoadVectorForm2 );
+     MatrixVector_Create( InitCnt.Order, 1, &LoadVectorForm3 );
      MatrixVector_Create( InitCnt.Order, 1, &LoadTdT );
      MatrixVector_Create( InitCnt.Order, 1, &LoadTdT1 );
 
@@ -260,9 +270,11 @@ int main( int argc, char **argv ){
      } else assert(0);
 
      if ( !InitCnt.Read_LVector ){
-	  InputLoad_Generate_LoadVectorForm( InitCnt.ExcitedDOF, &LoadVectorForm );
+	  InputLoad_Generate_LoadVectorForm( InitCnt.ExcitedDOF, &LoadVectorForm1 );
      }  else {
-	  MatrixVector_FromFile_MM( InitCnt.FileLV, &LoadVectorForm );
+	  MatrixVector_FromFile_MM( InitCnt.FileLV1, &LoadVectorForm1 );
+	  MatrixVector_FromFile_MM( InitCnt.FileLV2, &LoadVectorForm2 );
+	  MatrixVector_FromFile_MM( InitCnt.FileLV3, &LoadVectorForm3 );
      }
 
      /* Calculate damping matrix using Rayleigh. C = alpha*M + beta*K */
@@ -315,14 +327,20 @@ int main( int argc, char **argv ){
 	       }
 	  }
      }
-     Algorithm_ReadDataEarthquake( InitCnt.NStep, InitCnt.FileData, InitCnt.Scale_Factor,
-				   AccAll, VelAll, DispAll );
+
+     /* Read the earthquake data from a file */
+     Algorithm_ReadDataEarthquake( InitCnt.NStep, InitCnt.FileData1, InitCnt.Scale_Factor, AccAll1,
+				   VelAll1, DispAll1 );
+     Algorithm_ReadDataEarthquake( InitCnt.NStep, InitCnt.FileData2, InitCnt.Scale_Factor, AccAll2,
+				   VelAll2, DispAll2 );
+     Algorithm_ReadDataEarthquake( InitCnt.NStep, InitCnt.FileData3, InitCnt.Scale_Factor, AccAll3,
+				   VelAll3, DispAll3 );
 
      /* Open Output file. If the file cannot be opened, the program will exit, since the results cannot be
       * stored. */
 #if _HDF5_
      hdf5_file = HDF5_CreateFile( InitCnt.FileOutput );
-     HDF5_CreateGroup_Parameters( hdf5_file, &InitCnt, &CNodes, AccAll, VelAll, DispAll );
+     HDF5_CreateGroup_Parameters( hdf5_file, &InitCnt, &CNodes, AccAll1, VelAll1, DispAll1, AccAll2, VelAll2, DispAll2, AccAll3, VelAll3, DispAll3 );
      HDF5_CreateGroup_TimeIntegration( hdf5_file, &InitCnt );
 #endif
 
@@ -333,8 +351,8 @@ int main( int argc, char **argv ){
      /* Calculate the input load */
      istep = 1;
      if( InitCnt.Use_Absolute_Values ){
-	  InputLoad_Apply_LoadVectorForm( &LoadVectorForm, DispAll[istep - 1], &Disp );
-	  InputLoad_Apply_LoadVectorForm( &LoadVectorForm, VelAll[istep - 1], &Vel );
+	  InputLoad_Apply_LoadVectorForm( &LoadVectorForm1, &LoadVectorForm2, &LoadVectorForm3, DispAll1[istep - 1], DispAll2[istep - 1], DispAll3[istep - 1], &Disp );
+	  InputLoad_Apply_LoadVectorForm( &LoadVectorForm1, &LoadVectorForm2, &LoadVectorForm3, VelAll1[istep - 1], VelAll2[istep - 1], VelAll3[istep - 1], &Vel );
 
 	  if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
 	       InputLoad_AbsValues( &K, &C, &Disp, &Vel, &LoadTdT );
@@ -346,7 +364,8 @@ int main( int argc, char **argv ){
 #endif
 	  } else assert(0);
      } else {
-	  InputLoad_Apply_LoadVectorForm( &LoadVectorForm, AccAll[istep - 1], &Acc );
+	  InputLoad_Apply_LoadVectorForm( &LoadVectorForm1, &LoadVectorForm2, &LoadVectorForm3, AccAll1[istep - 1], AccAll2[istep - 1], AccAll3[istep - 1], &Acc );
+	  
 	  if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
 	       InputLoad_RelValues( &M, &Acc, &LoadTdT );
 	  } else if ( !InitCnt.Use_Sparse && InitCnt.Use_Packed ){
@@ -390,19 +409,22 @@ int main( int argc, char **argv ){
 
 	  /* Perform substepping */
 	  if( CNodes.Order >= 1 ){
-/*	       Substructure_Substepping( Meinv_c.Array, AccTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep,
-					 AccAll[istep-1], InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes,
-					 AccTdT.Array, fcprevsub.Array, fc.Array );*/
-	       Substructure_Substepping( Meinv_c.Array, AccTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep, 0.0,
-					 InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, AccTdT.Array, fcprevsub.Array,
-					 fc.Array );
+	       if( InitCnt.Use_Absolute_Values ){
+		    Substructure_Substepping( Meinv_c.Array, AccTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep, 0.0,
+					      InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, AccTdT.Array, fcprevsub.Array,
+					      fc.Array );
+	       } else {
+		    Substructure_Substepping( Meinv_c.Array, AccTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep,
+					      AccAll1[istep -1], InitCnt.NSubstep,
+					      InitCnt.DeltaT_Sub, &CNodes, AccTdT.Array, fcprevsub.Array, fc.Array );
+	       }
 	  }
 
 	  if ( istep < InitCnt.NStep ){
 	       if( InitCnt.Use_Absolute_Values ){
 		    /* Copy the diagonal elements of M */
-		    InputLoad_Apply_LoadVectorForm( &LoadVectorForm, DispAll[istep], &Disp );		    
-		    InputLoad_Apply_LoadVectorForm( &LoadVectorForm, VelAll[istep], &Vel );
+		    InputLoad_Apply_LoadVectorForm( &LoadVectorForm1, &LoadVectorForm2, &LoadVectorForm3, DispAll1[istep], DispAll2[istep], DispAll3[istep], &Disp );
+		    InputLoad_Apply_LoadVectorForm( &LoadVectorForm1, &LoadVectorForm2, &LoadVectorForm3, VelAll1[istep], VelAll2[istep], VelAll3[istep], &Vel );
 
 		    if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
 			 InputLoad_AbsValues( &K, &C, &Disp, &Vel, &LoadTdT1 );
@@ -414,7 +436,8 @@ int main( int argc, char **argv ){
 #endif
 		    } else assert(0);
 	       } else {
-		    InputLoad_Apply_LoadVectorForm( &LoadVectorForm, AccAll[istep], &Acc );
+		    InputLoad_Apply_LoadVectorForm( &LoadVectorForm1, &LoadVectorForm2, &LoadVectorForm3, AccAll1[istep], AccAll2[istep], AccAll3[istep], &Acc );
+		    
 		    if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
 			 InputLoad_RelValues( &M, &Acc, &LoadTdT1 );
 		    } else if ( !InitCnt.Use_Sparse && InitCnt.Use_Packed ){
@@ -501,9 +524,15 @@ int main( int argc, char **argv ){
      Algorithm_Destroy( &InitCnt );
 
      /* Free the memory */
-     free( VelAll );
-     free( DispAll );
-     free( AccAll );
+     free( AccAll1 );
+     free( VelAll1 );
+     free( DispAll1 );
+     free( AccAll2 );
+     free( VelAll2 );
+     free( DispAll2 );
+     free( AccAll3 );
+     free( VelAll3 );
+     free( DispAll3 );
      
      /* Free Time string */
      free( Time.Date_time );
@@ -553,7 +582,9 @@ int main( int argc, char **argv ){
      MatrixVector_Destroy( &AccT );
      MatrixVector_Destroy( &AccTdT );
 
-     MatrixVector_Destroy( &LoadVectorForm );
+     MatrixVector_Destroy( &LoadVectorForm1 );
+     MatrixVector_Destroy( &LoadVectorForm2 );
+     MatrixVector_Destroy( &LoadVectorForm3 );
      MatrixVector_Destroy( &LoadTdT );
      MatrixVector_Destroy( &LoadTdT1 );
 

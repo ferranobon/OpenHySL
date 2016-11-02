@@ -155,7 +155,7 @@ void Substructure_Substepping( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *
 	  case EXP_ADWIN:
 	       /* Tell ADwin to perform the substepping process */
 	       if( !Called_ADwin ){
-		    ADwin_Substep( VecTdT0_c_ADwin, (unsigned int) CNodes->OrderADwin, 75.0, &Recv_ADwin[0], &Recv_ADwin[CNodes->OrderADwin], &Recv_ADwin[2*CNodes->OrderADwin] );
+		    ADwin_Substep_Pre( VecTdT0_c_ADwin, (unsigned int) CNodes->OrderADwin );
 		    Called_ADwin = true;
 	       }
 	       break;
@@ -189,6 +189,12 @@ void Substructure_Substepping( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *
 	       break;
 	  }
      }
+     
+#if _ADWIN_
+     if( CNodes->OrderADwin > 0 ){
+	  ADwin_Substep_Post( (unsigned int) CNodes->OrderADwin, 75.0, &Recv_ADwin[0], &Recv_ADwin[CNodes->OrderADwin], &Recv_ADwin[2*CNodes->OrderADwin] );
+     }
+#endif
 
 //#pragma omp parallel for
      pos = 0;
@@ -290,29 +296,8 @@ void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const Vec
 	       case SIM_STONEDRUMS:
 		    StoneDrums = (StoneDrums_t *) CNodes->Sub[i].SimStruct;
 		    
-		    if (StoneDrums->PrevDOF > 0){
-			 Substructure_StoneDrums( VecTdT_c[i] - VecTdT_c[Substructure_FindPosition(StoneDrums->PrevDOF, CNodes )],
-						  StoneDrums, &CoupForce_c[i] );
-			 //Substructure_StoneDrums( VecTdT_c[i], StoneDrums, &CoupForce_c[i] );
-		    } else {
-			 Substructure_StoneDrums( VecTdT_c[i], StoneDrums, &CoupForce_c[i] );
-		    }
 		    // printf("%d %lE %lE %lE %lE\n", Substep, StoneDrums->AccTdT, StoneDrums->VelTdT, VecTdT_c[i], CoupForce_c[i]);
 		    break;
-	       }
-	  }
-
-	  for( i = 0; i < (unsigned int) CNodes->Order; i ++ ){
-	       if ( CNodes->Sub[i].Type == SIM_STONEDRUMS ) {
-		    StoneDrums = (StoneDrums_t *) CNodes->Sub[i].SimStruct;
-		    if (StoneDrums->PrevDOF > 0){
-			 temp = Substructure_FindPosition( StoneDrums->PrevDOF, CNodes );
-			 //StoneDrums = (StoneDrums_t *) CNodes->Sub[i].SimStruct;
-			 StoneDrums_Prev = (StoneDrums_t *) CNodes->Sub[temp].SimStruct;
-			 printf("CoupForce: %lE ", CoupForce_c[i]);
-			 CoupForce_c[temp] = StoneDrums_Prev->Result_Fc - CoupForce_c[i];
-			 printf("CoupForcePrev: %lE, Result fc %lE\n", StoneDrums_Prev->Result_Fc, CoupForce_c[temp]);
-		    }
 	       }
 	  }
      }
@@ -345,9 +330,6 @@ void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const Vec
 	  case SIM_UHYDE:
 	       break;
 	  case SIM_MEASURED:
-	       break;
-	  case SIM_STONEDRUMS:
-	       StoneDrums->DispT = VecTdT_c[i];
 	       break;
 	  }
      }

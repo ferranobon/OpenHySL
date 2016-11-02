@@ -60,10 +60,17 @@ void HDF5_AddResults_to_Dataset_MPI( const hid_t file_id, const char *Path_name,
 void HDF5_Store_Time_MPI( const hid_t hdf5_file, const SaveTime_MPI_t *const Time );
 #endif
 
-void HDF5_CreateGroup_Parameters( const hid_t hdf5_file, const AlgConst_t *const InitCnt, const CouplingNode_t *const CNode, const HYSL_FLOAT *const Acc, const HYSL_FLOAT *const Vel, const HYSL_FLOAT *const Disp );
+void HDF5_CreateGroup_Parameters( const hid_t hdf5_file, const AlgConst_t *const InitCnt,
+				  const CouplingNode_t *const CNode, const HYSL_FLOAT *const Acc1,
+				  const HYSL_FLOAT *const Vel1, const HYSL_FLOAT *const Disp1, 
+				  const HYSL_FLOAT *const Acc2, const HYSL_FLOAT *const Vel2,
+				  const HYSL_FLOAT *const Disp2, const HYSL_FLOAT *const Acc3,
+				  const HYSL_FLOAT *const Vel3, const HYSL_FLOAT *const Disp3 );
+
 void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const AlgConst_t *const InitCnt, const CouplingNode_t *const CNodes );
 void HDF5_CreateGroup_TimeIntegration( const hid_t hdf5_file, const AlgConst_t *const InitCnt );
 void HDF5_Store_TimeHistoryData( const hid_t hdf5_file, const MatrixVector_t *const Acc, const MatrixVector_t *const Vel, const MatrixVector_t *const Disp, const MatrixVector_t *const fc, const MatrixVector_t *const fu, const int istep, const AlgConst_t *const InitCnt );
+void HDF5_Store_BoucWen( const hid_t hdf5_file, const MatrixVector_t *const HistDisp, const MatrixVector_t *const HistLoop, const int istep);
 void HDF5_Store_TMD( const hid_t hdf5_file, const double *const Acc, const double *const Vel, const double *const Disp, const int istep );
 void HDF5_Store_Time( const hid_t hdf5_file, const SaveTime_t *const Time );
 void HDF5_StoreADwinData( const int hdf5_file, const HYSL_FLOAT *Array, char **Entry_Names, const int Length );

@@ -10,6 +10,8 @@
  * reading earthquake records, configuration files, command line options, etc. Since these routines are
  * implementation dependant, they are not included in the main libraries and should be added to the compile
  * line.
+ *
+ * \todo{Check documentation for new pro
  */
 #ifndef _ALGORITHM_AUX_H_
 #define _ALGORITHM_AUX_H_
@@ -161,11 +163,20 @@ typedef struct AlgConst{
      char* FileM;            /*!< \brief Stores the name of the file that contains the Mass Matrix */
      char* FileK;            /*!< \brief Stores the name of the file that contains the Stiffness Matrix */
      char* FileC;            /*!< \brief Stores the name of the file that contains the Damping Matrix */
-     char* FileLV;           /*!< \brief Stores the name of the file that contains the Load Vector */
+     char* FileLV1;          /*!< \brief Stores the name of the file that contains the Load Vector in
+			      * <em>x</em>-direction. */
+     char* FileLV2;          /*!< \brief Stores the name of the file that contains the Load Vector in
+			      * <em>y</em>-direction. */
+     char* FileLV3;          /*!< \brief Stores the name of the file that contains the Load Vector in
+			      * <em>z</em>-direction. */
      char* FileCNodes;       /*!< \brief Stores the name of the file that contains the vector of coupling
 			      * nodes. */
-     char* FileData;         /*!< \brief Stores the name of the file that contains displacement, velocity and
-			      * acceleration */
+     char* FileData1;        /*!< \brief Stores the name of the file that contains displacement, velocity and
+			      * acceleration for the <em>x</em>-direction. */
+     char* FileData2;        /*!< \brief Stores the name of the file that contains displacement, velocity and
+			      * acceleration for the <em>y</em>-direction. */
+     char* FileData3;        /*!< \brief Stores the name of the file that contains displacement, velocity and
+			      * acceleration for the <em>z</em>-direction. */
      char* FileOutput;       /*!< \brief Name of the file to store the output values of the process */
 } AlgConst_t;
 

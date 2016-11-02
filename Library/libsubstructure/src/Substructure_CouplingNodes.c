@@ -24,6 +24,7 @@ const char *Substructure_Type[] = {"Sim_Exact_MDOF",
 				   "Sim_Exact_ESP",
 				   "Sim_Newmark",
 				   "Sim_BoucWen",
+				   "Sim_BoucWen_Surface",
 				   "Sim_UHYDEfbr",
 				   "Sim_Measured",
 				   "Sim_StoneDrums",
@@ -37,6 +38,7 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
      int Count_Type;
      int i, j, k;
      int itemp, ndof;
+     int intArray[3];
      HYSL_FLOAT *ftemp, *rayleigh;
      char *ctemp;
      MatrixVector_t mass, stiff;
@@ -298,7 +300,7 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 		    exit( EXIT_FAILURE );
 	       } else {
 		    ftemp = NULL;
-		    ftemp = (HYSL_FLOAT *) calloc( (size_t) itemp, sizeof( HYSL_FLOAT ) );
+		    ftemp = (HYSL_FLOAT *) calloc( (size_t) BOUCWENBABERNOORI_NUMPARAM_INIT, sizeof( HYSL_FLOAT ) );
 
 		    /* Read the input parameters */
 		    for( j = 0; j < itemp; j++ ){
@@ -319,20 +321,67 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 			 }
 
 			 if ( itemp == BOUCWEN_NUMPARAM_INIT ){
-			      Substructure_BoucWen_Init( ftemp[0], ftemp[1], ftemp[2], ftemp[3], ftemp[4], BOUC_WEN, Description, (BoucWen_t *) CNodes->Sub[i + j].SimStruct );
+			      Substructure_BoucWen_Init( ftemp[0], ftemp[1], ftemp[2], ftemp[3], ftemp[4], ftemp[5],       // Regular Bouc-Wen
+							 1.0, 0.0, 1.0, 0.0, 1.0, 0.0,                                     // Material degradation
+							 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,                                     // Pitching
+							 BOUC_WEN, Description, (BoucWen_t *) CNodes->Sub[i + j].SimStruct );
 			 } else if ( itemp == BOUCWENDEG_NUMPARAM_INIT ){
-			      Substructure_BoucWenBaberNoori_Init( ftemp[0], ftemp[1], ftemp[2], ftemp[3], ftemp[4],
-								   ftemp[5], ftemp[6], ftemp[7], ftemp[8], ftemp[9],
-								   ftemp[10], BOUC_WEN_DEG, Description, (BoucWen_t *) CNodes->Sub[i + j].SimStruct );
-			 } else if ( itemp == BOUCWENBABERNOORI_NUMPARAM_INIT ){
-			      Substructure_BoucWenBaberNoori_wPitching_Init( ftemp[0], ftemp[1], ftemp[2], ftemp[3], ftemp[4],
-									     ftemp[5], ftemp[6], ftemp[7], ftemp[8], ftemp[9],
-									     ftemp[10], ftemp[11], ftemp[12], ftemp[13], ftemp[14],
-									     ftemp[15], ftemp[16], BOUC_WEN_BABER_NOORI, Description, (BoucWen_t *) CNodes->Sub[i + j].SimStruct );
+			      Substructure_BoucWen_Init( ftemp[0], ftemp[1], ftemp[2], ftemp[3], ftemp[4], ftemp[5],       // Regular Bouc-Wen
+							 ftemp[6], ftemp[7], ftemp[8], ftemp[9], ftemp[10], ftemp[11],     // Material degradation
+							 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,                                     // Pitching
+							 BOUC_WEN_DEG, Description, (BoucWen_t *) CNodes->Sub[i + j].SimStruct );
+			 } else if ( itemp == BOUCWENBABERNOORI_NUMPARAM_INIT ){			      
+			      Substructure_BoucWen_Init( ftemp[0], ftemp[1], ftemp[2], ftemp[3], ftemp[4], ftemp[5],       // Regular Bouc-Wen
+							 ftemp[6], ftemp[7], ftemp[8], ftemp[9], ftemp[10], ftemp[11],     // Material degradation
+							 ftemp[12], ftemp[13], ftemp[14], ftemp[15], ftemp[16], ftemp[17], // Pitching
+							 BOUC_WEN_BABER_NOORI, Description, (BoucWen_t *) CNodes->Sub[i + j].SimStruct );
 			 } else assert((itemp == BOUCWEN_NUMPARAM_INIT) && (itemp == BOUCWENDEG_NUMPARAM_INIT) && (itemp == BOUCWENBABERNOORI_NUMPARAM_INIT));
 
 			 Print_Header( INFO );
-			 printf( "Simulating the substructure in the coupling node %d as an exact integration method (ESP).\n",
+			 printf( "Simulating the substructure in the coupling node %d as Bouc-Wen.\n",
+				 CNodes->Array[i + j] );
+		    }
+		    free( ftemp );
+	       }
+	       break;
+	  case SIM_BOUCWEN_SURFACE:
+	       /* Ignore coma */
+	       fscanf( InFile, "%*[,] %i", &itemp );
+	       if ( itemp != BOUCWENDEG_NUMPARAM_INIT){
+		    Print_Header( ERROR );
+		    fprintf( stderr, "Wrong number of parameters for the substructue number %i of type Exact_ESP.\n", i );
+		    fprintf( stderr, "The number of init parameters should be %i for classic Bouc-Wen, %i for Bouc-Wen with material degradation and %i for the Bouc-Wen-Baber-Noori model\n", BOUCWENDEG_NUMPARAM_INIT );
+		    exit( EXIT_FAILURE );
+	       } else {
+		    ftemp = NULL;
+		    ftemp = (HYSL_FLOAT *) calloc( (size_t) itemp, sizeof( HYSL_FLOAT ) );
+
+		    /* Read the input parameters */
+		    for( j = 0; j < itemp; j++ ){
+#if _FLOAT_
+			 fscanf( InFile, "%f", &ftemp[j] );
+#else
+			 fscanf( InFile, "%lf", &ftemp[j] );
+#endif
+		    }
+
+		    /* Read the optional description */
+		    Substructure_GetDescription( InFile, i, Description );
+		    
+		    for( j = 0; j < Count_Type; j++ ){
+			 CNodes->Sub[i + j].SimStruct = (void *) calloc( (size_t) 1, sizeof(BoucWenSurface_t) );
+			 if( CNodes->Sub[i + j].SimStruct == NULL ){
+			      exit(EXIT_FAILURE );
+			 }
+
+
+			 Substructure_BoucWenSurface_Init( ftemp[0], ftemp[1], ftemp[2], ftemp[3], ftemp[4],
+							   ftemp[5], ftemp[6], ftemp[7], ftemp[8], ftemp[9],
+							   ftemp[10], ftemp[11],  BOUC_WEN_DEG, Description,
+							   (BoucWenSurface_t *) CNodes->Sub[i + j].SimStruct );
+
+			 Print_Header( INFO );
+			 printf( "Simulating the substructure in the coupling node %d as Bouc-Wen (Surface).\n",
 				 CNodes->Array[i + j] );
 		    }
 		    free( ftemp );
@@ -396,6 +445,7 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 		    ftemp = NULL;
 		    ftemp = (HYSL_FLOAT *) calloc( (size_t) STONEDRUMS_NUMPARAM_INIT, sizeof( HYSL_FLOAT ) );
 
+		    intArray[0] = BOUC_WEN_DEG; intArray[1] = BOUC_WEN_DEG; intArray[2] = BOUC_WEN_DEG;
 		    for( j = 0; j < STONEDRUMS_NUMPARAM_INIT; j++ ){
 #if _FLOAT_
 			 fscanf( InFile, "%f", &ftemp[j] );
@@ -409,10 +459,9 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 		    
 		    for( j = 0; j < Count_Type; j++ ){			
 			 CNodes->Sub[i + j].SimStruct = (void *) malloc( sizeof(StoneDrums_t) );
-			 Substructure_StoneDrums_Init( (int) ftemp[0], ftemp[1], ftemp[2], ftemp[3], ftemp[4],
-						       ftemp[5], ftemp[6], ftemp[7], ftemp[8], ftemp[9],
-						       ftemp[10], ftemp[11], BOUC_WEN_DEG, Description,
-						       (StoneDrums_t *) CNodes->Sub[i + j].SimStruct );
+			 
+			 Substructure_StoneDrums_Init( (int) ftemp[0], (int) ftemp[1], (int) ftemp[2], (int) ftemp[3], ftemp + 4,
+						       intArray, Description, (StoneDrums_t *) CNodes->Sub[i + j].SimStruct );
 			 Print_Header( INFO );
 			 printf( "Simulating the substructure in the coupling node %d as a Stone Drum.\n", CNodes->Array[i + j] );
 		    }
@@ -555,6 +604,8 @@ void Substructure_DeleteCouplingNodes( CouplingNode_t *CNodes )
 	  case SIM_BOUCWEN:
 	       Substructure_BoucWen_Destroy( (BoucWen_t *) CNodes->Sub[i].SimStruct );
 	       break;
+	  case SIM_BOUCWEN_SURFACE:
+	       Substructure_BoucWenSurface_Destroy( (BoucWenSurface_t *) CNodes->Sub[i].SimStruct );
 	  case SIM_UHYDE:
 	       Substructure_SimUHYDE_Destroy( (UHYDEfbrSim_t *) CNodes->Sub[i].SimStruct );
 	       break;
