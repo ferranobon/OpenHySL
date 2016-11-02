@@ -480,8 +480,12 @@ void InputLoad_Generate_LoadVectorForm_MPI( int *DOF, PMatrixVector_t *const Loa
  * - In \c LoadForm the equivalent elements of the degrees of freedom to be excited must have a value
  *   different than 0.
  *
- * \param[in]  LoadForm   A load vector form.
- * \param[in]  Value      The desired ground measurement to be applied.
+ * \param[in]  LoadForm1  A load vector form in <em>x</em>-direction.
+ * \param[in]  LoadForm2  A load vector form in <em>y</em>-direction.
+ * \param[in]  LoadForm3  A load vector form in <em>z</em>-direction.
+ * \param[in]  Value1     The desired ground measurement to be applied in <em>x</em>-direction.
+ * \param[in]  Value2     The desired ground measurement to be applied in <em>y</em>-direction.
+ * \param[in]  Value3     The desired ground measurement to be applied in <em>z</em>-direction.
  * \param[out] LoadVector The load vector.
  *
  * \post \c LoadVector is the result of multiplying the \c LoadForm vector by the given ground measurement. It
@@ -490,7 +494,10 @@ void InputLoad_Generate_LoadVectorForm_MPI( int *DOF, PMatrixVector_t *const Loa
  *
  * \sa MatrixVector_t and InputLoad_Generate_LoadVectorForm().
  */
-void InputLoad_Apply_LoadVectorForm( const MatrixVector_t *const LoadForm, const HYSL_FLOAT Value,
+void InputLoad_Apply_LoadVectorForm( const MatrixVector_t *const LoadForm1,
+				     const MatrixVector_t *const LoadForm2,
+				     const MatrixVector_t *const LoadForm3, const HYSL_FLOAT Value1,
+				     const HYSL_FLOAT Value2, const HYSL_FLOAT Value3,
 				     MatrixVector_t *const LoadVector );
 
 /**

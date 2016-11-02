@@ -202,14 +202,29 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
      }
 
      if( InitConst->Read_LVector ){
-	  InitConst->FileLV = strdup( ConfFile_GetString( Config, "FileNames:Load_Vector" ) );
-	  if( !Valid_File( InitConst->FileLV ) ){
+	  InitConst->FileLV1 = strdup( ConfFile_GetString( Config, "FileNames:Load_Vector1" ) );
+	  if( !Valid_File( InitConst->FileLV1 ) ){
 	       Error = true;
 	       Print_Header( ERROR );
-	       fprintf( stderr, "%s: No such file or directory.\n", InitConst->FileLV );
+	       fprintf( stderr, "%s: No such file or directory.\n", InitConst->FileLV1 );
+	  }
+	  InitConst->FileLV2 = strdup( ConfFile_GetString( Config, "FileNames:Load_Vector2" ) );
+	  if( !Valid_File( InitConst->FileLV2 ) ){
+	       Error = true;
+	       Print_Header( ERROR );
+	       fprintf( stderr, "%s: No such file or directory.\n", InitConst->FileLV2 );
+	  }
+
+	  InitConst->FileLV3 = strdup( ConfFile_GetString( Config, "FileNames:Load_Vector3" ) );
+	  if( !Valid_File( InitConst->FileLV3 ) ){
+	       Error = true;
+	       Print_Header( ERROR );
+	       fprintf( stderr, "%s: No such file or directory.\n", InitConst->FileLV3 );
 	  }
      } else {
-	  InitConst->FileLV = NULL;
+	  InitConst->FileLV1 = NULL;
+	  InitConst->FileLV2 = NULL;
+	  InitConst->FileLV3 = NULL;
      }
 
      InitConst->FileCNodes = strdup( ConfFile_GetString( Config, "FileNames:Coupling_Nodes" ) );
@@ -219,11 +234,25 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
 	  fprintf( stderr, "%s: No such file or directory.\n", InitConst->FileCNodes);
      }
 
-     InitConst->FileData = strdup( ConfFile_GetString( Config, "FileNames:Ground_Motion" ) );
-     if( !Valid_File( InitConst->FileData ) ){
+     InitConst->FileData1 = strdup( ConfFile_GetString( Config, "FileNames:Ground_Motion1" ) );
+     if( !Valid_File( InitConst->FileData1 ) ){
 	  Error = true;
 	  Print_Header( ERROR );
-	  fprintf( stderr, "%s: No such file or directory.\n", InitConst->FileData );
+	  fprintf( stderr, "%s: No such file or directory.\n", InitConst->FileData1 );
+     }
+
+     InitConst->FileData2 = strdup( ConfFile_GetString( Config, "FileNames:Ground_Motion2" ) );
+     if( !Valid_File( InitConst->FileData2 ) ){
+	  Error = true;
+	  Print_Header( ERROR );
+	  fprintf( stderr, "%s: No such file or directory.\n", InitConst->FileData2 );
+     }
+
+     InitConst->FileData3 = strdup( ConfFile_GetString( Config, "FileNames:Ground_Motion3" ) );
+     if( !Valid_File( InitConst->FileData3 ) ){
+	  Error = true;
+	  Print_Header( ERROR );
+	  fprintf( stderr, "%s: No such file or directory.\n", InitConst->FileData3 );
      }
 
      /* Since this is a write operation, a warning should be issued and the filename should be changed so that
@@ -321,11 +350,24 @@ void Algorithm_Destroy( AlgConst_t *const InitConst )
      if( InitConst->FileC != NULL ){
 	  free( InitConst->FileC );
      }
-     if( InitConst->FileLV != NULL ){
-	  free( InitConst->FileLV );
+     if( InitConst->FileLV1 != NULL ){
+	  free( InitConst->FileLV1 );
      }
+
+     if( InitConst->FileLV2 != NULL ){
+	  free( InitConst->FileLV2 );
+     }
+
+     if( InitConst->FileLV3 != NULL ){
+	  free( InitConst->FileLV3 );
+     }
+     
      free( InitConst->FileCNodes );
-     free( InitConst->FileData );
+
+     free( InitConst->FileData1 );
+     free( InitConst->FileData2 );
+     free( InitConst->FileData3 );
+
      free( InitConst->FileOutput );
 }
 

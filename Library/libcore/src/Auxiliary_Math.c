@@ -31,11 +31,40 @@ int Min ( const int a, const int b )
 
 HYSL_FLOAT signum ( const HYSL_FLOAT num )
 {
+# if _FLOAT_
+     if (num > 0.0f ){
+	  return 1.0f;
+     } else if (num < 0.0f){
+	  return -1.0f;
+     } else return 0.0f;
+#else
      if (num > 0.0 ){
 	  return 1.0;
      } else if (num < 0.0){
 	  return -1.0;
      } else return 0.0;
+#endif
+}
+
+HYSL_FLOAT norm ( const int length, const HYSL_FLOAT *const Vector )
+{
+     int i;
+     HYSL_FLOAT temp;
+
+     temp = 0.0;
+     for (i = 0; i < length; i++){
+#if _FLOAT_
+	  temp = temp + powf(Vector[i], 2.0f);
+#else
+	  temp = temp + pow(Vector[i], 2.0);
+#endif
+     }
+
+#if _FLOAT_
+     return sqrtf(temp);
+#else
+     return sqrt(temp);
+#endif
 }
 
 MatrixVector_t Generate_IdentityMatrix( int Rows, int Cols )

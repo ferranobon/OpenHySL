@@ -100,11 +100,11 @@ void Substructure_MatrixXc_ADwin( const MatrixVector_t *const Mat, const Couplin
 	       for (jcoup = icoup; jcoup < CNodes->Order; jcoup++){
 
 		    if (CNodes->Sub[jcoup].Type == EXP_ADWIN){
-			 MatCouple->Array[row*Mat->Rows + col] = Mat->Array[(CNodes->Array[icoup]-1)*Mat->Cols + CNodes->Array[jcoup] - 1];
+			 MatCouple->Array[row*MatCouple->Rows + col] = Mat->Array[(CNodes->Array[icoup]-1)*Mat->Cols + CNodes->Array[jcoup] - 1];
 			 /* Now add the elements belonging to the same row as the current coupling node but also
 			  * belonging to the same column as the rest of the coupling nodes */
 			 if( icoup != jcoup ){
-			      MatCouple->Array[col*Mat->Rows + row] = MatCouple->Array[row*Mat->Rows + col];
+			      MatCouple->Array[col*MatCouple->Rows + row] = MatCouple->Array[row*MatCouple->Rows + col];
 			 }
 			 col = col + 1;
 		    }
@@ -114,31 +114,17 @@ void Substructure_MatrixXc_ADwin( const MatrixVector_t *const Mat, const Couplin
      }
 }
 
-void ADwin_Substep( const HYSL_FLOAT *const VecTdT_0c, const unsigned int OrderC, const HYSL_FLOAT Time_To_Wait, HYSL_FLOAT *const VecTdT_c,
-		    HYSL_FLOAT *const fcprev_c, HYSL_FLOAT *const fc_c )
+void ADwin_Substep_Pre( const HYSL_FLOAT *const VecTdT_0c, const unsigned int OrderC )
 {
 
      unsigned int i;
-     unsigned int Length_Receive, Length_Send;
+     unsigned int Length_Send;
      
-     HYSL_FLOAT *Send_ADwin = NULL, *ReceiveADwin = NULL;
-     int ADWinReady;
+     HYSL_FLOAT *Send_ADwin = NULL;
 
-     struct timeval t1;
-     struct timeval t2;
-
-     double ElapsedTime;
-
-     Length_Receive = 3*OrderC + 1;
      Length_Send = OrderC + 1;
 
      Send_ADwin = (HYSL_FLOAT *) calloc( (size_t) Length_Send, sizeof(HYSL_FLOAT) );
-     ReceiveADwin = (HYSL_FLOAT *) calloc( (size_t) Length_Receive, sizeof(HYSL_FLOAT) );
-
-     for ( i = 0; i < Length_Receive; i++ ){
-	  ReceiveADwin[i] = 0.0;
-     }
-     ADWinReady = 0;
 
      /* Prepare the data to be sent. The first value indicates that the data has been uploaded and
       * ADwin can start the substepping process */
@@ -153,6 +139,35 @@ void ADwin_Substep( const HYSL_FLOAT *const VecTdT_0c, const unsigned int OrderC
 #else
      SetData_Double( 71, Send_ADwin, 1, (int32_t) Length_Send );
 #endif
+
+
+     /* Free the dynamically allocated memory */
+     free( Send_ADwin );
+}
+
+void ADwin_Substep_Post(  const unsigned int OrderC, const HYSL_FLOAT Time_To_Wait, HYSL_FLOAT *const VecTdT_c,
+		    HYSL_FLOAT *const fcprev_c, HYSL_FLOAT *const fc_c )
+{
+
+     unsigned int i;
+     unsigned int Length_Receive;
+     
+     HYSL_FLOAT *ReceiveADwin = NULL;
+     int ADWinReady;
+
+     struct timeval t1;
+     struct timeval t2;
+
+     double ElapsedTime;
+
+     Length_Receive = 3*OrderC + 1;
+
+     ReceiveADwin = (HYSL_FLOAT *) calloc( (size_t) Length_Receive, sizeof(HYSL_FLOAT) );
+
+     for ( i = 0; i < Length_Receive; i++ ){
+	  ReceiveADwin[i] = 0.0;
+     }
+     ADWinReady = 0;
 
      /* Do nothing until a certain time has passed to avoid overloading adwin system */
      gettimeofday( &t1, NULL );
@@ -185,7 +200,6 @@ void ADwin_Substep( const HYSL_FLOAT *const VecTdT_0c, const unsigned int OrderC
      }
 
      /* Free the dynamically allocated memory */
-     free( Send_ADwin );
      free( ReceiveADwin );
 }
 

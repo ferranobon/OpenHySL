@@ -8,6 +8,8 @@
  *
  * This file contains the prototypes of those functions involved in creating/destroying
  * dense matrices and vectors.
+ *
+ * \todo{Document norm and signum functions}
  */
 
 #ifndef AUXILIARY_MATH_H_
@@ -48,6 +50,7 @@ int Max ( const int a, const int b );
 int Min ( const int a, const int b );
 
 HYSL_FLOAT signum ( const HYSL_FLOAT num );
+HYSL_FLOAT norm ( const int length, const HYSL_FLOAT *const Vector );
 
 /**
  * \brief Generation of a Identity Matrix.

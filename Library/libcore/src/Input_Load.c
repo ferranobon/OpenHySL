@@ -99,14 +99,23 @@ void InputLoad_Generate_LoadVectorForm( int *DOF, MatrixVector_t *const LoadVect
      }
 }
 
-void InputLoad_Apply_LoadVectorForm( const MatrixVector_t *const LoadForm, const HYSL_FLOAT Value,
-				     MatrixVector_t *const LoadVector )
+void InputLoad_Apply_LoadVectorForm( const MatrixVector_t *const LoadForm1,
+				     const MatrixVector_t *const LoadForm2,
+				     const MatrixVector_t *const LoadForm3,
+				     const HYSL_FLOAT Value1, const HYSL_FLOAT Value2,
+				     const HYSL_FLOAT Value3, MatrixVector_t *const LoadVector )
 {
      int incx = 1;
      int incy = 1;
      HYSL_FLOAT Scalar;
 
-     Scalar = Value;
-     hysl_copy( &LoadVector->Rows, LoadForm->Array, &incx, LoadVector->Array, &incy );
+     Scalar = Value1;
+     hysl_copy( &LoadVector->Rows, LoadForm1->Array, &incx, LoadVector->Array, &incy );
      hysl_scal( &LoadVector->Rows, &Scalar, LoadVector->Array, &incx );
+
+     Scalar = Value2;
+     hysl_axpy( &LoadVector->Rows, &Scalar, LoadForm2->Array, &incx, LoadVector->Array, &incy );
+
+     Scalar = Value3;
+     hysl_axpy( &LoadVector->Rows, &Scalar, LoadForm3->Array, &incx, LoadVector->Array, &incy );
 }

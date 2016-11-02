@@ -39,9 +39,12 @@ int HDF5_CreateFile( const char *Filename )
      return (int) file_id;
 }
 
-void HDF5_CreateGroup_Parameters( const int hdf5_file, const AlgConst_t *const InitCnt,
-				  const CouplingNode_t *const CNodes, const HYSL_FLOAT *const Acc,
-				  const HYSL_FLOAT *const Vel, const HYSL_FLOAT *const Disp )
+void HDF5_CreateGroup_Parameters( const int hdf5_file, const AlgConst_t *const InitCnt,			  
+				  const CouplingNode_t *const CNodes, const HYSL_FLOAT *const Acc1,
+				  const HYSL_FLOAT *const Vel1, const HYSL_FLOAT *const Disp1,
+				  const HYSL_FLOAT *const Acc2, const HYSL_FLOAT *const Vel2,
+				  const HYSL_FLOAT *const Disp2, const HYSL_FLOAT *const Acc3,
+				  const HYSL_FLOAT *const Vel3, const HYSL_FLOAT *const Disp3 )
 {
      hid_t    group_id, dataset_id, dataspace_id;
      hsize_t  dims[2];
@@ -67,27 +70,85 @@ void HDF5_CreateGroup_Parameters( const int hdf5_file, const AlgConst_t *const I
      dims[0] = InitCnt->NStep;
      dims[1] = 1;
      dataspace_id = H5Screate_simple( 2, dims, NULL );
-     if( Acc != NULL ){
-	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input/Acceleration", H5T_NATIVE_HYSL_FLOAT,
+          if( Acc1 != NULL ){
+	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input X/Acceleration", H5T_NATIVE_HYSL_FLOAT,
 				   dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-	  status = H5LTset_attribute_string( hdf5_file, "Test Parameters/Input/Acceleration", "Units", "m/s^2" );
-	  status = H5Dwrite( dataset_id, H5T_NATIVE_HYSL_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, Acc );
+	  status = H5LTset_attribute_string( hdf5_file, "Test Parameters/Input X/Acceleration", "Units", "m/s^2" );
+	  status = H5Dwrite( dataset_id, H5T_NATIVE_HYSL_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, Acc1 );
 	  status = H5Dclose( dataset_id );
      }
 
-     if( Vel != NULL ){
-	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input/Velocity", H5T_NATIVE_HYSL_FLOAT,
+     if( Vel1 != NULL ){
+	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input X/Velocity", H5T_NATIVE_HYSL_FLOAT,
 				   dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-	  status = H5LTset_attribute_string( hdf5_file, "Test Parameters/Input/Velocity", "Units", "m/s" );
-	  status = H5Dwrite( dataset_id, H5T_NATIVE_HYSL_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, Vel );
+	  status = H5LTset_attribute_string( hdf5_file, "Test Parameters/Input X/Velocity", "Units", "m/s" );
+	  status = H5Dwrite( dataset_id, H5T_NATIVE_HYSL_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, Vel1 );
 	  status = H5Dclose( dataset_id );
      }
 
-     if( Disp != NULL ){
-	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input/Displacement", H5T_NATIVE_HYSL_FLOAT,
+     if( Disp1 != NULL ){
+	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input X/Displacement", H5T_NATIVE_HYSL_FLOAT,
 				   dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-	  status = H5LTset_attribute_string( hdf5_file, "Test Parameters/Input/Displacement", "Units", "m" );
-	  status = H5Dwrite( dataset_id, H5T_NATIVE_HYSL_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, Disp );
+	  status = H5LTset_attribute_string( hdf5_file, "Test Parameters/Input X/Displacement", "Units", "m" );
+	  status = H5Dwrite( dataset_id, H5T_NATIVE_HYSL_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, Disp1 );
+	  status = H5Dclose( dataset_id );
+     }
+     status = H5Gclose( group_id );
+
+     group_id = H5Gcreate( hdf5_file, "/Test Parameters/Input Y", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT );
+     dims[0] = InitCnt->NStep;
+     dims[1] = 1;
+     dataspace_id = H5Screate_simple( 2, dims, NULL );
+     if( Acc2 != NULL ){
+	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input Y/Acceleration", H5T_NATIVE_HYSL_FLOAT,
+				   dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	  status = H5LTset_attribute_string( hdf5_file, "Test Parameters/Input Y/Acceleration", "Units", "m/s^2" );
+	  status = H5Dwrite( dataset_id, H5T_NATIVE_HYSL_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, Acc2 );
+	  status = H5Dclose( dataset_id );
+     }
+
+     if( Vel2 != NULL ){
+	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input Y/Velocity", H5T_NATIVE_HYSL_FLOAT,
+				   dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	  status = H5LTset_attribute_string( hdf5_file, "Test Parameters/Input Y/Velocity", "Units", "m/s" );
+	  status = H5Dwrite( dataset_id, H5T_NATIVE_HYSL_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, Vel2 );
+	  status = H5Dclose( dataset_id );
+     }
+
+     if( Disp2 != NULL ){
+	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input Y/Displacement", H5T_NATIVE_HYSL_FLOAT,
+				   dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	  status = H5LTset_attribute_string( hdf5_file, "Test Parameters/Input Y/Displacement", "Units", "m" );
+	  status = H5Dwrite( dataset_id, H5T_NATIVE_HYSL_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, Disp2 );
+	  status = H5Dclose( dataset_id );
+     }
+     status = H5Gclose( group_id );
+
+     group_id = H5Gcreate( hdf5_file, "/Test Parameters/Input Z", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT );
+     dims[0] = InitCnt->NStep;
+     dims[1] = 1;
+     dataspace_id = H5Screate_simple( 2, dims, NULL );
+     if( Acc3 != NULL ){
+	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input Z/Acceleration", H5T_NATIVE_HYSL_FLOAT,
+				   dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	  status = H5LTset_attribute_string( hdf5_file, "Test Parameters/Input Z/Acceleration", "Units", "m/s^2" );
+	  status = H5Dwrite( dataset_id, H5T_NATIVE_HYSL_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, Acc2 );
+	  status = H5Dclose( dataset_id );
+     }
+
+     if( Vel3 != NULL ){
+	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input Z/Velocity", H5T_NATIVE_HYSL_FLOAT,
+				   dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	  status = H5LTset_attribute_string( hdf5_file, "Test Parameters/Input Z/Velocity", "Units", "m/s" );
+	  status = H5Dwrite( dataset_id, H5T_NATIVE_HYSL_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, Vel2 );
+	  status = H5Dclose( dataset_id );
+     }
+
+     if( Disp3 != NULL ){
+	  dataset_id = H5Dcreate ( group_id, "/Test Parameters/Input Z/Displacement", H5T_NATIVE_HYSL_FLOAT,
+				   dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	  status = H5LTset_attribute_string( hdf5_file, "Test Parameters/Input Z/Displacement", "Units", "m" );
+	  status = H5Dwrite( dataset_id, H5T_NATIVE_HYSL_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, Disp2 );
 	  status = H5Dclose( dataset_id );
      }
      status = H5Gclose( group_id );
@@ -290,23 +351,6 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const A
 		    Nodes_StoneDrum[k].Position = CNodes->Array[j] - 1;      /* 0-based index */
 
 		    StoneDrum = (StoneDrums_t*) CNodes->Sub[j].SimStruct;
-		    Nodes_StoneDrum[k].InitValues[0] = StoneDrum->alpha;
-		    Nodes_StoneDrum[k].InitValues[1] = StoneDrum->ko;
-		    Nodes_StoneDrum[k].InitValues[2] = StoneDrum->beta;
-		    Nodes_StoneDrum[k].InitValues[3] = StoneDrum->gamma;
-		    Nodes_StoneDrum[k].InitValues[4] = StoneDrum->n;
-		    Nodes_StoneDrum[k].InitValues[5] = StoneDrum->A0;
-		    Nodes_StoneDrum[k].InitValues[6] = StoneDrum->deltaA;
-		    Nodes_StoneDrum[k].InitValues[7] = StoneDrum->nu0;
-		    Nodes_StoneDrum[k].InitValues[8] = StoneDrum->deltaNu;
-		    Nodes_StoneDrum[k].InitValues[9] = StoneDrum->eta0;
-		    Nodes_StoneDrum[k].InitValues[10] = StoneDrum->deltaEta;
-		    Nodes_StoneDrum[k].InitValues[11] = StoneDrum->vs0;
-		    Nodes_StoneDrum[k].InitValues[12] = StoneDrum->p;
-		    Nodes_StoneDrum[k].InitValues[13] = StoneDrum->q;
-		    Nodes_StoneDrum[k].InitValues[14] = StoneDrum->psi0;
-		    Nodes_StoneDrum[k].InitValues[15] = StoneDrum->deltaPsi;
-		    Nodes_StoneDrum[k].InitValues[16] = StoneDrum->lambda;
 		    strcpy( Nodes_StoneDrum[k].Description, StoneDrum->Description );
 
 		    k = k + 1;
@@ -675,9 +719,9 @@ void HDF5_Store_TMD( const hid_t hdf5_file, const double *const Acc, const doubl
      status = H5Sclose( filespace_id );
 }
 
-void HDF5_Store_BoucWen( const hid_t hdf5_file, const MatrixVector_t *const HistLoop, const int istep)
+void HDF5_Store_BoucWen( const hid_t hdf5_file, const MatrixVector_t *const HistDisp, const MatrixVector_t *const HistLoop, const int istep)
 {
-     
+     HDF5_AddResults_to_Dataset( hdf5_file, "/Time Integration/Bouc-Wen Displacements", HistDisp, istep );
      HDF5_AddResults_to_Dataset( hdf5_file, "/Time Integration/Bouc-Wen Forces", HistLoop, istep );
 }
 
@@ -719,7 +763,7 @@ void HDF5_StoreADwinData( const int hdf5_file, const HYSL_FLOAT *Array, char **E
      status = H5Gclose(group_id);
 
      HDF5_AddFloatArray_AsTable( hdf5_file, "/ADwin measurements/Recorded data", Entry_Names,
-				  Array, 24, Length );
+				  Array, NUM_CHANNELS, Length );
 }
 
 void ADwin_SaveData_HDF5( const int hdf5_file, const int Num_Steps, const int Num_Sub,
