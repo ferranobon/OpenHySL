@@ -224,7 +224,7 @@ void EffK_ComputeAcceleration( const MatrixVector_t *const DispTdT, const Matrix
 			       const HYSL_FLOAT a0, const HYSL_FLOAT a2, const HYSL_FLOAT a3, MatrixVector_t *const AccTdT )
 {
      int incx = 1, incy = 1;  /* Stride in the vectors */
-     HYSL_FLOAT Alpha;            /* Constant for the BLAS routines */
+     HYSL_FLOAT Alpha;        /* Constant for the BLAS routines */
 
      /* BLAS: AccTdT = DispTdT */
      hysl_copy( &AccTdT->Rows, DispTdT->Array, &incx, AccTdT->Array, &incy ); 
