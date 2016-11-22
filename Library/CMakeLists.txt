@@ -190,6 +190,13 @@ else()
   target_link_libraries(SAlgorithm_EffM core substructure ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES})
 endif()
 
+add_executable(PCorrector src/PredictorCorrector.c src/Algorithm_Aux.c src/HDF5_Operations.c)# ${CORE_SRCS} ${SPARSE_SRCS} ${SUBS_SRCS})
+if( USE_SPARSE )
+  target_link_libraries(PCorrector core core_sp substructure ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES})
+else()
+  target_link_libraries(PCorrector core substructure ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES})
+endif()
+
 add_executable( Custom_Server src/Custom_Server.c )
 if( USE_SPARSE )
   target_link_libraries(Custom_Server core core_sp substructure)

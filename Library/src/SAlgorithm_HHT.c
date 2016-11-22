@@ -66,7 +66,7 @@ const char *Entry_Names[NUM_CHANNELS] = { "Sub-step",
 int main( int argc, char **argv ){
 
      unsigned int istep, i;
-     double Alpha_HHT = 0.1;
+     HYSL_FLOAT Alpha_HHT = 0.1;
      AlgConst_t InitCnt;
      const char *FileConf;
 
@@ -328,8 +328,8 @@ int main( int argc, char **argv ){
 
      /* Calculate Matrix Keinv = 1.0*[K + a0*M + a1*C]^(-1) */
      Constants.Alpha = InitCnt.a0;    /* Mass matrix coefficient */
-     Constants.Beta = InitCnt.a1*(1.0+Alpha_HHT);     /* Damping matrix coefficent */
-     Constants.Gamma = 1.0+Alpha_HHT;           /* Stiffness matrix coefficient */
+     Constants.Beta = InitCnt.a1*(1.0 + Alpha_HHT);     /* Damping matrix coefficent */
+     Constants.Gamma = 1.0 + Alpha_HHT;           /* Stiffness matrix coefficient */
      Constants.Lambda = 1.0;          /* Matrix inversion coefficient */
 
      if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
