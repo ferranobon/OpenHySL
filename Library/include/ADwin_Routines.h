@@ -12,7 +12,6 @@
  * This file contains the prototypes of the routines that involve synchronisation, communication or process
  * management of ADwin.
  *
- * \todo{Document functions for ADwin_Substep_Pre and ADwin_Substep_Post}
  */
 
 #ifndef ADWIN_ROUTINES_H_
@@ -98,24 +97,15 @@ void Substructure_MatrixXc_ADwin( const MatrixVector_t *const Mat, const Couplin
 
 
 /**
- * \brief Sub-stepping process in ADwin.
+ * \brief Sub-stepping process in ADwin. Sending data.
  *
- * This routine communicates with ADwin to perform the sub-stepping process in ADwin. It does so by sending
- * the explicit displacement to the ADwin system. It waits a certain amount of time before retrieving the data
- * from the ADwin system. This is done in order to avoid overloading the system with network requests when the
- * system is not yet ready. A good time to get the data from ADwin is:
- *
- * \f[Time_To_Wait = \frac{Round Trip Time}{0.9}\f]
- *
- * Note that this value has to be coherent also with when ADwin measures the last coupling force from the
- * speciment.
+ * This routine communicates with ADwin to start the sub-stepping process in ADwin. It does so by sending the
+ * explicit displacement to the ADwin system. This function must be used together with ADwin_Substep_Post() in
+ * order to retrieve the sub-stepping result.
  *
  * This routine relies on a synchronization variable when communicating with ADwin.
  * - When sending the data to ADwin, the first value of the array should be \c 1.0. This indicates the running
  *   process in ADwin that a new displacement value is available.
- * - If \f$ADwinReady = 0\f$ the sub-stepping process is not finished and therefore the last coupling force is
- *   not yet measured. The routine will keep asking ADwin for the last coupling force until the first received
- *   value from ADwin is equal to -1.0. When this happens the substepping process is finished.
  *
  * \pre
  * - ADwin must be successfully booted and the substepping process must be running.
@@ -130,6 +120,47 @@ void Substructure_MatrixXc_ADwin( const MatrixVector_t *const Mat, const Couplin
  * \param[in]  VecTdT_0c    Explicit displacement at the begining of the step to be sent to ADwin. It should
  *                          be at least \f$Length \geq OrderC\f$.
  * \param[in]  OrderC       Amount of data to be sent to the ADwin system.
+ * 
+ * \post The vectors \c VecTdT_c, \c fcprev_c, \c fc_c contain the last control values and the coupling force
+ * at the previous and last sub-steps.
+ *
+ * \post
+ * - ADwin must start the substepping process.
+ * - The result of the sub-stepping process must be retrieved by ADwin_Substep_Post().
+ *
+ * \sa ADwin_Substep_Post()-
+ */
+void ADwin_Substep_Pre( const HYSL_FLOAT *const VecTdT_0c, const unsigned int OrderC );
+
+/**
+ * \brief Sub-stepping process in ADwin. Sending data.
+ *
+ * This routine communicates with ADwin to retrieve the substepping result. The process should have been
+ * started through the ADwin_Substep_Pre() routine. This function waits a certain amount of time before
+ * retrieving the data from the ADwin system. This is done in order to avoid overloading the system with
+ * network requests when the system is not yet ready. A good time to get the data from ADwin is:
+ *
+ * \f[Time_To_Wait = \frac{Round Trip Time}{0.9}\f]
+ *
+ * Note that this value has to be coherent also with when ADwin measures the last coupling force from the
+ * speciment.
+ *
+ * This routine relies on a synchronization variable when communicating with ADwin.
+ * - If \f$ADwinReady = 0\f$ the sub-stepping process is not finished and therefore the last coupling force
+ *   is not yet measured.
+ * - The  * routine will keep asking ADwin for the last coupling force until the first received value from
+ *   ADwin is equal to -1.0. When this happens the substepping process is finished.
+ *
+ * \pre
+
+ * - ADwin must be successfully booted and the substepping process must be running.
+ * - The sub-stepping process in ADwin should save the new displacement and force values on array 3. When the
+ *   values are reaady (the sub-stepping process is finished) the first value should be a -1.0.
+ * - A valid gain matrix of size \$OrderC\$x\$OrderC\$ should be on ADwin.
+ * - Only the coupling elements should be on the given vectors since the routine does not consider the global
+ *   position of the coupling degrees of freedom.
+ *
+ * \param[in]  OrderC       Amount of data to be sent to the ADwin system.
  * \param[in]  Time_To_Wait Amount of time that the computer should wait before asking ADwin for the first
  *                          time for the new values.
  * \param[out] VecTdT_c     Displacement at the end of the sub-stepping process. It should be at least
@@ -141,8 +172,9 @@ void Substructure_MatrixXc_ADwin( const MatrixVector_t *const Mat, const Couplin
  * 
  * \post The vectors \c VecTdT_c, \c fcprev_c, \c fc_c contain the last control values and the coupling force
  * at the previous and last sub-steps.
+ *
+ * \sa ADwin_Substep_Pre().
  */
-void ADwin_Substep_Pre( const HYSL_FLOAT *const VecTdT_0c, const unsigned int OrderC );
 void ADwin_Substep_Post(  const unsigned int OrderC, const HYSL_FLOAT Time_To_Wait, HYSL_FLOAT *const VecTdT_c,
 			  HYSL_FLOAT *const fcprev_c, HYSL_FLOAT *const fc_c );
 

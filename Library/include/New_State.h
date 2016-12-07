@@ -122,7 +122,7 @@ void Compute_NewState_Zienkiewicz( const MatrixVector_t *const Meff, const Matri
 				   const MatrixVector_t *const ForceT0, const HYSL_FLOAT a8, const HYSL_FLOAT a17,
 				   const HYSL_FLOAT a18, MatrixVector_t *const Tempvec, MatrixVector_t *const VecTdT_0 );
 void Compute_NewState_Zienkiewicz_PS( const MatrixVector_t *const Meff, const MatrixVector_t *const MatA,
-				      const MatrixVector_t *const MatB, const MatrixVector_t *const DispT,
+				      const MatrixVector_t *const MatB, const MatrixVector_t *const DispT,S
 				      const MatrixVector_t *const DispT0, const MatrixVector_t *const In_LoadT,
 				      const MatrixVector_t *const Err_ForceT, const MatrixVector_t *const ForceT,
 				      const MatrixVector_t *const ForceT0, const HYSL_FLOAT a8, const HYSL_FLOAT a17,

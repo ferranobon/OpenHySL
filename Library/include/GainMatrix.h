@@ -39,7 +39,9 @@
  * - and \f$\alpha\f$, \f$beta\f$, \f$\gamma\f$ and \f$\lambda\f$ are the parameters that multiply the mass,
  *   damping, stiffness and matrices and the result of the matrix inversion respectively.
  *
- * It makes use of BLAS and LAPACK routines to perform the linear algebra operations.
+ * It makes use of BLAS and LAPACK routines to perform the linear algebra operations. If using single
+ * precision, the routine IGainMatrix_Float2Double() is recommended since it increases accuracy of the matrix
+ * inversion.
  *
  * \pre 
  * - All elements of type \c MatrixVector_t must be properly intialised through the  MatrixVector_Create()
@@ -84,7 +86,9 @@ void IGainMatrix( MatrixVector_t *const IGain, const MatrixVector_t *const Mass,
  *   damping, stiffness and matrices and the result of the matrix inversion respectively.
  *
  *
- * It makes use of BLAS and LAPACK routines to perform the linear algebra operations.
+ * It makes use of BLAS and LAPACK routines to perform the linear algebra operations. If using single
+ * precision, the routine IGainMatrix_Float2Double_PS() is recommended since it increases accuracy of the
+ * matrix inversion.
  *
  * \pre 
  * - All elements of type \c MatrixVector_t must be properly intialised through the  MatrixVector_Create_PS()
@@ -132,7 +136,8 @@ void IGainMatrix_PS( MatrixVector_t *const IGain, const MatrixVector_t *const Ma
  *   damping, stiffness and matrices and the result of the matrix inversion respectively.
  *
  * It makes use of the BLAS, LAPACK and Sparse BLAS routines from the Intel Math Kernel Library \cite MKL_2013
- * to perform the linear algebra operations.
+ * to perform the linear algebra operations.  If using single precision, the routine
+ * IGainMatrix_Float2Double_Sp() is recommended since it increases accuracy of the matrix inversion.
  *
  * \pre 
  * - The gain matrix must be properly initialised through the MatrixVector_Create() routine.
@@ -184,7 +189,8 @@ void IGainMatrix_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const
  *   damping, stiffness and matrices and the result of the matrix inversion respectively.
  *
  * It makes use of the BLAS, LAPACK and Sparse BLAS routines from the Intel Math Kernel Library \cite MKL_2013
- * to perform the linear algebra operations.
+ * to perform the linear algebra operations.  If using single precision, the routine
+ * IGainMatrix_Float2Double_Sp_PS() is recommended since it increases accuracy of the matrix inversion.
  *
  * \pre 
  * - The gain matrix must be in packed storage and properly initialised through the  MatrixVector_Create_PS()
@@ -359,19 +365,211 @@ void IGainMatrix_Pardiso_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_
  */
 void IGainMatrix_MPI( PMatrixVector_t *const IGain, PMatrixVector_t *const Mass, PMatrixVector_t *const Damp,
 		      PMatrixVector_t *const Stiff, const Scalars_t Const );
+/**
+ * \brief Computes the gain matrix and its inverse using double precision. General storage version.
+ *
+ * This routine calculates the so called Gain Matrix and its inverse using double precision through:
+ *
+ * \f[\mathcal{G}^{-1} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} +
+ * \gamma\mathcal{C})^{-1}\f]
+ *
+ * where:
+ * - \f$\mathcal{M}\f$ is the mass matrix,
+ * - \f$\mathcal{C}\f$ is the proportional viscous damping matrix,
+ * - \f$\mathcal{K}\f$ is the stiffness matrix,
+ * - \f$\mathcal{G}\f$ is the gain matrix,
+ * - and \f$\alpha\f$, \f$beta\f$, \f$\gamma\f$ and \f$\lambda\f$ are the parameters that multiply the mass,
+ *   damping, stiffness and matrices and the result of the matrix inversion respectively.
+ *
+ * It makes use of BLAS and LAPACK routines to perform the linear algebra operations. The double precision
+ * entries are afterwards reconverted to single precision ones. Using this routine improves the accuracy of
+ * the matrix inversion in single precision scenarios.
+ *
+ * \pre 
+ * - Single precision must be used.
+ * - All elements of type \c MatrixVector_t must be properly intialised through the  MatrixVector_Create()
+ *   routine.
+ * - The matrices must be symmetrical and only the upper part will be referenced (lower part in FORTRAN
+ *   routines).
+ * - The dimensions of the matrices must be the identical.
+ * - The values in scalars must be properly initialised and they depend on the used formulation
+ *   \cite Dorka_1998.
+ *
+ * \param[in,out] IGain The inverse of the gain matrix. As an input, only the size of the matrix is
+ *                      referenced.
+ * \param[in]     Mass  The mass matrix.
+ * \param[in]     Damp  The proportional viscous damping matrix.
+ * \param[in]     Stiff The stiffness matrix.
+ * \param[in]     Const Scalars that multiply the mass (\f$\alpha\f$), \c Const.Aplha), damping (\f$\beta\f$),
+ *                      \c Const.Beta), stiffness (\f$\gamma\f$), \c Const.Gamma) matrices and the inverted
+ *                      matrix (\f$\lambda\f$), \c Const.Lambda) respectively.
+ *
+ * \post \c IGain is a symmetric matrix in general storage with only the upper part referenced (Lower part in
+ *       FORTRAN routines). It contains the result of: \f[\mathcal{G}^{-1} = \lambda(\alpha\mathcal{M} +
+ *       \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
+ *
+ * \sa MatrixVector_t and Scalars_t.
+ */
+void IGainMatrix_Float2Double ( MatrixVector_t *const IGain, const MatrixVector_t *const Mass, 
+				const MatrixVector_t *const Damp, const MatrixVector_t *const Stiff,
+				const Scalars_t Const );
 
-void IGainMatrix_Float2Double( MatrixVector_t *const IGain, const MatrixVector_t *const Mass, 
-			       const MatrixVector_t *const Damp, const MatrixVector_t *const Stiff,
-			       const Scalars_t Const );
-
+/**
+ * \brief Computes the gain matrix and its inverse using double precision. Packed storage version.
+ *
+ * This routine calculates the so called Gain Matrix and its inverse using using double precision and packed
+ * storage through:
+ *
+ * \f[\mathcal{G}^{-1} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
+ *
+ * where:
+ * - \f$\mathcal{M}\f$ is the mass matrix,
+ * - \f$\mathcal{C}\f$ is the proportional viscous damping matrix,
+ * - \f$\mathcal{K}\f$ is the stiffness matrix,
+ * - \f$\mathcal{G}\f$ is the gain matrix,
+ * - and \f$\alpha\f$, \f$beta\f$, \f$\gamma\f$ and \f$\lambda\f$ are the parameters that multiply the mass,
+ *   damping, stiffness and matrices and the result of the matrix inversion respectively.
+ *
+ *
+ * It makes use of BLAS and LAPACK routines to perform the linear algebra operations. The double precision
+ * entries are afterwards reconverted to single precision ones. Using this routine improves the accuracy of
+ * the matrix inversion in single precision scenarios.
+ *
+ * \pre 
+ * - Single precision must be used.
+ * - All elements of type \c MatrixVector_t must be properly intialised through the  MatrixVector_Create_PS()
+ *   routine.
+ * - The matrices must be symmetrical and in packed storage. The upper triangular part (lower triangular part
+ *   in FORTRAN) must be present.
+ * - The dimensions of the matrices must be the identical.
+ * - The values in scalars must be properly initialised and they depend on the used formulation
+ *   \cite Dorka_1998
+ *
+ * \param[in,out] IGain The inverse of the gain matrix in packed storage. As an input, only the size of the
+ *                      matrix is referenced.
+ * \param[in]     Mass  The mass matrix.
+ * \param[in]     Damp  The proportional viscous damping matrix.
+ * \param[in]     Stiff The stiffness matrix.
+ * \param[in]     Const Scalars that multiply the mass (\f$\alpha\f$), \c Const.Aplha), damping (\f$\beta\f$),
+ *                      \c Const.Beta), stiffness (\f$\gamma\f$), \c Const.Gamma) matrices and the inverted
+ *                      matrix (\f$\lambda\f$), \c Const.Lambda) respectively.
+ *
+ * \post \c IGain is a symmetric matrix in packed storage with only the upper part (lower part in FORTRAN). It
+ *       contains the result of: \f[\mathcal{G}^{-1} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} +
+ *       \gamma\mathcal{C})^{-1}\f]
+ *
+ * \sa MatrixVector_t and Scalars_t.
+ */
 void IGainMatrix_Float2Double_PS( MatrixVector_t *const IGain, const MatrixVector_t *const Mass,
 				  const MatrixVector_t *const Damp, const MatrixVector_t *const Stiff,
 				  const Scalars_t Const );
 
+/**
+ * \brief Computes the gain matrix and its inverse using double precision. Sparse version and general storage.
+ *
+ * \warning This routine requires the Intel Math Kernel Library \cite MKL_2013.
+ *
+ * This routine calculates the so called Gain Matrix and its inverse using double precision through:
+ *
+ * \f[\mathcal{G}^{-1} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
+ *
+ * where:
+ * - \f$\mathcal{M}\f$ is the mass matrix,
+ * - \f$\mathcal{C}\f$ is the proportional viscous damping matrix,
+ * - \f$\mathcal{K}\f$ is the stiffness matrix,
+ * - \f$\mathcal{G}\f$ is the gain matrix,
+ * - and \f$\alpha\f$, \f$beta\f$, \f$\gamma\f$ and \f$\lambda\f$ are the parameters that multiply the mass,
+ *   damping, stiffness and matrices and the result of the matrix inversion respectively.
+ *
+ * It makes use of the BLAS, LAPACK and Sparse BLAS routines from the Intel Math Kernel Library \cite MKL_2013
+ * to perform the linear algebra operations. The double precision entries are afterwards reconverted to single
+ * precision ones. Using this routine improves the accuracy of the matrix inversion in single precision
+ * scenarios.
+ *
+ * \pre 
+ * - Single precision must be used.
+ * - The gain matrix must be properly initialised through the MatrixVector_Create() routine.
+ * - All elements of type \c MatrixVector_Sp_t must be properly intialised through the
+ *   MatrixVector_Create_Sp() routine.
+ * - The sparse matrices must in Intel's MKL CSR-\em three \em array \em variation and in one based index.
+ * - The matrices must be symmetrical with only the upper part referenced (lower part in FORTRAN routines).
+ * - The dimensions of the matrices must be the identical.
+ * - The maximum number or non zero elements of the proportional viscous damping matrix must be equal to the
+ *   number of non zero elements in the stiffness matrix.
+ * - The values in scalars must be properly initialised and they depend on the used formulation
+ *   \cite Dorka_1998.
+ *
+ * \param[in,out] IGain The gain matrix. As an input, only the size of the matrix is referenced, not its
+ *                      elements.
+ * \param[in]     Mass  The mass matrix.
+ * \param[in]     Damp  The proportional viscous damping matrix.
+ * \param[in]     Stiff The stiffness matrix.
+ * \param[in]     Const Scalars that multiply the mass (\f$\alpha\f$), \c Const.Aplha), damping (\f$\beta\f$),
+ *                      \c Const.Beta), stiffness (\f$\gamma\f$), \c Const.Gamma) matrices and the inverted
+ *                      matrix (\f$\lambda\f$), \c Const.Lambda) respectively.
+
+ *
+ * \post \c IGain is a symmetric matrix in general storage with only the upper part referenced (Lower part in
+ *       FORTRAN routines). It contains the result of: \f[\mathcal{G}^{-1} = \lambda(\alpha\mathcal{M} +
+ *       \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
+ *
+ * \sa MatrixVector_t, MatrixVector_Sp_t and Scalars_t.
+ */
 void IGainMatrix_Float2Double_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const Mass,
 				  const MatrixVector_Sp_t *const Damp, const MatrixVector_Sp_t *const Stiff,
 				  const Scalars_t Const );
 
+/**
+ * \brief Computes the gain matrix and its inverse using double precision. Sparse version and packed storage.
+ *
+ * \warning This routine requires the Intel Math Kernel Library \cite MKL_2013.
+ *
+ * This routine calculates the so called Gain Matrix and its inverse using double precision through:
+ *
+ * \f[\mathcal{G}^{-1} = \lambda(\alpha\mathcal{M} + \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
+ *
+ * where:
+ * - \f$\mathcal{M}\f$ is the mass matrix,
+ * - \f$\mathcal{C}\f$ is the proportional viscous damping matrix,
+ * - \f$\mathcal{K}\f$ is the stiffness matrix,
+ * - \f$\mathcal{G}\f$ is the gain matrix,
+ * - and \f$\alpha\f$, \f$beta\f$, \f$\gamma\f$ and \f$\lambda\f$ are the parameters that multiply the mass,
+ *   damping, stiffness and matrices and the result of the matrix inversion respectively.
+ *
+ * It makes use of the BLAS, LAPACK and Sparse BLAS routines from the Intel Math Kernel Library \cite MKL_2013
+ * to perform the linear algebra operations. The double precision entries are afterwards reconverted to single
+ * precision ones. Using this routine improves the accuracy of the matrix inversion in single precision
+ * scenarios.
+ *
+ * \pre 
+ * - Single precision must be used.
+ * - The gain matrix must be in packed storage and properly initialised through the  MatrixVector_Create_PS()
+ *   routine.
+ * - All elements of type \c MatrixVector_Sp_t must be properly intialised through the
+ *   MatrixVector_Create_Sp() routine The sparse matrices must in Intel's MKL CSR-\em three \em array \em
+ *   variation and in one based index.
+ * - The sparse matrices must be symmetrical with only the upper part referenced (lower part in FORTRAN
+ *   routines).
+ * - The dimensions of the matrices must be the identical.
+ * - The maximum number or non zero elements of the proportional viscous damping matrix must be equal to the
+ *   number of non zero elements in the stiffness matrix.
+ * - The values in scalars must be properly initialised and they depend on the used formulation 
+ *   \cite Dorka_1998.
+ *
+ * \param[in,out] IGain The gain matrix. As an input, only the size of the matrix is referenced, not its elements.
+ * \param[in]     Mass  The mass matrix.
+ * \param[in]     Damp  The proportional viscous damping matrix.
+ * \param[in]     Stiff The stiffness matrix.
+ * \param[in]     Const Scalars that multiply the mass (\f$\alpha\f$), \c Const.Aplha), damping (\f$\beta\f$),
+ *                      \c Const.Beta), stiffness (\f$\gamma\f$), \c Const.Gamma) matrices and the inverted
+ *                      matrix (\f$\lambda\f$),\c Const.Lambda) respectively.
+ *
+ * \post \c IGain is a symmetric matrix in packed storage with only the upper part referenced (Lower part in
+ *       FORTRAN routines). It contains the result of: \f[\mathcal{G}^{-1} = \lambda(\alpha\mathcal{M} +
+ *       \beta\mathcal{C} + \gamma\mathcal{C})^{-1}\f]
+ *
+ * \sa MatrixVector_t, MatrixVector_Sp_t and Scalars_t.
+ */
 void IGainMatrix_Float2Double_Sp_PS( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const Mass,
 				     const MatrixVector_Sp_t *const Damp, const MatrixVector_Sp_t *const Stiff,
 				     const Scalars_t Const );
