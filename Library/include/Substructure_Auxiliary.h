@@ -525,6 +525,9 @@ void Substructure_VectorXm_MPI(PMatrixVector_t *const VectorX, const CouplingNod
  */
 void Substructure_VectorXc( const MatrixVector_t *const VecX, const CouplingNode_t *const CNodes, MatrixVector_t *const VecXc );
 
+/**
+ * \brief Finds the position of an element of the coupled vector in the global vector.
+ */
 int Substructure_FindPosition( const int Pos_in_VecX, const CouplingNode_t *const CNodes );
 
 #if _MPI_

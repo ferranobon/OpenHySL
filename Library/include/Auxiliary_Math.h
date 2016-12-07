@@ -49,7 +49,34 @@ int Max ( const int a, const int b );
  */
 int Min ( const int a, const int b );
 
+/**
+ * \brief Returns the sign of a floating point value.
+ *
+ * The function returns a 1.0, 0.0 or a -1.0 depending on the sign of the entered floating point value:
+ * - \f$1.0~if~num > 0.0\f$.
+ * - \f$0.0~if~num = 0.0\f$.
+ * - \f$-1.0~if~num < 0.0\f$.
+
+ * \param[in] num Number whose sign needs to be analysed.
+ * \returns       Returns the sign of the entered floating point value.
+ */
 HYSL_FLOAT signum ( const HYSL_FLOAT num );
+
+/**
+ * \brief Calculates the norm of a vector.
+ *
+ * The norm of a vector \f$u\f$ of length \f$n\f$ is calculated:
+ *
+ * \f[||u|| = \sum_1^n u_i^2\f]
+ *
+ * \pre
+ * - Vector must point to an allocated memory of \f$n \geq Length\f$ elements.
+ *
+ * \param length Length of the vector.
+ * \param Vector Vector whose norm must be computed.
+ * \return The norm of the given vector.
+ * 
+ */
 HYSL_FLOAT norm ( const int length, const HYSL_FLOAT *const Vector );
 
 /**
@@ -62,7 +89,7 @@ HYSL_FLOAT norm ( const int length, const HYSL_FLOAT *const Vector );
  *
  * \param[in] Rows The number of rows.
  * \param[in] Cols The number of columns.
- * \return A identity matrix of \f$Size= Rows*Cols\f$ in general storage.
+ * \return A identity matrix of \f$Size = Rows*Cols\f$ in general storage.
  *
  * \post The deallocation of memory should be performed through MatrixVector_Destroy().
  */
