@@ -111,36 +111,36 @@ void PC_Calculate_Acceleration (const MatrixVector_t *const LoadTdT, const Matri
      /* BLAS: AccTdT = (1 + alpha_H)*LoadTdT */
      Alpha = 1.0 + alpha_H;
      hysl_scal( &AccTdT->Rows, &Alpha, AccTdT->Array, &incx );
-     /* BLAS: AccTdT = (1+ alpha_H)*LoadTdT - alpha_H*LoadT */
+     /* BLAS: AccTdT = (1 + alpha_H)*LoadTdT - alpha_H*LoadT */
      Alpha = -alpha_H;
      hysl_axpy( &AccTdT->Rows, &Alpha, LoadT->Array, &incx, AccTdT->Array, &incy );
-     /* BLAS: AccTdT = (1+ alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT */
+     /* BLAS: AccTdT = (1 + alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT */
      Alpha = alpha_H;
      hysl_axpy( &AccTdT->Rows, &Alpha, RForceT->Array, &incx, AccTdT->Array, &incy );
-     /* BLAS: AccTdT = (1+ alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT*/
+     /* BLAS: AccTdT = (1 + alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT*/
      Alpha = 1.0 + alpha_H;
      hysl_axpy( &AccTdT->Rows, &Alpha, RForceTdT->Array, &incx, AccTdT->Array, &incy );
-     /* BLAS: AccTdT = (1+ alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT +
+     /* BLAS: AccTdT = (1 + alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT +
       * alpha_H*C*VelT_Pred */
      Alpha = alpha_H; Beta = 1.0;
      hysl_symv( &uplo, &AccTdT->Rows, &Alpha, C->Array, &AccTdT->Rows, VelT_Pred->Array, &incx, &Beta,
 		AccTdT->Array, &incy );
-     /* BLAS: AccTdT = (1+ alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT +
+     /* BLAS: AccTdT = (1 + alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT +
       * alpha_H*C*VelT_Pred + (1 + alpha_H)*c*VelTdT_Pred */
      Alpha = 1.0 + alpha_H;
      hysl_symv( &uplo, &AccTdT->Rows, &Alpha, C->Array, &AccTdT->Rows, VelTdT_Pred->Array, &incx, &Beta,
 		AccTdT->Array, &incy );
-     /* BLAS: AccTdT = (1+ alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT +
+     /* BLAS: AccTdT = (1 + alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT +
       * alpha_H*C*VelT_Pred + (1 + alpha_H)*c*VelTdT_Pred + alpha_H*a7*C*AccT. */
      Alpha = alpha_H*a7;
      hysl_symv( &uplo, &AccTdT->Rows, &Alpha, C->Array, &AccTdT->Rows, AccT->Array, &incx, &Beta,
 		AccTdT->Array, &incy );
-     /* BLAS: AccTdT = (1+ alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT +
+     /* BLAS: AccTdT = (1 + alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT +
       * alpha_H*C*VelT_Pred + (1 + alpha_H)*c*VelTdT_Pred + alpha_H*a7*C*AccT + alpha_H*a8*K*AccT */
      Alpha = alpha_H*a8;
      hysl_symv( &uplo, &AccTdT->Rows, &Alpha, K->Array, &AccTdT->Rows, AccT->Array, &incx, &Beta,
 		AccTdT->Array, &incy );
-     /* BLAS: AccTdT = Meinv*((1+ alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT +
+     /* BLAS: AccTdT = Meinv*((1 + alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT +
       * alpha_H*C*VelT_Pred + (1 + alpha_H)*c*VelTdT_Pred + alpha_H*a7*C*AccT + alpha_H*a8*K*AccT) */
      Alpha = 1.0; Beta = 0.0;
 
@@ -173,41 +173,41 @@ void PC_Calculate_Acceleration_PS (const MatrixVector_t *const LoadTdT, const Ma
      /* BLAS: AccTdT = (1 + alpha_H)*LoadTdT */
      Alpha = 1.0 + alpha_H;
      hysl_scal( &AccTdT->Rows, &Alpha, AccTdT->Array, &incx );
-     /* BLAS: AccTdT = (1+ alpha_H)*LoadTdT - alpha_H*LoadT */
+     /* BLAS: AccTdT = (1 + alpha_H)*LoadTdT - alpha_H*LoadT */
      Alpha = -alpha_H;
      hysl_axpy( &AccTdT->Rows, &Alpha, LoadT->Array, &incx, AccTdT->Array, &incy );
-     /* BLAS: AccTdT = (1+ alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT */
+     /* BLAS: AccTdT = (1 + alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT */
      Alpha = alpha_H;
      hysl_axpy( &AccTdT->Rows, &Alpha, RForceT->Array, &incx, AccTdT->Array, &incy );
-     /* BLAS: AccTdT = (1+ alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT*/
+     /* BLAS: AccTdT = (1 + alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT*/
      Alpha = 1.0 + alpha_H;
      hysl_axpy( &AccTdT->Rows, &Alpha, RForceTdT->Array, &incx, AccTdT->Array, &incy );
-     /* BLAS: AccTdT = (1+ alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT +
+     /* BLAS: AccTdT = (1 + alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT +
       * alpha_H*C*VelT_Pred */
      Alpha = alpha_H; Beta = 1.0;
      hysl_spmv( &uplo, &AccTdT->Rows, &Alpha, C->Array, VelT_Pred->Array, &incx, &Beta,
 		AccTdT->Array, &incy );
      Alpha = alpha_H; Beta = 1.0;
-     /* BLAS: AccTdT = (1+ alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT +
+     /* BLAS: AccTdT = (1 + alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT +
       * alpha_H*C*VelT_Pred */
      hysl_spmv( &uplo, &AccTdT->Rows, &Alpha, C->Array, VelT_Pred->Array, &incx, &Beta,
 		AccTdT->Array, &incy );
-     /* BLAS: AccTdT = (1+ alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT +
+     /* BLAS: AccTdT = (1 + alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT +
       * alpha_H*C*VelT_Pred + (1 + alpha_H)*c*VelTdT_Pred */
      Alpha = 1.0 + alpha_H;
      hysl_spmv( &uplo, &AccTdT->Rows, &Alpha, C->Array, VelTdT_Pred->Array, &incx, &Beta,
 		AccTdT->Array, &incy );
-     /* BLAS: AccTdT = (1+ alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT +
+     /* BLAS: AccTdT = (1 + alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT +
       * alpha_H*C*VelT_Pred + (1 + alpha_H)*c*VelTdT_Pred + alpha_H*a7*C*AccT. */
      Alpha = alpha_H*a7;
      hysl_spmv( &uplo, &AccTdT->Rows, &Alpha, C->Array, AccT->Array, &incx, &Beta,
 		AccTdT->Array, &incy );
-     /* BLAS: AccTdT = (1+ alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT +
+     /* BLAS: AccTdT = (1 + alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT +
       * alpha_H*C*VelT_Pred + (1 + alpha_H)*c*VelTdT_Pred + alpha_H*a7*C*AccT + alpha_H*a8*K*AccT */
      Alpha = alpha_H*a8;
      hysl_spmv( &uplo, &AccTdT->Rows, &Alpha, K->Array, AccT->Array, &incx, &Beta,
 		AccTdT->Array, &incy );
-     /* BLAS: AccTdT = Meinv*((1+ alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT +
+     /* BLAS: AccTdT = Meinv*((1 + alpha_H)*LoadTdT - alpha_H*LoadT + alpha_H*RForceT - (1 + alpha_H)*RForceTdT +
       * alpha_H*C*VelT_Pred + (1 + alpha_H)*c*VelTdT_Pred + alpha_H*a7*C*AccT + alpha_H*a8*K*AccT) */
      Alpha = 1.0; Beta = 0.0;
      hysl_spmv( &uplo, &AccTdT->Rows, &Alpha, Meinv->Array, AccTdT->Array, &incx, &Beta,

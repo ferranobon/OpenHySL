@@ -280,7 +280,7 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 			      exit(EXIT_FAILURE );
 			 }
 			 
-			 Substructure_Newmark_Init( ftemp[0], ftemp[1], ftemp[2], DeltaTSub, InitCnt->Delta_t, InitCnt->Newmark.Beta, InitCnt->Newmark.Gamma,
+			 Substructure_Newmark_Init( ftemp[0], ftemp[1], ftemp[2], DeltaTSub, InitCnt->Delta_t, InitCnt->TIntConst.Beta, InitCnt->TIntConst.Gamma,
 						    Description, (NewmarkSim_t *) CNodes->Sub[i + j].SimStruct );
 
 			 Print_Header( INFO );

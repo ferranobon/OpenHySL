@@ -28,7 +28,7 @@
 #include "hdf5.h"
 #include "hdf5_hl.h"
 
-int HDF5_CreateFile( const char *Filename )
+hid_t HDF5_CreateFile( const char *Filename )
 {
 
      hid_t    file_id;
@@ -36,10 +36,10 @@ int HDF5_CreateFile( const char *Filename )
      /* Create a new file using default properties. */
      file_id = H5Fcreate( Filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT );
      
-     return (int) file_id;
+     return file_id;
 }
 
-void HDF5_CreateGroup_Parameters( const int hdf5_file, const AlgConst_t *const InitCnt,			  
+void HDF5_CreateGroup_Parameters( const hid_t hdf5_file, const AlgConst_t *const InitCnt,			  
 				  const CouplingNode_t *const CNodes, const HYSL_FLOAT *const Acc1,
 				  const HYSL_FLOAT *const Vel1, const HYSL_FLOAT *const Disp1,
 				  const HYSL_FLOAT *const Acc2, const HYSL_FLOAT *const Vel2,
@@ -54,7 +54,7 @@ void HDF5_CreateGroup_Parameters( const int hdf5_file, const AlgConst_t *const I
      char     **Entry_Names;
      
      Entry_Names = (char **) malloc( (size_t) 6*sizeof(char*) );
-     dArray = (HYSL_FLOAT *) malloc( (size_t) 3*sizeof(HYSL_FLOAT) );
+     dArray = (HYSL_FLOAT *) malloc( (size_t) 4*sizeof(HYSL_FLOAT) );
 
      /* Create a group named "/Time History" in the file. */
      group_id = H5Gcreate( hdf5_file, "/Test Parameters", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT );     
@@ -66,7 +66,7 @@ void HDF5_CreateGroup_Parameters( const int hdf5_file, const AlgConst_t *const I
      }
      
      /* Add input load */
-     group_id = H5Gcreate( hdf5_file, "/Test Parameters/Input", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT );
+     group_id = H5Gcreate( hdf5_file, "/Test Parameters/Input X", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT );
      dims[0] = InitCnt->NStep;
      dims[1] = 1;
      dataspace_id = H5Screate_simple( 2, dims, NULL );
@@ -154,14 +154,16 @@ void HDF5_CreateGroup_Parameters( const int hdf5_file, const AlgConst_t *const I
      status = H5Gclose( group_id );
 
      /* Add Integration parameters */
-     Entry_Names[0] = strdup( "Beta" );      dArray[0] = InitCnt->Newmark.Beta;
-     Entry_Names[1] = strdup( "Gamma" );     dArray[1] = InitCnt->Newmark.Gamma;
-     Entry_Names[2] = strdup( "Time step" ); dArray[2] = InitCnt->Delta_t;
+     Entry_Names[0] = strdup( "Beta" );         dArray[0] = InitCnt->TIntConst.Beta;
+     Entry_Names[1] = strdup( "Gamma" );        dArray[1] = InitCnt->TIntConst.Gamma;
+     Entry_Names[2] = strdup( "Hilber Alpha" ); dArray[2] = InitCnt->TIntConst.HilberAlpha;
+     Entry_Names[3] = strdup( "Time step" );    dArray[3] = InitCnt->Delta_t;
      
-     HDF5_AddFloatArray_AsTable( hdf5_file, "/Test Parameters/Time Integration", Entry_Names, dArray, 3, 1 );
+     HDF5_AddFloatArray_AsTable( hdf5_file, "/Test Parameters/Time Integration", Entry_Names, dArray, 4, 1 );
      free( Entry_Names[0] );
      free( Entry_Names[1] );
      free( Entry_Names[2] );
+     free( Entry_Names[3] );
 
      /* Add Rayleigh damping values */
      Entry_Names[0] = strdup( "Alpha" ); dArray[0] = InitCnt->Rayleigh.Alpha;
@@ -302,8 +304,8 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const A
 		    Nodes_Newmark[k].InitValues[0] = Newmark->Mass;
 		    Nodes_Newmark[k].InitValues[1] = Newmark->Damp;
 		    Nodes_Newmark[k].InitValues[2] = Newmark->Stiff;
-		    Nodes_Newmark[k].InitValues[3] = InitCnt->Newmark.Beta;
-		    Nodes_Newmark[k].InitValues[4] = InitCnt->Newmark.Gamma;
+		    Nodes_Newmark[k].InitValues[3] = InitCnt->TIntConst.Beta;
+		    Nodes_Newmark[k].InitValues[4] = InitCnt->TIntConst.Gamma;
 		    Nodes_Newmark[k].InitValues[5] = InitCnt->Delta_t/(HYSL_FLOAT) InitCnt->NSubstep;
 
 		    strcpy( Nodes_Newmark[k].Description, Newmark->Description );	
@@ -753,7 +755,7 @@ void HDF5_Store_Time( const hid_t hdf5_file, const SaveTime_t *const Time )
 }
 
 #if _ADWIN_
-void HDF5_StoreADwinData( const int hdf5_file, const HYSL_FLOAT *Array, char **Entry_Names, const int Length )
+void HDF5_StoreADwinData( const hid_t hdf5_file, const HYSL_FLOAT *Array, char **Entry_Names, const int Length )
 {
      hid_t   group_id;
      herr_t  status;
@@ -766,7 +768,7 @@ void HDF5_StoreADwinData( const int hdf5_file, const HYSL_FLOAT *Array, char **E
 				  Array, NUM_CHANNELS, Length );
 }
 
-void ADwin_SaveData_HDF5( const int hdf5_file, const int Num_Steps, const int Num_Sub,
+void ADwin_SaveData_HDF5( const hid_t hdf5_file, const int Num_Steps, const int Num_Sub,
 			  const int Num_Channels, char **Chan_Names, const int DataIndex )
 {
      int Length;
