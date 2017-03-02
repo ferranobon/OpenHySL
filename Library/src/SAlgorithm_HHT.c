@@ -509,10 +509,12 @@ int main( int argc, char **argv ){
 		    ErrorForce_PID_HHT( &M, &C, &K, &VelT, &DispT, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadT, &LoadTdT, InitCnt.TIntConst.HilberAlpha,
 					&InitCnt.PID, &fu );
 	       } else if( !InitCnt.Use_Sparse && InitCnt.Use_Packed ) {
-		    ErrorForce_PID_PS( &M, &C, &K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &InitCnt.PID, &fu );
+		    ErrorForce_PID_HHT_PS( &M, &C, &K, &VelT, &DispT, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadT, &LoadTdT, InitCnt.TIntConst.HilberAlpha,
+					   &InitCnt.PID, &fu );
 	       } else if( InitCnt.Use_Sparse ){
 #if _SPARSE_
-		    ErrorForce_PID_Sp( &Sp_M, &Sp_C, &Sp_K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &InitCnt.PID, &fu );
+		    ErrorForce_PID_HHT_Sp( &Sp_M, &Sp_C, &Sp_K, &VelT, &DispT, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadT, &LoadTdT,
+					   InitCnt.TIntConst.HilberAlpha, &InitCnt.PID, &fu );
 #endif
 	       } else assert(0);
 	  }

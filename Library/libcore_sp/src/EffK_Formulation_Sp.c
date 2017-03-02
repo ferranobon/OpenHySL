@@ -68,7 +68,7 @@ void EffK_EffectiveForce_HHT_Sp( const MatrixVector_Sp_t *const Mass, const Matr
 			  'F'}; /* One based index */
      HYSL_FLOAT Alpha, Beta;    /* Constants for the BLAS routines */
 
-     /* BLAS: tempvec = Disp */
+      /* BLAS: tempvec = Disp */
      hysl_copy( &Tempvec->Rows, DispT->Array, &incx, Tempvec->Array, &incy );
      /* BLAS: tempvec = a0*Disp = a0*tempvec */
      Alpha = a0;
@@ -86,7 +86,7 @@ void EffK_EffectiveForce_HHT_Sp( const MatrixVector_Sp_t *const Mass, const Matr
 
      /* BLAS: tempvec = Disp */
      hysl_copy( &Tempvec->Rows, DispT->Array, &incx, Tempvec->Array, &incy );
-     /* BLAS: tempvec = a1*Disp = a0*tempvec */
+     /* BLAS: tempvec = a1*Disp = a1*tempvec */
      Alpha = a1;
      hysl_scal( &Tempvec->Rows, &Alpha, Tempvec->Array, &incx );
      /* BLAS: tempvec = a1*Disp + a4*Vel = tempvec + a4*Vel */
@@ -95,20 +95,20 @@ void EffK_EffectiveForce_HHT_Sp( const MatrixVector_Sp_t *const Mass, const Matr
      /* BLAS: tempvec = a1*Disp + a4*Vel + a5*Acc = tempvec + a5*Acc */
      Alpha = a5;
      hysl_axpy( &Tempvec->Rows, &Alpha, AccT->Array, &incx, Tempvec->Array, &incy );
-     /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) + Damp*(a1*Disp + a4*Vel + a5*Acc) = Eff_Force + Damp*tempvec */
+     /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) + (1 + Alpha_HHT)*Damp*(a1*Disp + a4*Vel + a5*Acc)
+      * = Eff_Force + (1 + Alpha_HHT)*Damp*tempvec */
      Alpha = 1.0 + Alpha_HHT; Beta = 1.0;
      hysl_mkl_csrmv( &trans, &Tempvec->Rows, &Tempvec->Rows, &Alpha, matdescra, Damp->Values, Damp->Columns, Damp->RowIndex,
 		     &Damp->RowIndex[1], Tempvec->Array, &Beta, Eff_ForceT->Array );
 
-     /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) + (1 - Alpha_HHT)*Damp*(a1*Disp + a4*Vel + a5*Acc)
+     /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) + (1 + Alpha_HHT)*Damp*(a1*Disp + a4*Vel + a5*Acc)
       * + Alpha_HHT*Damp*Vel = Eff_Force + Alpha_HHT*Damp*Vel */
      Alpha = Alpha_HHT;
      hysl_mkl_csrmv( &trans, &Tempvec->Rows, &Tempvec->Rows, &Alpha, matdescra, Damp->Values, Damp->Columns, Damp->RowIndex,
 		     &Damp->RowIndex[1], VelT->Array, &Beta, Eff_ForceT->Array );
 
-     /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) + (1 - Alpha_HHT)*Damp*(a1*Disp + a4*Vel + a5*Acc)
+     /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) + (1 + Alpha_HHT)*Damp*(a1*Disp + a4*Vel + a5*Acc)
       * + Alpha_HHT*Damp*Vel + Alpha_HHT*Stiff*Disp= Eff_Force + Alpha_HHT*Stiff*Disp */
      hysl_mkl_csrmv( &trans, &Tempvec->Rows, &Tempvec->Rows, &Alpha, matdescra, Stiff->Values, Stiff->Columns, Stiff->RowIndex,
-		     &Stiff->RowIndex[1], DispT->Array, &Beta, Eff_ForceT->Array );
-     
+		     &Stiff->RowIndex[1], DispT->Array, &Beta, Eff_ForceT->Array );     
 }
