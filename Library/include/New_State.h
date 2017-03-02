@@ -115,6 +115,11 @@ void Compute_NewState_PS( const MatrixVector_t *const IGain, const MatrixVector_
 			  const MatrixVector_t *const In_LoadT, const MatrixVector_t *const Err_ForceT,
 			  MatrixVector_t *const Tempvec, MatrixVector_t *const VecTdT_0 );
 
+void Compute_NewState_HHT( const MatrixVector_t *const IGain, const MatrixVector_t *const Eff_ForceT,
+			   const MatrixVector_t *const In_LoadT, const MatrixVector_t *const In_LoadTdT,
+			   const MatrixVector_t *const Err_ForceT, MatrixVector_t *const Tempvec,
+			   const HYSL_FLOAT Alpha_H, MatrixVector_t *const VecTdT_0 );
+
 void Compute_NewState_Zienkiewicz( const MatrixVector_t *const Meff, const MatrixVector_t *const MatA,
 				   const MatrixVector_t *const MatB, const MatrixVector_t *const DispT,
 				   const MatrixVector_t *const DispT0, const MatrixVector_t *const In_LoadT,

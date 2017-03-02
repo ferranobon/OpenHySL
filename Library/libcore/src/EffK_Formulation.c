@@ -85,7 +85,7 @@ void EffK_EffectiveForce_PS( const MatrixVector_t *const Mass, const MatrixVecto
 
      /* BLAS: tempvec = Disp */
      hysl_copy( &Tempvec->Rows, DispT->Array, &incx, Tempvec->Array, &incy );
-     /* BLAS: tempvec = a1*Disp = a0*tempvec */
+     /* BLAS: tempvec = a1*Disp = a1*tempvec */
      Alpha = a1;
      hysl_scal( &Tempvec->Rows, &Alpha, Tempvec->Array, &incx );
      /* BLAS: tempvec = a1*Disp + a4*Vel = tempvec + a4*Vel */
@@ -133,7 +133,7 @@ void EffK_EffectiveForce_HHT( const MatrixVector_t *const Mass, const MatrixVect
 
      /* BLAS: tempvec = Disp */
      hysl_copy( &Tempvec->Rows, DispT->Array, &incx, Tempvec->Array, &incy );
-     /* BLAS: tempvec = a1*Disp = a0*tempvec */
+     /* BLAS: tempvec = a1*Disp = a1*tempvec */
      Alpha = a1;
      hysl_scal( &Tempvec->Rows, &Alpha, Tempvec->Array, &incx );
      /* BLAS: tempvec = a1*Disp + a4*Vel = tempvec + a4*Vel */
@@ -142,19 +142,19 @@ void EffK_EffectiveForce_HHT( const MatrixVector_t *const Mass, const MatrixVect
      /* BLAS: tempvec = a1*Disp + a4*Vel + a5*Acc = tempvec + a5*Acc */
      Alpha = a5;
      hysl_axpy( &Tempvec->Rows, &Alpha, AccT->Array, &incx, Tempvec->Array, &incy );
-     /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) + (1 - Alpha_HHT)*Damp*(a1*Disp + a4*Vel + a5*Acc)
-      * = Eff_Force + (1 - Alpha_HHT)*Damp*tempvec */
+     /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) + (1 + Alpha_HHT)*Damp*(a1*Disp + a4*Vel + a5*Acc)
+      * = Eff_Force + (1 + Alpha_HHT)*Damp*tempvec */
      Alpha = 1.0 + Alpha_HHT; Beta = 1.0;
      hysl_symv( &uplo, &Tempvec->Rows, &Alpha, Damp->Array, &Tempvec->Rows, Tempvec->Array, &incx, &Beta,
 	    Eff_ForceT->Array, &incy );
 
-     /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) + (1 - Alpha_HHT)*Damp*(a1*Disp + a4*Vel + a5*Acc)
+     /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) + (1 + Alpha_HHT)*Damp*(a1*Disp + a4*Vel + a5*Acc)
       * + Alpha_HHT*Damp*Vel = Eff_Force + Alpha_HHT*Damp*Vel */
      Alpha = Alpha_HHT;
      hysl_symv( &uplo, &Tempvec->Rows, &Alpha, Damp->Array, &Tempvec->Rows, VelT->Array, &incx, &Beta,
 		Eff_ForceT->Array, &incy );
 
-     /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) + (1 - Alpha_HHT)*Damp*(a1*Disp + a4*Vel + a5*Acc)
+     /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) + (1 + Alpha_HHT)*Damp*(a1*Disp + a4*Vel + a5*Acc)
       * + Alpha_HHT*Damp*Vel + Alpha_HHT*Stiff*Disp= Eff_Force + Alpha_HHT*Stiff*Disp */
      hysl_symv( &uplo, &Tempvec->Rows, &Alpha, Stiff->Array, &Tempvec->Rows, DispT->Array, &incx, &Beta,
 		Eff_ForceT->Array, &incy );    
