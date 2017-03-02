@@ -306,8 +306,6 @@ int main (int argc, char **argv){
      HDF5_CreateGroup_TimeIntegration( hdf5_file, &InitCnt );
 #endif
 
-     istep = 1;
-
      Time.Date_start = time( NULL );
      Time.Date_time = strdup( ctime( &Time.Date_start) );
      gettimeofday( &Time.Start, NULL );
@@ -317,7 +315,7 @@ int main (int argc, char **argv){
 
      /* Initialise BLAS variables incx and incy */
      incx = 1; incy = 1;
-     
+     istep = 1;
      while ( istep <= InitCnt.NStep ){
 
 
@@ -349,22 +347,13 @@ int main (int argc, char **argv){
 	       } else assert(0);
 	  }
 
-	  if( istep == 1 ){
-	       hysl_copy( &AccTdT.Rows, Acc.Array, &incx, AccT.Array, &incy ); /* ai = ai1 */
-	  }
-	  
 	  /* Calculate predictor step */
 	  PC_PredictorStep_Displacement ( &DispT, &VelT, &AccT, InitCnt.a9, InitCnt.a10, &DispTdT_Pred );
 	  PC_PredictorStep_Velocity ( &VelT, &AccT, InitCnt.a6, &VelTdT_Pred );
 
-	  printf("DispTdT_Pred %lE\n", DispTdT_Pred.Array[0]);
-	  printf("VelTdT_Pred %lE\n", VelTdT_Pred.Array[0]);
-
 	  if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
 	       /* Calculate linear reaction forces */
 	       PC_ReactionForces_Numerical ( &DispTdT_Pred, &K, &RForceTdT );
-
-	       printf("RForceTdT %lE\n", RForceTdT.Array[0]);
 	       
 	       /* Calculate accelerations at n + 1 */
 	       PC_Calculate_Acceleration ( &LoadTdT, &LoadT, &RForceTdT, &RForceT,
@@ -399,7 +388,7 @@ int main (int argc, char **argv){
 #else
 	  
 #endif
-	  printf("%d\t %lE\n", istep, DispTdT.Array[0]);
+	  
 	  /* Backup vectors */
 	  hysl_copy( &DispTdT.Rows, DispTdT.Array, &incx, DispT.Array, &incy ); /* ui = ui1 */
 	  hysl_copy( &VelTdT.Rows, VelTdT.Array, &incx, VelT.Array, &incy ); /* vi = vi1 */
