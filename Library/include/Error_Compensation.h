@@ -307,5 +307,17 @@ void ErrorForce_PID_HHT( const MatrixVector_t *const Mass, const MatrixVector_t 
 			 const MatrixVector_t *const fc, const MatrixVector_t *const LoadT, const MatrixVector_t *const LoadTdT,
 			 const HYSL_FLOAT Alpha_HHT, const PID_t *const PID, MatrixVector_t *const fe );
 
+void ErrorForce_PID_HHT_PS( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp, const MatrixVector_t *Stiff,
+			    const MatrixVector_t *const VelT, const MatrixVector_t *const DispT,
+			    const MatrixVector_t *const AccTdT, const MatrixVector_t *const VelTdT, const MatrixVector_t *const DispTdT,
+			    const MatrixVector_t *const fc, const MatrixVector_t *const LoadT, const MatrixVector_t *const LoadTdT,
+			    const HYSL_FLOAT Alpha_HHT, const PID_t *const PID, MatrixVector_t *const fe );
+
+void ErrorForce_PID_HHT_Sp ( const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp, const MatrixVector_Sp_t *const Stiff,
+			     const MatrixVector_t *const VelT, const MatrixVector_t *const DispT,
+			     const MatrixVector_t *const AccTdT, const MatrixVector_t *const VelTdT, const MatrixVector_t *const DispTdT,
+			     const MatrixVector_t *const fc, const MatrixVector_t *const LoadT, const MatrixVector_t *const LoadTdT,
+			     const HYSL_FLOAT Alpha_HHT, const PID_t *const PID, MatrixVector_t *const fe );
+
 #endif /* ERRORCOMPENSATION_H_*/
 
