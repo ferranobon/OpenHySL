@@ -36,8 +36,6 @@ int main (int argc, char **argv){
      
      unsigned int istep;
      int incx, incy;
-
-     HYSL_FLOAT alpha_H = 0.0;
      
      AlgConst_t InitCnt;
      const char *FileConf;
@@ -165,7 +163,7 @@ int main (int argc, char **argv){
 #endif
      } else assert(0);
 
-     if( !InitCnt.Use_Packed ){
+     if ( !InitCnt.Use_Packed ){
 	  MatrixVector_Create( InitCnt.Order, InitCnt.Order, &Meinv );
      } else {
 	  MatrixVector_Create_PS( InitCnt.Order, InitCnt.Order, &Meinv );
@@ -274,8 +272,8 @@ int main (int argc, char **argv){
 
      /* Calculate Matrix Meinv = 1.0*[M + (1 + alpha_H)*a7*C + (1 + alpha_H)*a8*K]^(-1) */
      Constants.Alpha = 1.0;                          /* Mass matrix coefficient */
-     Constants.Beta = InitCnt.a7*(1.0 + alpha_H);  /* Damping matrix coefficent */
-     Constants.Gamma = (1.0 + alpha_H)*InitCnt.a8; /* Stiffness matrix coefficient */
+     Constants.Beta = InitCnt.a7*(1.0 + InitCnt.TIntConst.HilberAlpha);  /* Damping matrix coefficent */
+     Constants.Gamma = (1.0 + InitCnt.TIntConst.HilberAlpha)*InitCnt.a8; /* Stiffness matrix coefficient */
      Constants.Lambda = 1.0;                         /* Matrix inversion coefficient */
 
      if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
@@ -308,8 +306,6 @@ int main (int argc, char **argv){
      HDF5_CreateGroup_TimeIntegration( hdf5_file, &InitCnt );
 #endif
 
-     istep = 1;
-
      Time.Date_start = time( NULL );
      Time.Date_time = strdup( ctime( &Time.Date_start) );
      gettimeofday( &Time.Start, NULL );
@@ -319,7 +315,7 @@ int main (int argc, char **argv){
 
      /* Initialise BLAS variables incx and incy */
      incx = 1; incy = 1;
-     
+     istep = 1;
      while ( istep <= InitCnt.NStep ){
 
 
@@ -351,29 +347,26 @@ int main (int argc, char **argv){
 	       } else assert(0);
 	  }
 
-	  if( istep == 1 ){
-	       hysl_copy( &AccTdT.Rows, Acc.Array, &incx, AccT.Array, &incy ); /* ai = ai1 */
-	  }
-	  
 	  /* Calculate predictor step */
 	  PC_PredictorStep_Displacement ( &DispT, &VelT, &AccT, InitCnt.a9, InitCnt.a10, &DispTdT_Pred );
 	  PC_PredictorStep_Velocity ( &VelT, &AccT, InitCnt.a6, &VelTdT_Pred );
-	  
 
 	  if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
 	       /* Calculate linear reaction forces */
 	       PC_ReactionForces_Numerical ( &DispTdT_Pred, &K, &RForceTdT );
-
+	       
 	       /* Calculate accelerations at n + 1 */
 	       PC_Calculate_Acceleration ( &LoadTdT, &LoadT, &RForceTdT, &RForceT,
 					   &VelTdT_Pred, &VelT_Pred, &AccT, &K, &C, &Meinv,
-					   alpha_H, InitCnt.a7, InitCnt.a8, &AccTdT );
+					   InitCnt.TIntConst.HilberAlpha, InitCnt.a7, InitCnt.a8, &AccTdT );
 	  } else if ( !InitCnt.Use_Sparse && InitCnt.Use_Packed ){
+	       /* Calculate linear reaction forces */
+	       PC_ReactionForces_Numerical_PS ( &DispTdT_Pred, &K, &RForceTdT );
 	       
 	       /* Calculate accelerations at n + 1 */
 	       PC_Calculate_Acceleration_PS ( &LoadTdT, &LoadT, &RForceTdT, &RForceT,
 					      &VelTdT_Pred, &VelT_Pred, &AccT, &K, &C, &Meinv,
-					      alpha_H, InitCnt.a7, InitCnt.a8, &AccTdT );
+					      InitCnt.TIntConst.HilberAlpha, InitCnt.a7, InitCnt.a8, &AccTdT );
 	  } else if ( InitCnt.Use_Sparse && !InitCnt.Use_Packed){
 	       Print_Header( ERROR );
 	       fprintf( stderr, "Sparse Not supported" );
@@ -382,7 +375,7 @@ int main (int argc, char **argv){
 	       Print_Header( ERROR );
 	       fprintf( stderr, "Sparse Not supported" );
 	       exit( EXIT_FAILURE );
-	  }
+	  } else assert(0);
 	  	  
 	  /* Calculate corrector step */
 	  PC_CorrectorStep_Displacement ( &DispTdT_Pred, &AccTdT, InitCnt.a8, &DispTdT );

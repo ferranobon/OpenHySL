@@ -66,7 +66,6 @@ const char *Entry_Names[NUM_CHANNELS] = { "Sub-step",
 int main( int argc, char **argv ){
 
      unsigned int istep, i;
-     HYSL_FLOAT Alpha_HHT = 0.1;
      AlgConst_t InitCnt;
      const char *FileConf;
 
@@ -95,7 +94,7 @@ int main( int argc, char **argv ){
      MatrixVector_t VelT, VelTdT;
      MatrixVector_t AccT, AccTdT;
 
-     MatrixVector_t LoadVectorForm1, LoadVectorForm2, LoadVectorForm3, LoadTdT, LoadTdT1;
+     MatrixVector_t LoadVectorForm1, LoadVectorForm2, LoadVectorForm3, LoadT, LoadTdT, LoadTdT1;
 
      MatrixVector_t fc, fcprevsub;
      MatrixVector_t fu;
@@ -235,6 +234,7 @@ int main( int argc, char **argv ){
      MatrixVector_Create( InitCnt.Order, 1, &LoadVectorForm1 );
      MatrixVector_Create( InitCnt.Order, 1, &LoadVectorForm2 );
      MatrixVector_Create( InitCnt.Order, 1, &LoadVectorForm3 );
+     MatrixVector_Create( InitCnt.Order, 1, &LoadT );
      MatrixVector_Create( InitCnt.Order, 1, &LoadTdT );
      MatrixVector_Create( InitCnt.Order, 1, &LoadTdT1 );
 
@@ -327,10 +327,10 @@ int main( int argc, char **argv ){
      }
 
      /* Calculate Matrix Keinv = 1.0*[K + a0*M + a1*C]^(-1) */
-     Constants.Alpha = InitCnt.a0;    /* Mass matrix coefficient */
-     Constants.Beta = InitCnt.a1*(1.0 + Alpha_HHT);     /* Damping matrix coefficent */
-     Constants.Gamma = 1.0 + Alpha_HHT;           /* Stiffness matrix coefficient */
-     Constants.Lambda = 1.0;          /* Matrix inversion coefficient */
+     Constants.Alpha = InitCnt.a0;                                       /* Mass matrix coefficient */
+     Constants.Beta = InitCnt.a1*(1.0 + InitCnt.TIntConst.HilberAlpha);  /* Damping matrix coefficent */
+     Constants.Gamma = 1.0 + InitCnt.TIntConst.HilberAlpha;              /* Stiffness matrix coefficient */
+     Constants.Lambda = 1.0;                                             /* Matrix inversion coefficient */
 
      if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
 	  IGainMatrix( &Keinv, &M, &C, &K, Constants );
@@ -362,6 +362,7 @@ int main( int argc, char **argv ){
 	       }
 	  }
      }
+     
      /* Read the earthquake data from a file */
      Algorithm_ReadDataEarthquake( InitCnt.NStep, InitCnt.FileData1, InitCnt.Scale_Factor, AccAll1,
 				   VelAll1, DispAll1 );
@@ -420,20 +421,20 @@ int main( int argc, char **argv ){
 	  /* Calculate the effective force vector Fe = M*(a0*u + a2*v + a3*a) + C*(a1*u + a4*v + a5*a) */
 	  if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
 	       EffK_EffectiveForce_HHT( &M, &C, &K, &DispT, &VelT, &AccT, &tempvec, InitCnt.a0, InitCnt.a1, InitCnt.a2,
-					InitCnt.a3, InitCnt.a4, InitCnt.a5, Alpha_HHT, &EffT );
+					InitCnt.a3, InitCnt.a4, InitCnt.a5, InitCnt.TIntConst.HilberAlpha, &EffT );
 	  } else if( !InitCnt.Use_Sparse && InitCnt.Use_Packed ){
 	       EffK_EffectiveForce_HHT_PS( &M, &C, &K, &DispT, &VelT, &AccT, &tempvec, InitCnt.a0, InitCnt.a1, InitCnt.a2,
-					   InitCnt.a3, InitCnt.a4, InitCnt.a5, Alpha_HHT, &EffT );
+					   InitCnt.a3, InitCnt.a4, InitCnt.a5, InitCnt.TIntConst.HilberAlpha, &EffT );
 	  } else if( InitCnt.Use_Sparse ) {
 #if _SPARSE_
 	       EffK_EffectiveForce_HHT_Sp( &Sp_M, &Sp_C, &Sp_K, &DispT, &VelT, &AccT, &tempvec, InitCnt.a0, InitCnt.a1,
-					   InitCnt.a2, InitCnt.a3, InitCnt.a4, InitCnt.a5, Alpha_HHT, &EffT );
+					   InitCnt.a2, InitCnt.a3, InitCnt.a4, InitCnt.a5, InitCnt.TIntConst.HilberAlpha, &EffT );
 #endif
 	  }
 
 	  /* Compute the new Displacement u0 */
 	  if( !InitCnt.Use_Packed ){
-	       Compute_NewState( &Keinv, &EffT, &LoadTdT, &fu, &tempvec, &DispTdT0 );
+	       Compute_NewState_HHT( &Keinv, &EffT, &LoadT, &LoadTdT, &fu, &tempvec, InitCnt.TIntConst.HilberAlpha, &DispTdT0 );
 	  } else {
 	       Compute_NewState_PS( &Keinv, &EffT, &LoadTdT, &fu, &tempvec, &DispTdT0 );
 	  }
@@ -505,12 +506,15 @@ int main( int argc, char **argv ){
 	  /* Error Compensation. fu = LoatTdT + fc -(Mass*AccTdT + Damp*VelTdT + Stiff*DispTdT) */
 	  if( InitCnt.PID.P != 0.0 || InitCnt.PID.I != 0.0 || InitCnt.PID.D != 0.0 ){
 	       if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
-		    ErrorForce_PID( &M, &C, &K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &InitCnt.PID, &fu );
+		    ErrorForce_PID_HHT( &M, &C, &K, &VelT, &DispT, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadT, &LoadTdT, InitCnt.TIntConst.HilberAlpha,
+					&InitCnt.PID, &fu );
 	       } else if( !InitCnt.Use_Sparse && InitCnt.Use_Packed ) {
-		    ErrorForce_PID_PS( &M, &C, &K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &InitCnt.PID, &fu );
+		    ErrorForce_PID_HHT_PS( &M, &C, &K, &VelT, &DispT, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadT, &LoadTdT, InitCnt.TIntConst.HilberAlpha,
+					   &InitCnt.PID, &fu );
 	       } else if( InitCnt.Use_Sparse ){
 #if _SPARSE_
-		    ErrorForce_PID_Sp( &Sp_M, &Sp_C, &Sp_K, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadTdT, &InitCnt.PID, &fu );
+		    ErrorForce_PID_HHT_Sp( &Sp_M, &Sp_C, &Sp_K, &VelT, &DispT, &AccTdT, &VelTdT, &DispTdT, &fc, &LoadT, &LoadTdT,
+					   InitCnt.TIntConst.HilberAlpha, &InitCnt.PID, &fu );
 #endif
 	       } else assert(0);
 	  }
@@ -522,6 +526,7 @@ int main( int argc, char **argv ){
 	  
 #endif
 	  /* Backup vectors */
+	  hysl_copy( &LoadTdT.Rows, LoadTdT.Array, &incx, LoadT.Array, &incy ); /* li = li1 */
 	  hysl_copy( &LoadTdT1.Rows, LoadTdT1.Array, &incx, LoadTdT.Array, &incy ); /* li = li1 */
 	  hysl_copy( &DispTdT.Rows, DispTdT.Array, &incx, DispT.Array, &incy ); /* ui = ui1 */
 	  hysl_copy( &VelTdT.Rows, VelTdT.Array, &incx, VelT.Array, &incy ); /* vi = vi1 */
@@ -622,6 +627,7 @@ int main( int argc, char **argv ){
      MatrixVector_Destroy( &LoadVectorForm1 );
      MatrixVector_Destroy( &LoadVectorForm2 );
      MatrixVector_Destroy( &LoadVectorForm3 );
+     MatrixVector_Destroy( &LoadT );
      MatrixVector_Destroy( &LoadTdT );
      MatrixVector_Destroy( &LoadTdT1 );
 

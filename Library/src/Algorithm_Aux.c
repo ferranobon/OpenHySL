@@ -127,11 +127,21 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
 
      /* Newmark integration constants */
 #if _FLOAT_
-     InitConst->Newmark.Gamma = ConfFile_GetFloat( Config, "Newmark:Gamma" );
-     InitConst->Newmark.Beta = ConfFile_GetFloat( Config, "Newmark:Beta" );
+     InitConst->TIntConst.Gamma = ConfFile_GetFloat( Config, "TimeIntegration:Gamma" );
+     InitConst->TIntConst.Beta = ConfFile_GetFloat( Config, "TimeIntegration:Beta" );
+     InitConst->TIntConst.HilberAlpha = ConfFile_GetFloat( Config, "TimeIntegration:HAlpha" );
+     if ( InitConst->TIntConst.HilberAlpha != 0.0f ){
+	  InitConst->TIntConst.Gamma = 0.5f - InitConst->TIntConst.HilberAlpha;
+	  InitConst->TIntConst.Beta = (1.0f - InitConst->TIntConst.HilberAlpha)*(1.0f - InitConst->TIntConst.HilberAlpha)/4.0f;
+     }
 #else
-     InitConst->Newmark.Gamma = ConfFile_GetDouble( Config, "Newmark:Gamma" );
-     InitConst->Newmark.Beta = ConfFile_GetDouble( Config, "Newmark:Beta" );
+     InitConst->TIntConst.Gamma = ConfFile_GetDouble( Config, "TimeIntegration:Gamma" );
+     InitConst->TIntConst.Beta = ConfFile_GetDouble( Config, "TimeIntegration:Beta" );
+     InitConst->TIntConst.HilberAlpha = ConfFile_GetDouble( Config, "TimeIntegration:HAlpha" );
+     if ( InitConst->TIntConst.HilberAlpha != 0.0 ){
+	  InitConst->TIntConst.Gamma = 0.5 - InitConst->TIntConst.HilberAlpha;
+	  InitConst->TIntConst.Beta = (1.0 - InitConst->TIntConst.HilberAlpha)*(1.0 - InitConst->TIntConst.HilberAlpha)/4.0;
+     }
 #endif
 
      /* PID Constants */
@@ -147,32 +157,32 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
 
      /* Constants for Ending Step */
 #if _FLOAT_
-     InitConst->a0 = 1.0f/(InitConst->Newmark.Beta*InitConst->Delta_t*InitConst->Delta_t);
-     InitConst->a2 = 1.0f/(InitConst->Newmark.Beta*InitConst->Delta_t);
-     InitConst->a3 = 1.0f/(2.0f*InitConst->Newmark.Beta) - 1.0f;
-     InitConst->a4 = InitConst->Newmark.Gamma/InitConst->Newmark.Beta - 1.0f;
-     InitConst->a5 = (InitConst->Delta_t/2.0f)*(InitConst->Newmark.Gamma/InitConst->Newmark.Beta - 2.0f);
-     InitConst->a6 = (1.0f - InitConst->Newmark.Gamma)*InitConst->Delta_t;
-     InitConst->a10 = (0.5f - InitConst->Newmark.Beta)*InitConst->Delta_t*InitConst->Delta_t;
-     InitConst->a16 = (1.0f - 2.0f*InitConst->Newmark.Gamma)*InitConst->Delta_t;
-     InitConst->a17 = (0.5f -2.0f*InitConst->Newmark.Beta + InitConst->Newmark.Gamma)*InitConst->Delta_t*InitConst->Delta_t;
-     InitConst->a18 = (0.5f + InitConst->Newmark.Beta - InitConst->Newmark.Gamma)*InitConst->Delta_t*InitConst->Delta_t;
+     InitConst->a0 = 1.0f/(InitConst->TIntConst.Beta*InitConst->Delta_t*InitConst->Delta_t);
+     InitConst->a2 = 1.0f/(InitConst->TIntConst.Beta*InitConst->Delta_t);
+     InitConst->a3 = 1.0f/(2.0f*InitConst->TIntConst.Beta) - 1.0f;
+     InitConst->a4 = InitConst->TIntConst.Gamma/InitConst->TIntConst.Beta - 1.0f;
+     InitConst->a5 = (InitConst->Delta_t/2.0f)*(InitConst->TIntConst.Gamma/InitConst->TIntConst.Beta - 2.0f);
+     InitConst->a6 = (1.0f - InitConst->TIntConst.Gamma)*InitConst->Delta_t;
+     InitConst->a10 = (0.5f - InitConst->TIntConst.Beta)*InitConst->Delta_t*InitConst->Delta_t;
+     InitConst->a16 = (1.0f - 2.0f*InitConst->TIntConst.Gamma)*InitConst->Delta_t;
+     InitConst->a17 = (0.5f -2.0f*InitConst->TIntConst.Beta + InitConst->TIntConst.Gamma)*InitConst->Delta_t*InitConst->Delta_t;
+     InitConst->a18 = (0.5f + InitConst->TIntConst.Beta - InitConst->TIntConst.Gamma)*InitConst->Delta_t*InitConst->Delta_t;
 #else
-     InitConst->a0 = 1.0/(InitConst->Newmark.Beta*InitConst->Delta_t*InitConst->Delta_t);
-     InitConst->a2 = 1.0/(InitConst->Newmark.Beta*InitConst->Delta_t);
-     InitConst->a3 = 1.0/(2.0*InitConst->Newmark.Beta) - 1.0;
-     InitConst->a4 = InitConst->Newmark.Gamma/InitConst->Newmark.Beta - 1.0;
-     InitConst->a5 = (InitConst->Delta_t/2.0)*(InitConst->Newmark.Gamma/InitConst->Newmark.Beta - 2.0);
-     InitConst->a6 = (1.0 - InitConst->Newmark.Gamma)*InitConst->Delta_t;
-     InitConst->a10 = (0.5 - InitConst->Newmark.Beta)*InitConst->Delta_t*InitConst->Delta_t;
-     InitConst->a16 = (1.0 - 2.0*InitConst->Newmark.Gamma)*InitConst->Delta_t;
-     InitConst->a17 = (0.5 -2.0*InitConst->Newmark.Beta + InitConst->Newmark.Gamma)*InitConst->Delta_t*InitConst->Delta_t;
-     InitConst->a18 = (0.5 + InitConst->Newmark.Beta - InitConst->Newmark.Gamma)*InitConst->Delta_t*InitConst->Delta_t;
+     InitConst->a0 = 1.0/(InitConst->TIntConst.Beta*InitConst->Delta_t*InitConst->Delta_t);
+     InitConst->a2 = 1.0/(InitConst->TIntConst.Beta*InitConst->Delta_t);
+     InitConst->a3 = 1.0/(2.0*InitConst->TIntConst.Beta) - 1.0;
+     InitConst->a4 = InitConst->TIntConst.Gamma/InitConst->TIntConst.Beta - 1.0;
+     InitConst->a5 = (InitConst->Delta_t/2.0)*(InitConst->TIntConst.Gamma/InitConst->TIntConst.Beta - 2.0);
+     InitConst->a6 = (1.0 - InitConst->TIntConst.Gamma)*InitConst->Delta_t;
+     InitConst->a10 = (0.5 - InitConst->TIntConst.Beta)*InitConst->Delta_t*InitConst->Delta_t;
+     InitConst->a16 = (1.0 - 2.0*InitConst->TIntConst.Gamma)*InitConst->Delta_t;
+     InitConst->a17 = (0.5 -2.0*InitConst->TIntConst.Beta + InitConst->TIntConst.Gamma)*InitConst->Delta_t*InitConst->Delta_t;
+     InitConst->a18 = (0.5 + InitConst->TIntConst.Beta - InitConst->TIntConst.Gamma)*InitConst->Delta_t*InitConst->Delta_t;
 #endif
 
-     InitConst->a1 = InitConst->Newmark.Gamma/(InitConst->Newmark.Beta*InitConst->Delta_t);
-     InitConst->a7 = InitConst->Newmark.Gamma*InitConst->Delta_t;
-     InitConst->a8 = InitConst->Newmark.Beta*InitConst->Delta_t*InitConst->Delta_t;
+     InitConst->a1 = InitConst->TIntConst.Gamma/(InitConst->TIntConst.Beta*InitConst->Delta_t);
+     InitConst->a7 = InitConst->TIntConst.Gamma*InitConst->Delta_t;
+     InitConst->a8 = InitConst->TIntConst.Beta*InitConst->Delta_t*InitConst->Delta_t;
      InitConst->a9 = InitConst->Delta_t;
 
      /* File Names */

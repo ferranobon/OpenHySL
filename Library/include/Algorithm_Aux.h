@@ -75,6 +75,7 @@ typedef struct SaveTime_MPI {
 typedef struct TIntegration{
      HYSL_FLOAT Gamma; /*!< \brief First constant.*/
      HYSL_FLOAT Beta;  /*!< \brief Second constant.*/
+     HYSL_FLOAT HilberAlpha; /*!< \brief Hilber-Hughes-Taylor Alpha parameter.*/
 } TIntegration_t;
 
 /**
@@ -135,7 +136,7 @@ typedef struct AlgConst{
      Rayleigh_t Rayleigh;     /*!< \brief Stores Rayleigh Constants alpha (\c Rayleigh.Alpha or
 			       * \f$\alpha_R\f$) and beta (\c Rayleigh.Beta or \f$\beta_R\f$)
 			       */
-     TIntegration_t Newmark;  /*!< \brief Stores Newmark Constants gamma (\c Newmark.Gamma or \f$\gamma_N\f$)
+     TIntegration_t TIntConst;  /*!< \brief Stores Newmark Constants gamma (\c Newmark.Gamma or \f$\gamma_N\f$)
 			       * and (\c Newmark.Beta or \f$\beta_N\f$)
 			       */
      TIntegration_GSSSS_t GSSSS;
