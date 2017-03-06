@@ -50,7 +50,7 @@ typedef struct HDF5_StoneDrum {
      char Description[MAX_DESCRIPTION];
 } HDF5_StoneDrum_t;
 
-int HDF5_CreateFile( const char *Filename );
+hid_t HDF5_CreateFile( const char *Filename );
 
 #if _MPI_
 void HDF5_CreateFile_MPI( MPI_Comm Comm, const char *Filename, hid_t *const file_id );
@@ -60,9 +60,9 @@ void HDF5_AddResults_to_Dataset_MPI( const hid_t file_id, const char *Path_name,
 void HDF5_Store_Time_MPI( const hid_t hdf5_file, const SaveTime_MPI_t *const Time );
 #endif
 
-void HDF5_CreateGroup_Parameters( const hid_t hdf5_file, const AlgConst_t *const InitCnt,
-				  const CouplingNode_t *const CNode, const HYSL_FLOAT *const Acc1,
-				  const HYSL_FLOAT *const Vel1, const HYSL_FLOAT *const Disp1, 
+void HDF5_CreateGroup_Parameters( const hid_t hdf5_file, const AlgConst_t *const InitCnt,			  
+				  const CouplingNode_t *const CNodes, const HYSL_FLOAT *const Acc1,
+				  const HYSL_FLOAT *const Vel1, const HYSL_FLOAT *const Disp1,
 				  const HYSL_FLOAT *const Acc2, const HYSL_FLOAT *const Vel2,
 				  const HYSL_FLOAT *const Disp2, const HYSL_FLOAT *const Acc3,
 				  const HYSL_FLOAT *const Vel3, const HYSL_FLOAT *const Disp3 );
@@ -73,7 +73,7 @@ void HDF5_Store_TimeHistoryData( const hid_t hdf5_file, const MatrixVector_t *co
 void HDF5_Store_BoucWen( const hid_t hdf5_file, const MatrixVector_t *const HistDisp, const MatrixVector_t *const HistLoop, const int istep);
 void HDF5_Store_TMD( const hid_t hdf5_file, const double *const Acc, const double *const Vel, const double *const Disp, const int istep );
 void HDF5_Store_Time( const hid_t hdf5_file, const SaveTime_t *const Time );
-void HDF5_StoreADwinData( const int hdf5_file, const HYSL_FLOAT *Array, char **Entry_Names, const int Length );
+void HDF5_StoreADwinData( const hid_t hdf5_file, const HYSL_FLOAT *Array, char **Entry_Names, const int Length );
 
 
 /**
@@ -100,7 +100,7 @@ void HDF5_StoreADwinData( const int hdf5_file, const HYSL_FLOAT *Array, char **E
  * - Number of columns equal to the number of channels.
  * - Number of rows equal to \f$N_{step}\cdot N_{substep}\f$.
  */
-void ADwin_SaveData_HDF5( const int hdf5_file, const int Num_Steps, const int Num_Sub,
+void ADwin_SaveData_HDF5( const hid_t hdf5_file, const int Num_Steps, const int Num_Sub,
 			  const int Num_Channels, char **Chan_Names, const int DataIndex );
 
 void HDF5_AddFloatArray_AsTable( const hid_t file_id, const char *Name_path, char **Names, const HYSL_FLOAT *Array, const int Num_param, const int Length );
