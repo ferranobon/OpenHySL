@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdarg.h>  /* For va_arg( ), ... */  
+#include <stdint.h>
 
 #include "Algorithm_Aux.h"
 #include "Conf_Parser.h"
@@ -333,7 +334,7 @@ char* Change_Filename( const char *const Name )
 
      char *NewName = NULL;
      char HelpChar[5];
-     short unsigned int i;
+     uint16_t i;
 
      i = 1;
      do {
@@ -341,7 +342,7 @@ char* Change_Filename( const char *const Name )
 	       free( NewName );
 	  }
 	  sprintf( HelpChar, "_%hu", i );
-	  i = i + (short unsigned int) 1;
+	  i = i + (uint16_t) 1;
 	  NewName = Concatenate_Strings( 2, Name, HelpChar );
      } while( Valid_File( Concatenate_Strings( 2, NewName, ".h5")));
 
@@ -383,8 +384,7 @@ void Algorithm_Destroy( AlgConst_t *const InitConst )
 
 int* Algorithm_GetExcitedDOF( const ConfFile_t *const Config, const char *Expression )
 {
-     unsigned int i, j;
-     int *DOF_Table;  
+     int32_t *DOF_Table;  
      char *FullString;
      char Temp[1];
 
@@ -394,15 +394,15 @@ int* Algorithm_GetExcitedDOF( const ConfFile_t *const Config, const char *Expres
       * structure */
      strncpy( Temp, &FullString[0], (size_t) 1 );
 
-     DOF_Table = (int *) calloc( (size_t) (atoi(Temp)+1), sizeof(int) );
+     DOF_Table = (int32_t *) calloc( (size_t) (atoi(Temp)+1), sizeof(int) );
      DOF_Table[0] = atoi( Temp );
 
-     j = 1;
-     for( i = 1; i < strlen( FullString ); i++ ){
+     uint32_t j = 1u;
+     for( size_t i = 1u; i < strlen( FullString ); i++ ){
 	  if ( FullString[i] != ' ' ){
 	       strncpy( Temp, &FullString[i], (size_t) 1 );
 	       DOF_Table[j] = atoi( Temp );
-	       j = j + 1;
+	       j = j + 1u;
 	  }
      }
 
@@ -415,7 +415,6 @@ void Algorithm_ReadDataEarthquake( const unsigned int NumSteps, const char *File
 				   HYSL_FLOAT *const Velocity, HYSL_FLOAT *const Displacement )
 {
 
-     unsigned int i;		    /* A counter */
      HYSL_FLOAT unnecessary;	    /* Variable to store unnecessary data */
      HYSL_FLOAT temp1, temp2, temp3;
      FILE *InFile;
@@ -429,7 +428,7 @@ void Algorithm_ReadDataEarthquake( const unsigned int NumSteps, const char *File
 	  exit( EXIT_FAILURE );
      }
 
-     for ( i = 0; i < NumSteps; i++ ){
+     for ( uint32_t i = 0u; i < NumSteps; i++ ){
 #if _FLOAT_
 	  fscanf( InFile, "%E %E %E %E", &unnecessary, &temp1, &temp2, &temp3 );
 #else
@@ -456,14 +455,13 @@ void Algorithm_PrintHelp( const char *Program_Name )
 char* Concatenate_Strings( int count, ... )
 {
      va_list ap;
-     int i;
      char *merged, *s;
      size_t len = 1, null_pos; /* Space for NULL */
 
      /* Find required length to store merged string */
      va_start( ap, count );
 
-     for( i = 0; i < count; i++ )
+     for( int32_t i = 0; i < count; i++ )
 	  len += strlen( va_arg( ap, char* ) );
      va_end( ap );
 
@@ -474,8 +472,7 @@ char* Concatenate_Strings( int count, ... )
      /* Actually concatenate strings */
      va_start( ap, count );
 
-     for( i = 0; i < count; i++ )
-     {
+     for( int32_t i = 0; i < count; i++ ) {
 	  s = va_arg( ap, char* );
 	  strcpy( merged + null_pos, s );
 	  null_pos += strlen( s );
