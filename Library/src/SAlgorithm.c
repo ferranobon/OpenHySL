@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <assert.h>
 #include <getopt.h>  /* For getopt_long() */
 #include <time.h>
@@ -59,8 +60,6 @@ const char *Entry_Names[NUM_CHANNELS] = { "Sub-step",
 
 int main( int argc, char **argv ){
 
-     unsigned int istep, i;
-     
      AlgConst_t InitCnt;
      const char *FileConf;
 
@@ -69,7 +68,6 @@ int main( int argc, char **argv ){
 #endif
 
      /* NETLIB Variables */
-     int incx, incy;
      Scalars_t Constants;
 
      HYSL_FLOAT *AccAll1, *VelAll1, *DispAll1;
@@ -108,7 +106,7 @@ int main( int argc, char **argv ){
      SaveTime_t     Time;
 
      /* Options */
-     int Selected_Option;
+     int32_t Selected_Option;
      struct option long_options[] = {
 	  {"help", no_argument, 0, 'h'},
 	  {"config-file", required_argument, 0, 'c'},
@@ -365,12 +363,12 @@ int main( int argc, char **argv ){
 	  }
 
 	  /* Send the coupling part of the effective matrix if we are performing a distributed test */
-	  for( i = 0; i < (unsigned int) CNodes.Order; i++ ){
+	  for( uint32_t i = 0u; i < (uint32_t) CNodes.Order; i++ ){
 	       if( CNodes.Sub[i].Type == REMOTE ){
-		    Substructure_SendGainMatrix( Keinv_c.Array, (unsigned int) CNodes.Order, &CNodes.Sub[i] );
+		 Substructure_SendGainMatrix( Keinv_c.Array, (uint32_t) CNodes.Order, &CNodes.Sub[i] );
 	       } else if ( CNodes.Sub[i].Type == EXP_ADWIN ){
 		    if (!Matrix_Send_ADwin){
-			 Substructure_SendGainMatrix( KeinvADwin_c.Array, (unsigned int) KeinvADwin_c.Rows, &CNodes.Sub[i] );
+			 Substructure_SendGainMatrix( KeinvADwin_c.Array, (uint32_t) KeinvADwin_c.Rows, &CNodes.Sub[i] );
 			 Matrix_Send_ADwin = true;
 		    }
 	       }
@@ -396,9 +394,9 @@ int main( int argc, char **argv ){
      Time.Date_start = time( NULL );
      Time.Date_time = strdup( ctime( &Time.Date_start) );
      gettimeofday( &Time.Start, NULL );
-     incx = 1; incy = 1;
+
      /* Calculate the input load */
-     istep = 1;
+     uint32_t istep = 1;
      if( InitCnt.Use_Absolute_Values ){
 	  InputLoad_Apply_LoadVectorForm( &LoadVectorForm1, &LoadVectorForm2, &LoadVectorForm3, DispAll1[istep - 1], DispAll2[istep - 1], DispAll3[istep - 1], &Disp );
 	  InputLoad_Apply_LoadVectorForm( &LoadVectorForm1, &LoadVectorForm2, &LoadVectorForm3, VelAll1[istep - 1], VelAll2[istep - 1], VelAll3[istep - 1], &Vel );
@@ -430,6 +428,8 @@ int main( int argc, char **argv ){
      Print_Header( INFO );
      printf( "Starting stepping process.\n" );
      while ( istep <= InitCnt.NStep ){
+          const int32_t incx = 1;
+          const int32_t incy = 1;
 	  printf("step: %d\n", istep );
 	  /* Calculate the effective force vector Fe = M*(a0*u + a2*v + a3*a) + C*(a1*u + a4*v + a5*a) */
 	  if( !InitCnt.Use_Sparse && !InitCnt.Use_Packed ){
