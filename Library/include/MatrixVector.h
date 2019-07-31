@@ -15,6 +15,8 @@
 
 #include "Definitions.h"
 
+#include <stdint.h>
+
 /**
  * \brief General matrix storage.
  *
@@ -26,19 +28,19 @@
  * \sa MatrixVector_Sp_t.
  */
 typedef struct MatrixVector {
-     int Rows;       /*!< \brief Number of Rows of the matrix */
-     int Cols;       /*!< \brief Number of Columns of the matrix */
-     HYSL_FLOAT *Array;  /*!< \brief Array of size \f$Size = Rows*Cols\f$ */
+    int32_t Rows; /*!< \brief Number of Rows of the matrix */
+    int32_t Cols; /*!< \brief Number of Columns of the matrix */
+    HYSL_FLOAT *Array; /*!< \brief Array of size \f$Size = Rows*Cols\f$ */
 } MatrixVector_t;
 
 /**
  * \brief Structure to handle constants to be used in some matrix/vector operations.
  */
 typedef struct Scalars {
-     HYSL_FLOAT Alpha;   /*!< \brief First constant.*/
-     HYSL_FLOAT Beta;    /*!< \brief Second constant.*/
-     HYSL_FLOAT Gamma;   /*!< \brief Third constant.*/
-     HYSL_FLOAT Lambda;  /*!< \brief Fourth constant.*/
+    HYSL_FLOAT Alpha; /*!< \brief First constant.*/
+    HYSL_FLOAT Beta; /*!< \brief Second constant.*/
+    HYSL_FLOAT Gamma; /*!< \brief Third constant.*/
+    HYSL_FLOAT Lambda; /*!< \brief Fourth constant.*/
 } Scalars_t;
 
 /**
@@ -81,8 +83,8 @@ typedef struct Scalars {
  *
  * \sa MatrixVector_t and Scalars_t.
  */
-void MatrixVector_Add3Mat( const MatrixVector_t *const MatA, const MatrixVector_t *const MatB, const MatrixVector_t *const MatC,
-			   const Scalars_t Const, MatrixVector_t *const MatY );
+void MatrixVector_Add3Mat(const MatrixVector_t *const MatA, const MatrixVector_t *const MatB, const MatrixVector_t *const MatC, const Scalars_t Const,
+        MatrixVector_t *const MatY);
 /**
  * \brief Allocates the memory for the \c MatrixVector_t type.
  *
@@ -106,7 +108,7 @@ void MatrixVector_Add3Mat( const MatrixVector_t *const MatA, const MatrixVector_
  *
  * \sa MatrixVector_t.
  */
-void MatrixVector_Create( const int Rows, const int Cols, MatrixVector_t *const MatVec );
+void MatrixVector_Create(const int32_t Rows, const int32_t Cols, MatrixVector_t *const MatVec);
 
 /**
  * \brief The memory allocated in MatrixVector_t is freed.
@@ -121,7 +123,7 @@ void MatrixVector_Create( const int Rows, const int Cols, MatrixVector_t *const 
  *
  * \sa MatrixVector_t.
  */
-void MatrixVector_Destroy( MatrixVector_t *const MatVec );
+void MatrixVector_Destroy(MatrixVector_t *const MatVec);
 
 /**
  * \brief Reads a matrix or a vector from an ASCII file in a dense format.
@@ -135,7 +137,7 @@ void MatrixVector_Destroy( MatrixVector_t *const MatVec );
  *
  * \sa MatrixVector_t.
  */
-void MatrixVector_FromFile( const char *Filename, MatrixVector_t *const MatVec );
+void MatrixVector_FromFile(const char *Filename, MatrixVector_t *const MatVec);
 
 /**
  * \brief Reads a matrix or a vector in the MatrixMarket format.
@@ -158,7 +160,7 @@ void MatrixVector_FromFile( const char *Filename, MatrixVector_t *const MatVec )
  *
  * \sa MatrixVector_t.
  */
-void MatrixVector_FromFile_MM( const char *Filename, MatrixVector_t *const MatVec );
+void MatrixVector_FromFile_MM(const char *Filename, MatrixVector_t *const MatVec);
 
 /**
  * \brief Performs basic algebra operations on an element of the matrix or vector.
@@ -192,8 +194,7 @@ void MatrixVector_FromFile_MM( const char *Filename, MatrixVector_t *const MatVe
  *
  * \sa MatrixVector_t
  */
-void MatrixVector_ModifyElement( const int RowIndex, const int ColIndex, const HYSL_FLOAT Alpha,
-				 const char *Operation, MatrixVector_t *const MatVec );
+void MatrixVector_ModifyElement(const int32_t RowIndex, const int32_t ColIndex, const HYSL_FLOAT Alpha, const char *Operation, MatrixVector_t *const MatVec);
 
 /**
  * \brief Sets all the members to the specified value.
@@ -210,7 +211,7 @@ void MatrixVector_ModifyElement( const int RowIndex, const int ColIndex, const H
  *
  * \post All the elements in \c MatVec.Array are set to \c Value.
  */
-void MatrixVector_Set2Value( const HYSL_FLOAT Value, MatrixVector_t *const MatVec );
+void MatrixVector_Set2Value(const HYSL_FLOAT Value, MatrixVector_t *const MatVec);
 
 /**
  * \brief Writes a matrix or a vector to an ASCII file in a dense format.
@@ -224,8 +225,8 @@ void MatrixVector_Set2Value( const HYSL_FLOAT Value, MatrixVector_t *const MatVe
  *
  * \sa MatrixVector_t.
  */
-void MatrixVector_ToFile( const MatrixVector_t *const MatVec, const char *Filename );
+void MatrixVector_ToFile(const MatrixVector_t *const MatVec, const char *Filename);
 
-void MatrixVector_ToFile_MM( const MatrixVector_t *const MatVec, const char *Filename );
+void MatrixVector_ToFile_MM(const MatrixVector_t *const MatVec, const char *Filename);
 
 #endif /* MATRIXVECTOR_H_ */

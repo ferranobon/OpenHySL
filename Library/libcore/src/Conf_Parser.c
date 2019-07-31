@@ -7,266 +7,253 @@
 #include "Conf_Parser.h"
 #include "Print_Messages.h"
 
-ConfFile_t* ConfFile_Create( const size_t Size )
-{
-     ConfFile_t *Config;
+ConfFile_t* ConfFile_Create(const size_t Size) {
+    ConfFile_t *Config;
 
-     Config = (ConfFile_t *) calloc( 1, sizeof(ConfFile_t) );
-     if( Config == NULL ){
-	  Print_Header( ERROR );
-	  fprintf( stderr, "Error allocating memory.\n" );
-	  return NULL;
-     }
+    Config = (ConfFile_t*) calloc(1, sizeof(ConfFile_t));
+    if (Config == NULL) {
+        Print_Header( ERROR);
+        fprintf( stderr, "Error allocating memory.\n");
+        return NULL;
+    }
 
-     Config->Length = Size;
-     Config->Keys = (char **) calloc( Size, sizeof(char*) );
-     if( Config->Keys == NULL ){
-	  free( Config );
-	  Print_Header( ERROR );
-	  fprintf( stderr, "Error allocating memory." );
-	  return NULL;
-     }
+    Config->Length = Size;
+    Config->Keys = (char**) calloc(Size, sizeof(char*));
+    if (Config->Keys == NULL) {
+        free(Config);
+        Print_Header( ERROR);
+        fprintf( stderr, "Error allocating memory.");
+        return NULL;
+    }
 
-     Config->Values = (char **) calloc( Size, sizeof(char*) );
-     if( Config->Keys == NULL ){
-	  free( Config->Keys );
-	  free( Config );
-	  Print_Header( ERROR );
-	  fprintf( stderr, "Error allocating memory." );
-	  return NULL;
-     }
-     return Config;
+    Config->Values = (char**) calloc(Size, sizeof(char*));
+    if (Config->Keys == NULL) {
+        free(Config->Keys);
+        free(Config);
+        Print_Header( ERROR);
+        fprintf( stderr, "Error allocating memory.");
+        return NULL;
+    }
+    return Config;
 }
-     
-int ConfFile_ReadFile( const char *FileName, ConfFile_t *const CFile )
-{
-     unsigned int Line_Num;
-     short int Line_Type;
-     FILE *InFile;
-     size_t StrLength;
-     int i;
-     char Line[MAX_LENGTH];
-     char Section[MAX_LENGTH];
-     char Key[MAX_LENGTH];
-     char Value[MAX_LENGTH];
-     char EntryLine[MAX_LENGTH];
 
-     InFile = fopen( FileName, "r" );
+int ConfFile_ReadFile(const char *FileName, ConfFile_t *const CFile) {
+    unsigned int Line_Num;
+    short int Line_Type;
+    FILE *InFile;
+    size_t StrLength;
+    int i;
+    char Line[MAX_LENGTH];
+    char Section[MAX_LENGTH];
+    char Key[MAX_LENGTH];
+    char Value[MAX_LENGTH];
+    char EntryLine[MAX_LENGTH];
 
-     if( InFile == NULL ){
-	  Print_Header( ERROR );
-	  fprintf( stderr, "ConfFile_ReadFile: Could not open configuration file %s.\n", FileName );
-	  exit( EXIT_FAILURE );
-     }
+    InFile = fopen(FileName, "r");
 
-     memset( Line, 0, MAX_LENGTH );
-     memset( Section, 0, MAX_LENGTH );
-     memset( Key, 0, MAX_LENGTH );
-     memset( Value, 0, MAX_LENGTH );
-     memset( EntryLine, 0, MAX_LENGTH );
+    if (InFile == NULL) {
+        Print_Header( ERROR);
+        fprintf( stderr, "ConfFile_ReadFile: Could not open configuration file %s.\n", FileName);
+        exit( EXIT_FAILURE);
+    }
 
-     Line_Num = 0;
-     /* Read the file until the end */
-     while( fgets( Line, MAX_LENGTH, InFile ) != NULL ){
-	  Line_Num = Line_Num + 1;
-	  StrLength = strlen( Line ) - 1;
+    memset(Line, 0, MAX_LENGTH);
+    memset(Section, 0, MAX_LENGTH);
+    memset(Key, 0, MAX_LENGTH);
+    memset(Value, 0, MAX_LENGTH);
+    memset(EntryLine, 0, MAX_LENGTH);
 
-	  if ( StrLength == 0 ){
-	       /* This is an empty line. Ignore */
-	       continue;
-	  }
+    Line_Num = 0;
+    /* Read the file until the end */
+    while (fgets(Line, MAX_LENGTH, InFile) != NULL) {
+        Line_Num = Line_Num + 1;
+        StrLength = strlen(Line) - 1;
 
-	  /* Check if the line was too long */
-	  if( Line[StrLength] != '\n' && !feof(InFile) ){
-	       Print_Header( ERROR );
-	       fprintf( stderr, "ConfFile_ReadFile: Line %d was too long in the configuration file %s.\n", Line_Num, FileName );
-	       return EXIT_FAILURE;
-	  }
+        if (StrLength == 0) {
+            /* This is an empty line. Ignore */
+            continue;
+        }
 
-	  /* Remove the end spaces and the new line mark */
-	  i = (int) StrLength;
-	  while( i >= 0 && (Line[i] == '\n' || isspace( Line[i] ))){
-	       Line[i] = 0;
-	       i = i - 1;
-	  }
-	  /* Evaluate the contens of a line */
-	  Line_Type = ConfFile_EvalLine( Line );
+        /* Check if the line was too long */
+        if (Line[StrLength] != '\n' && !feof(InFile)) {
+            Print_Header( ERROR);
+            fprintf( stderr, "ConfFile_ReadFile: Line %d was too long in the configuration file %s.\n", Line_Num, FileName);
+            return EXIT_FAILURE;
+        }
 
-	  switch (Line_Type){
-	  case CONFFILE_LEMPTY:
-	       /* Do nothing */
-	       break;
-	  case CONFFILE_LCOMMENT:
-	       /* Do nothing */
-	       break;
-	  case CONFFILE_LSECTION:
+        /* Remove the end spaces and the new line mark */
+        i = (int) StrLength;
+        while (i >= 0 && (Line[i] == '\n' || isspace(Line[i]))) {
+            Line[i] = 0;
+            i = i - 1;
+        }
+        /* Evaluate the contens of a line */
+        Line_Type = ConfFile_EvalLine(Line);
+
+        switch (Line_Type) {
+            case CONFFILE_LEMPTY:
+                /* Do nothing */
+                break;
+            case CONFFILE_LCOMMENT:
+                /* Do nothing */
+                break;
+            case CONFFILE_LSECTION:
 //	       memset( Section, 0, MAX_LENGTH );
 
-	       sscanf( Line, "[%[^]]", Section );
-	       memset( Line, 0, MAX_LENGTH );
-	       /* Do nothing else since empty sections are not going to be processed */
-	       break;
-	  case CONFFILE_LVALUE:
-	       ConfFile_ProcessLine( Line, Key, Value );
-	       sprintf( EntryLine, "%s:%s", Section, Key );
-	       ConfFile_SetEntry( EntryLine, Value, CFile );
-	       memset( EntryLine, 0, MAX_LENGTH );
-	       memset( Line, 0, MAX_LENGTH );
-	       memset( Key, 0, MAX_LENGTH );
-	       memset( Value, 0, MAX_LENGTH );
-	       break;
-	  case CONFFILE_ERROR:
-	       return EXIT_FAILURE;
-	       break;
-	  default:
-	       /* Do nothing */
-	       break;
-	  }
-     }
+                sscanf(Line, "[%[^]]", Section);
+                memset(Line, 0, MAX_LENGTH);
+                /* Do nothing else since empty sections are not going to be processed */
+                break;
+            case CONFFILE_LVALUE:
+                ConfFile_ProcessLine(Line, Key, Value);
+                sprintf(EntryLine, "%s:%s", Section, Key);
+                ConfFile_SetEntry(EntryLine, Value, CFile);
+                memset(EntryLine, 0, MAX_LENGTH);
+                memset(Line, 0, MAX_LENGTH);
+                memset(Key, 0, MAX_LENGTH);
+                memset(Value, 0, MAX_LENGTH);
+                break;
+            case CONFFILE_ERROR:
+                return EXIT_FAILURE;
+                break;
+            default:
+                /* Do nothing */
+                break;
+        }
+    }
 
-     Print_Header( SUCCESS );
-     printf( "Configuration file successfully read.\n" );
+    Print_Header( SUCCESS);
+    printf("Configuration file successfully read.\n");
 
-     /* Close the file */
-     fclose( InFile );
-     return 0;
+    /* Close the file */
+    fclose(InFile);
+    return 0;
 }
 
-short int ConfFile_EvalLine( const char *Line )
-{
-     size_t StrLength;
-     short int TypeLine;
+short int ConfFile_EvalLine(const char *Line) {
+    size_t StrLength;
+    short int TypeLine;
 
-     StrLength = strlen( Line ) - 1;
-     TypeLine = CONFFILE_ERROR;
+    StrLength = strlen(Line) - 1;
+    TypeLine = CONFFILE_ERROR;
 
-     if ( StrLength < 1 ){
-	  /* This is an empty line */
-	  TypeLine = CONFFILE_LEMPTY;
-     } else if ( Line[0] == '#' || Line[0] == ';' ){
-	  /* This line is a comment and it should be ignored */
-	  TypeLine = CONFFILE_LCOMMENT;
-     } else if ( Line[0] == '[' && Line[StrLength] == ']' ){
-	  /* This line contains a section identifier */
-	  TypeLine = CONFFILE_LSECTION;
-     } else {
-	  TypeLine = CONFFILE_LVALUE;
-     }
-     return TypeLine;
+    if (StrLength < 1) {
+        /* This is an empty line */
+        TypeLine = CONFFILE_LEMPTY;
+    } else if (Line[0] == '#' || Line[0] == ';') {
+        /* This line is a comment and it should be ignored */
+        TypeLine = CONFFILE_LCOMMENT;
+    } else if (Line[0] == '[' && Line[StrLength] == ']') {
+        /* This line contains a section identifier */
+        TypeLine = CONFFILE_LSECTION;
+    } else {
+        TypeLine = CONFFILE_LVALUE;
+    }
+    return TypeLine;
 }
 
-int ConfFile_ProcessLine( const char *Line, char *Key, char *Value )
-{
-     int StrLength;
+int ConfFile_ProcessLine(const char *Line, char *Key, char *Value) {
+    int StrLength;
 
-     if( sscanf( Line, "%[^=] = \"%[^\"]\"", Key, Value) == 2 ||
-	 sscanf( Line, "%[^=] = '%[^\']\'" , Key, Value) == 2 ||
-	 sscanf( Line, "%[^=] = %[^;#]",     Key, Value) == 2 ){
+    if (sscanf(Line, "%[^=] = \"%[^\"]\"", Key, Value) == 2 || sscanf(Line, "%[^=] = '%[^\']\'", Key, Value) == 2
+            || sscanf(Line, "%[^=] = %[^;#]", Key, Value) == 2) {
 
-	  /* Remove white spaces at the end of the line */
-	  StrLength = (int) strlen(Key) - 1;
-	  while( StrLength >= 0 && isspace( Key[StrLength] )){
-	       Key[StrLength] = 0;
-	       StrLength = StrLength - 1;
-	  }
-	  StrLength = (int) strlen(Value) - 1;
-	  while( StrLength >= 0 && isspace( Value[StrLength] )){
-	       Value[StrLength] = 0;
-	       StrLength = StrLength - 1;
-	  }
-	  return 1;
-     } else if ( sscanf(Line, "%[^=] = %[;#]", Key, Value) == 2 ||
-		 sscanf(Line, "%[^=] %[=]",    Key, Value) == 2) {
-	  /* There is no value */
-	  Value[0] = 0;
-	  return 1;
-     } else return 0;
-}	  
-
-void ConfFile_SetEntry( const char *Entry, const char *Value, ConfFile_t *const CFile )
-{
-     if( CFile->NumEntries < CFile->Length ){
-	  CFile->Keys[CFile->NumEntries] = strdup( Entry );
-	  CFile->Values[CFile->NumEntries] = strdup( Value );
-
-	  CFile->NumEntries = CFile->NumEntries + 1;
-     } else {
-	  Print_Header( ERROR );
-	  fprintf( stderr, "Maximum number of entries reached in the configuration file.\n" );
-	  fprintf( stderr, "[......] Increase the number of allocated entries in ConfFile_Create().\n" );
-	  exit( EXIT_FAILURE );
-     }
+        /* Remove white spaces at the end of the line */
+        StrLength = (int) strlen(Key) - 1;
+        while (StrLength >= 0 && isspace(Key[StrLength])) {
+            Key[StrLength] = 0;
+            StrLength = StrLength - 1;
+        }
+        StrLength = (int) strlen(Value) - 1;
+        while (StrLength >= 0 && isspace(Value[StrLength])) {
+            Value[StrLength] = 0;
+            StrLength = StrLength - 1;
+        }
+        return 1;
+    } else if (sscanf(Line, "%[^=] = %[;#]", Key, Value) == 2 || sscanf(Line, "%[^=] %[=]", Key, Value) == 2) {
+        /* There is no value */
+        Value[0] = 0;
+        return 1;
+    } else
+        return 0;
 }
 
-char* ConfFile_GetString( const ConfFile_t *const CFile, const char *Key )
-{
-     size_t Position;
+void ConfFile_SetEntry(const char *Entry, const char *Value, ConfFile_t *const CFile) {
+    if (CFile->NumEntries < CFile->Length) {
+        CFile->Keys[CFile->NumEntries] = strdup(Entry);
+        CFile->Values[CFile->NumEntries] = strdup(Value);
 
-     Position = ConfFile_FindPosition( CFile, Key );
-     return CFile->Values[Position];
+        CFile->NumEntries = CFile->NumEntries + 1;
+    } else {
+        Print_Header( ERROR);
+        fprintf( stderr, "Maximum number of entries reached in the configuration file.\n");
+        fprintf( stderr, "[......] Increase the number of allocated entries in ConfFile_Create().\n");
+        exit( EXIT_FAILURE);
+    }
 }
 
-int ConfFile_GetInt( const ConfFile_t *const CFile, const char *Key )
-{
-     size_t Position;
+char* ConfFile_GetString(const ConfFile_t *const CFile, const char *Key) {
+    size_t Position;
 
-     Position = ConfFile_FindPosition( CFile, Key );
-     return atoi( CFile->Values[Position] );
+    Position = ConfFile_FindPosition(CFile, Key);
+    return CFile->Values[Position];
 }
 
-float ConfFile_GetFloat( const ConfFile_t *const CFile, const char *Key )
-{
-     size_t Position;
-     
-     Position = ConfFile_FindPosition( CFile, Key );
-     return strtof( CFile->Values[Position], NULL );
+int ConfFile_GetInt(const ConfFile_t *const CFile, const char *Key) {
+    size_t Position;
+
+    Position = ConfFile_FindPosition(CFile, Key);
+    return atoi(CFile->Values[Position]);
 }
 
-double ConfFile_GetDouble( const ConfFile_t *const CFile, const char *Key )
-{
-     size_t Position;
+float ConfFile_GetFloat(const ConfFile_t *const CFile, const char *Key) {
+    size_t Position;
 
-     Position = ConfFile_FindPosition( CFile, Key );
-     return atof( CFile->Values[Position] );
+    Position = ConfFile_FindPosition(CFile, Key);
+    return strtof(CFile->Values[Position], NULL);
 }
 
-size_t ConfFile_FindPosition( const ConfFile_t *const CFile, const char *Key )
-{
-     size_t i;
-     bool Found;
+double ConfFile_GetDouble(const ConfFile_t *const CFile, const char *Key) {
+    size_t Position;
 
-     Found = false;
-     i = 0;
-     while( i < CFile->NumEntries && !Found ){
-	  if( strcmp( CFile->Keys[i], Key ) == 0 ){
-	       Found = true;
-	  } else {
-	       i = i + 1;
-	  }
-     }
-
-     if ( !Found ){
-	  Print_Header( ERROR );
-	  fprintf( stderr, "The entry %s was not found.\n", Key );
-	  exit( EXIT_FAILURE );
-     } else {
-	  return i;
-     }
+    Position = ConfFile_FindPosition(CFile, Key);
+    return atof(CFile->Values[Position]);
 }
-     
 
-void ConfFile_Destroy( ConfFile_t *const CFile )
-{
-     size_t i;
+size_t ConfFile_FindPosition(const ConfFile_t *const CFile, const char *Key) {
+    size_t i;
+    bool Found;
 
-     /* Free the allocated memory
-	Deallocate first the memory in Keys or Values */
-     for ( i = 0; i < CFile->NumEntries; i++ ){
-	  free( CFile->Keys[i] );
-	  free( CFile->Values[i] );
-     }
+    Found = false;
+    i = 0;
+    while (i < CFile->NumEntries && !Found) {
+        if (strcmp(CFile->Keys[i], Key) == 0) {
+            Found = true;
+        } else {
+            i = i + 1;
+        }
+    }
 
-     free( CFile->Keys );
-     free( CFile->Values );
-     free( CFile );
+    if (!Found) {
+        Print_Header( ERROR);
+        fprintf( stderr, "The entry %s was not found.\n", Key);
+        exit( EXIT_FAILURE);
+    } else {
+        return i;
+    }
+}
+
+void ConfFile_Destroy(ConfFile_t *const CFile) {
+    size_t i;
+
+    /* Free the allocated memory
+     Deallocate first the memory in Keys or Values */
+    for (i = 0; i < CFile->NumEntries; i++) {
+        free(CFile->Keys[i]);
+        free(CFile->Values[i]);
+    }
+
+    free(CFile->Keys);
+    free(CFile->Values);
+    free(CFile);
 }

@@ -1,6 +1,6 @@
 # Name of the project
-cmake_minimum_required(VERSION 2.8)
-project(SAlgorithm)
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+project(SAlgorithm C)
 
 set(SAlgorithm_VERSION_MAJOR 0)
 set(SAlgorithm_VERSION_MINOR 5)

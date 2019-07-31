@@ -114,7 +114,7 @@ MatrixVector_t Generate_IdentityMatrix( int Rows, int Cols );
  * \param[in] n        Number of rows or columns of the matrix in packed storage.
  * \returns   Position (0-based index) where \f$a_{ij}\f$ is stored in the packed matrix \f$\mathcal A\f$.
  */ 
-unsigned int MatrixVector_ReturnIndex_UPS( const unsigned int RowIndex, const unsigned int ColIndex, const int n );
+uint32_t MatrixVector_ReturnIndex_UPS(const uint32_t RowIndex, const uint32_t ColIndex, const uint32_t n );
 
 /**
  * \brief Returns a 0-based index of a matrix in packed storage containing the lower triangular part and in
@@ -134,7 +134,7 @@ unsigned int MatrixVector_ReturnIndex_UPS( const unsigned int RowIndex, const un
  * \param[in] ColIndex Column coordinate \em j.
  * \returns   Position (0-based index) where \f$a_{ij}\f$ is stored in the packed matrix \f$\mathcal A\f$.
  */
-unsigned int MatrixVector_ReturnIndex_LPS( const unsigned int RowIndex, const unsigned int ColIndex );
+uint32_t MatrixVector_ReturnIndex_LPS( const uint32_t RowIndex, const uint32_t ColIndex );
 
 /**
  * \brief Computes the Eigenvalues and Eigenvectors the problem \f$\mathcal A*\mathcal B*\vec x = \lambda \vec
