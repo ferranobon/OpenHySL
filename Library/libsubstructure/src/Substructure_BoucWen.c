@@ -9,12 +9,12 @@
 #include "Print_Messages.h"
 #include "Definitions.h"
 
-void Substructure_BoucWen_Init (const HYSL_FLOAT alpha, const HYSL_FLOAT ko, const HYSL_FLOAT Fy,
-				const HYSL_FLOAT beta, const HYSL_FLOAT gamma, const HYSL_FLOAT n,
-				const HYSL_FLOAT A0, const HYSL_FLOAT deltaA, const HYSL_FLOAT nu0,
-				const HYSL_FLOAT deltaNu, const HYSL_FLOAT eta0, const HYSL_FLOAT deltaEta,
-				const HYSL_FLOAT vs0, const HYSL_FLOAT p, const HYSL_FLOAT q,
-			        const HYSL_FLOAT lambda, const HYSL_FLOAT psi0, const HYSL_FLOAT deltaPsi,
+void Substructure_BoucWen_Init (const hysl_float_t alpha, const hysl_float_t ko, const hysl_float_t Fy,
+				const hysl_float_t beta, const hysl_float_t gamma, const hysl_float_t n,
+				const hysl_float_t A0, const hysl_float_t deltaA, const hysl_float_t nu0,
+				const hysl_float_t deltaNu, const hysl_float_t eta0, const hysl_float_t deltaEta,
+				const hysl_float_t vs0, const hysl_float_t p, const hysl_float_t q,
+			        const hysl_float_t lambda, const hysl_float_t psi0, const hysl_float_t deltaPsi,
 				const int BoucWen_Type, const char *Description, BoucWen_t *const Sub )
 {
      Sub->Description = strdup( Description );
@@ -63,10 +63,10 @@ void Substructure_BoucWen_Init (const HYSL_FLOAT alpha, const HYSL_FLOAT ko, con
 
 }
 
-void Substructure_BoucWenSurface_Init (const HYSL_FLOAT alpha, const HYSL_FLOAT ko,
-				       const HYSL_FLOAT Fy, const HYSL_FLOAT beta, const HYSL_FLOAT gamma, const HYSL_FLOAT n,
-				       const HYSL_FLOAT A0, const HYSL_FLOAT deltaA, const HYSL_FLOAT nu0,
-				       const HYSL_FLOAT deltaNu, const HYSL_FLOAT eta0, const HYSL_FLOAT deltaEta,
+void Substructure_BoucWenSurface_Init (const hysl_float_t alpha, const hysl_float_t ko,
+				       const hysl_float_t Fy, const hysl_float_t beta, const hysl_float_t gamma, const hysl_float_t n,
+				       const hysl_float_t A0, const hysl_float_t deltaA, const hysl_float_t nu0,
+				       const hysl_float_t deltaNu, const hysl_float_t eta0, const hysl_float_t deltaEta,
 				       const int BoucWen_Type, const char *Description, BoucWenSurface_t *const Sub )
 {
      int i;
@@ -118,17 +118,17 @@ void Substructure_BoucWenSurface_Init (const HYSL_FLOAT alpha, const HYSL_FLOAT 
 
 }
 
-void Substructure_BoucWen ( const HYSL_FLOAT DispTdT, BoucWen_t *const Sub, HYSL_FLOAT *const force )
+void Substructure_BoucWen ( const hysl_float_t DispTdT, BoucWen_t *const Sub, hysl_float_t *const force )
 {
      int count;
-     HYSL_FLOAT sign;
-     HYSL_FLOAT e_new, A_new, nu_new, eta_new, Theta, Phi;     
-     HYSL_FLOAT e_new_, A_new_, nu_new_, eta_new_, Phi_;
-     HYSL_FLOAT vs_1, vs_2, zu, hze_exp, hze;
-     HYSL_FLOAT hze_;
-     HYSL_FLOAT fz_new, fz_new_;
-     HYSL_FLOAT z_new, z_new_p, z_eval;
-     HYSL_FLOAT deltaDisp;
+     hysl_float_t sign;
+     hysl_float_t e_new, A_new, nu_new, eta_new, Theta, Phi;     
+     hysl_float_t e_new_, A_new_, nu_new_, eta_new_, Phi_;
+     hysl_float_t vs_1, vs_2, zu, hze_exp, hze;
+     hysl_float_t hze_;
+     hysl_float_t fz_new, fz_new_;
+     hysl_float_t z_new, z_new_p, z_eval;
+     hysl_float_t deltaDisp;
      
      count = 0;
 #if _FLOAT_
@@ -208,14 +208,14 @@ void Substructure_BoucWen ( const HYSL_FLOAT DispTdT, BoucWen_t *const Sub, HYSL
      Sub->BW_Force = -(*force);
 }
 
-void Substructure_BoucWenSurface ( const HYSL_FLOAT DispTdT1, const HYSL_FLOAT DispTdT2, BoucWenSurface_t *const Sub, HYSL_FLOAT *const force1, HYSL_FLOAT *const force2 )
+void Substructure_BoucWenSurface ( const hysl_float_t DispTdT1, const hysl_float_t DispTdT2, BoucWenSurface_t *const Sub, hysl_float_t *const force1, hysl_float_t *const force2 )
 {
      int count, i;
-     HYSL_FLOAT fz_new[2], fz_new_[4];
-     HYSL_FLOAT delta_z[2];
-     HYSL_FLOAT deltaDisp[2];
-     HYSL_FLOAT z_norm;
-     HYSL_FLOAT tmp1, tmp2, tmp3, tmp4;
+     hysl_float_t fz_new[2], fz_new_[4];
+     hysl_float_t delta_z[2];
+     hysl_float_t deltaDisp[2];
+     hysl_float_t z_norm;
+     hysl_float_t tmp1, tmp2, tmp3, tmp4;
      
      count = 0;
      
@@ -272,11 +272,11 @@ void Substructure_BoucWenSurface ( const HYSL_FLOAT DispTdT1, const HYSL_FLOAT D
      Sub->BW_Force[1] = -(*force2);
 }
 
-void right_matrix_division (const HYSL_FLOAT *const vector, const HYSL_FLOAT *const matrix, HYSL_FLOAT *const output)
+void right_matrix_division (const hysl_float_t *const vector, const hysl_float_t *const matrix, hysl_float_t *const output)
 {
      int i;
-     HYSL_FLOAT inv[4];
-     HYSL_FLOAT detM;
+     hysl_float_t inv[4];
+     hysl_float_t detM;
 
      /* Calculate the determinant of a 2x2 matrix */
      detM = matrix[0]*matrix[3] - matrix[1]*matrix[2];

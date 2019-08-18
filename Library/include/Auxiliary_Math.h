@@ -60,7 +60,7 @@ int Min ( const int a, const int b );
  * \param[in] num Number whose sign needs to be analysed.
  * \returns       Returns the sign of the entered floating point value.
  */
-HYSL_FLOAT signum ( const HYSL_FLOAT num );
+hysl_float_t signum ( const hysl_float_t num );
 
 /**
  * \brief Calculates the norm of a vector.
@@ -77,7 +77,7 @@ HYSL_FLOAT signum ( const HYSL_FLOAT num );
  * \return The norm of the given vector.
  * 
  */
-HYSL_FLOAT norm ( const int length, const HYSL_FLOAT *const Vector );
+hysl_float_t norm ( const int length, const hysl_float_t *const Vector );
 
 /**
  * \brief Generation of a Identity Matrix.
@@ -172,11 +172,11 @@ void Compute_Eigenvalues_Eigenvectors ( MatrixVector_t *const MatrixA, MatrixVec
 /**
  * From Numerical receipes in C \cite[Num_Recipes]..
  */
-HYSL_FLOAT Gaussian_Deviate( const HYSL_FLOAT *const mu, const HYSL_FLOAT *const sigma, long int *const idum );
+hysl_float_t Gaussian_Deviate( const hysl_float_t *const mu, const hysl_float_t *const sigma, long int *const idum );
 /**
  * From Numerical receipes in C \cite[Num_Recipes]..
  */
-HYSL_FLOAT RandomNumber( long int *const idum );
+hysl_float_t RandomNumber( long int *const idum );
 
 /**
  * Extrapolates a value from a given set of data. Routine based on \c polint from \cite[Num_Recipes].
@@ -197,6 +197,6 @@ HYSL_FLOAT RandomNumber( long int *const idum );
  *
  * \sa MatrixVector_t.
  */
-void Interpolate_Extrapolate( const MatrixVector_t *const X, const MatrixVector_t *const Y, const HYSL_FLOAT x, HYSL_FLOAT *const y, HYSL_FLOAT *const dy );
+void Interpolate_Extrapolate( const MatrixVector_t *const X, const MatrixVector_t *const Y, const hysl_float_t x, hysl_float_t *const y, hysl_float_t *const dy );
 
 #endif /* AUXILIARY_MATH_H_ */

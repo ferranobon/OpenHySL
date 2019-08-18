@@ -30,9 +30,9 @@
 #include "Cblacs.h"
 #endif
 
-void Substructure_Substepping_MPI( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *const VecTdT0_c,
-				   const HYSL_FLOAT Time, const HYSL_FLOAT GAcc, const unsigned int NSubstep,
-				   const HYSL_FLOAT DeltaT_Sub, const MPI_Comm Comm,
+void Substructure_Substepping_MPI( const hysl_float_t *const IGain, const hysl_float_t *const VecTdT0_c,
+				   const hysl_float_t Time, const hysl_float_t GAcc, const unsigned int NSubstep,
+				   const hysl_float_t DeltaT_Sub, const MPI_Comm Comm,
 				   const InfoLocation_t *const ILoc_VecTdT,
 				   const InfoLocation_t *const ILoc_CoupForcePrev,
 				   const InfoLocation_t *const ILoc_CoupForce, CouplingNode_t *const CNodes,
@@ -42,8 +42,8 @@ void Substructure_Substepping_MPI( const HYSL_FLOAT *const IGain, const HYSL_FLO
 
      int i, rank;
      bool Called_Sub = false;
-     HYSL_FLOAT *Recv = NULL;
-     HYSL_FLOAT *Send = NULL;
+     hysl_float_t *Recv = NULL;
+     hysl_float_t *Send = NULL;
 
      Remote_t *Remote;
      MPI_Status Status;
@@ -51,7 +51,7 @@ void Substructure_Substepping_MPI( const HYSL_FLOAT *const IGain, const HYSL_FLO
      MPI_Comm_rank( Comm, &rank );
 
      if( rank == 0 ){
-	  Recv = (HYSL_FLOAT *) calloc( (size_t) 3*(size_t)CNodes->Order, sizeof(HYSL_FLOAT) );
+	  Recv = (hysl_float_t *) calloc( (size_t) 3*(size_t)CNodes->Order, sizeof(hysl_float_t) );
      } else {
 	  Recv == NULL;
      }
@@ -104,15 +104,15 @@ void Substructure_Substepping_MPI( const HYSL_FLOAT *const IGain, const HYSL_FLO
 		    Remote = (Remote_t *) CNodes->Sub[i].SimStruct;
 
 		    if( Remote->Type == REMOTE_TCP || Remote->Type == REMOTE_UDP || Remote->Type == REMOTE_CELESTINA ){
-			 Send = (HYSL_FLOAT *) calloc( (size_t) 1+(size_t)CNodes->Order, sizeof(HYSL_FLOAT) );
+			 Send = (hysl_float_t *) calloc( (size_t) 1+(size_t)CNodes->Order, sizeof(hysl_float_t) );
 			 for( i = 0; i < CNodes->Order; i++ ){
 			      Send[i] = VecTdT0_c[i];
 			 }
 			 Send[CNodes->Order] = GAcc;
 
-			 Substructure_Remote_Send( Remote->Socket, (unsigned int) CNodes->Order + 1, sizeof(HYSL_FLOAT), (char *const) Send );
+			 Substructure_Remote_Send( Remote->Socket, (unsigned int) CNodes->Order + 1, sizeof(hysl_float_t), (char *const) Send );
 
-			 Substructure_Remote_Receive( Remote->Socket, 3*(unsigned int) CNodes->Order, sizeof(HYSL_FLOAT), (char *const) Recv );
+			 Substructure_Remote_Receive( Remote->Socket, 3*(unsigned int) CNodes->Order, sizeof(hysl_float_t), (char *const) Recv );
 			 free( Send );
 		    } else if( Remote->Type == REMOTE_NSEP ){
 			 /* Using NSEP Protocol */

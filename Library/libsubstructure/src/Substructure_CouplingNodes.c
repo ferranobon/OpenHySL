@@ -39,7 +39,7 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
      int i, j, k;
      int itemp, ndof;
      int intArray[3];
-     HYSL_FLOAT *ftemp, *rayleigh;
+     hysl_float_t *ftemp, *rayleigh;
      char *ctemp;
      MatrixVector_t mass, stiff;
      char Type[MAX_SUBTYPE], Description[MAX_DESCRIPTION], FileMeas[MAX_FILENAME];
@@ -47,9 +47,9 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
      char InLine[MAX_LINE];
      char IPAddress[20], Port[20];
      char Account_Name[20], Account_Password[20];
-     HYSL_FLOAT DeltaTSub;
+     hysl_float_t DeltaTSub;
 
-     DeltaTSub = InitCnt->Delta_t/(HYSL_FLOAT) InitCnt->NSubstep;
+     DeltaTSub = InitCnt->Delta_t/(hysl_float_t) InitCnt->NSubstep;
 
      InFile = fopen( InitCnt->FileCNodes, "r" );
 
@@ -76,7 +76,7 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
      /* Allocate the necessary memory */
      CNodes->Array = (int *) calloc( (size_t) CNodes->Order, sizeof(int) );
      CNodes->Sub = (Substructure_t *) malloc( (size_t) CNodes->Order*sizeof(Substructure_t) );
-     CNodes->VecTdT0_c0 = (HYSL_FLOAT *) calloc( (size_t) CNodes->Order, sizeof(HYSL_FLOAT) );
+     CNodes->VecTdT0_c0 = (hysl_float_t *) calloc( (size_t) CNodes->Order, sizeof(hysl_float_t) );
 
      /* Read the contents of the file */
      i = 0;
@@ -126,9 +126,9 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 		    exit( EXIT_FAILURE );
 	       } else {
 		    ftemp = NULL; ctemp = NULL;
-		    ftemp = (HYSL_FLOAT *) calloc( (size_t) EXACTMDOF_NUMPARAM_INIT, sizeof( HYSL_FLOAT ) );
+		    ftemp = (hysl_float_t *) calloc( (size_t) EXACTMDOF_NUMPARAM_INIT, sizeof( hysl_float_t ) );
 		    ctemp = (char *) calloc( (size_t) 20, sizeof( char ) );
-		    rayleigh = (HYSL_FLOAT *) calloc ( 2, sizeof(HYSL_FLOAT) );
+		    rayleigh = (hysl_float_t *) calloc ( 2, sizeof(hysl_float_t) );
 
 		    /* Read the number of degrees of freedom */
 		    fscanf( InFile, "%i", &ndof );
@@ -182,7 +182,7 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 		    exit( EXIT_FAILURE );
 	       } else {
 		    ftemp = NULL;
-		    ftemp = (HYSL_FLOAT *) calloc( (size_t) EXACTSDOF_NUMPARAM_INIT, sizeof( HYSL_FLOAT ) );
+		    ftemp = (hysl_float_t *) calloc( (size_t) EXACTSDOF_NUMPARAM_INIT, sizeof( hysl_float_t ) );
 
 		    /* Read the input parameters */
 		    for( j = 0; j < EXACTSDOF_NUMPARAM_INIT; j++ ){
@@ -221,7 +221,7 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 		    exit( EXIT_FAILURE );
 	       } else {
 		    ftemp = NULL;
-		    ftemp = (HYSL_FLOAT *) calloc( (size_t) EXACTSDOF_NUMPARAM_INIT, sizeof( HYSL_FLOAT ) );
+		    ftemp = (hysl_float_t *) calloc( (size_t) EXACTSDOF_NUMPARAM_INIT, sizeof( hysl_float_t ) );
 
 		    /* Read the input parameters */
 		    for( j = 0; j < EXACTSDOF_NUMPARAM_INIT; j++ ){
@@ -260,7 +260,7 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 		    exit( EXIT_FAILURE );
 	       } else {
 		    ftemp = NULL;
-		    ftemp = (HYSL_FLOAT *) calloc( (size_t) NEWMARK_NUMPARAM_INIT, sizeof( HYSL_FLOAT ) );
+		    ftemp = (hysl_float_t *) calloc( (size_t) NEWMARK_NUMPARAM_INIT, sizeof( hysl_float_t ) );
 
 		    /* Read the input parameters */
 		    for( j = 0; j < NEWMARK_NUMPARAM_INIT; j++ ){
@@ -300,7 +300,7 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 		    exit( EXIT_FAILURE );
 	       } else {
 		    ftemp = NULL;
-		    ftemp = (HYSL_FLOAT *) calloc( (size_t) BOUCWENBABERNOORI_NUMPARAM_INIT, sizeof( HYSL_FLOAT ) );
+		    ftemp = (hysl_float_t *) calloc( (size_t) BOUCWENBABERNOORI_NUMPARAM_INIT, sizeof( hysl_float_t ) );
 
 		    /* Read the input parameters */
 		    for( j = 0; j < itemp; j++ ){
@@ -354,7 +354,7 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 		    exit( EXIT_FAILURE );
 	       } else {
 		    ftemp = NULL;
-		    ftemp = (HYSL_FLOAT *) calloc( (size_t) itemp, sizeof( HYSL_FLOAT ) );
+		    ftemp = (hysl_float_t *) calloc( (size_t) itemp, sizeof( hysl_float_t ) );
 
 		    /* Read the input parameters */
 		    for( j = 0; j < itemp; j++ ){
@@ -397,7 +397,7 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 		    exit( EXIT_FAILURE );
 	       } else {
 		    ftemp = NULL;
-		    ftemp = (HYSL_FLOAT *) calloc( (size_t) UHYDE_NUMPARAM_INIT, sizeof( HYSL_FLOAT ) );
+		    ftemp = (hysl_float_t *) calloc( (size_t) UHYDE_NUMPARAM_INIT, sizeof( hysl_float_t ) );
 
 		    for( j = 0; j < UHYDE_NUMPARAM_INIT; j++ ){
 #if _FLOAT_
@@ -443,7 +443,7 @@ void Substructure_ReadCouplingNodes( const AlgConst_t *const InitCnt, CouplingNo
 		    exit( EXIT_FAILURE );
 	       } else {
 		    ftemp = NULL;
-		    ftemp = (HYSL_FLOAT *) calloc( (size_t) STONEDRUMS_NUMPARAM_INIT, sizeof( HYSL_FLOAT ) );
+		    ftemp = (hysl_float_t *) calloc( (size_t) STONEDRUMS_NUMPARAM_INIT, sizeof( hysl_float_t ) );
 
 		    intArray[0] = BOUC_WEN_DEG; intArray[1] = BOUC_WEN_DEG; intArray[2] = BOUC_WEN_DEG;
 		    for( j = 0; j < STONEDRUMS_NUMPARAM_INIT; j++ ){

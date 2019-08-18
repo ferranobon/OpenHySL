@@ -14,7 +14,7 @@ void ErrorForce_PID_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVector_
 {
 
      int incx = 1, incy = 1;    /* Stride in the vectors for BLAS routines */
-     HYSL_FLOAT Alpha, Beta;        /* Constants to use in the Sparse BLAS routines */
+     hysl_float_t Alpha, Beta;        /* Constants to use in the Sparse BLAS routines */
      char trans = 'N';          /* No transpose operation */
      char matdescra[6] = {'S',  /* The matrix is symmetric */
 			  'U',  /* The upper part is referenced */
@@ -45,10 +45,10 @@ void ErrorForce_PID_HHT_Sp ( const MatrixVector_Sp_t *const Mass, const MatrixVe
 			     const MatrixVector_t *const VelT, const MatrixVector_t *const DispT,
 			     const MatrixVector_t *const AccTdT, const MatrixVector_t *const VelTdT, const MatrixVector_t *const DispTdT,
 			     const MatrixVector_t *const fc, const MatrixVector_t *const LoadT, const MatrixVector_t *const LoadTdT,
-			     const HYSL_FLOAT Alpha_HHT, const PID_t *const PID, MatrixVector_t *const fe )
+			     const hysl_float_t Alpha_HHT, const PID_t *const PID, MatrixVector_t *const fe )
 {
      int incx = 1, incy = 1;    /* Stride in the vectors for BLAS routines */
-     HYSL_FLOAT Alpha, Beta;        /* Constants to use in the Sparse BLAS routines */
+     hysl_float_t Alpha, Beta;        /* Constants to use in the Sparse BLAS routines */
      char trans = 'N';          /* No transpose operation */
      char matdescra[6] = {'S',  /* The matrix is symmetric */
 			  'U',  /* The upper part is referenced */

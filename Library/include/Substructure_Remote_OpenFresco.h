@@ -68,6 +68,6 @@
  * \post If any error occurs during the execution of this routine, like communication problems, the program
  * shows the appropiate error message befor exiting with \c EXIT_FAILURE.
  */
-void Substructure_Remote_OpenFresco( const int Socket, const int WhatToDo, const unsigned int Size, const HYSL_FLOAT *const Data_To_Send, HYSL_FLOAT *const Data_To_Receive );
+void Substructure_Remote_OpenFresco( const int Socket, const int WhatToDo, const unsigned int Size, const hysl_float_t *const Data_To_Send, hysl_float_t *const Data_To_Receive );
 
 #endif /* SUBSTRUCTURE_REMOTE_OPENFRESCO_H */

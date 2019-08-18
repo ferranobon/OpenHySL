@@ -42,9 +42,9 @@ int main( int argc, char **argv )
 
      MatrixVector_t LoadVectorForm1, LoadVectorForm2, LoadVectorForm3, Acc;
 
-     HYSL_FLOAT *AccAll1, *VelAll1, *DispAll1;
-     HYSL_FLOAT *AccAll2, *VelAll2, *DispAll2;
-     HYSL_FLOAT *AccAll3, *VelAll3, *DispAll3;
+     hysl_float_t *AccAll1, *VelAll1, *DispAll1;
+     hysl_float_t *AccAll2, *VelAll2, *DispAll2;
+     hysl_float_t *AccAll3, *VelAll3, *DispAll3;
 
      SaveTime_t     Time;
      /* Options */
@@ -90,15 +90,15 @@ int main( int argc, char **argv )
      Algorithm_Init( FileConf, &InitCnt );
 
      /* Allocate memory for saving the acceleration (input files) that will be used during the test */
-     AccAll1 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     VelAll1 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     DispAll1 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     AccAll2 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     VelAll2 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     DispAll2 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     AccAll3 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     VelAll3 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     DispAll3 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     AccAll1 = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
+     VelAll1 = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
+     DispAll1 = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
+     AccAll2 = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
+     VelAll2 = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
+     DispAll2 = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
+     AccAll3 = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
+     VelAll3 = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
+     DispAll3 = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
 
      /* Read the matrices */
      MatrixVector_Create( InitCnt.Order, InitCnt.Order, &Mass );

@@ -22,8 +22,8 @@ void IGainMatrix_Sp( MatrixVector_t *const IGain, const MatrixVector_Sp_t *const
      MatrixVector_Sp_t Sp_TempMat; /* Temporal sparse matrix */
 
      int ione = 1;                 /* Integer of value one */
-     HYSL_FLOAT one = 1.0;         /* HYSL_FLOAT precision one for dlascl() parameter cfrom */
-     HYSL_FLOAT Scalar;            /* HYSL_FLOAT precision scalar */
+     hysl_float_t one = 1.0;         /* HYSL_FLOAT precision one for dlascl() parameter cfrom */
+     hysl_float_t Scalar;            /* HYSL_FLOAT precision scalar */
 
      MatrixVector_Create_Sp( Damp->Rows, Damp->Cols, Damp->Num_Nonzero, &Sp_TempMat );
      /* Gain = Const.Alpha*M + Const.Beta*C + Const.Gamma*K */
@@ -95,7 +95,7 @@ void IGainMatrix_Sp_PS( MatrixVector_t *const IGain, const MatrixVector_Sp_t *co
      char uplo;
      int info;                     /* LAPACK error handling variable */
      MatrixVector_Sp_t Sp_TempMat; /* Temporal sparse matrix */
-     HYSL_FLOAT Scalar;                /* HYSL_FLOAT precision scalar */
+     hysl_float_t Scalar;                /* HYSL_FLOAT precision scalar */
      int incx, Length;
 
      uplo = 'L';  /* The lower part of the matrix will be used and the upper part will strictly not be
@@ -362,11 +362,11 @@ void IGainMatrix_Pardiso( MatrixVector_t *const IGain, const MatrixVector_t *con
      MatrixVector_t IdentMatrix;
      MatrixVector_t TempMat;
      MatrixVector_Sp_t Sp_TempMat;
-     HYSL_FLOAT ddum;                       /* Dummy HYSL_FLOAT */
+     hysl_float_t ddum;                       /* Dummy HYSL_FLOAT */
      int idum;                          /* Dummy integer */
      char uplo;                         /* Used in dlascl() */
      int info, lda;                     /* Error handling and Leading dimension for dlascl() */
-     HYSL_FLOAT Scalar;                     /* HYSL_FLOAT precision scalar */
+     hysl_float_t Scalar;                     /* HYSL_FLOAT precision scalar */
 
      MatrixVector_Create( IGain->Rows, IGain->Cols, &TempMat );
 
@@ -507,11 +507,11 @@ void IGainMatrix_Pardiso_Sp( MatrixVector_t *const IIGain, const MatrixVector_Sp
      int phase;
      MatrixVector_t IdentMatrix;
      MatrixVector_Sp_t Sp_TempMat;
-     HYSL_FLOAT ddum;                       /* Dummy HYSL_FLOAT */
+     hysl_float_t ddum;                       /* Dummy HYSL_FLOAT */
      int idum;                          /* Dummy integer */
      char uplo;                         /* Used in dlascl() */
      int info, lda;                     /* Error handling and Leading dimension for dlascl() */
-     HYSL_FLOAT Scalar;                     /* HYSL_FLOAT precision scalar */
+     hysl_float_t Scalar;                     /* HYSL_FLOAT precision scalar */
 
      MatrixVector_Create_Sp( Damp->Rows, Damp->Cols, Damp->Num_Nonzero, &Sp_TempMat );
 

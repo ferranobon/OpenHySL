@@ -9,7 +9,7 @@
 #include "Netlib.h"
 #endif
 
-void GSSSS_Init( const HYSL_FLOAT Rho1, const HYSL_FLOAT Rho2, const HYSL_FLOAT Rho3, TIntegration_GSSSS_t *const GSSSS )
+void GSSSS_Init( const hysl_float_t Rho1, const hysl_float_t Rho2, const hysl_float_t Rho3, TIntegration_GSSSS_t *const GSSSS )
 {
 
      GSSSS->w1 = -15.0*(1.0 - 2.0*Rho3)/(1.0 - 4.0*Rho3);
@@ -41,13 +41,13 @@ void GSSSS_EffectiveForce_AForm( const MatrixVector_t *const Mass, const MatrixV
 				 const MatrixVector_t *const Stiff, const MatrixVector_t *const DispT,
 				 const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
 				 MatrixVector_t *const Tempvec, const TIntegration_GSSSS_t *const GSSSS,
-				 const HYSL_FLOAT DeltaT, MatrixVector_t *const Eff_ForceT )
+				 const hysl_float_t DeltaT, MatrixVector_t *const Eff_ForceT )
 {
 
      int incx = 1, incy = 1;  /* Stride in the vectors */
      char uplo = 'L';         /* The lower part (upper part in C) will be used and the upper part (lower part
 			       * in C) will strictly not be referenced */
-     HYSL_FLOAT Alpha, Beta;  /* Constants for the BLAS routines */
+     hysl_float_t Alpha, Beta;  /* Constants for the BLAS routines */
      
 
     /* BLAS: tempvec = Disp */
@@ -91,13 +91,13 @@ void GSSSS_EffectiveForce_AForm_PS( const MatrixVector_t *const Mass, const Matr
 				    const MatrixVector_t *const Stiff, const MatrixVector_t *const DispT,
 				    const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
 				    MatrixVector_t *const Tempvec, const TIntegration_GSSSS_t *const GSSSS,
-				    const HYSL_FLOAT DeltaT, MatrixVector_t *const Eff_ForceT )
+				    const hysl_float_t DeltaT, MatrixVector_t *const Eff_ForceT )
 {
 
      int incx = 1, incy = 1;  /* Stride in the vectors */
      char uplo = 'L';         /* The lower part (upper part in C) will be used and the upper part (lower part
 			       * in C) will strictly not be referenced */
-     HYSL_FLOAT Alpha, Beta;  /* Constants for the BLAS routines */
+     hysl_float_t Alpha, Beta;  /* Constants for the BLAS routines */
      
 
     /* BLAS: tempvec = Disp */
@@ -134,11 +134,11 @@ void GSSSS_EffectiveForce_AForm_PS( const MatrixVector_t *const Mass, const Matr
 
 void GSSSS_ComputeDisplacement_AForm( const MatrixVector_t *const DispT, const MatrixVector_t *const VelT,
 				      const MatrixVector_t *const AccT, const MatrixVector_t *const AccTdT,
-				      const TIntegration_GSSSS_t *const GSSSS, const HYSL_FLOAT DeltaT,
+				      const TIntegration_GSSSS_t *const GSSSS, const hysl_float_t DeltaT,
 				      MatrixVector_t *const DispTdT )
 {
      int incx = 1, incy = 1;  /* Stride in the vectors */
-     HYSL_FLOAT Alpha;        /* Constant for the BLAS routines */
+     hysl_float_t Alpha;        /* Constant for the BLAS routines */
 
      /* BLAS: DispTdT = DispT */
      hysl_copy( &DispTdT->Rows, DispT->Array, &incx, DispTdT->Array, &incy ); 
@@ -156,10 +156,10 @@ void GSSSS_ComputeDisplacement_AForm( const MatrixVector_t *const DispT, const M
 
 void GSSSS_ComputeVelocity_AForm( const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
 				  const MatrixVector_t *const AccTdT, const TIntegration_GSSSS_t *const GSSSS,
-				  const HYSL_FLOAT DeltaT, MatrixVector_t *const VelTdT )
+				  const hysl_float_t DeltaT, MatrixVector_t *const VelTdT )
 {
      int incx = 1, incy= 1;  /* Stride in the vectors */
-     HYSL_FLOAT Alpha;       /* Constant for the BLAS routines */
+     hysl_float_t Alpha;       /* Constant for the BLAS routines */
 
      /* BLAS: VelTdT = VelT */
      hysl_copy( &VelTdT->Rows, VelT->Array, &incx, VelTdT->Array, &incy );
@@ -177,7 +177,7 @@ void GSSSS_Compute_NewState( const MatrixVector_t *const IGain, const MatrixVect
 			     MatrixVector_t *const Tempvec, MatrixVector_t *const VecTdT_0 )
 {
      int incx = 1, incy = 1;               /* Stride in the vectors */
-     HYSL_FLOAT Alpha = 0.0, Beta = 0.0;   /* Constants for the BLAS routines */
+     hysl_float_t Alpha = 0.0, Beta = 0.0;   /* Constants for the BLAS routines */
      char uplo = 'L';                      /* 
 					    * The lower part (upper part in C) will be used and the upper part
 					    * (lower part in C) will strictly not be referenced */
@@ -206,7 +206,7 @@ void GSSSS_Compute_NewState_PS( const MatrixVector_t *const IGain, const MatrixV
 				MatrixVector_t *const Tempvec, MatrixVector_t *const VecTdT_0 )
 {
      int incx = 1, incy = 1;               /* Stride in the vectors */
-     HYSL_FLOAT Alpha = 0.0, Beta = 0.0;   /* Constants for the BLAS routines */
+     hysl_float_t Alpha = 0.0, Beta = 0.0;   /* Constants for the BLAS routines */
      char uplo = 'L';                      /* 
 					    * The lower part (upper part in C) will be used and the upper part
 					    * (lower part in C) will strictly not be referenced */
@@ -232,12 +232,12 @@ void GSSSS_Compute_NewState_PS( const MatrixVector_t *const IGain, const MatrixV
 void GSSSS_ErrorForce_PID( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp, const MatrixVector_t *Stiff,
 			   const MatrixVector_t *const AccTdT, const MatrixVector_t *const AccT, const MatrixVector_t *const VelT,
 			   const MatrixVector_t *const DispT, const MatrixVector_t *const fc, const MatrixVector_t *const LoadTdT,
-			   const MatrixVector_t *const LoadT, const TIntegration_GSSSS_t *const GSSSS, const HYSL_FLOAT DeltaT,
+			   const MatrixVector_t *const LoadT, const TIntegration_GSSSS_t *const GSSSS, const hysl_float_t DeltaT,
 			   const MatrixVector_t *const Tempvec, const PID_t *const PID, MatrixVector_t *const fe )
 {
 
      int incx = 1, incy = 1;  /* Stride in the vectors for BLAS routines */
-     HYSL_FLOAT Alpha, Beta;  /* Constants to use in the Sparse BLAS routines */
+     hysl_float_t Alpha, Beta;  /* Constants to use in the Sparse BLAS routines */
      char uplo = 'L';
 
      /* BLAS: tempvec = acct */
@@ -317,12 +317,12 @@ void GSSSS_ErrorForce_PID( const MatrixVector_t *const Mass, const MatrixVector_
 void GSSSS_ErrorForce_PID_PS( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp, const MatrixVector_t *Stiff,
 			      const MatrixVector_t *const AccTdT, const MatrixVector_t *const AccT, const MatrixVector_t *const VelT,
 			      const MatrixVector_t *const DispT, const MatrixVector_t *const fc, const MatrixVector_t *const LoadTdT,
-			      const MatrixVector_t *const LoadT, const TIntegration_GSSSS_t *const GSSSS, const HYSL_FLOAT DeltaT,
+			      const MatrixVector_t *const LoadT, const TIntegration_GSSSS_t *const GSSSS, const hysl_float_t DeltaT,
 			      const MatrixVector_t *const Tempvec, const PID_t *const PID, MatrixVector_t *const fe )
 {
 
      int incx = 1, incy = 1;  /* Stride in the vectors for BLAS routines */
-     HYSL_FLOAT Alpha, Beta;  /* Constants to use in the Sparse BLAS routines */
+     hysl_float_t Alpha, Beta;  /* Constants to use in the Sparse BLAS routines */
      char uplo = 'L';
 
      /* BLAS: tempvec = acct */

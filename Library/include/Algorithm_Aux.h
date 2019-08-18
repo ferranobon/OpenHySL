@@ -73,9 +73,9 @@ typedef struct SaveTime_MPI {
  * Newmark-\f$beta\f$ method: \f$\gamma\f$ and \f$\beta\f$.
  */
 typedef struct TIntegration{
-     HYSL_FLOAT Gamma; /*!< \brief First constant.*/
-     HYSL_FLOAT Beta;  /*!< \brief Second constant.*/
-     HYSL_FLOAT HilberAlpha; /*!< \brief Hilber-Hughes-Taylor Alpha parameter.*/
+     hysl_float_t Gamma; /*!< \brief First constant.*/
+     hysl_float_t Beta;  /*!< \brief Second constant.*/
+     hysl_float_t HilberAlpha; /*!< \brief Hilber-Hughes-Taylor Alpha parameter.*/
 } TIntegration_t;
 
 /**
@@ -128,10 +128,10 @@ typedef struct AlgConst{
 			       * applied.  \sa AlgorithM_GetExcitedDOF().
 			       */
      int Read_CMatrix;        /*!< \brief Read the damping matrix from a file instead of using Rayleigh Damping. */
-     HYSL_FLOAT Delta_t;      /*!< \brief Time increment \f$\Delta t\f$ */
-     HYSL_FLOAT DeltaT_Sub;   /*!< \brief Time increment for the sub-stepping process */
+     hysl_float_t Delta_t;      /*!< \brief Time increment \f$\Delta t\f$ */
+     hysl_float_t DeltaT_Sub;   /*!< \brief Time increment for the sub-stepping process */
 
-     HYSL_FLOAT Scale_Factor; /*!< \brief Scale factor for the time history of the input load */
+     hysl_float_t Scale_Factor; /*!< \brief Scale factor for the time history of the input load */
 
      Rayleigh_t Rayleigh;     /*!< \brief Stores Rayleigh Constants alpha (\c Rayleigh.Alpha or
 			       * \f$\alpha_R\f$) and beta (\c Rayleigh.Beta or \f$\beta_R\f$)
@@ -145,20 +145,20 @@ typedef struct AlgConst{
 			       */
 
      /* Constants for Step ending */
-     HYSL_FLOAT a0;           /*!< \brief \f$a_0 = \frac{1}{\beta_N\Delta t^2}\f$ */
-     HYSL_FLOAT a1;           /*!< \brief \f$a_1 = \frac{\gamma_N}{\beta_N\Delta t}\f$ */
-     HYSL_FLOAT a2;           /*!< \brief \f$a_2 = \frac{1}{\beta_N\Delta t}\f$ */
-     HYSL_FLOAT a3;           /*!< \brief \f$a_3 = \frac{1}{2\beta_N\Delta t} - 1\f$ */
-     HYSL_FLOAT a4;           /*!< \brief \f$a_4 = \frac{\gamma_N}{\beta_N} - 1\f$ */
-     HYSL_FLOAT a5;           /*!< \brief \f$a_5 = \Delta_t\biggl(\frac{\gamma_N}{2\beta_N} - 1\biggr)\f$ */
-     HYSL_FLOAT a6;           /*!< \brief \f$a_6= \frac{1 - \gamma_N}{\Delta t}\f$ */
-     HYSL_FLOAT a7;           /*!< \brief \f$a_7 = \gamma_N\Delta t\f$ */
-     HYSL_FLOAT a8;           /*!< \brief \f$a_8 = \beta_N\Delta t^2\f$ */
-     HYSL_FLOAT a9;           /*!< \brief \f$a_9 = \Delta t\f$ */
-     HYSL_FLOAT a10;          /*!< \brief \f$a_{10} = \biggl(\frac{1}{2} - \beta_N\biggr)\Delta t^2\f$ */
-     HYSL_FLOAT a16;          /*!< \brief \f$a_{16} = (1-2\gamma_N)\Delta t\f$ */
-     HYSL_FLOAT a17;          /*!< \brief \f$a_{17} = \left(\frac{1}{2} - 2\beta_N + \gamma_N\right)\Delta t^2\f$ */
-     HYSL_FLOAT a18;          /*!< \brief \f$a_{18} = \left(\frac{1}{2} + \beta_N - \gamma_N\right)\Delta t^2\f$ */
+     hysl_float_t a0;           /*!< \brief \f$a_0 = \frac{1}{\beta_N\Delta t^2}\f$ */
+     hysl_float_t a1;           /*!< \brief \f$a_1 = \frac{\gamma_N}{\beta_N\Delta t}\f$ */
+     hysl_float_t a2;           /*!< \brief \f$a_2 = \frac{1}{\beta_N\Delta t}\f$ */
+     hysl_float_t a3;           /*!< \brief \f$a_3 = \frac{1}{2\beta_N\Delta t} - 1\f$ */
+     hysl_float_t a4;           /*!< \brief \f$a_4 = \frac{\gamma_N}{\beta_N} - 1\f$ */
+     hysl_float_t a5;           /*!< \brief \f$a_5 = \Delta_t\biggl(\frac{\gamma_N}{2\beta_N} - 1\biggr)\f$ */
+     hysl_float_t a6;           /*!< \brief \f$a_6= \frac{1 - \gamma_N}{\Delta t}\f$ */
+     hysl_float_t a7;           /*!< \brief \f$a_7 = \gamma_N\Delta t\f$ */
+     hysl_float_t a8;           /*!< \brief \f$a_8 = \beta_N\Delta t^2\f$ */
+     hysl_float_t a9;           /*!< \brief \f$a_9 = \Delta t\f$ */
+     hysl_float_t a10;          /*!< \brief \f$a_{10} = \biggl(\frac{1}{2} - \beta_N\biggr)\Delta t^2\f$ */
+     hysl_float_t a16;          /*!< \brief \f$a_{16} = (1-2\gamma_N)\Delta t\f$ */
+     hysl_float_t a17;          /*!< \brief \f$a_{17} = \left(\frac{1}{2} - 2\beta_N + \gamma_N\right)\Delta t^2\f$ */
+     hysl_float_t a18;          /*!< \brief \f$a_{18} = \left(\frac{1}{2} + \beta_N - \gamma_N\right)\Delta t^2\f$ */
 
      /* Files where data are located */
      char* FileM;            /*!< \brief Stores the name of the file that contains the Mass Matrix */
@@ -383,8 +383,8 @@ int* Algorithm_GetExcitedDOF( const ConfFile_t *const Config, const char *Expres
  * \sa Algorithm_Initnit().
  */
 void Algorithm_ReadDataEarthquake( const unsigned int NumSteps, const char *Filename,
-				   const HYSL_FLOAT Scale_Factor, HYSL_FLOAT *const Acceleration,
-				   HYSL_FLOAT *const Velocity, HYSL_FLOAT *const Displacement );
+				   const hysl_float_t Scale_Factor, hysl_float_t *const Acceleration,
+				   hysl_float_t *const Velocity, hysl_float_t *const Displacement );
 
 /**
  * \brief Prints a help text with the different options available when launching the program.

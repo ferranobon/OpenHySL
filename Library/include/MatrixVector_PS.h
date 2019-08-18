@@ -166,7 +166,7 @@ void MatrixVector_FromFile_MM_PS( const char *Filename, MatrixVector_t *const Ma
  * \post One of the supported operations is performed. If the operation is not supported, the routine calls
  * <tt>exit( EXIT_FAILURE )</tt>.
  */
-void MatrixVector_ModifyElement_PS( const int RowIndex, const int ColIndex, const HYSL_FLOAT Alpha,
+void MatrixVector_ModifyElement_PS( const int RowIndex, const int ColIndex, const hysl_float_t Alpha,
 				 const char *Operation, MatrixVector_t *const Matrix );
 
 /**
@@ -184,7 +184,7 @@ void MatrixVector_ModifyElement_PS( const int RowIndex, const int ColIndex, cons
  *
  * \post All the elements in \c Matrix.Array are set to \c Value.
  */
-void MatrixVector_Set2Value_PS( const HYSL_FLOAT Value, MatrixVector_t *const Matrix );
+void MatrixVector_Set2Value_PS( const hysl_float_t Value, MatrixVector_t *const Matrix );
 
 /**
  * \brief Writes a matrix in packed storage and with the upper part referenced to an ASCII file in a full

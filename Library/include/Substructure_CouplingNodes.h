@@ -65,7 +65,7 @@ typedef struct CouplingNode {
      int *Array;             /*!< \brief Array containing the coupling nodes of length \c Order.*/
      int Order;              /*!< \brief Number of coupling nodes. */
      int OrderADwin;         /*!< \brief Number of coupling nodes in the ADwin system. */
-     HYSL_FLOAT *VecTdT0_c0; /*!< \brief Previous values of the explicit displacement. They are used in the
+     hysl_float_t *VecTdT0_c0; /*!< \brief Previous values of the explicit displacement. They are used in the
 			      * sub-stepping process (ramp function). */
      Substructure_t *Sub;    /*!< \brief Array of substructures of length \c Order.*/
 } CouplingNode_t;

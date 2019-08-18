@@ -17,7 +17,7 @@ void ErrorForce_PID_MPI( PMatrixVector_t *const Mass, PMatrixVector_t *const Dam
 
      int ione = 1;
      int incx = 1, incy = 1;
-     HYSL_FLOAT Alpha, Beta;
+     hysl_float_t Alpha, Beta;
      char uplo = 'L';
 
      /* PBLAS: fe = fc */

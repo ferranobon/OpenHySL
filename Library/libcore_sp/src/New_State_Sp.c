@@ -9,8 +9,8 @@ void Compute_NewState_Zienkiewicz_Sp( const MatrixVector_t *const Meff, const Ma
 				      const MatrixVector_Sp_t *const MatB, const MatrixVector_t *const DispT,
 				      const MatrixVector_t *const DispT0, const MatrixVector_t *const In_LoadT,
 				      const MatrixVector_t *const Err_ForceT, const MatrixVector_t *const ForceT,
-				      const MatrixVector_t *const ForceT0, const HYSL_FLOAT a8, const HYSL_FLOAT a17,
-				      const HYSL_FLOAT a18, MatrixVector_t *const Tempvec, MatrixVector_t *const VecTdT_0 )
+				      const MatrixVector_t *const ForceT0, const hysl_float_t a8, const hysl_float_t a17,
+				      const hysl_float_t a18, MatrixVector_t *const Tempvec, MatrixVector_t *const VecTdT_0 )
 {
 
      int incx = 1, incy = 1;              /* Stride in the vectors */
@@ -19,7 +19,7 @@ void Compute_NewState_Zienkiewicz_Sp( const MatrixVector_t *const Meff, const Ma
 			  'U',            /* The upper part is referenced */
 			  'N',            /* Non-unit values in the diagonal */
 			  'F'};           /* One based index */
-     HYSL_FLOAT Alpha = 1.0, Beta = 1.0;  /* Constants for the BLAS routines */
+     hysl_float_t Alpha = 1.0, Beta = 1.0;  /* Constants for the BLAS routines */
      char uplo = 'L';                     /* The lower part (upper part in C) will be used and the upper part
 					   * (lower part in C) will strictly not be referenced */
 

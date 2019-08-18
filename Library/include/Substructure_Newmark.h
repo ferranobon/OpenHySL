@@ -23,18 +23,18 @@
 
 typedef struct NewmarkSim {
 
-     HYSL_FLOAT Beta, Gamma;
+     hysl_float_t Beta, Gamma;
 
-     HYSL_FLOAT Mass, Stiff, Damp, G;
-     HYSL_FLOAT dT, vT, aT, l;
-     HYSL_FLOAT dTdT, vTdT, aTdT;
+     hysl_float_t Mass, Stiff, Damp, G;
+     hysl_float_t dT, vT, aT, l;
+     hysl_float_t dTdT, vTdT, aTdT;
 
-     HYSL_FLOAT Disp0, DispT;
-     HYSL_FLOAT Vel0, VelT, VelTdT;
-     HYSL_FLOAT Acc0, AccT, AccTdT;
+     hysl_float_t Disp0, DispT;
+     hysl_float_t Vel0, VelT, VelTdT;
+     hysl_float_t Acc0, AccT, AccTdT;
 
-     HYSL_FLOAT a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10;
-     HYSL_FLOAT A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10;
+     hysl_float_t a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10;
+     hysl_float_t A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10;
      char *Description;  /*!< \brief Optional description of the substructure. */
 } NewmarkSim_t;
 
@@ -46,8 +46,8 @@ typedef struct NewmarkSim {
  * \param[in]  Description
  * \param[out] Sub
  */
-void Substructure_Newmark_Init( const HYSL_FLOAT Mass, const HYSL_FLOAT Damp, const HYSL_FLOAT Stiff, const HYSL_FLOAT DeltaTSub, const HYSL_FLOAT DeltaT, const HYSL_FLOAT Beta,
-				const HYSL_FLOAT Gamma, const char *Description, NewmarkSim_t *const Sub );
+void Substructure_Newmark_Init( const hysl_float_t Mass, const hysl_float_t Damp, const hysl_float_t Stiff, const hysl_float_t DeltaTSub, const hysl_float_t DeltaT, const hysl_float_t Beta,
+				const hysl_float_t Gamma, const char *Description, NewmarkSim_t *const Sub );
 
 /**
  * \param[in]     u0c
@@ -55,7 +55,7 @@ void Substructure_Newmark_Init( const HYSL_FLOAT Mass, const HYSL_FLOAT Damp, co
  * \param[in,out] Sub
  * \param[out]    fc
  */
-void Substructure_Newmark_SDOF( const HYSL_FLOAT DispTdT, const HYSL_FLOAT ramp, const HYSL_FLOAT GAcc, NewmarkSim_t *const Sub, HYSL_FLOAT *const fc );
+void Substructure_Newmark_SDOF( const hysl_float_t DispTdT, const hysl_float_t ramp, const hysl_float_t GAcc, NewmarkSim_t *const Sub, hysl_float_t *const fc );
 
 /**
  * \param[out] Sub

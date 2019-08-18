@@ -26,8 +26,8 @@
  * \brief Stores the Rayleigh coefficients alpha and beta.
  */
 typedef struct Rayleigh {
-     HYSL_FLOAT Alpha; /*!< \brief Coefficient that multiplies the mass matrix.*/
-     HYSL_FLOAT Beta;  /*!< \brief Coefficient that multiplies the stiffness matrix.*/
+     hysl_float_t Alpha; /*!< \brief Coefficient that multiplies the mass matrix.*/
+     hysl_float_t Beta;  /*!< \brief Coefficient that multiplies the stiffness matrix.*/
 } Rayleigh_t;
 
 /**

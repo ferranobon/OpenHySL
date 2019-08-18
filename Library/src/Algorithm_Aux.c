@@ -292,7 +292,7 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst )
      /* Number of substructures */
      InitConst->NSubstep = (unsigned int) ConfFile_GetInt( Config, "Substructure:Num_Substeps" );
 
-     InitConst->DeltaT_Sub = InitConst->Delta_t/(HYSL_FLOAT) InitConst->NSubstep;
+     InitConst->DeltaT_Sub = InitConst->Delta_t/(hysl_float_t) InitConst->NSubstep;
 
      ConfFile_Destroy( Config );
 
@@ -411,12 +411,12 @@ int* Algorithm_GetExcitedDOF( const ConfFile_t *const Config, const char *Expres
 }
 
 void Algorithm_ReadDataEarthquake( const unsigned int NumSteps, const char *Filename,
-				   const HYSL_FLOAT Scale_Factor, HYSL_FLOAT *const Acceleration,
-				   HYSL_FLOAT *const Velocity, HYSL_FLOAT *const Displacement )
+				   const hysl_float_t Scale_Factor, hysl_float_t *const Acceleration,
+				   hysl_float_t *const Velocity, hysl_float_t *const Displacement )
 {
 
-     HYSL_FLOAT unnecessary;	    /* Variable to store unnecessary data */
-     HYSL_FLOAT temp1, temp2, temp3;
+     hysl_float_t unnecessary;	    /* Variable to store unnecessary data */
+     hysl_float_t temp1, temp2, temp3;
      FILE *InFile;
 
      InFile = fopen( Filename, "r" );

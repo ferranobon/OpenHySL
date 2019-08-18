@@ -22,14 +22,14 @@
 #include "MatrixVector_MPI.h"
 
 void PC_PredictorStep_Displacement ( const MatrixVector_t *const DispT, const MatrixVector_t *const VelT,
-				     const MatrixVector_t *const AccT, const HYSL_FLOAT a9, const HYSL_FLOAT a10,
+				     const MatrixVector_t *const AccT, const hysl_float_t a9, const hysl_float_t a10,
 				     MatrixVector_t *const DispTdT_Pred );
 void PC_PredictorStep_Velocity ( const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
-				 const HYSL_FLOAT a6, MatrixVector_t *const VelTdT_Pred );
+				 const hysl_float_t a6, MatrixVector_t *const VelTdT_Pred );
 void PC_CorrectorStep_Displacement ( const MatrixVector_t *const DispTdT_Pred, const MatrixVector_t *const AccTdT,
-				     const HYSL_FLOAT a8, MatrixVector_t *const DispTdT);
+				     const hysl_float_t a8, MatrixVector_t *const DispTdT);
 void PC_CorrectorStep_Velocity ( const MatrixVector_t *const VelTdT_Pred, const MatrixVector_t *const AccTdT,
-				 const HYSL_FLOAT a7, MatrixVector_t *const VelTdT);
+				 const hysl_float_t a7, MatrixVector_t *const VelTdT);
 
 void PC_ReactionForces_Numerical (const MatrixVector_t *const DispTdT_Pred, MatrixVector_t *const K,
 				  MatrixVector_t *const RForceTdT);
@@ -42,7 +42,7 @@ void PC_Calculate_Acceleration (const MatrixVector_t *const LoadTdT, const Matri
 				const MatrixVector_t *const VelTdT_Pred, const MatrixVector_t *const VelT_Pred,
 				const MatrixVector_t *const AccT, const MatrixVector_t *const K,
 				const MatrixVector_t *const C, const MatrixVector_t *const Meinv,
-				const HYSL_FLOAT alpha_H, const HYSL_FLOAT a7, const HYSL_FLOAT a8,
+				const hysl_float_t alpha_H, const hysl_float_t a7, const hysl_float_t a8,
 				MatrixVector_t *const AccTdT );
 
 void PC_Calculate_Acceleration_PS (const MatrixVector_t *const LoadTdT, const MatrixVector_t *const LoadT,
@@ -50,7 +50,7 @@ void PC_Calculate_Acceleration_PS (const MatrixVector_t *const LoadTdT, const Ma
 				   const MatrixVector_t *const VelTdT_Pred, const MatrixVector_t *const VelT_Pred,
 				   const MatrixVector_t *const AccT, const MatrixVector_t *const K,
 				   const MatrixVector_t *const C, const MatrixVector_t *const Meinv,
-				   const HYSL_FLOAT alpha_H, const HYSL_FLOAT a7, const HYSL_FLOAT a8,
+				   const hysl_float_t alpha_H, const hysl_float_t a7, const hysl_float_t a8,
 				   MatrixVector_t *const AccTdT );
 
 /**

@@ -4,7 +4,7 @@
 #include "Substructure_Remote.h"
 #include "Substructure_Remote_OpenFresco.h"
 
-void Substructure_Remote_OpenFresco( const int Socket, const int WhatToDo, const unsigned int Size, const HYSL_FLOAT *const Data_To_Send, HYSL_FLOAT *const Data_To_Receive )
+void Substructure_Remote_OpenFresco( const int Socket, const int WhatToDo, const unsigned int Size, const hysl_float_t *const Data_To_Send, hysl_float_t *const Data_To_Receive )
 {
 
      /* Local Variables */
@@ -66,9 +66,9 @@ void Substructure_Remote_OpenFresco( const int Socket, const int WhatToDo, const
 	  Substructure_Remote_Receive( Socket, DataSize, sizeof(double), (char *const) rData );
 
 	  for ( i = 0; i < Size; i++ ){
-	       Data_To_Receive[i]= (HYSL_FLOAT) rData[i];
-	       Data_To_Receive[i + Size]= (HYSL_FLOAT) rData[i + Size];
-	       Data_To_Receive[i + 2*Size]= (HYSL_FLOAT) rData[i + 2*Size];
+	       Data_To_Receive[i]= (hysl_float_t) rData[i];
+	       Data_To_Receive[i + Size]= (hysl_float_t) rData[i + Size];
+	       Data_To_Receive[i + 2*Size]= (hysl_float_t) rData[i + 2*Size];
 	  }
 	  
      } else if ( WhatToDo == OF_REMOTE_DIE ){

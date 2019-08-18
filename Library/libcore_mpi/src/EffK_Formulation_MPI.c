@@ -13,14 +13,14 @@
 void EffK_EffectiveForce_MPI( PMatrixVector_t *const Mass, PMatrixVector_t *const Damp,
 			      PMatrixVector_t *const DispT, PMatrixVector_t *const VelT,
 			      PMatrixVector_t *const AccT, PMatrixVector_t *const Tempvec,
-			      const HYSL_FLOAT a0, const HYSL_FLOAT a1, const HYSL_FLOAT a2, const HYSL_FLOAT a3,
-			      const HYSL_FLOAT a4, const HYSL_FLOAT a5, PMatrixVector_t *const Eff_ForceT )
+			      const hysl_float_t a0, const hysl_float_t a1, const hysl_float_t a2, const hysl_float_t a3,
+			      const hysl_float_t a4, const hysl_float_t a5, PMatrixVector_t *const Eff_ForceT )
 {
      int ione = 1;
      int incx = 1, incy = 1;  /* Stride in the vectors */
      char uplo = 'L';         /* The lower part (upper part in C) will be used and the upper part (lower part
 			       * in C) will strictly not be referenced */
-     HYSL_FLOAT Alpha, Beta;      /* Constants for the BLAS routines */
+     hysl_float_t Alpha, Beta;      /* Constants for the BLAS routines */
 
      /* PBLAS: tempvec = Disp */
      hysl_pcopy( &Tempvec->GlobalSize.Row, DispT->Array, &ione, &ione, DispT->Desc, &ione, Tempvec->Array, &ione,
@@ -66,13 +66,13 @@ void EffK_EffectiveForce_MPI( PMatrixVector_t *const Mass, PMatrixVector_t *cons
 
 void EffK_ComputeAcceleration_MPI( PMatrixVector_t *const DispTdT, PMatrixVector_t *const DispT,
 				   PMatrixVector_t *const VelT, PMatrixVector_t *const AccT,
-				   const HYSL_FLOAT a0, const HYSL_FLOAT a2, const HYSL_FLOAT a3,
+				   const hysl_float_t a0, const hysl_float_t a2, const hysl_float_t a3,
 				   PMatrixVector_t *const AccTdT )
 {
 
      int ione = 1;
      int incx = 1, incy = 1;  /* Stride in the vectors */
-     HYSL_FLOAT Alpha;            /* Constant for the BLAS routines */
+     hysl_float_t Alpha;            /* Constant for the BLAS routines */
 
      /* PBLAS: AccTdT = DispTdT */
      hysl_pcopy( &AccTdT->GlobalSize.Row, DispTdT->Array, &ione, &ione, DispTdT->Desc, &ione, AccTdT->Array,
@@ -95,12 +95,12 @@ void EffK_ComputeAcceleration_MPI( PMatrixVector_t *const DispTdT, PMatrixVector
 }
 
 void EffK_ComputeVelocity_MPI( PMatrixVector_t *const VelT, PMatrixVector_t *const AccT,
-			       PMatrixVector_t *const AccTdT, const HYSL_FLOAT a6, const HYSL_FLOAT a7,
+			       PMatrixVector_t *const AccTdT, const hysl_float_t a6, const hysl_float_t a7,
 			       PMatrixVector_t *const VelTdT )
 {
      int ione = 1;
      int incx = 1, incy= 1;  /* Stride in the vectors */
-     HYSL_FLOAT Alpha;           /* Constant for the BLAS routines */
+     hysl_float_t Alpha;           /* Constant for the BLAS routines */
 
      /* PBLAS: VelTdT = VelT */
      hysl_pcopy( &VelTdT->GlobalSize.Row, VelT->Array, &ione, &ione, VelT->Desc, &incx, VelTdT->Array, &ione,

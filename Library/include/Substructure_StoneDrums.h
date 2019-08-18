@@ -17,11 +17,11 @@ typedef struct StoneDrums {
 } StoneDrums_t;
 
 void Substructure_StoneDrums_Init (const int JointID, const int PrevJointID, const int NextJointID,
-				   const int Dir, const HYSL_FLOAT *const BW,
+				   const int Dir, const hysl_float_t *const BW,
 				   const int *const BoucWen_Type, const char *Description,
 				   StoneDrums_t *const Sub);
 
-void Substructure_StoneDrums ( const HYSL_FLOAT *const DispTdT, const int Order, StoneDrums_t *const Sub, HYSL_FLOAT *force );
+void Substructure_StoneDrums ( const hysl_float_t *const DispTdT, const int Order, StoneDrums_t *const Sub, hysl_float_t *force );
 
 void Substructure_StoneDrums_Destroy( StoneDrums_t *const Sub );
 

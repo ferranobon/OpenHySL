@@ -21,8 +21,8 @@ void IGainMatrix_MPI( PMatrixVector_t *const IGain, PMatrixVector_t *const Mass,
      
      char uplo;
      int ione, info;
-     HYSL_FLOAT Scalar;
-     HYSL_FLOAT one = 1.0;
+     hysl_float_t Scalar;
+     hysl_float_t one = 1.0;
 
      ione = 1;
      uplo = 'L';  /* The lower part of the matrix will be used; the upper part will strictly not be

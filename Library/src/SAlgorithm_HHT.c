@@ -77,9 +77,9 @@ int main( int argc, char **argv ){
      int incx, incy;
      Scalars_t Constants;
 
-     HYSL_FLOAT *AccAll1, *VelAll1, *DispAll1;
-     HYSL_FLOAT *AccAll2, *VelAll2, *DispAll2;
-     HYSL_FLOAT *AccAll3, *VelAll3, *DispAll3;
+     hysl_float_t *AccAll1, *VelAll1, *DispAll1;
+     hysl_float_t *AccAll2, *VelAll2, *DispAll2;
+     hysl_float_t *AccAll3, *VelAll3, *DispAll3;
 
      MatrixVector_t M, C, K;               /* Mass, Damping and Stiffness matrices */
      MatrixVector_t Keinv;
@@ -166,15 +166,15 @@ int main( int argc, char **argv ){
 
      /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will be used
       * during the test */
-     AccAll1 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     VelAll1 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     DispAll1 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     AccAll2 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     VelAll2 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     DispAll2 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     AccAll3 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     VelAll3 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     DispAll3 = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     AccAll1 = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
+     VelAll1 = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
+     DispAll1 = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
+     AccAll2 = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
+     VelAll2 = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
+     DispAll2 = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
+     AccAll3 = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
+     VelAll3 = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
+     DispAll3 = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
 
      /* Initialise the matrices and vectors that will be used in the Time Integration process */
      if( ((!InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (InitCnt.Use_Sparse && !InitCnt.Read_Sparse) ||
@@ -448,11 +448,11 @@ int main( int argc, char **argv ){
 	  /* Perform substepping */
 	  if( CNodes.Order >= 1 ){
 	       if( InitCnt.Use_Absolute_Values ){
-		    Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep, 0.0,
+		    Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(hysl_float_t) istep, 0.0,
 					      InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array, fcprevsub.Array,
 					      fc.Array );
 	       } else {
-		    Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep,
+		    Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(hysl_float_t) istep,
 					      AccAll1[istep-1], InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes,
 					      DispTdT.Array, fcprevsub.Array, fc.Array );
 	       }

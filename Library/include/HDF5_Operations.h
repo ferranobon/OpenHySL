@@ -23,13 +23,13 @@
 
 typedef struct HDF5_Exact_UHYDE {
      int Position;
-     HYSL_FLOAT InitValues[3];
+     hysl_float_t InitValues[3];
      char Description[MAX_DESCRIPTION];
 } HDF5_Exact_UHYDE_t;
 
 typedef struct HDF5_Newmark {
      int Position;
-     HYSL_FLOAT InitValues[6];
+     hysl_float_t InitValues[6];
      char Description[MAX_DESCRIPTION];
 } HDF5_Newmark_t;
 
@@ -40,13 +40,13 @@ typedef struct HDF5_Exp_Meas {
 
 typedef struct HDF5_BoucWen {
      int Position;
-     HYSL_FLOAT InitValues[17];
+     hysl_float_t InitValues[17];
      char Description[MAX_DESCRIPTION];
 } HDF5_BoucWen_t;
 
 typedef struct HDF5_StoneDrum {
      int Position;
-     HYSL_FLOAT InitValues[17];
+     hysl_float_t InitValues[17];
      char Description[MAX_DESCRIPTION];
 } HDF5_StoneDrum_t;
 
@@ -61,11 +61,11 @@ void HDF5_Store_Time_MPI( const hid_t hdf5_file, const SaveTime_MPI_t *const Tim
 #endif
 
 void HDF5_CreateGroup_Parameters( const hid_t hdf5_file, const AlgConst_t *const InitCnt,			  
-				  const CouplingNode_t *const CNodes, const HYSL_FLOAT *const Acc1,
-				  const HYSL_FLOAT *const Vel1, const HYSL_FLOAT *const Disp1,
-				  const HYSL_FLOAT *const Acc2, const HYSL_FLOAT *const Vel2,
-				  const HYSL_FLOAT *const Disp2, const HYSL_FLOAT *const Acc3,
-				  const HYSL_FLOAT *const Vel3, const HYSL_FLOAT *const Disp3 );
+				  const CouplingNode_t *const CNodes, const hysl_float_t *const Acc1,
+				  const hysl_float_t *const Vel1, const hysl_float_t *const Disp1,
+				  const hysl_float_t *const Acc2, const hysl_float_t *const Vel2,
+				  const hysl_float_t *const Disp2, const hysl_float_t *const Acc3,
+				  const hysl_float_t *const Vel3, const hysl_float_t *const Disp3 );
 
 void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const AlgConst_t *const InitCnt, const CouplingNode_t *const CNodes );
 void HDF5_CreateGroup_TimeIntegration( const hid_t hdf5_file, const AlgConst_t *const InitCnt );
@@ -73,7 +73,7 @@ void HDF5_Store_TimeHistoryData( const hid_t hdf5_file, const MatrixVector_t *co
 void HDF5_Store_BoucWen( const hid_t hdf5_file, const MatrixVector_t *const HistDisp, const MatrixVector_t *const HistLoop, const int istep);
 void HDF5_Store_TMD( const hid_t hdf5_file, const double *const Acc, const double *const Vel, const double *const Disp, const int istep );
 void HDF5_Store_Time( const hid_t hdf5_file, const SaveTime_t *const Time );
-void HDF5_StoreADwinData( const hid_t hdf5_file, const HYSL_FLOAT *Array, char **Entry_Names, const int Length );
+void HDF5_StoreADwinData( const hid_t hdf5_file, const hysl_float_t *Array, char **Entry_Names, const int Length );
 
 
 /**
@@ -103,7 +103,7 @@ void HDF5_StoreADwinData( const hid_t hdf5_file, const HYSL_FLOAT *Array, char *
 void ADwin_SaveData_HDF5( const hid_t hdf5_file, const int Num_Steps, const int Num_Sub,
 			  const int Num_Channels, char **Chan_Names, const int DataIndex );
 
-void HDF5_AddFloatArray_AsTable( const hid_t file_id, const char *Name_path, char **Names, const HYSL_FLOAT *Array, const int Num_param, const int Length );
+void HDF5_AddFloatArray_AsTable( const hid_t file_id, const char *Name_path, char **Names, const hysl_float_t *Array, const int Num_param, const int Length );
 void HDF5_AddIntArray_AsTable( const hid_t file_id, const char *Name_path, char **Names, const int *Array, const int Num_param );
 
 void HDF5_Create_Dataset( const hid_t file_id, const char *Path_name, const int Nstep, const int Order );

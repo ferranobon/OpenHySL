@@ -43,17 +43,17 @@ int main( int argc, char **argv )
      int Is_Not_Finished;
      int Length;
 
-     HYSL_FLOAT *IGain;
+     hysl_float_t *IGain;
      bool Called_Sub = false, Called_ADwin = false;
-     HYSL_FLOAT *Recv = NULL, *Recv_ADwin = NULL, *VecTdT0_c_ADwin = NULL;
-     HYSL_FLOAT *Send = NULL;
-     HYSL_FLOAT *VecTdT0_c;
-     HYSL_FLOAT *fcprev, *fc;
+     hysl_float_t *Recv = NULL, *Recv_ADwin = NULL, *VecTdT0_c_ADwin = NULL;
+     hysl_float_t *Send = NULL;
+     hysl_float_t *VecTdT0_c;
+     hysl_float_t *fcprev, *fc;
 
-     HYSL_FLOAT GAcc = 0.0;
+     hysl_float_t GAcc = 0.0;
 
      /* Array where the data from ADwin will be stored */
-     HYSL_FLOAT *ADWIN_DATA = NULL;
+     hysl_float_t *ADWIN_DATA = NULL;
 
      /* Variables to deal with arguments */
      int Selected_Option;
@@ -143,24 +143,24 @@ int main( int argc, char **argv )
 
 
      /* Dynamically allocate memory */
-     IGain = (HYSL_FLOAT *) calloc( (size_t) InitCnt.OrderSub*(size_t) InitCnt.OrderSub, sizeof( HYSL_FLOAT ) );
+     IGain = (hysl_float_t *) calloc( (size_t) InitCnt.OrderSub*(size_t) InitCnt.OrderSub, sizeof( hysl_float_t ) );
 
-     VecTdT0_c = (HYSL_FLOAT *) calloc( (size_t) InitCnt.OrderSub, sizeof( HYSL_FLOAT ) );
+     VecTdT0_c = (hysl_float_t *) calloc( (size_t) InitCnt.OrderSub, sizeof( hysl_float_t ) );
 
-     fcprev = (HYSL_FLOAT *) calloc( (size_t) InitCnt.OrderSub, sizeof( HYSL_FLOAT ) );
-     fc = (HYSL_FLOAT *) calloc( (size_t) InitCnt.OrderSub, sizeof( HYSL_FLOAT ) );
+     fcprev = (hysl_float_t *) calloc( (size_t) InitCnt.OrderSub, sizeof( hysl_float_t ) );
+     fc = (hysl_float_t *) calloc( (size_t) InitCnt.OrderSub, sizeof( hysl_float_t ) );
 
-     Send = (HYSL_FLOAT *) calloc( (size_t) 3*(size_t) InitCnt.OrderSub, sizeof( HYSL_FLOAT ) );
-     Recv = (HYSL_FLOAT *) calloc( (size_t) 1+(size_t) InitCnt.OrderSub, sizeof( HYSL_FLOAT ) );
+     Send = (hysl_float_t *) calloc( (size_t) 3*(size_t) InitCnt.OrderSub, sizeof( hysl_float_t ) );
+     Recv = (hysl_float_t *) calloc( (size_t) 1+(size_t) InitCnt.OrderSub, sizeof( hysl_float_t ) );
 
      /* Receive matrix IGain */
      Length = InitCnt.OrderSub*InitCnt.OrderSub;
 
      if( Socket_Type == REMOTE_TCP ){
-	  Substructure_Remote_Receive( Client_Socket, (unsigned int) Length, sizeof(HYSL_FLOAT), (char *const) IGain );
+	  Substructure_Remote_Receive( Client_Socket, (unsigned int) Length, sizeof(hysl_float_t), (char *const) IGain );
      } else {
 	  Client_AddrLen = sizeof(Client_Addr);
-	  if ( recvfrom( Server_Socket, IGain, (size_t) Length*sizeof(HYSL_FLOAT), 0, (struct sockaddr *) &Client_Addr, &Client_AddrLen) < 0 ){
+	  if ( recvfrom( Server_Socket, IGain, (size_t) Length*sizeof(hysl_float_t), 0, (struct sockaddr *) &Client_Addr, &Client_AddrLen) < 0 ){
 	       Print_Header( ERROR );
 	       fprintf( stderr, "Recvfrom failed" );
 	       return EXIT_FAILURE;
@@ -172,7 +172,7 @@ int main( int argc, char **argv )
 	       Substructure_SendGainMatrix( IGain, (unsigned int) CNodes.Order, &CNodes.Sub[i] );
 	       /* Allocate the memory for reading the ADwin data */
 	       if( ADWIN_DATA == NULL ){
-		    ADWIN_DATA = (HYSL_FLOAT *) calloc( (size_t) InitCnt.OrderSub*InitCnt.NSubstep*NUM_CHANNELS, sizeof( HYSL_FLOAT ) );
+		    ADWIN_DATA = (hysl_float_t *) calloc( (size_t) InitCnt.OrderSub*InitCnt.NSubstep*NUM_CHANNELS, sizeof( hysl_float_t ) );
 	       }
 	  }
      }
@@ -185,10 +185,10 @@ int main( int argc, char **argv )
 	  /* Receive the displacement */
 	  Length = InitCnt.OrderSub;
 	  if ( Socket_Type == REMOTE_TCP ){
-	       Substructure_Remote_Receive( Client_Socket, (unsigned int) Length + 1, sizeof(HYSL_FLOAT), (char *const) Recv );
+	       Substructure_Remote_Receive( Client_Socket, (unsigned int) Length + 1, sizeof(hysl_float_t), (char *const) Recv );
 	  } else {
 	       Client_AddrLen = sizeof(Client_Addr);
-	       if ( recvfrom( Server_Socket, Recv, (size_t) (Length+1)*sizeof(HYSL_FLOAT), 0, (struct sockaddr *) &Client_Addr, &Client_AddrLen) < 0 ){
+	       if ( recvfrom( Server_Socket, Recv, (size_t) (Length+1)*sizeof(hysl_float_t), 0, (struct sockaddr *) &Client_Addr, &Client_AddrLen) < 0 ){
 		    Print_Header( ERROR );
 		    fprintf( stderr, "recvfrom() failed" );
 		    return EXIT_FAILURE;
@@ -270,9 +270,9 @@ int main( int argc, char **argv )
 	       /* Send the response */
 	       Length = 3*InitCnt.OrderSub;
 	       if( Socket_Type == REMOTE_TCP ){
-		    Substructure_Remote_Send( Client_Socket, (unsigned int) Length, sizeof(HYSL_FLOAT), (char *const) Send );
+		    Substructure_Remote_Send( Client_Socket, (unsigned int) Length, sizeof(hysl_float_t), (char *const) Send );
 	       } else{
-		    if( sendto( Server_Socket, Send, (size_t) Length*sizeof(HYSL_FLOAT), 0, (struct sockaddr *) &Client_Addr, sizeof(Client_Addr) ) != (int) sizeof(HYSL_FLOAT)*Length ){  /* Sizeof() returns unsigned int */
+		    if( sendto( Server_Socket, Send, (size_t) Length*sizeof(hysl_float_t), 0, (struct sockaddr *) &Client_Addr, sizeof(Client_Addr) ) != (int) sizeof(hysl_float_t)*Length ){  /* Sizeof() returns unsigned int */
 			 Print_Header( ERROR );
 			 fprintf( stderr, "sendto() failed or send a different ammount of data");
 			 return EXIT_FAILURE;
@@ -384,7 +384,7 @@ void CustomServer_Init( const char *FileName, AlgConst_t *const InitConst )
      /* Number of substructures */
      InitConst->NSubstep = (unsigned int) ConfFile_GetInt( Config, "Substructure:Num_Substeps" );
 
-     InitConst->DeltaT_Sub = InitConst->Delta_t/(HYSL_FLOAT) InitConst->NSubstep;
+     InitConst->DeltaT_Sub = InitConst->Delta_t/(hysl_float_t) InitConst->NSubstep;
 
      ConfFile_Destroy( Config );
 

@@ -24,7 +24,7 @@ void Substructure_JoinNonCouplingPart_MPI( PMatrixVector_t *const VecTdT_m,
 
      int incx, incy, ione;
      int icoup, Length;
-     HYSL_FLOAT Alpha, Beta;
+     hysl_float_t Alpha, Beta;
      char trans = 'N';
      int Rows, Cols;
      int PosX_Row, PosX_Col, PosXm_Row, PosXm_Col;

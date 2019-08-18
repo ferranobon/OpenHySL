@@ -16,8 +16,8 @@
 #include "Netlib.h"
 #endif
 
-void Substructure_Newmark_Init( const HYSL_FLOAT Mass, const HYSL_FLOAT Damp, const HYSL_FLOAT Stiff, const HYSL_FLOAT DeltaTSub, HYSL_FLOAT DeltaT,
-				const HYSL_FLOAT Beta, const HYSL_FLOAT Gamma, const char *Description, NewmarkSim_t *const Sub )
+void Substructure_Newmark_Init( const hysl_float_t Mass, const hysl_float_t Damp, const hysl_float_t Stiff, const hysl_float_t DeltaTSub, hysl_float_t DeltaT,
+				const hysl_float_t Beta, const hysl_float_t Gamma, const char *Description, NewmarkSim_t *const Sub )
 {
 
      Sub->Description = strdup( Description );
@@ -91,7 +91,7 @@ void Substructure_Newmark_Init( const HYSL_FLOAT Mass, const HYSL_FLOAT Damp, co
      Sub->VelTdT = 0.0;
 }
 
-void Substructure_Newmark_SDOF( const HYSL_FLOAT DispTdT, const HYSL_FLOAT ramp, const HYSL_FLOAT GAcc, NewmarkSim_t *const Sub, HYSL_FLOAT *const fc )
+void Substructure_Newmark_SDOF( const hysl_float_t DispTdT, const hysl_float_t ramp, const hysl_float_t GAcc, NewmarkSim_t *const Sub, hysl_float_t *const fc )
 {
 
      /* Compute initial velocity */

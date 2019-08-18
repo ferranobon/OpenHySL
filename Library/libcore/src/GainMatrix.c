@@ -26,8 +26,8 @@ void IGainMatrix( MatrixVector_t *const IGain, const MatrixVector_t *const Mass,
 			* variable */
 
      int ione = 1;     /* Integer of value one */
-     HYSL_FLOAT one = 1.0; /* HYSL_FLOAT precision one for dlascl() parameter cfrom */
-     HYSL_FLOAT Scalar;    /* HYSL_FLOAT precision scalar */
+     hysl_float_t one = 1.0; /* HYSL_FLOAT precision one for dlascl() parameter cfrom */
+     hysl_float_t Scalar;    /* HYSL_FLOAT precision scalar */
 
      uplo = 'L';       /* The lower part of the matrix will be used and the upper part will strictly not be
 			* referenced */
@@ -92,7 +92,7 @@ void IGainMatrix_PS( MatrixVector_t *const IGain, const MatrixVector_t *const Ma
 {
      char uplo;
      int info;         /* LAPACK error handling variable */
-     HYSL_FLOAT Scalar;    /* HYSL_FLOAT precision scalar */
+     hysl_float_t Scalar;    /* HYSL_FLOAT precision scalar */
      int incx, Length;
 
      incx = 1;

@@ -24,9 +24,9 @@
  * \brief Stores the proportional, integral and derivative constant of the PID compensator.
  */
 typedef struct PID {
-     HYSL_FLOAT P;  /*!< \brief Proportional constant.*/
-     HYSL_FLOAT I;  /*!< \brief Integral constant.*/
-     HYSL_FLOAT D;  /*!< \brief Derivative constant.*/
+     hysl_float_t P;  /*!< \brief Proportional constant.*/
+     hysl_float_t I;  /*!< \brief Integral constant.*/
+     hysl_float_t D;  /*!< \brief Derivative constant.*/
 } PID_t;
 
 /**
@@ -305,19 +305,19 @@ void ErrorForce_PID_HHT( const MatrixVector_t *const Mass, const MatrixVector_t 
 			 const MatrixVector_t *const VelT, const MatrixVector_t *const DispT,
 			 const MatrixVector_t *const AccTdT, const MatrixVector_t *const VelTdT, const MatrixVector_t *const DispTdT,
 			 const MatrixVector_t *const fc, const MatrixVector_t *const LoadT, const MatrixVector_t *const LoadTdT,
-			 const HYSL_FLOAT Alpha_HHT, const PID_t *const PID, MatrixVector_t *const fe );
+			 const hysl_float_t Alpha_HHT, const PID_t *const PID, MatrixVector_t *const fe );
 
 void ErrorForce_PID_HHT_PS( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp, const MatrixVector_t *Stiff,
 			    const MatrixVector_t *const VelT, const MatrixVector_t *const DispT,
 			    const MatrixVector_t *const AccTdT, const MatrixVector_t *const VelTdT, const MatrixVector_t *const DispTdT,
 			    const MatrixVector_t *const fc, const MatrixVector_t *const LoadT, const MatrixVector_t *const LoadTdT,
-			    const HYSL_FLOAT Alpha_HHT, const PID_t *const PID, MatrixVector_t *const fe );
+			    const hysl_float_t Alpha_HHT, const PID_t *const PID, MatrixVector_t *const fe );
 
 void ErrorForce_PID_HHT_Sp ( const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp, const MatrixVector_Sp_t *const Stiff,
 			     const MatrixVector_t *const VelT, const MatrixVector_t *const DispT,
 			     const MatrixVector_t *const AccTdT, const MatrixVector_t *const VelTdT, const MatrixVector_t *const DispTdT,
 			     const MatrixVector_t *const fc, const MatrixVector_t *const LoadT, const MatrixVector_t *const LoadTdT,
-			     const HYSL_FLOAT Alpha_HHT, const PID_t *const PID, MatrixVector_t *const fe );
+			     const hysl_float_t Alpha_HHT, const PID_t *const PID, MatrixVector_t *const fe );
 
 #endif /* ERRORCOMPENSATION_H_*/
 

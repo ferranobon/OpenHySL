@@ -10,7 +10,7 @@ void InputLoad_AbsValues_Sp( const MatrixVector_Sp_t *const Stiff, const MatrixV
 			     MatrixVector_t *const InLoad )
 {
 
-     HYSL_FLOAT Alpha, Beta;    /* Constants to use in the Sparse BLAS routines */
+     hysl_float_t Alpha, Beta;    /* Constants to use in the Sparse BLAS routines */
      char trans = 'N';          /* No transpose operation */
      char matdescra[6] = {'S',  /* The matrix is symmetric */
 			  'U',  /* The upper part is referenced */
@@ -33,7 +33,7 @@ void InputLoad_RelValues_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVe
 			     MatrixVector_t *const InLoad )
 {
      
-     HYSL_FLOAT Alpha, Beta;    /* Constants to use in the Sparse BLAS routines */
+     hysl_float_t Alpha, Beta;    /* Constants to use in the Sparse BLAS routines */
      char trans = 'N';          /* No transpose operation */
      char matdescra[6] = {'S',  /* The matrix is symmetric */
 			  'U',  /* The upper part is referenced */

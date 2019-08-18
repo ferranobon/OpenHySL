@@ -496,8 +496,8 @@ void InputLoad_Generate_LoadVectorForm_MPI( int *DOF, PMatrixVector_t *const Loa
  */
 void InputLoad_Apply_LoadVectorForm( const MatrixVector_t *const LoadForm1,
 				     const MatrixVector_t *const LoadForm2,
-				     const MatrixVector_t *const LoadForm3, const HYSL_FLOAT Value1,
-				     const HYSL_FLOAT Value2, const HYSL_FLOAT Value3,
+				     const MatrixVector_t *const LoadForm3, const hysl_float_t Value1,
+				     const hysl_float_t Value2, const hysl_float_t Value3,
 				     MatrixVector_t *const LoadVector );
 
 /**
@@ -539,7 +539,7 @@ void InputLoad_Apply_LoadVectorForm( const MatrixVector_t *const LoadForm1,
  *
  * \sa PMatrixVector_t and InputLoad_Generate_LoadVectorForm_MPI().
  */
-void InputLoad_Apply_LoadVectorForm_MPI( PMatrixVector_t *const LoadForm, const HYSL_FLOAT Value,
+void InputLoad_Apply_LoadVectorForm_MPI( PMatrixVector_t *const LoadForm, const hysl_float_t Value,
 					 PMatrixVector_t *const LoadVector );
 
 #endif /* INPUT_LOAD_H_ */

@@ -12,7 +12,7 @@ void GSSSS_EffectiveForce_AForm_Sp( const MatrixVector_Sp_t *const Mass, const M
 				    const MatrixVector_Sp_t *const Stiff, const MatrixVector_t *const DispT,
 				    const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
 				    MatrixVector_t *const Tempvec, const TIntegration_GSSSS_t *const GSSSS,
-				    const HYSL_FLOAT DeltaT, MatrixVector_t *const Eff_ForceT )
+				    const hysl_float_t DeltaT, MatrixVector_t *const Eff_ForceT )
 {
 
      int incx = 1, incy = 1;  /* Stride in the vectors */
@@ -21,7 +21,7 @@ void GSSSS_EffectiveForce_AForm_Sp( const MatrixVector_Sp_t *const Mass, const M
 			  'U',  /* The upper part is referenced */
 			  'N',  /* Non-unit values in the diagonal */
 			  'F'}; /* One based index */
-     HYSL_FLOAT Alpha, Beta;    /* Constants for the BLAS routines */
+     hysl_float_t Alpha, Beta;    /* Constants for the BLAS routines */
      
 
      /* BLAS: tempvec = Disp */
@@ -62,7 +62,7 @@ void GSSSS_ErrorForce_PID_Sp( const MatrixVector_Sp_t *const Mass, const MatrixV
 			      const MatrixVector_t *const AccT, const MatrixVector_t *const VelT,
 			      const MatrixVector_t *const DispT, const MatrixVector_t *const fc,
 			      const MatrixVector_t *const LoadTdT, const MatrixVector_t *const LoadT,
-			      const TIntegration_GSSSS_t *const GSSSS, const HYSL_FLOAT DeltaT,
+			      const TIntegration_GSSSS_t *const GSSSS, const hysl_float_t DeltaT,
 			      const MatrixVector_t *const Tempvec, const PID_t *const PID,
 			      MatrixVector_t *const fe )
 {
@@ -73,7 +73,7 @@ void GSSSS_ErrorForce_PID_Sp( const MatrixVector_Sp_t *const Mass, const MatrixV
 			  'U',  /* The upper part is referenced */
 			  'N',  /* Non-unit values in the diagonal */
 			  'F'}; /* One based index */
-     HYSL_FLOAT Alpha, Beta;    /* Constants for the BLAS routines */
+     hysl_float_t Alpha, Beta;    /* Constants for the BLAS routines */
 
      /* BLAS: tempvec = acct */
      hysl_copy( &Tempvec->Rows, AccT->Array, &incx, Tempvec->Array, &incy );

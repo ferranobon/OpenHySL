@@ -253,7 +253,7 @@ void Algorithm_Init_MPI( const char *FileName, AlgConst_t *const InitConst )
      /* Number of substructures */
      InitConst->NSubstep = (unsigned int) ConfFile_GetInt( Config, "Substructure:Num_Substeps" );
 
-     InitConst->DeltaT_Sub = InitConst->Delta_t/(HYSL_FLOAT) InitConst->NSubstep;
+     InitConst->DeltaT_Sub = InitConst->Delta_t/(hysl_float_t) InitConst->NSubstep;
 
      ConfFile_Destroy( Config );
 
