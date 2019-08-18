@@ -15,7 +15,6 @@
 #endif
 
 void MatrixVector_Create(const int32_t Rows, const int32_t Cols, MatrixVector_t *const MatVec) {
-
     /* Check the input data */
     if ((Rows > 0) && (Cols > 0)) {
         MatVec->Rows = Rows;
@@ -39,18 +38,14 @@ void MatrixVector_Create(const int32_t Rows, const int32_t Cols, MatrixVector_t 
 void MatrixVector_Set2Value(const hysl_float_t Value, MatrixVector_t *const MatVec) {
     int32_t incx = 0; /* No stride in the vector */
     int32_t incy = 1; /* Stride of one */
-    int32_t Length;
-    hysl_float_t Val;
-
-    Length = MatVec->Rows * MatVec->Cols;
-    Val = Value;
+    int32_t Length = MatVec->Rows * MatVec->Cols;
+    hysl_float_t Val = Value;
 
     /* BLAS: All elements of MatVec are equal to Value */
     hysl_copy(&Length, &Val, &incx, MatVec->Array, &incy);
 }
 
 void MatrixVector_ModifyElement(const int32_t RowIndex, const int32_t ColIndex, const hysl_float_t Alpha, const char *Operation, MatrixVector_t *const MatVec) {
-
     const char *OpSet = "Set";
     const char *OpAdd = "Add";
     const char *OpMult = "Multiply";
@@ -75,31 +70,18 @@ void MatrixVector_ModifyElement(const int32_t RowIndex, const int32_t ColIndex, 
     }
 }
 
-void MatrixVector_Add3Mat(const MatrixVector_t *const MatA, const MatrixVector_t *const MatB, const MatrixVector_t *const MatC, const Scalars_t Const,
-        MatrixVector_t *const MatY) {
-
-    int32_t incx, incy;      /* Stride in the vectors for BLAS library */
-    int32_t lda, ldy;
-    int32_t ione;
-    hysl_float_t done, Scalar; /* Constant to use in the BLAS library */
-    char uplo;               /* BLAS & LAPACK: Character to specify which part of the matrix has been referenced. */
-    int32_t info;            /* LAPACK: Variable to inform if the operations of Cholesky factorization and inverse were successful or not. */
-
-    ione = 1;
-    incx = 1;
-    incy = 1;
-    uplo = 'L'; /* Character defining that the lower part of the symmetric matrix is referenced
-                 * (see man dpotrf) */
-    done = 1.0;
-
-    lda = Max(1, MatA->Rows);
-    ldy = Max(1, MatY->Rows);
-
+void MatrixVector_Add3Mat(const MatrixVector_t *const MatA, const MatrixVector_t *const MatB, const MatrixVector_t *const MatC, const Scalars_t Const, MatrixVector_t *const MatY) {
     /* LAPACK: Y = A */
+    int32_t lda = Max(1, MatA->Rows);
+    int32_t ldy = Max(1, MatY->Rows);
+    char uplo = 'L'; /* BLAS & LAPACK: Character to specify which part of the matrix has been referenced. */
     hysl_lacpy(&uplo, &MatY->Rows, &MatY->Cols, MatA->Array, &lda, MatY->Array, &ldy);
 
     /* LAPACK: Calculates Y = A  */
-    Scalar = Const.Alpha;
+    hysl_float_t Scalar = Const.Alpha;
+    hysl_float_t done = 1.0;
+    int32_t ione = 1;
+    int32_t info = 0; /* LAPACK: Variable to inform if the operations of Cholesky factorization and inverse were successful or not. */
     hysl_lascl(&uplo, &ione, &ione, &done, &Scalar, &MatY->Rows, &MatY->Cols, MatY->Array, &ldy, &info);
 
     if (info < 0) {
@@ -110,6 +92,8 @@ void MatrixVector_Add3Mat(const MatrixVector_t *const MatA, const MatrixVector_t
 
     /* BLAS: Calculates Y = Beta*B + Y. Only computes half of the matrix */
     Scalar = Const.Beta;
+    int32_t incx = 1; /* Stride in the vectors for BLAS library */
+    int32_t incy = 1;
     for (int32_t idx = 0; idx < MatY->Rows; idx++) {
         int32_t Length = MatY->Rows - idx;
         hysl_axpy(&Length, &Scalar, &MatB->Array[(idx * MatB->Rows) + idx], &incx, &MatY->Array[(idx * MatY->Rows) + idx], &incy);
