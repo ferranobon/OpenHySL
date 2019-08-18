@@ -8,11 +8,11 @@
 #include "Netlib.h"
 #endif
 
-void PC_PredictorStep_Displacement(const MatrixVector_t *const DispT, const MatrixVector_t *const VelT, const MatrixVector_t *const AccT, const HYSL_FLOAT a9,
-        const HYSL_FLOAT a10, MatrixVector_t *const DispTdT_Pred) {
+void PC_PredictorStep_Displacement(const MatrixVector_t *const DispT, const MatrixVector_t *const VelT, const MatrixVector_t *const AccT, const hysl_float_t a9,
+        const hysl_float_t a10, MatrixVector_t *const DispTdT_Pred) {
 
     int incx = 1, incy = 1; /* Stride in the vectors */
-    HYSL_FLOAT Alpha; /* Constant for the BLAS routines */
+    hysl_float_t Alpha; /* Constant for the BLAS routines */
 
     /* BLAS: DispTdT_Pred = DispT */
     hysl_copy(&DispTdT_Pred->Rows, DispT->Array, &incx, DispTdT_Pred->Array, &incy);
@@ -24,9 +24,9 @@ void PC_PredictorStep_Displacement(const MatrixVector_t *const DispT, const Matr
     hysl_axpy(&DispTdT_Pred->Rows, &Alpha, AccT->Array, &incx, DispTdT_Pred->Array, &incy);
 }
 
-void PC_PredictorStep_Velocity(const MatrixVector_t *const VelT, const MatrixVector_t *const AccT, const HYSL_FLOAT a6, MatrixVector_t *const VelTdT_Pred) {
+void PC_PredictorStep_Velocity(const MatrixVector_t *const VelT, const MatrixVector_t *const AccT, const hysl_float_t a6, MatrixVector_t *const VelTdT_Pred) {
     int incx = 1, incy = 1; /* Stride in the vectors */
-    HYSL_FLOAT Alpha; /* Constant for the BLAS routines */
+    hysl_float_t Alpha; /* Constant for the BLAS routines */
 
     /* BLAS: VelTdT_Pred = VelT */
     hysl_copy(&VelTdT_Pred->Rows, VelT->Array, &incx, VelTdT_Pred->Array, &incy);
@@ -36,10 +36,10 @@ void PC_PredictorStep_Velocity(const MatrixVector_t *const VelT, const MatrixVec
 
 }
 
-void PC_CorrectorStep_Displacement(const MatrixVector_t *const DispTdT_Pred, const MatrixVector_t *const AccTdT, const HYSL_FLOAT a8,
+void PC_CorrectorStep_Displacement(const MatrixVector_t *const DispTdT_Pred, const MatrixVector_t *const AccTdT, const hysl_float_t a8,
         MatrixVector_t *const DispTdT) {
     int incx = 1, incy = 1; /* Stride in the vectors */
-    HYSL_FLOAT Alpha; /* Constant for the BLAS routines */
+    hysl_float_t Alpha; /* Constant for the BLAS routines */
 
     /* BLAS: DispTdT = DispTdT_Pred */
     hysl_copy(&DispTdT->Rows, DispTdT_Pred->Array, &incx, DispTdT->Array, &incy);
@@ -48,9 +48,9 @@ void PC_CorrectorStep_Displacement(const MatrixVector_t *const DispTdT_Pred, con
     hysl_axpy(&DispTdT->Rows, &Alpha, AccTdT->Array, &incx, DispTdT->Array, &incy);
 }
 
-void PC_CorrectorStep_Velocity(const MatrixVector_t *const VelTdT_Pred, const MatrixVector_t *const AccTdT, const HYSL_FLOAT a7, MatrixVector_t *const VelTdT) {
+void PC_CorrectorStep_Velocity(const MatrixVector_t *const VelTdT_Pred, const MatrixVector_t *const AccTdT, const hysl_float_t a7, MatrixVector_t *const VelTdT) {
     int incx = 1, incy = 1; /* Stride in the vectors */
-    HYSL_FLOAT Alpha; /* Constant for the BLAS routines */
+    hysl_float_t Alpha; /* Constant for the BLAS routines */
 
     /* BLAS: VelTdT = VelTdT_Pred */
     hysl_copy(&VelTdT->Rows, VelTdT_Pred->Array, &incx, VelTdT->Array, &incy);
@@ -61,7 +61,7 @@ void PC_CorrectorStep_Velocity(const MatrixVector_t *const VelTdT_Pred, const Ma
 
 void PC_ReactionForces_Numerical(const MatrixVector_t *const DispTdT_Pred, MatrixVector_t *const K, MatrixVector_t *const RForceTdT) {
     int incx = 1, incy = 1; /* Stride in the vectors */
-    HYSL_FLOAT Alpha = 1.0, Beta = 0.0; /* Constant for the BLAS routines */
+    hysl_float_t Alpha = 1.0, Beta = 0.0; /* Constant for the BLAS routines */
     char uplo = 'L'; /* The lower part (upper part in C) will be used and the upper part
      * (lower part in C) will strictly not be referenced */
 
@@ -71,7 +71,7 @@ void PC_ReactionForces_Numerical(const MatrixVector_t *const DispTdT_Pred, Matri
 
 void PC_ReactionForces_Numerical_PS(const MatrixVector_t *const DispTdT_Pred, MatrixVector_t *const K, MatrixVector_t *const RForceTdT) {
     int incx = 1, incy = 1; /* Stride in the vectors */
-    HYSL_FLOAT Alpha = 1.0, Beta = 0.0; /* Constant for the BLAS routines */
+    hysl_float_t Alpha = 1.0, Beta = 0.0; /* Constant for the BLAS routines */
     char uplo = 'L'; /* The lower part (upper part in C) will be used and the upper part
      * (lower part in C) will strictly not be referenced */
 
@@ -82,10 +82,10 @@ void PC_ReactionForces_Numerical_PS(const MatrixVector_t *const DispTdT_Pred, Ma
 
 void PC_Calculate_Acceleration(const MatrixVector_t *const LoadTdT, const MatrixVector_t *const LoadT, const MatrixVector_t *const RForceTdT,
         const MatrixVector_t *const RForceT, const MatrixVector_t *const VelTdT_Pred, const MatrixVector_t *const VelT_Pred, const MatrixVector_t *const AccT,
-        const MatrixVector_t *const K, const MatrixVector_t *const C, const MatrixVector_t *const Meinv, const HYSL_FLOAT alpha_H, const HYSL_FLOAT a7,
-        const HYSL_FLOAT a8, MatrixVector_t *const AccTdT) {
+        const MatrixVector_t *const K, const MatrixVector_t *const C, const MatrixVector_t *const Meinv, const hysl_float_t alpha_H, const hysl_float_t a7,
+        const hysl_float_t a8, MatrixVector_t *const AccTdT) {
     int incx = 1, incy = 1; /* Stride in the vectors */
-    HYSL_FLOAT Alpha, Beta; /* Constant for the BLAS routines */
+    hysl_float_t Alpha, Beta; /* Constant for the BLAS routines */
     char uplo = 'L';        /* The lower part (upper part in C) will be used and the upper part
                              * (lower part in C) will strictly not be referenced */
 
@@ -137,10 +137,10 @@ void PC_Calculate_Acceleration(const MatrixVector_t *const LoadTdT, const Matrix
 
 void PC_Calculate_Acceleration_PS(const MatrixVector_t *const LoadTdT, const MatrixVector_t *const LoadT, const MatrixVector_t *const RForceTdT,
         const MatrixVector_t *const RForceT, const MatrixVector_t *const VelTdT_Pred, const MatrixVector_t *const VelT_Pred, const MatrixVector_t *const AccT,
-        const MatrixVector_t *const K, const MatrixVector_t *const C, const MatrixVector_t *const Meinv, const HYSL_FLOAT alpha_H, const HYSL_FLOAT a7,
-        const HYSL_FLOAT a8, MatrixVector_t *const AccTdT) {
+        const MatrixVector_t *const K, const MatrixVector_t *const C, const MatrixVector_t *const Meinv, const hysl_float_t alpha_H, const hysl_float_t a7,
+        const hysl_float_t a8, MatrixVector_t *const AccTdT) {
     int incx = 1, incy = 1; /* Stride in the vectors */
-    HYSL_FLOAT Alpha, Beta; /* Constant for the BLAS routines */
+    hysl_float_t Alpha, Beta; /* Constant for the BLAS routines */
     char uplo = 'L'; /* The lower part (upper part in C) will be used and the upper part
      * (lower part in C) will strictly not be referenced */
 

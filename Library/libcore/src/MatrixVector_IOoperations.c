@@ -45,7 +45,7 @@ void MatrixVector_FromFile_MM( const char *Filename, MatrixVector_t *const MatVe
      MM_typecode matcode;   /* MatrixMarket: type of the matrix (symmetric, dense, complex, ...)  */
      int return_code;       /* MatrixMarket: return code for the functions */
      int i, j;              /* Indexes of the position within the matrix of the readen value */
-     HYSL_FLOAT Value;           /* Value to be saved in the position (i,j) of the matrix */
+     hysl_float_t Value;    /* Value to be saved in the position (i,j) of the matrix */
      int Rows, Cols;        /* Number of Rows and Columns */
      int nnz;               /* Number of non-zero elements */
      int innz;              /* Counter for the number of non-zero elements */

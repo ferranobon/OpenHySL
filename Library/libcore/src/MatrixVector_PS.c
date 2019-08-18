@@ -31,8 +31,8 @@ void MatrixVector_Create_PS( const int Rows, const int Cols, MatrixVector_t *con
      
      /* Allocate the memory */
      Matrix->Array = NULL;
-     Matrix->Array = (HYSL_FLOAT *) calloc( ((size_t) Matrix->Rows*(size_t) Matrix->Cols + (size_t) Matrix->Rows)/2,
-					sizeof(HYSL_FLOAT));
+     Matrix->Array = (hysl_float_t *) calloc( ((size_t) Matrix->Rows*(size_t) Matrix->Cols + (size_t) Matrix->Rows)/2,
+					sizeof(hysl_float_t));
      if ( Matrix->Array == NULL ){
 	  Print_Header( ERROR );
 	  fprintf( stderr, "MatrixVector_Create_PS(): Out of memory.\n" );
@@ -40,12 +40,12 @@ void MatrixVector_Create_PS( const int Rows, const int Cols, MatrixVector_t *con
      }
 }
 
-void MatrixVector_Set2Value_PS( const HYSL_FLOAT Value, MatrixVector_t *const Matrix )
+void MatrixVector_Set2Value_PS( const hysl_float_t Value, MatrixVector_t *const Matrix )
 {
      int incx = 0;  /* No stride in the vector */
      int incy = 1;  /* Stride of one */
      int Length;
-     HYSL_FLOAT Val;
+     hysl_float_t Val;
 
      Length = (Matrix->Rows*Matrix->Cols + Matrix->Rows)/2;
      Val = Value;
@@ -54,7 +54,7 @@ void MatrixVector_Set2Value_PS( const HYSL_FLOAT Value, MatrixVector_t *const Ma
      hysl_copy( &Length, &Val, &incx, Matrix->Array, &incy );
 }
 
-void MatrixVector_ModifyElement_PS( const int RowIndex, const int ColIndex, const HYSL_FLOAT Alpha,
+void MatrixVector_ModifyElement_PS( const int RowIndex, const int ColIndex, const hysl_float_t Alpha,
 				    const char *Operation, MatrixVector_t *const Matrix )
 {
 
@@ -97,7 +97,7 @@ void MatrixVector_Add3Mat_PS( const MatrixVector_t *const MatA, const MatrixVect
 
      int Length;      /* Variable to store the size of the vector to multiply. */
      int incx, incy;  /* Stride in the vectors for BLAS library */
-     HYSL_FLOAT Scalar;   /* Constant to use in the BLAS library */
+     hysl_float_t Scalar;   /* Constant to use in the BLAS library */
 
      incx = 1; incy = 1;
 

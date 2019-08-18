@@ -30,7 +30,7 @@ int Min(const int a, const int b) {
         return b;
 }
 
-HYSL_FLOAT signum(const HYSL_FLOAT num) {
+hysl_float_t signum(const hysl_float_t num) {
 # if _FLOAT_
      if (num > 0.0f ){
 	  return 1.0f;
@@ -47,9 +47,9 @@ HYSL_FLOAT signum(const HYSL_FLOAT num) {
 #endif
 }
 
-HYSL_FLOAT norm(const int length, const HYSL_FLOAT *const Vector) {
+hysl_float_t norm(const int length, const hysl_float_t *const Vector) {
     int i;
-    HYSL_FLOAT temp;
+    hysl_float_t temp;
 
     temp = 0.0;
     for (i = 0; i < length; i++) {
@@ -112,7 +112,7 @@ void Compute_Eigenvalues_Eigenvectors(MatrixVector_t *const MatrixA, MatrixVecto
     int one = 1, Length;
     int lda, ldb, info;
     int lwork; /* Dimension of the array work */
-    HYSL_FLOAT *work, *TempMat, temp;
+    hysl_float_t *work, *TempMat, temp;
 
     if ((MatrixA->Rows != MatrixB->Rows) || (MatrixA->Cols != MatrixB->Cols)) {
         Print_Header( ERROR);
@@ -126,8 +126,8 @@ void Compute_Eigenvalues_Eigenvectors(MatrixVector_t *const MatrixA, MatrixVecto
     ldb = lda;
 
     Length = MatrixA->Rows * MatrixA->Cols;
-    TempMat = (HYSL_FLOAT*) calloc((size_t) Length, sizeof(HYSL_FLOAT));
-    work = (HYSL_FLOAT*) calloc((size_t) lwork, sizeof(HYSL_FLOAT));
+    TempMat = (hysl_float_t*) calloc((size_t) Length, sizeof(hysl_float_t));
+    work = (hysl_float_t*) calloc((size_t) lwork, sizeof(hysl_float_t));
 
     /* DSYGV_:On Entry EigenVectors must contain the Matrix A */
     hysl_copy(&Length, MatrixA->Array, &one, EigenVectors->Array, &one);
@@ -184,12 +184,12 @@ void Compute_Eigenvalues_Eigenvectors(MatrixVector_t *const MatrixA, MatrixVecto
 }
 
 /* Routine based on ran1 from Numerical Receipes in C */
-HYSL_FLOAT RandomNumber(long int *const idum) {
+hysl_float_t RandomNumber(long int *const idum) {
     int j;
     long int k;
     static long int iy = 0;
     static long iv[NTAB];
-    HYSL_FLOAT temp;
+    hysl_float_t temp;
 
     if (*idum <= 0 || !iy) {
         if (-(*idum) < 1) {
@@ -220,8 +220,8 @@ HYSL_FLOAT RandomNumber(long int *const idum) {
     j = iy / (long int) NDIV;
     iy = iv[j];
     iv[j] = *idum;
-    if ((temp = (HYSL_FLOAT) AM * (HYSL_FLOAT) iy) > (HYSL_FLOAT) RNMX) {
-        return (HYSL_FLOAT) RNMX;
+    if ((temp = (hysl_float_t) AM * (hysl_float_t) iy) > (hysl_float_t) RNMX) {
+        return (hysl_float_t) RNMX;
     } else {
         return temp;
     }
@@ -229,10 +229,10 @@ HYSL_FLOAT RandomNumber(long int *const idum) {
 }
 
 /* Routine based on Gasdev() from Numerical Receipes in C */
-HYSL_FLOAT Gaussian_Deviate(const HYSL_FLOAT *const mu, const HYSL_FLOAT *const sigma, long int *const idum) {
+hysl_float_t Gaussian_Deviate(const hysl_float_t *const mu, const hysl_float_t *const sigma, long int *const idum) {
     static bool iset;
-    static HYSL_FLOAT GD_value;
-    HYSL_FLOAT fac, rsq, v1, v2;
+    static hysl_float_t GD_value;
+    hysl_float_t fac, rsq, v1, v2;
 
     if (*idum < 0) { /* Reinitialise */
         iset = false;
@@ -267,17 +267,17 @@ HYSL_FLOAT Gaussian_Deviate(const HYSL_FLOAT *const mu, const HYSL_FLOAT *const 
 
 /* Routine based on polint from Numerical Receipes in C */
 void Interpolate_Extrapolate(const MatrixVector_t *const X,
-        const MatrixVector_t *const Y, const HYSL_FLOAT x, HYSL_FLOAT *const y,
-        HYSL_FLOAT *const dy) {
+        const MatrixVector_t *const Y, const hysl_float_t x, hysl_float_t *const y,
+        hysl_float_t *const dy) {
 
     int i, m, ns = 0;
-    HYSL_FLOAT den, dif, dift, ho, hp, w;
+    hysl_float_t den, dif, dift, ho, hp, w;
 
-    HYSL_FLOAT *c, *d;
+    hysl_float_t *c, *d;
 
     /* Allocate space */
-    c = (HYSL_FLOAT*) calloc((size_t) X->Rows, sizeof(HYSL_FLOAT));
-    d = (HYSL_FLOAT*) calloc((size_t) X->Rows, sizeof(HYSL_FLOAT));
+    c = (hysl_float_t*) calloc((size_t) X->Rows, sizeof(hysl_float_t));
+    d = (hysl_float_t*) calloc((size_t) X->Rows, sizeof(hysl_float_t));
     if (c == NULL || d == NULL) {
         Print_Header( ERROR);
         fprintf( stderr, "Interpolate_Extrapolate(): Out of memory.\n");

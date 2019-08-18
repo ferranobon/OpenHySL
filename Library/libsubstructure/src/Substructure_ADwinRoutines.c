@@ -71,7 +71,7 @@ void ADwin_ManageProcess( const char* PName, const int PNum, const int dowhat )
      } else assert( 0 );
 }
 
-void ADwin_SendArray( const unsigned int Index, const HYSL_FLOAT *const Array, const unsigned int Length )
+void ADwin_SendArray( const unsigned int Index, const hysl_float_t *const Array, const unsigned int Length )
 {
    
      Set_DeviceNo( (int32_t) 336 );
@@ -114,17 +114,17 @@ void Substructure_MatrixXc_ADwin( const MatrixVector_t *const Mat, const Couplin
      }
 }
 
-void ADwin_Substep_Pre( const HYSL_FLOAT *const VecTdT_0c, const unsigned int OrderC )
+void ADwin_Substep_Pre( const hysl_float_t *const VecTdT_0c, const unsigned int OrderC )
 {
 
      unsigned int i;
      unsigned int Length_Send;
      
-     HYSL_FLOAT *Send_ADwin = NULL;
+     hysl_float_t *Send_ADwin = NULL;
 
      Length_Send = OrderC + 1;
 
-     Send_ADwin = (HYSL_FLOAT *) calloc( (size_t) Length_Send, sizeof(HYSL_FLOAT) );
+     Send_ADwin = (hysl_float_t *) calloc( (size_t) Length_Send, sizeof(hysl_float_t) );
 
      /* Prepare the data to be sent. The first value indicates that the data has been uploaded and
       * ADwin can start the substepping process */
@@ -145,14 +145,14 @@ void ADwin_Substep_Pre( const HYSL_FLOAT *const VecTdT_0c, const unsigned int Or
      free( Send_ADwin );
 }
 
-void ADwin_Substep_Post(  const unsigned int OrderC, const HYSL_FLOAT Time_To_Wait, HYSL_FLOAT *const VecTdT_c,
-		    HYSL_FLOAT *const fcprev_c, HYSL_FLOAT *const fc_c )
+void ADwin_Substep_Post(  const unsigned int OrderC, const hysl_float_t Time_To_Wait, hysl_float_t *const VecTdT_c,
+		    hysl_float_t *const fcprev_c, hysl_float_t *const fc_c )
 {
 
      unsigned int i;
      unsigned int Length_Receive;
      
-     HYSL_FLOAT *ReceiveADwin = NULL;
+     hysl_float_t *ReceiveADwin = NULL;
      int ADWinReady;
 
      struct timeval t1;
@@ -162,7 +162,7 @@ void ADwin_Substep_Post(  const unsigned int OrderC, const HYSL_FLOAT Time_To_Wa
 
      Length_Receive = 3*OrderC + 1;
 
-     ReceiveADwin = (HYSL_FLOAT *) calloc( (size_t) Length_Receive, sizeof(HYSL_FLOAT) );
+     ReceiveADwin = (hysl_float_t *) calloc( (size_t) Length_Receive, sizeof(hysl_float_t) );
 
      for ( i = 0; i < Length_Receive; i++ ){
 	  ReceiveADwin[i] = 0.0;
@@ -236,7 +236,7 @@ void ADwin_SaveData_ASCII( const char *FileName, const unsigned int Num_Steps, c
 			   const unsigned short int Num_Channels, const char **Chan_Names, const int DataIndex )
 {
      unsigned int i, j, Length;
-     HYSL_FLOAT *Data;
+     hysl_float_t *Data;
      FILE *OutFile;
 
      OutFile = fopen( FileName, "w" );
@@ -247,7 +247,7 @@ void ADwin_SaveData_ASCII( const char *FileName, const unsigned int Num_Steps, c
      }
 
      Length = Num_Sub*Num_Steps*Num_Channels;
-     Data = (HYSL_FLOAT *) calloc( (size_t) Length, sizeof( HYSL_FLOAT ) );
+     Data = (hysl_float_t *) calloc( (size_t) Length, sizeof( hysl_float_t ) );
      if( Data == NULL ){
 	  Print_Header( WARNING );
 	  fprintf( stderr, "ADwin_SaveData_HDF5: Out of memory. Manual extraction of the data required.\n" );

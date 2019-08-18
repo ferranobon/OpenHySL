@@ -12,14 +12,14 @@
 void EffM_EffectiveForce_MPI( PMatrixVector_t *const Stiff, PMatrixVector_t *const Damp,
 			      PMatrixVector_t *const DispT, PMatrixVector_t *const VelT,
 			      PMatrixVector_t *const AccT, PMatrixVector_t *const Tempvec,
-			      const HYSL_FLOAT a6, const HYSL_FLOAT a9, const HYSL_FLOAT a10,
+			      const hysl_float_t a6, const hysl_float_t a9, const hysl_float_t a10,
 			      PMatrixVector_t *const Eff_ForceT )
 {
      int ione = 1;
      int incx = 1, incy = 1;  /* Stride in the vectors */
      char uplo = 'L';         /* The lower part (upper part in C) will be used and the upper part (lower part
 			       * in C) will strictly not be referenced */
-     HYSL_FLOAT Alpha, Beta;      /* Constants for the BLAS routines */
+     hysl_float_t Alpha, Beta;      /* Constants for the BLAS routines */
 
      /* PBLAS: tempvec = Disp */
      hysl_pcopy( &Tempvec->GlobalSize.Row, DispT->Array, &ione, &ione, DispT->Desc, &ione, Tempvec->Array, &ione,
@@ -54,13 +54,13 @@ void EffM_EffectiveForce_MPI( PMatrixVector_t *const Stiff, PMatrixVector_t *con
 
 void EffM_ComputeDisplacement_MPI( PMatrixVector_t *const DispT, PMatrixVector_t *const VelT,
 				   PMatrixVector_t *const AccT, PMatrixVector_t *const AccTdT,
-				   const HYSL_FLOAT a8, const HYSL_FLOAT a9, const HYSL_FLOAT a10,
+				   const hysl_float_t a8, const hysl_float_t a9, const hysl_float_t a10,
 				   PMatrixVector_t *const DispTdT )
 {
 
      int ione = 1;
      int incx = 1, incy = 1;  /* Stride in the vectors */
-     HYSL_FLOAT Alpha;            /* Constant for the BLAS routines */
+     hysl_float_t Alpha;            /* Constant for the BLAS routines */
 
      /* PBLAS: DispTdT = DispT */
      hysl_pcopy( &DispTdT->GlobalSize.Row, DispT->Array, &ione, &ione, DispT->Desc, &ione, DispTdT->Array,
@@ -80,12 +80,12 @@ void EffM_ComputeDisplacement_MPI( PMatrixVector_t *const DispT, PMatrixVector_t
 }
 
 void EffM_ComputeVelocity_MPI( PMatrixVector_t *const VelT, PMatrixVector_t *const AccT,
-			       PMatrixVector_t *const AccTdT, const HYSL_FLOAT a6, const HYSL_FLOAT a7,
+			       PMatrixVector_t *const AccTdT, const hysl_float_t a6, const hysl_float_t a7,
 			       PMatrixVector_t *const VelTdT )
 {
      int ione = 1;
      int incx = 1, incy= 1;  /* Stride in the vectors */
-     HYSL_FLOAT Alpha;           /* Constant for the BLAS routines */
+     hysl_float_t Alpha;           /* Constant for the BLAS routines */
 
      /* PBLAS: VelTdT = VelT */
      hysl_pcopy( &VelTdT->GlobalSize.Row, VelT->Array, &ione, &ione, VelT->Desc, &incx, VelTdT->Array, &ione,

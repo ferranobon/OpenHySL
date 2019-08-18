@@ -79,7 +79,7 @@ int main( int argc, char **argv ){
      int incx, incy;
      Scalars_t Constants;
      
-     HYSL_FLOAT *AccAll, *VelAll, *DispAll;
+     hysl_float_t *AccAll, *VelAll, *DispAll;
 
      MatrixVector_t M, C, K;               /* Mass, Damping and Stiffness matrices */
      MatrixVector_t Keinv;
@@ -203,9 +203,9 @@ int main( int argc, char **argv ){
 
      /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will be used
       * during the test */
-     AccAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     VelAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-     DispAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+     AccAll = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
+     VelAll = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
+     DispAll = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
 
      /* Initialise the matrices and vectors that will be used in the Time Integration process */
      if( ((!InitCnt.Use_Sparse && !InitCnt.Read_Sparse) || (InitCnt.Use_Sparse && !InitCnt.Read_Sparse) ||
@@ -488,11 +488,11 @@ int main( int argc, char **argv ){
 	  /* Perform substepping */
 	  if( CNodes.Order >= 1 ){
 	       if( InitCnt.Use_Absolute_Values ){
-		    Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep, 0.0,
+		    Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(hysl_float_t) istep, 0.0,
 					      InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes, DispTdT.Array, fcprevsub.Array,
 					      fc.Array );
 	       } else {
-		    Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep,
+		    Substructure_Substepping( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(hysl_float_t) istep,
 					      AccAll[istep-1], InitCnt.NSubstep, InitCnt.DeltaT_Sub, &CNodes,
 					      DispTdT.Array, fcprevsub.Array, fc.Array );
 	       }
@@ -568,7 +568,7 @@ int main( int argc, char **argv ){
 	  hysl_copy( &DataToSend.Rows, DispTdT.Array, &incx, DataToSend.Array, &incy ); /* li = li1 */
 	  ValueToScale = 1000.0;
 	  hysl_scal( &DataToSend.Rows, &ValueToScale, DataToSend.Array, &incx );
-	  Substructure_Remote_Send( Client_Socket, (unsigned int) InitCnt.Order, sizeof(HYSL_FLOAT), (char *const) DataToSend.Array );
+	  Substructure_Remote_Send( Client_Socket, (unsigned int) InitCnt.Order, sizeof(hysl_float_t), (char *const) DataToSend.Array );
 
 	  /* Backup vectors */
 	  hysl_copy( &LoadTdT1.Rows, LoadTdT1.Array, &incx, LoadTdT.Array, &incy ); /* li = li1 */
@@ -611,7 +611,7 @@ int main( int argc, char **argv ){
 
      /* Close the connection */
      DispTdT.Array[0] = -9999.0;
-     Substructure_Remote_Send( Client_Socket, (unsigned int) InitCnt.Order, sizeof(HYSL_FLOAT), (char *const) DispTdT.Array );
+     Substructure_Remote_Send( Client_Socket, (unsigned int) InitCnt.Order, sizeof(hysl_float_t), (char *const) DispTdT.Array );
      Substructure_Remote_CloseSocket( &Client_Socket );
 
      /* Free the memory */

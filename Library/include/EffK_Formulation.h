@@ -76,9 +76,9 @@
  */
 void EffK_EffectiveForce( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp,
 			  const MatrixVector_t *const DispT, const MatrixVector_t *const VelT,
-			  const MatrixVector_t *const AccT, MatrixVector_t *const Tempvec, const HYSL_FLOAT a0,
-			  const HYSL_FLOAT a1, const HYSL_FLOAT a2, const HYSL_FLOAT a3, const HYSL_FLOAT a4,
-			  const HYSL_FLOAT a5, MatrixVector_t *const Eff_ForceT );
+			  const MatrixVector_t *const AccT, MatrixVector_t *const Tempvec, const hysl_float_t a0,
+			  const hysl_float_t a1, const hysl_float_t a2, const hysl_float_t a3, const hysl_float_t a4,
+			  const hysl_float_t a5, MatrixVector_t *const Eff_ForceT );
 
 /**
  * \brief Calculates the effective force vector according to the formulation using the effective stiffness
@@ -138,22 +138,22 @@ void EffK_EffectiveForce( const MatrixVector_t *const Mass, const MatrixVector_t
  */
 void EffK_EffectiveForce_PS( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp,
 			     const MatrixVector_t *const DispT, const MatrixVector_t *const VelT,
-			     const MatrixVector_t *const AccT, MatrixVector_t *const Tempvec, const HYSL_FLOAT a0,
-			     const HYSL_FLOAT a1, const HYSL_FLOAT a2, const HYSL_FLOAT a3, const HYSL_FLOAT a4, const HYSL_FLOAT a5,
+			     const MatrixVector_t *const AccT, MatrixVector_t *const Tempvec, const hysl_float_t a0,
+			     const hysl_float_t a1, const hysl_float_t a2, const hysl_float_t a3, const hysl_float_t a4, const hysl_float_t a5,
 			     MatrixVector_t *const Eff_ForceT );
 
 void EffK_EffectiveForce_HHT( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp,
 			      const MatrixVector_t *const Stiff, const MatrixVector_t *const DispT,
 			      const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
-			      MatrixVector_t *const Tempvec, const HYSL_FLOAT a0, const HYSL_FLOAT a1,
-			      const HYSL_FLOAT a2, const HYSL_FLOAT a3, const HYSL_FLOAT a4,
-			      const HYSL_FLOAT a5, const HYSL_FLOAT Alpha_HHT, MatrixVector_t *const Eff_ForceT );
+			      MatrixVector_t *const Tempvec, const hysl_float_t a0, const hysl_float_t a1,
+			      const hysl_float_t a2, const hysl_float_t a3, const hysl_float_t a4,
+			      const hysl_float_t a5, const hysl_float_t Alpha_HHT, MatrixVector_t *const Eff_ForceT );
 void EffK_EffectiveForce_HHT_PS( const MatrixVector_t *const Mass, const MatrixVector_t *const Damp,
 				 const MatrixVector_t *const Stiff, const MatrixVector_t *const DispT,
 				 const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
-				 MatrixVector_t *const Tempvec, const HYSL_FLOAT a0, const HYSL_FLOAT a1,
-				 const HYSL_FLOAT a2, const HYSL_FLOAT a3, const HYSL_FLOAT a4,
-				 const HYSL_FLOAT a5, const HYSL_FLOAT Alpha_HHT, MatrixVector_t *const Eff_ForceT );
+				 MatrixVector_t *const Tempvec, const hysl_float_t a0, const hysl_float_t a1,
+				 const hysl_float_t a2, const hysl_float_t a3, const hysl_float_t a4,
+				 const hysl_float_t a5, const hysl_float_t Alpha_HHT, MatrixVector_t *const Eff_ForceT );
 
 /**
  * \brief Calculates the effective force vector according to the formulation using the effective stiffness
@@ -215,16 +215,16 @@ void EffK_EffectiveForce_HHT_PS( const MatrixVector_t *const Mass, const MatrixV
  */
 void EffK_EffectiveForce_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp,
 			     const MatrixVector_t *const DispT, const MatrixVector_t *const VelT,
-			     const MatrixVector_t *const AccT, MatrixVector_t *const Tempvec, const HYSL_FLOAT a0,
-			     const HYSL_FLOAT a1, const HYSL_FLOAT a2, const HYSL_FLOAT a3, const HYSL_FLOAT a4,
-			     const HYSL_FLOAT a5, MatrixVector_t *const Eff_ForceT );
+			     const MatrixVector_t *const AccT, MatrixVector_t *const Tempvec, const hysl_float_t a0,
+			     const hysl_float_t a1, const hysl_float_t a2, const hysl_float_t a3, const hysl_float_t a4,
+			     const hysl_float_t a5, MatrixVector_t *const Eff_ForceT );
 
 void EffK_EffectiveForce_HHT_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp,
 				 const MatrixVector_Sp_t *const Stiff, const MatrixVector_t *const DispT,
 				 const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
-				 MatrixVector_t *const Tempvec, const HYSL_FLOAT a0, const HYSL_FLOAT a1,
-				 const HYSL_FLOAT a2, const HYSL_FLOAT a3, const HYSL_FLOAT a4, const HYSL_FLOAT a5,
-				 const HYSL_FLOAT Alpha_HHT, MatrixVector_t *const Eff_ForceT );
+				 MatrixVector_t *const Tempvec, const hysl_float_t a0, const hysl_float_t a1,
+				 const hysl_float_t a2, const hysl_float_t a3, const hysl_float_t a4, const hysl_float_t a5,
+				 const hysl_float_t Alpha_HHT, MatrixVector_t *const Eff_ForceT );
 
 /**
  * \brief Calculates the effective force vector according to the formulation using the effective
@@ -285,8 +285,8 @@ void EffK_EffectiveForce_HHT_Sp( const MatrixVector_Sp_t *const Mass, const Matr
 void EffK_EffectiveForce_MPI( PMatrixVector_t *const Mass, PMatrixVector_t *const Damp,
 			      PMatrixVector_t *const DispT, PMatrixVector_t *const VelT,
 			      PMatrixVector_t *const AccT, PMatrixVector_t *const Tempvec,
-			      const HYSL_FLOAT a0, const HYSL_FLOAT a1, const HYSL_FLOAT a2, const HYSL_FLOAT a3,
-			      const HYSL_FLOAT a4, const HYSL_FLOAT a5, PMatrixVector_t *const Eff_ForceT );
+			      const hysl_float_t a0, const hysl_float_t a1, const hysl_float_t a2, const hysl_float_t a3,
+			      const hysl_float_t a4, const hysl_float_t a5, PMatrixVector_t *const Eff_ForceT );
 
 /**
  * \brief Computes the new acceleration according to the formulation using the effective stiffness matrix.
@@ -333,7 +333,7 @@ void EffK_EffectiveForce_MPI( PMatrixVector_t *const Mass, PMatrixVector_t *cons
  */
 void EffK_ComputeAcceleration( const MatrixVector_t *const DispTdT, const MatrixVector_t *const DispT,
 				const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
-				const HYSL_FLOAT a0, const HYSL_FLOAT a2, const HYSL_FLOAT a3, MatrixVector_t *const AccTdT );
+				const hysl_float_t a0, const hysl_float_t a2, const hysl_float_t a3, MatrixVector_t *const AccTdT );
 
 /**
  * \brief Computes the new acceleration according to the formulation using the effective stiffness matrix. MPI
@@ -381,7 +381,7 @@ void EffK_ComputeAcceleration( const MatrixVector_t *const DispTdT, const Matrix
  */
 void EffK_ComputeAcceleration_MPI( PMatrixVector_t *const DispTdT, PMatrixVector_t *const DispT,
 				   PMatrixVector_t *const VelT, PMatrixVector_t *const AccT,
-				   const HYSL_FLOAT a0, const HYSL_FLOAT a2, const HYSL_FLOAT a3,
+				   const hysl_float_t a0, const hysl_float_t a2, const hysl_float_t a3,
 				   PMatrixVector_t *const AccTdT );
 
 /**
@@ -426,7 +426,7 @@ void EffK_ComputeAcceleration_MPI( PMatrixVector_t *const DispTdT, PMatrixVector
  */
 void EffK_ComputeVelocity( const MatrixVector_t *const DispTdT, const MatrixVector_t *const DispT,
 			   const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
-			   const HYSL_FLOAT a1, const HYSL_FLOAT a4, const HYSL_FLOAT a5, MatrixVector_t *const VelTdT );
+			   const hysl_float_t a1, const hysl_float_t a4, const hysl_float_t a5, MatrixVector_t *const VelTdT );
 
 /**
  * \brief Computes the new velocity according to the formulation using the effective stiffness matrix. MPI
@@ -468,7 +468,7 @@ void EffK_ComputeVelocity( const MatrixVector_t *const DispTdT, const MatrixVect
  * \sa PMatrixVector_t.
  */
 void EffK_ComputeVelocity_MPI( PMatrixVector_t *const VelT, PMatrixVector_t *const AccT,
-			       PMatrixVector_t *const AccTdT, const HYSL_FLOAT a6, const HYSL_FLOAT a7,
+			       PMatrixVector_t *const AccTdT, const hysl_float_t a6, const hysl_float_t a7,
 			       PMatrixVector_t *const VelTdT );
 
 #endif /* EFFK_FORMULATION_H_ */

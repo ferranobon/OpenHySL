@@ -85,7 +85,7 @@ int main( int argc, char **argv ){
      int ione = 1;
      Scalars_t Constants;
      
-     HYSL_FLOAT *AccAll, *VelAll, *DispAll;
+     hysl_float_t *AccAll, *VelAll, *DispAll;
 
      PMatrixVector_t M, C, K;               /* Mass, Damping and Stiffness matrices */
      PMatrixVector_t Keinv;
@@ -189,10 +189,10 @@ int main( int argc, char **argv ){
       * during the test */
      if( InitCnt.Use_Absolute_Values ){
 	  AccAll = NULL;
-	  VelAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
-	  DispAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+	  VelAll = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
+	  DispAll = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
      } else {
-	  AccAll = (HYSL_FLOAT *) calloc( (size_t) InitCnt.NStep, sizeof(HYSL_FLOAT) );
+	  AccAll = (hysl_float_t *) calloc( (size_t) InitCnt.NStep, sizeof(hysl_float_t) );
 	  VelAll = NULL;
 	  DispAll = NULL;
      }
@@ -405,7 +405,7 @@ int main( int argc, char **argv ){
 					     AccAll[istep -1], InitCnt.NSubstep, InitCnt.DeltaT_Sub, MPI_COMM_WORLD,
 					     &InfoLoc_DispTdT, &InfoLoc_fcprevsub, &InfoLoc_fc, &CNodes, &DispTdT,
 					     &fcprevsub, &fc );*/
-	       Substructure_Substepping_MPI( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(HYSL_FLOAT) istep,
+	       Substructure_Substepping_MPI( Keinv_c.Array, DispTdT0_c.Array, InitCnt.Delta_t*(hysl_float_t) istep,
 					     0.0, InitCnt.NSubstep, InitCnt.DeltaT_Sub, MPI_COMM_WORLD, &InfoLoc_DispTdT,
 					     &InfoLoc_fcprevsub, &InfoLoc_fc, &CNodes, &DispTdT, &fcprevsub, &fc );
 	  }

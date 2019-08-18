@@ -14,7 +14,7 @@ void Compute_NewState_MPI( PMatrixVector_t *const IGain, PMatrixVector_t *const 
 {
      int ione;
      int incx, incy;                   /* Stride in the vectors */
-     HYSL_FLOAT Alpha = 1.0, Beta = 0.0;   /* Constants for the BLAS routines */
+     hysl_float_t Alpha = 1.0, Beta = 0.0;   /* Constants for the BLAS routines */
      char uplo = 'L';                  /* The lower part (upper part in C) will be used and the upper part
 					* (lower part in C) will strictly not be referenced */
 

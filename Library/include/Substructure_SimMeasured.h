@@ -23,7 +23,7 @@
  */
 typedef struct MeasuredSim {
      char *Description;    /*!< \brief Description of the sub-structure.*/
-     HYSL_FLOAT *Values;       /*!< \brief Time history of coupling force values. */
+     hysl_float_t *Values;       /*!< \brief Time history of coupling force values. */
      unsigned int Length;  /*!< \brief Length of the \c Values array.*/
 } MeasuredSim_t;
 
@@ -66,7 +66,7 @@ void Substructure_SimMeasured_Init( const char *FileName, const unsigned int NSt
  *
  * \sa MeasuredSim_t, Substructure_SimMeasured_Init().
  */
-void Substructure_SimMeasured( const MeasuredSim_t *const Sub, HYSL_FLOAT *const fc );
+void Substructure_SimMeasured( const MeasuredSim_t *const Sub, hysl_float_t *const fc );
 
 /**
  * \brief Frees the memory dynamically allocated in Substructure_SimMeasured_Init().

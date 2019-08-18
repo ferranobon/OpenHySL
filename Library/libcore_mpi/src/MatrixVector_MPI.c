@@ -25,7 +25,7 @@ void PMatrixVector_Add3Mat( PMatrixVector_t *const MatA, PMatrixVector_t *const 
 
      char uplo, trans;
      int ione;
-     HYSL_FLOAT ScalarA, ScalarB;
+     hysl_float_t ScalarA, ScalarB;
 
      ione = 1;
      trans = 'N'; /* The operation will not use the transpose matrix */
@@ -80,8 +80,8 @@ void PMatrixVector_Create( int icntxt, const int Rows, const int Cols, const int
      }
 	
      /* Allocate memory for the local array */
-     MatVec->Array = (HYSL_FLOAT *) calloc( (size_t) MatVec->LocalSize.Row*(size_t) MatVec->LocalSize.Col,
-					sizeof(HYSL_FLOAT) );
+     MatVec->Array = (hysl_float_t *) calloc( (size_t) MatVec->LocalSize.Row*(size_t) MatVec->LocalSize.Col,
+					sizeof(hysl_float_t) );
      if ( MatVec->Array == NULL ){
 	  Print_Header( ERROR );
 	  fprintf( stderr, "PMatrixVector_Create: Out of memory.\n" );
@@ -103,7 +103,7 @@ void PMatrixVector_Destroy( PMatrixVector_t *const MatVec )
      free( MatVec->Array );
 }
 
-void PMatrixVector_ModifyElement( int GRowIndex, int GColIndex, const HYSL_FLOAT Alpha, const char *Operation,
+void PMatrixVector_ModifyElement( int GRowIndex, int GColIndex, const hysl_float_t Alpha, const char *Operation,
 				  PMatrixVector_t *const MatVec )
 {
 
@@ -154,12 +154,12 @@ void PMatrixVector_ModifyElement( int GRowIndex, int GColIndex, const HYSL_FLOAT
 
 }
 
-void PMatrixVector_Set2Value( const HYSL_FLOAT Value, PMatrixVector_t *const MatVec )
+void PMatrixVector_Set2Value( const hysl_float_t Value, PMatrixVector_t *const MatVec )
 {
 
      int incx, incy;
      int Length;
-     HYSL_FLOAT Val;
+     hysl_float_t Val;
 
      incx = 0; incy = 1;
      

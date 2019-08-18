@@ -16,15 +16,15 @@
 
 void Rayleigh_Damping(const MatrixVector_t *const Mass, const MatrixVector_t *const Stiff, MatrixVector_t *const Damp, const Rayleigh_t *const Rayleigh) {
     int32_t ione = 1;
-    HYSL_FLOAT done = 1.0;
+    hysl_float_t done = 1.0;
     int32_t incx = 1;
     int32_t incy = 1;
     char uplo = 'L'; /* The lower part of the matrix will be used and the upper part will strictly
                  * not be referenced */
     int32_t Rows = Mass->Rows;
     int32_t Cols = Mass->Cols;
-    HYSL_FLOAT alpha = Rayleigh->Alpha;
-    HYSL_FLOAT beta = Rayleigh->Beta;
+    hysl_float_t alpha = Rayleigh->Alpha;
+    hysl_float_t beta = Rayleigh->Beta;
 
     int32_t lda = Max(1, Rows);
     int32_t ldb = Max(1, Damp->Rows);
@@ -56,8 +56,8 @@ void Rayleigh_Damping_PS(const MatrixVector_t *const Mass, const MatrixVector_t 
     int32_t incx = 1;
     int32_t incy = 1;
 
-    HYSL_FLOAT alpha = Rayleigh->Alpha;
-    HYSL_FLOAT beta = Rayleigh->Beta;
+    hysl_float_t alpha = Rayleigh->Alpha;
+    hysl_float_t beta = Rayleigh->Beta;
 
     int32_t Length = (Damp->Rows * Damp->Cols + Damp->Rows) / 2;
 

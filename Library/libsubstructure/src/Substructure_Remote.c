@@ -362,16 +362,16 @@ void Substructure_Remote_Receive( const int Socket, const unsigned int Data_Leng
 
 void Substructure_Remote_Destroy( Remote_t *const Remote )
 {
-     HYSL_FLOAT *Send = NULL;
+     hysl_float_t *Send = NULL;
      
-     Send = (HYSL_FLOAT *) calloc( (size_t) Remote->NSub + 1, sizeof(HYSL_FLOAT) );
+     Send = (hysl_float_t *) calloc( (size_t) Remote->NSub + 1, sizeof(hysl_float_t) );
 
 
      free( Remote->DOFs );
 
      if( Remote->Type == REMOTE_TCP || Remote->Type == REMOTE_UDP || Remote->Type == REMOTE_CELESTINA ){
 	  Send[0] = -9999.0;
-	  Substructure_Remote_Send( Remote->Socket, (unsigned int) Remote->NSub + 1, sizeof(HYSL_FLOAT), (char *const) Send );
+	  Substructure_Remote_Send( Remote->Socket, (unsigned int) Remote->NSub + 1, sizeof(hysl_float_t), (char *const) Send );
      } else if( Remote->Type == REMOTE_NSEP ){
 	  /* Using NSEP Protocol */
 	  /* Say to PNSE server that the process has finished. WhatToDo = 6 */

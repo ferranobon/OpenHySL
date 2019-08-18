@@ -14,7 +14,7 @@ void ErrorForce_PID( const MatrixVector_t *const Mass, const MatrixVector_t *con
 {
 
      int incx = 1, incy = 1;  /* Stride in the vectors for BLAS routines */
-     HYSL_FLOAT Alpha, Beta;      /* Constants to use in the Sparse BLAS routines */
+     hysl_float_t Alpha, Beta;      /* Constants to use in the Sparse BLAS routines */
      char uplo = 'L';
 
      /* BLAS: fe = fc */
@@ -43,7 +43,7 @@ void ErrorForce_PID_PS( const MatrixVector_t *const Mass, const MatrixVector_t *
 {
 
      int incx = 1, incy = 1;  /* Stride in the vectors for BLAS routines */
-     HYSL_FLOAT Alpha, Beta;      /* Constants to use in the Sparse BLAS routines */
+     hysl_float_t Alpha, Beta;      /* Constants to use in the Sparse BLAS routines */
      char uplo = 'L';
 
      /* BLAS: fe = fc */
@@ -70,11 +70,11 @@ void ErrorForce_PID_HHT( const MatrixVector_t *const Mass, const MatrixVector_t 
 			 const MatrixVector_t *const VelT, const MatrixVector_t *const DispT,
 			 const MatrixVector_t *const AccTdT, const MatrixVector_t *const VelTdT, const MatrixVector_t *const DispTdT,
 			 const MatrixVector_t *const fc, const MatrixVector_t *const LoadT, const MatrixVector_t *const LoadTdT,
-			 const HYSL_FLOAT Alpha_HHT, const PID_t *const PID, MatrixVector_t *const fe )
+			 const hysl_float_t Alpha_HHT, const PID_t *const PID, MatrixVector_t *const fe )
 {
 
      int incx = 1, incy = 1;  /* Stride in the vectors for BLAS routines */
-     HYSL_FLOAT Alpha, Beta;      /* Constants to use in the Sparse BLAS routines */
+     hysl_float_t Alpha, Beta;      /* Constants to use in the Sparse BLAS routines */
      char uplo = 'L';
 
      /* BLAS: fe = fc */
@@ -115,11 +115,11 @@ void ErrorForce_PID_HHT_PS( const MatrixVector_t *const Mass, const MatrixVector
 			    const MatrixVector_t *const VelT, const MatrixVector_t *const DispT,
 			    const MatrixVector_t *const AccTdT, const MatrixVector_t *const VelTdT, const MatrixVector_t *const DispTdT,
 			    const MatrixVector_t *const fc, const MatrixVector_t *const LoadT, const MatrixVector_t *const LoadTdT,
-			    const HYSL_FLOAT Alpha_HHT, const PID_t *const PID, MatrixVector_t *const fe )
+			    const hysl_float_t Alpha_HHT, const PID_t *const PID, MatrixVector_t *const fe )
 {
 
      int incx = 1, incy = 1;  /* Stride in the vectors for BLAS routines */
-     HYSL_FLOAT Alpha, Beta;      /* Constants to use in the Sparse BLAS routines */
+     hysl_float_t Alpha, Beta;      /* Constants to use in the Sparse BLAS routines */
      char uplo = 'L';
 
      /* BLAS: fe = fc */

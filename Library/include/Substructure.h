@@ -56,7 +56,7 @@
  *
  * \sa Substructure_t
  */
-void Substructure_SendGainMatrix( const HYSL_FLOAT *const Gain, const unsigned int Order, const Substructure_t *const Substructure );
+void Substructure_SendGainMatrix( const hysl_float_t *const Gain, const unsigned int Order, const Substructure_t *const Substructure );
 
 /**
  * \brief Performs the sub-stepping process.
@@ -97,10 +97,10 @@ void Substructure_SendGainMatrix( const HYSL_FLOAT *const Gain, const unsigned i
  *
  * \sa CouplingNote_t.
  */
-void Substructure_Substepping( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *const VecTdT0_c, const HYSL_FLOAT Time,
-			       const HYSL_FLOAT GAcc, const unsigned int NSubstep, const HYSL_FLOAT DeltaT_Sub,
-			       CouplingNode_t *const CNodes, HYSL_FLOAT *const VecTdT, HYSL_FLOAT *const CoupForcePrev,
-			       HYSL_FLOAT *const CoupForce );
+void Substructure_Substepping( const hysl_float_t *const IGain, const hysl_float_t *const VecTdT0_c, const hysl_float_t Time,
+			       const hysl_float_t GAcc, const unsigned int NSubstep, const hysl_float_t DeltaT_Sub,
+			       CouplingNode_t *const CNodes, hysl_float_t *const VecTdT, hysl_float_t *const CoupForcePrev,
+			       hysl_float_t *const CoupForce );
 
 #if _MPI_
 /**
@@ -142,9 +142,9 @@ void Substructure_Substepping( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *
  *
  * \sa CouplingNote_t, PMatrixVector_t.
  */
-void Substructure_Substepping_MPI( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *const VecTdT0_c,
-				   const HYSL_FLOAT Time, const HYSL_FLOAT GAcc, const unsigned int NSubstep,
-				   const HYSL_FLOAT DeltaT_Sub, const MPI_Comm Comm,
+void Substructure_Substepping_MPI( const hysl_float_t *const IGain, const hysl_float_t *const VecTdT0_c,
+				   const hysl_float_t Time, const hysl_float_t GAcc, const unsigned int NSubstep,
+				   const hysl_float_t DeltaT_Sub, const MPI_Comm Comm,
 				   const InfoLocation_t *const ILoc_VecTdT,
 				   const InfoLocation_t *const ILoc_CoupForcePrev,
 				   const InfoLocation_t *const ILoc_CoupForce, CouplingNode_t *const CNodes,
@@ -206,9 +206,9 @@ void Substructure_Substepping_MPI( const HYSL_FLOAT *const IGain, const HYSL_FLO
  *
  * \sa CouplingNode_t.
  */
-void Substructure_Simulate( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *const VecTdT0_c,
-			    const HYSL_FLOAT GAcc, const unsigned int NSubstep, const HYSL_FLOAT DeltaT_Sub,
-			    CouplingNode_t *const CNodes, HYSL_FLOAT *const VecTdT_c,
-			    HYSL_FLOAT *const CoupForcePrev_c, HYSL_FLOAT *const CoupForce_c );
+void Substructure_Simulate( const hysl_float_t *const IGain, const hysl_float_t *const VecTdT0_c,
+			    const hysl_float_t GAcc, const unsigned int NSubstep, const hysl_float_t DeltaT_Sub,
+			    CouplingNode_t *const CNodes, hysl_float_t *const VecTdT_c,
+			    hysl_float_t *const CoupForcePrev_c, hysl_float_t *const CoupForce_c );
 
 #endif /* SUBSTRUCTURE_H_ */

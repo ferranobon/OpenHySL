@@ -40,7 +40,7 @@ void MatrixVector_AllocateSpace_Sp( const int nnz, MatrixVector_Sp_t *const MatV
 	  MatVec_Sp->Num_Nonzero = nnz;
 
 	  /* Allocate the memory for the Values and Columns matrices */
-	  MatVec_Sp->Values = (HYSL_FLOAT *) calloc( (size_t) MatVec_Sp->Num_Nonzero, sizeof(HYSL_FLOAT) );
+	  MatVec_Sp->Values = (hysl_float_t *) calloc( (size_t) MatVec_Sp->Num_Nonzero, sizeof(hysl_float_t) );
 	  if( MatVec_Sp->Values == NULL ){
 	       Print_Header( ERROR );
 	       fprintf( stderr, "MatrixVector_AllocateSpace_Sp: Out of memory.\n");
@@ -67,7 +67,7 @@ void MatrixVector_Create_Sp( const int Rows, const int Cols, const int nnz,
      MatrixVector_AllocateSpace_Sp( nnz, MatVec_Sp );
 }
 
-int MatrixVector_CountNNZ_GE( const HYSL_FLOAT *const Matrix, const int Rows, const int Cols )
+int MatrixVector_CountNNZ_GE( const hysl_float_t *const Matrix, const int Rows, const int Cols )
 {
      int i, j;
      int Count;
@@ -84,7 +84,7 @@ int MatrixVector_CountNNZ_GE( const HYSL_FLOAT *const Matrix, const int Rows, co
      return Count;
 }
 
-int MatrixVector_CountNNZ_SY( const HYSL_FLOAT *const Sym_Matrix, const int Rows )
+int MatrixVector_CountNNZ_SY( const hysl_float_t *const Sym_Matrix, const int Rows )
 {
      int i, j;
      int Count;
@@ -106,7 +106,7 @@ void MatrixVector_CSR2Packed( const MatrixVector_Sp_t *const MatVec_Sp,  MatrixV
      int NumZerosRow;         /* Number of non-zero elements in a row */
      int i, j, Position;
      int RowIndex, ColIndex;
-     HYSL_FLOAT Value;
+     hysl_float_t Value;
 
      if( MatVec_Sp->Rows != MatVec_PS->Rows || MatVec_Sp->Cols != MatVec_PS->Cols ){
 	  Print_Header( ERROR );
@@ -214,7 +214,7 @@ void MatrixVector_Add3Mat_Sp( const MatrixVector_Sp_t *const MatA, const MatrixV
      MatrixVector_Sp_t Temp;
      int Length, i;
      int incx, incy;
-     HYSL_FLOAT alpha, beta, gamma;
+     hysl_float_t alpha, beta, gamma;
      char trans;
      int job, sort, info;
 

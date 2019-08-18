@@ -15,7 +15,7 @@ void Substructure_SimMeasured_Init( const char *FileName, const unsigned int NSt
 
      Sub->Length = NSteps*NSubsteps;
 
-     Sub->Values = (HYSL_FLOAT *) calloc( (size_t) Sub->Length, sizeof(HYSL_FLOAT) );
+     Sub->Values = (hysl_float_t *) calloc( (size_t) Sub->Length, sizeof(hysl_float_t) );
      if ( Sub->Values == NULL ){
 	  Print_Header( ERROR );
 	  fprintf(stderr, "Substructure_SimMeasured_Init: Out of memory.\n" );
@@ -48,7 +48,7 @@ void Substructure_SimMeasured_Init( const char *FileName, const unsigned int NSt
 }
 
 
-void Substructure_SimMeasured( const MeasuredSim_t *const Sub, HYSL_FLOAT *const fc )
+void Substructure_SimMeasured( const MeasuredSim_t *const Sub, hysl_float_t *const fc )
 {
      static unsigned int i = 0;
 

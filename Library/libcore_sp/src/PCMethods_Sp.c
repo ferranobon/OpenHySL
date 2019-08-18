@@ -12,7 +12,7 @@ void PC_Correct_Acceleration_Sp( const MatrixVector_Sp_t *const MInv, const Matr
 				 MatrixVector_t *const AccTdT_Corr )
 {
      int incx = 1, incy = 1;    /* Stride in the vectors */
-     HYSL_FLOAT Alpha, Beta;    /* Constants to use in the Sparse BLAS routines */
+     hysl_float_t Alpha, Beta;    /* Constants to use in the Sparse BLAS routines */
      char trans = 'N';          /* No transpose operation */
      char matdescra[6] = {'S',  /* The matrix is symmetric */
 			  'U',  /* The upper part is referenced */

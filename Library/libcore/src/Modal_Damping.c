@@ -24,7 +24,7 @@ void Modal_Damping(const MatrixVector_t *const Mass, const MatrixVector_t *const
     fprintf(stderr, "Modal_Damping(): Untested routine.");
 
     int32_t ione = 1;
-    HYSL_FLOAT done = 1.0;
+    hysl_float_t done = 1.0;
     int32_t incx = 1;
     int32_t incy = 1;
     char uplo = 'L'; /* The lower part of the matrix will be used and the upper part will strictly
@@ -51,8 +51,8 @@ void Modal_Damping(const MatrixVector_t *const Mass, const MatrixVector_t *const
         Damp->Array[idx * Rows + idx] = 2.0 * sqrt(EValues.Array[idx]) * DampFactor;
     }
 
-    HYSL_FLOAT alpha = 1.0;
-    HYSL_FLOAT beta = 0.0;
+    hysl_float_t alpha = 1.0;
+    hysl_float_t beta = 0.0;
     char transa = 'T';
     char transb = 'N';
     dgemm_(&transa, &transb, &Rows, &Cols, &Rows, &alpha, EVectors.Array, &Rows, Damp->Array, &Rows, &beta, temp.Array, &Rows);

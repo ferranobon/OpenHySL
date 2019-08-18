@@ -15,7 +15,7 @@ void PC_Correct_Acceleration_MPI( const PMatrixVector_t *const MInv, const PMatr
 
      int ione = 1;
      int incx = 1, incy = 1;           /* Stride in the vectors */
-     HYSL_FLOAT Alpha = 1.0, Beta = 0.0;   /* Constants for the BLAS routines */
+     hysl_float_t Alpha = 1.0, Beta = 0.0;   /* Constants for the BLAS routines */
      char uplo = 'L';                  /* The lower part (upper part in C) will be used and the upper part
 					* (lower part in C) will strictly not be referenced */
 

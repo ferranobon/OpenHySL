@@ -30,11 +30,11 @@
 #include "Netlib.h"
 #endif
 
-void Substructure_SendGainMatrix( const HYSL_FLOAT *const Gain, unsigned int Order, const Substructure_t *const Substructure )
+void Substructure_SendGainMatrix( const hysl_float_t *const Gain, unsigned int Order, const Substructure_t *const Substructure )
 {
      Remote_t *Remote = NULL;
      unsigned int i, j;           /* Counters */
-     HYSL_FLOAT *Send, *Recv;     /* Only used in case of of substructures of remote type REMOTE_NSEP */
+     hysl_float_t *Send, *Recv;     /* Only used in case of of substructures of remote type REMOTE_NSEP */
 
      if( Substructure->Type == EXP_ADWIN ){
 #if _ADWIN_
@@ -54,7 +54,7 @@ void Substructure_SendGainMatrix( const HYSL_FLOAT *const Gain, unsigned int Ord
 	  Remote = (Remote_t *) Substructure->SimStruct;
 
 	  if( Remote->Type == REMOTE_TCP || Remote->Type == REMOTE_UDP || Remote->Type == REMOTE_CELESTINA ){
-	       Substructure_Remote_Send( Remote->Socket, Order*Order, sizeof(HYSL_FLOAT), (const char *const) Gain );
+	       Substructure_Remote_Send( Remote->Socket, Order*Order, sizeof(hysl_float_t), (const char *const) Gain );
 	       Print_Header( SUCCESS );
 	       printf("Gain Matrix successfully sent to Remote site %s:%s (%s protocol).\n", Remote->IP, Remote->Port,
 		      Substructure_Remote_Type[Remote->Type] );
@@ -65,8 +65,8 @@ void Substructure_SendGainMatrix( const HYSL_FLOAT *const Gain, unsigned int Ord
 	   * to send the matrix Gc per rows to fullfill this requisite. This also means, that the FCM must
 	   * send as many NSEP_CSIG packets as the number of rows to keep everything synchronised
 	   */
-	       Send = (HYSL_FLOAT *) calloc( (size_t) Order, sizeof(HYSL_FLOAT) );
-	       Recv = (HYSL_FLOAT *) calloc( (size_t) Order, sizeof(HYSL_FLOAT) );
+	       Send = (hysl_float_t *) calloc( (size_t) Order, sizeof(hysl_float_t) );
+	       Recv = (hysl_float_t *) calloc( (size_t) Order, sizeof(hysl_float_t) );
 	       for ( i = 0; i < Order; i++ ){
 		    for ( j = 0; j < Order; j++ ){
 			 Send[j] = Gain[i*Order + j];
@@ -88,24 +88,24 @@ void Substructure_SendGainMatrix( const HYSL_FLOAT *const Gain, unsigned int Ord
      } else assert( Substructure->Type == EXP_ADWIN || Substructure->Type == REMOTE );
 }
 
-void Substructure_Substepping( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *const VecTdT0_c, const HYSL_FLOAT Time,
-			       const HYSL_FLOAT GAcc, const unsigned int NSubstep, const HYSL_FLOAT DeltaT_Sub,
-			       CouplingNode_t *const CNodes, HYSL_FLOAT *const VecTdT, HYSL_FLOAT *const CoupForcePrev,
-			       HYSL_FLOAT *const CoupForce )
+void Substructure_Substepping( const hysl_float_t *const IGain, const hysl_float_t *const VecTdT0_c, const hysl_float_t Time,
+			       const hysl_float_t GAcc, const unsigned int NSubstep, const hysl_float_t DeltaT_Sub,
+			       CouplingNode_t *const CNodes, hysl_float_t *const VecTdT, hysl_float_t *const CoupForcePrev,
+			       hysl_float_t *const CoupForce )
 {
 
      int i, pos;
      bool Called_Sub = false, Called_ADwin = false;
-     HYSL_FLOAT *Recv = NULL, *Recv_ADwin = NULL, *VecTdT0_c_ADwin = NULL;
-     HYSL_FLOAT *Send = NULL;
+     hysl_float_t *Recv = NULL, *Recv_ADwin = NULL, *VecTdT0_c_ADwin = NULL;
+     hysl_float_t *Send = NULL;
      bool MultipleTypes = true;
 
      Remote_t *Remote;
 
-     Recv = (HYSL_FLOAT *) calloc( (size_t) 3*(size_t)CNodes->Order, sizeof(HYSL_FLOAT) );
+     Recv = (hysl_float_t *) calloc( (size_t) 3*(size_t)CNodes->Order, sizeof(hysl_float_t) );
      if ((CNodes->OrderADwin >= 1) && MultipleTypes){
-	  Recv_ADwin = (HYSL_FLOAT *) calloc( (size_t) 3*(size_t)CNodes->OrderADwin, sizeof(HYSL_FLOAT) );
-	  VecTdT0_c_ADwin = (HYSL_FLOAT *) calloc( (size_t) CNodes->OrderADwin, sizeof(HYSL_FLOAT) );
+	  Recv_ADwin = (hysl_float_t *) calloc( (size_t) 3*(size_t)CNodes->OrderADwin, sizeof(hysl_float_t) );
+	  VecTdT0_c_ADwin = (hysl_float_t *) calloc( (size_t) CNodes->OrderADwin, sizeof(hysl_float_t) );
      }
      
      /* Copy the older coupling force. This is necessary for simulations */
@@ -164,15 +164,15 @@ void Substructure_Substepping( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *
 	       Remote = (Remote_t *) CNodes->Sub[i].SimStruct;
 
 	       if( Remote->Type == REMOTE_TCP || Remote->Type == REMOTE_UDP || Remote->Type == REMOTE_CELESTINA ){
-		    Send = (HYSL_FLOAT *) calloc( (size_t) 1+(size_t)CNodes->Order, sizeof(HYSL_FLOAT) );
+		    Send = (hysl_float_t *) calloc( (size_t) 1+(size_t)CNodes->Order, sizeof(hysl_float_t) );
 		    for( i = 0; i < CNodes->Order; i++ ){
 			 Send[i] = VecTdT0_c[i];
 		    }
 		    Send[CNodes->Order] = GAcc;
 
-		    Substructure_Remote_Send( Remote->Socket, (unsigned int) CNodes->Order + 1, sizeof(HYSL_FLOAT), (char *const) Send );
+		    Substructure_Remote_Send( Remote->Socket, (unsigned int) CNodes->Order + 1, sizeof(hysl_float_t), (char *const) Send );
 
-		    Substructure_Remote_Receive( Remote->Socket, 3*(unsigned int) CNodes->Order, sizeof(HYSL_FLOAT), (char *const) Recv );
+		    Substructure_Remote_Receive( Remote->Socket, 3*(unsigned int) CNodes->Order, sizeof(hysl_float_t), (char *const) Recv );
 		    free( Send );
 	       } else if( Remote->Type == REMOTE_NSEP ){
 		    /* Using NSEP Protocol */
@@ -218,15 +218,15 @@ void Substructure_Substepping( const HYSL_FLOAT *const IGain, const HYSL_FLOAT *
      }
 }
 
-void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const VecTdT0_c, const HYSL_FLOAT GAcc, 
-			    const unsigned int NSubstep, const HYSL_FLOAT DeltaT_Sub, CouplingNode_t *const CNodes,
-			    HYSL_FLOAT *const VecTdT_c, HYSL_FLOAT *const CoupForcePrev_c, HYSL_FLOAT *const CoupForce_c )
+void Substructure_Simulate( const hysl_float_t *IGain, const hysl_float_t *const VecTdT0_c, const hysl_float_t GAcc, 
+			    const unsigned int NSubstep, const hysl_float_t DeltaT_Sub, CouplingNode_t *const CNodes,
+			    hysl_float_t *const VecTdT_c, hysl_float_t *const CoupForcePrev_c, hysl_float_t *const CoupForce_c )
 {
 
      unsigned int i, Substep, temp;
-     HYSL_FLOAT ramp0, ramp;
+     hysl_float_t ramp0, ramp;
      int incx = 1, incy = 1;
-     HYSL_FLOAT One;
+     hysl_float_t One;
      int Length;
      char uplo = 'L';
      ExactSim_t *Exact;
@@ -245,7 +245,7 @@ void Substructure_Simulate( const HYSL_FLOAT *IGain, const HYSL_FLOAT *const Vec
 	  /* Backup data so that CoupForcePrev_c contains always the last coupling force */
 	  hysl_copy( &Length, CoupForce_c, &incx, CoupForcePrev_c, &incy );
 	       
-	  ramp = (HYSL_FLOAT) Substep / (HYSL_FLOAT) NSubstep;
+	  ramp = (hysl_float_t) Substep / (hysl_float_t) NSubstep;
 
 #if _FLOAT_
 	  ramp0 = 1.0f - ramp;   

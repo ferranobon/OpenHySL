@@ -16,11 +16,11 @@
 #include "Netlib.h"
 #endif
 
-void Substructure_ExactSolutionMDOF_Init( const HYSL_FLOAT *const Mass, const HYSL_FLOAT *const Stiff, const int NDOF,
-					  const HYSL_FLOAT RayM_Alpha, const HYSL_FLOAT RayM_Beta,
-					  const HYSL_FLOAT RayS_Alpha, const HYSL_FLOAT RayS_Beta,
-					  const HYSL_FLOAT a0, const HYSL_FLOAT a2, const HYSL_FLOAT a3,
-					  const HYSL_FLOAT a6, const HYSL_FLOAT a7, const char *Description,
+void Substructure_ExactSolutionMDOF_Init( const hysl_float_t *const Mass, const hysl_float_t *const Stiff, const int NDOF,
+					  const hysl_float_t RayM_Alpha, const hysl_float_t RayM_Beta,
+					  const hysl_float_t RayS_Alpha, const hysl_float_t RayS_Beta,
+					  const hysl_float_t a0, const hysl_float_t a2, const hysl_float_t a3,
+					  const hysl_float_t a6, const hysl_float_t a7, const char *Description,
 					  ExactSim_t *const Sub )
 {
      int i;
@@ -61,9 +61,9 @@ void Substructure_ExactSolutionMDOF_Init( const HYSL_FLOAT *const Mass, const HY
      Sub->Ray_Sub.Alpha = RayS_Alpha; Sub->Ray_Sub.Beta = RayS_Beta;
 }
 
-void Substructure_ExactSolutionSDOF_Init( const HYSL_FLOAT Mass, const HYSL_FLOAT Damp, const HYSL_FLOAT Stiff,
-					  const HYSL_FLOAT a0, const HYSL_FLOAT a2, const HYSL_FLOAT a3,
-					  const HYSL_FLOAT a6, const HYSL_FLOAT a7, const char *Description,
+void Substructure_ExactSolutionSDOF_Init( const hysl_float_t Mass, const hysl_float_t Damp, const hysl_float_t Stiff,
+					  const hysl_float_t a0, const hysl_float_t a2, const hysl_float_t a3,
+					  const hysl_float_t a6, const hysl_float_t a7, const char *Description,
 					  ExactSim_t *const Sub )
 {
      Sub->Description = strdup( Description );
@@ -102,11 +102,11 @@ void Substructure_ExactSolutionSDOF_Init( const HYSL_FLOAT Mass, const HYSL_FLOA
      Sub->a6 = a6; Sub->a7 = a7;
 }
 
-void Compute_DampingRatios_Rayleigh( const HYSL_FLOAT Ray_Alpha, const HYSL_FLOAT Ray_Beta, const int Num_DOF,
-				     const HYSL_FLOAT *const Eigen_Values, HYSL_FLOAT *const Damping_Ratios )
+void Compute_DampingRatios_Rayleigh( const hysl_float_t Ray_Alpha, const hysl_float_t Ray_Beta, const int Num_DOF,
+				     const hysl_float_t *const Eigen_Values, hysl_float_t *const Damping_Ratios )
 {
      int i; /* A counter */
-     HYSL_FLOAT omega;
+     hysl_float_t omega;
      
      for ( i = 0; i < Num_DOF; i++ ){
 #if _FLOAT_
@@ -119,8 +119,8 @@ void Compute_DampingRatios_Rayleigh( const HYSL_FLOAT Ray_Alpha, const HYSL_FLOA
      }
 }
 
-void Substructure_ExactSolutionMDOF( const HYSL_FLOAT DispTdT, const HYSL_FLOAT ramp, const HYSL_FLOAT GAcc, const HYSL_FLOAT DeltaT,
-				     ExactSim_t *const Sub, HYSL_FLOAT *const fc )
+void Substructure_ExactSolutionMDOF( const hysl_float_t DispTdT, const hysl_float_t ramp, const hysl_float_t GAcc, const hysl_float_t DeltaT,
+				     ExactSim_t *const Sub, hysl_float_t *const fc )
 {
      int i;
      int Length = Sub->Mass.Rows;
@@ -161,8 +161,8 @@ void Substructure_ExactSolutionMDOF( const HYSL_FLOAT DispTdT, const HYSL_FLOAT 
      }
 }
 
-void Substructure_ExactSolutionSDOF( const HYSL_FLOAT DispTdT, const HYSL_FLOAT ramp, const HYSL_FLOAT GAcc,
-				      const HYSL_FLOAT DeltaT, ExactSim_t *const Sub, HYSL_FLOAT *const fc )
+void Substructure_ExactSolutionSDOF( const hysl_float_t DispTdT, const hysl_float_t ramp, const hysl_float_t GAcc,
+				      const hysl_float_t DeltaT, ExactSim_t *const Sub, hysl_float_t *const fc )
 {
 
      /* Calculate the new acceleration and velocity for the coupling node */
@@ -194,7 +194,7 @@ void Duhamel_Integral( const MatrixVector_t *const Mass, const MatrixVector_t *c
 		       const MatrixVector_t *const Eigen_Vectors, const MatrixVector_t *const Damping_Ratios,
 		       const MatrixVector_t *const Init_Disp, const MatrixVector_t *const Init_Vel, 
 		       const MatrixVector_t *const Load, MatrixVector_t *const End_Disp,
-		       MatrixVector_t *const End_Vel, MatrixVector_t *const End_Acc, const HYSL_FLOAT Delta_T )
+		       MatrixVector_t *const End_Vel, MatrixVector_t *const End_Acc, const hysl_float_t Delta_T )
 {
 
      int i;                        /* Counter */
@@ -202,10 +202,10 @@ void Duhamel_Integral( const MatrixVector_t *const Mass, const MatrixVector_t *c
      char uplo = 'L';              /* The lower part (upper part in C) will be used and the upper part (lower
 				    * part in C) will strictly not be referenced */
      char trans;
-     HYSL_FLOAT Alpha, Beta;           /* Constants for the BLAS routines */
-     HYSL_FLOAT om2, om, omp, zeta=0.0;
-     HYSL_FLOAT expo, sino, coso;
-     HYSL_FLOAT x_part, x_hom, a, b;    
+     hysl_float_t Alpha, Beta;           /* Constants for the BLAS routines */
+     hysl_float_t om2, om, omp, zeta=0.0;
+     hysl_float_t expo, sino, coso;
+     hysl_float_t x_part, x_hom, a, b;    
 
      MatrixVector_t modal_force;
      MatrixVector_t modal_disp, modal_velo;
@@ -341,11 +341,11 @@ void Substructure_ExactSolutionSDOF_Destroy( ExactSim_t *const Sub )
      MatrixVector_Destroy( &Sub->End_Acc );
 }
 
-void Substructure_ExactSolutionESP_Init( const HYSL_FLOAT Mass, const HYSL_FLOAT Damp, const HYSL_FLOAT Stiff, const HYSL_FLOAT DeltaT, const char *Description, ExactSimESP_t *const Sub )
+void Substructure_ExactSolutionESP_Init( const hysl_float_t Mass, const hysl_float_t Damp, const hysl_float_t Stiff, const hysl_float_t DeltaT, const char *Description, ExactSimESP_t *const Sub )
 {
-     HYSL_FLOAT omega, omegaD, omega2;
-     HYSL_FLOAT xi;
-     HYSL_FLOAT expdt, sinDdt, cosDdt, omegadt, omegaDdt;
+     hysl_float_t omega, omegaD, omega2;
+     hysl_float_t xi;
+     hysl_float_t expdt, sinDdt, cosDdt, omegadt, omegaDdt;
 
      Sub->Description = strdup( Description );
 
@@ -457,7 +457,7 @@ void Substructure_ExactSolutionESP_Init( const HYSL_FLOAT Mass, const HYSL_FLOAT
      Sub->omega = omega;
 }
 
-void Substructure_ExactSolutionESP_SDOF( const HYSL_FLOAT DispTdT, const HYSL_FLOAT ramp, const HYSL_FLOAT GAcc,const HYSL_FLOAT DeltaT, ExactSimESP_t *const Sub, HYSL_FLOAT *const fc )
+void Substructure_ExactSolutionESP_SDOF( const hysl_float_t DispTdT, const hysl_float_t ramp, const hysl_float_t GAcc,const hysl_float_t DeltaT, ExactSimESP_t *const Sub, hysl_float_t *const fc )
 {
 
      /* Compute initial velocity */

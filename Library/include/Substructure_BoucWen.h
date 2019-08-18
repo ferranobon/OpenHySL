@@ -19,131 +19,131 @@ typedef struct BoucWen {
 
      char *Description;   /*!< \brief Optional description of the substructure. */
      int BoucWen_Type;    /*!< \brief Controls wich type of Bouc Wen Model will be computed. */
-     HYSL_FLOAT BW_Force; /*!< \brief Force in the Bouc-Wen hysteresis law. */
+     hysl_float_t BW_Force; /*!< \brief Force in the Bouc-Wen hysteresis law. */
      
      /*******************************************************************************************************/
      /************************************ Basic Bouc-Wen parameters ****************************************/
      /*******************************************************************************************************/
      
-     HYSL_FLOAT alpha;    /*!< \brief Post-yield stiffness ratio \f$\alpha = k_y/k_e\f$ with \f$k_y\$ the post
+     hysl_float_t alpha;    /*!< \brief Post-yield stiffness ratio \f$\alpha = k_y/k_e\f$ with \f$k_y\$ the post
 			   * yield stiffness and \f$ke\f$ de pre-yield stiffness. */
-     HYSL_FLOAT Fy;       /*!< \brief Yield force */
-     HYSL_FLOAT ko;       /* ko is the elasttic stiffness \f$k_0 = F_y/u_y\f$ where \f$F_y\f$ is the post
+     hysl_float_t Fy;       /*!< \brief Yield force */
+     hysl_float_t ko;       /* ko is the elasttic stiffness \f$k_0 = F_y/u_y\f$ where \f$F_y\f$ is the post
 			   * yield stiffness and \f$u_y\f$ the yield displacement. */
-     HYSL_FLOAT beta;     /*!< \brief Bouc-Wen model coefficient. */
-     HYSL_FLOAT gamma;    /*!< \brief Bouc-Wen model coefficient. */
-     HYSL_FLOAT n;        /*!< \brief Hardening - Softening parameter. Controls the transition from linear to
+     hysl_float_t beta;     /*!< \brief Bouc-Wen model coefficient. */
+     hysl_float_t gamma;    /*!< \brief Bouc-Wen model coefficient. */
+     hysl_float_t n;        /*!< \brief Hardening - Softening parameter. Controls the transition from linear to
 			   * non-linear range (as n increases the transition becomes sharper; n is usually
 			   * grater or equal to 1). */
 
      /*******************************************************************************************************/
      /******************************** Parameters for material degradation **********************************/
      /*******************************************************************************************************/
-     HYSL_FLOAT A0;       /*!< \brief Hysteresis amplitude. */
-     HYSL_FLOAT deltaA;   /*!< \brief Control parameter of the hysteresis amplitude with respect to the
+     hysl_float_t A0;       /*!< \brief Hysteresis amplitude. */
+     hysl_float_t deltaA;   /*!< \brief Control parameter of the hysteresis amplitude with respect to the
 			   * energy. */
-     HYSL_FLOAT nu0;      /*!< \brief Strength degradation. */
-     HYSL_FLOAT deltaNu;  /*!< \brief Strength degradation parameter. With \f$\delta_\nu = 0\f$ no strength
+     hysl_float_t nu0;      /*!< \brief Strength degradation. */
+     hysl_float_t deltaNu;  /*!< \brief Strength degradation parameter. With \f$\delta_\nu = 0\f$ no strength
 			   * degradation is included in the model. */
-     HYSL_FLOAT eta0;     /*!< \brief Stiffness degradation. */
-     HYSL_FLOAT deltaEta; /*!< \brief Stiffness degradation parameter. With \f$\delta_\eta = 0\f$ no stiffness
+     hysl_float_t eta0;     /*!< \brief Stiffness degradation. */
+     hysl_float_t deltaEta; /*!< \brief Stiffness degradation parameter. With \f$\delta_\eta = 0\f$ no stiffness
 			   * degradation is included in the model.*/
 
      /*******************************************************************************************************/
      /********************************* Parameters for pinching modelling ***********************************/
      /*******************************************************************************************************/
-     HYSL_FLOAT vs0;      /*!< \brief Pinching severity. With \f$\zeta_s = 0\f$ there is no pinching effect
+     hysl_float_t vs0;      /*!< \brief Pinching severity. With \f$\zeta_s = 0\f$ there is no pinching effect
 			   * included in the model. */
-     HYSL_FLOAT p;        /*!< \brief Initial pinching parameter. With \f$p = 0\f$ there is no pinching effect
+     hysl_float_t p;        /*!< \brief Initial pinching parameter. With \f$p = 0\f$ there is no pinching effect
 			   * included in the model. */
-     HYSL_FLOAT q;        /*!< \brief Pinching parameter. */
-     HYSL_FLOAT psi0;     /*!< \brief Pinching parameter. */
-     HYSL_FLOAT deltaPsi; /*!< \brief Controls the change of pinching in the model */
-     HYSL_FLOAT lambda;   /*!< \brief Pinching parameter. */
+     hysl_float_t q;        /*!< \brief Pinching parameter. */
+     hysl_float_t psi0;     /*!< \brief Pinching parameter. */
+     hysl_float_t deltaPsi; /*!< \brief Controls the change of pinching in the model */
+     hysl_float_t lambda;   /*!< \brief Pinching parameter. */
 
      
      /*******************************************************************************************************/
      /************************************* Newton-Rhapson variables ****************************************/
      /*******************************************************************************************************/
      int maxIter;
-     HYSL_FLOAT tolerance, startPoint;
-     HYSL_FLOAT z_old, e_old;
-     HYSL_FLOAT DispT;
+     hysl_float_t tolerance, startPoint;
+     hysl_float_t z_old, e_old;
+     hysl_float_t DispT;
 } BoucWen_t;
 
 typedef struct BoucWenSurface {
      char *Description;  /*!< \brief Optional description of the substructure. */
      int BoucWen_Type;   /*!< \brief Controls wich type of Bouc Wen Model will be computed. */
-     HYSL_FLOAT BW_Force[2];
+     hysl_float_t BW_Force[2];
      
      /*******************************************************************************************************/
      /************************************ Basic Bouc-Wen parameters ****************************************/
      /*******************************************************************************************************/
      
-     HYSL_FLOAT alpha;    /*!< \brief Post-yield stiffness ratio \f$\alpha = k_y/k_e\f$ with \f$k_y\$ the post
+     hysl_float_t alpha;    /*!< \brief Post-yield stiffness ratio \f$\alpha = k_y/k_e\f$ with \f$k_y\$ the post
 			   * yield stiffness and \f$ke\f$ de pre-yield stiffness. */
-     HYSL_FLOAT Fy;       /*!< \brief Yield force */
-     HYSL_FLOAT ko;       /* ko is the elasttic stiffness \f$k_0 = F_y/u_y\f$ where \f$F_y\f$ is the post
+     hysl_float_t Fy;       /*!< \brief Yield force */
+     hysl_float_t ko;       /* ko is the elasttic stiffness \f$k_0 = F_y/u_y\f$ where \f$F_y\f$ is the post
 			   * yield stiffness and \f$u_y\f$ the yield displacement. */
-     HYSL_FLOAT beta;     /*!< \brief Bouc-Wen model coefficient. */
-     HYSL_FLOAT gamma;    /*!< \brief Bouc-Wen model coefficient. */
-     HYSL_FLOAT n;        /*!< \brief Hardening - Softening parameter. Controls the transition from linear to
+     hysl_float_t beta;     /*!< \brief Bouc-Wen model coefficient. */
+     hysl_float_t gamma;    /*!< \brief Bouc-Wen model coefficient. */
+     hysl_float_t n;        /*!< \brief Hardening - Softening parameter. Controls the transition from linear to
 			   * non-linear range (as n increases the transition becomes sharper; n is usually
 			   * grater or equal to 1). */
 
      /*******************************************************************************************************/
      /******************************** Parameters for material degradation **********************************/
      /*******************************************************************************************************/
-     HYSL_FLOAT A0;       /*!< \brief Hysteresis amplitude. */
-     HYSL_FLOAT deltaA;   /*!< \brief Control parameter of the hysteresis amplitude with respect to the
+     hysl_float_t A0;       /*!< \brief Hysteresis amplitude. */
+     hysl_float_t deltaA;   /*!< \brief Control parameter of the hysteresis amplitude with respect to the
 			   * energy. */
-     HYSL_FLOAT nu0;      /*!< \brief Strength degradation. */
-     HYSL_FLOAT deltaNu;  /*!< \brief Strength degradation parameter. With \f$\delta_\nu = 0\f$ no strength
+     hysl_float_t nu0;      /*!< \brief Strength degradation. */
+     hysl_float_t deltaNu;  /*!< \brief Strength degradation parameter. With \f$\delta_\nu = 0\f$ no strength
 			   * degradation is included in the model. */
-     HYSL_FLOAT eta0;     /*!< \brief Stiffness degradation. */
-     HYSL_FLOAT deltaEta; /*!< \brief Stiffness degradation parameter. With \f$\delta_\eta = 0\f$ no stiffness
+     hysl_float_t eta0;     /*!< \brief Stiffness degradation. */
+     hysl_float_t deltaEta; /*!< \brief Stiffness degradation parameter. With \f$\delta_\eta = 0\f$ no stiffness
 			   * degradation is included in the model.*/
 
      /*******************************************************************************************************/
      /********************************* Parameters for pinching modelling ***********************************/
      /*******************************************************************************************************/
-     HYSL_FLOAT vs0;      /*!< \brief Pinching severity. With \f$\zeta_s = 0\f$ there is no pinching effect
+     hysl_float_t vs0;      /*!< \brief Pinching severity. With \f$\zeta_s = 0\f$ there is no pinching effect
 			   * included in the model. */
-     HYSL_FLOAT p;        /*!< \brief Initial pinching parameter. With \f$p = 0\f$ there is no pinching effect
+     hysl_float_t p;        /*!< \brief Initial pinching parameter. With \f$p = 0\f$ there is no pinching effect
 			   * included in the model. */
-     HYSL_FLOAT q;        /*!< \brief Pinching parameter. */
-     HYSL_FLOAT psi0;     /*!< \brief Pinching parameter. */
-     HYSL_FLOAT deltaPsi; /*!< \brief Controls the change of pinching in the model */
-     HYSL_FLOAT lambda;   /*!< \brief Pinching parameter. */
+     hysl_float_t q;        /*!< \brief Pinching parameter. */
+     hysl_float_t psi0;     /*!< \brief Pinching parameter. */
+     hysl_float_t deltaPsi; /*!< \brief Controls the change of pinching in the model */
+     hysl_float_t lambda;   /*!< \brief Pinching parameter. */
 
      
      /*******************************************************************************************************/
      /************************************* Newton-Rhapson variables ****************************************/
      /*******************************************************************************************************/
      int maxIter;
-     HYSL_FLOAT tolerance;
-     HYSL_FLOAT z[2], z_old[2];
-     HYSL_FLOAT DispT[2];
+     hysl_float_t tolerance;
+     hysl_float_t z[2], z_old[2];
+     hysl_float_t DispT[2];
 } BoucWenSurface_t;
 
-void Substructure_BoucWen_Init (const HYSL_FLOAT alpha, const HYSL_FLOAT ko, const HYSL_FLOAT Fy,
-				const HYSL_FLOAT beta, const HYSL_FLOAT gamma, const HYSL_FLOAT n,
-				const HYSL_FLOAT A0, const HYSL_FLOAT deltaA, const HYSL_FLOAT nu0,
-				const HYSL_FLOAT deltaNu, const HYSL_FLOAT eta0, const HYSL_FLOAT deltaEta,
-				const HYSL_FLOAT vs0, const HYSL_FLOAT p, const HYSL_FLOAT q,
-			        const HYSL_FLOAT lambda, const HYSL_FLOAT psi0, const HYSL_FLOAT deltaPsi,
+void Substructure_BoucWen_Init (const hysl_float_t alpha, const hysl_float_t ko, const hysl_float_t Fy,
+				const hysl_float_t beta, const hysl_float_t gamma, const hysl_float_t n,
+				const hysl_float_t A0, const hysl_float_t deltaA, const hysl_float_t nu0,
+				const hysl_float_t deltaNu, const hysl_float_t eta0, const hysl_float_t deltaEta,
+				const hysl_float_t vs0, const hysl_float_t p, const hysl_float_t q,
+			        const hysl_float_t lambda, const hysl_float_t psi0, const hysl_float_t deltaPsi,
 				const int BoucWen_Type, const char *Description, BoucWen_t *const Sub );
 
-void Substructure_BoucWenSurface_Init (const HYSL_FLOAT alpha, const HYSL_FLOAT ko,
-				       const HYSL_FLOAT Fy, const HYSL_FLOAT beta, const HYSL_FLOAT gamma, const HYSL_FLOAT n,
-				       const HYSL_FLOAT A0, const HYSL_FLOAT deltaA, const HYSL_FLOAT nu0,
-				       const HYSL_FLOAT deltaNu, const HYSL_FLOAT eta0, const HYSL_FLOAT deltaEta,
+void Substructure_BoucWenSurface_Init (const hysl_float_t alpha, const hysl_float_t ko,
+				       const hysl_float_t Fy, const hysl_float_t beta, const hysl_float_t gamma, const hysl_float_t n,
+				       const hysl_float_t A0, const hysl_float_t deltaA, const hysl_float_t nu0,
+				       const hysl_float_t deltaNu, const hysl_float_t eta0, const hysl_float_t deltaEta,
 				       const int BoucWen_Type, const char *Description, BoucWenSurface_t *const Sub );
 
-void Substructure_BoucWen ( const HYSL_FLOAT DispTdT, BoucWen_t *const Sub, HYSL_FLOAT *const force );
-void Substructure_BoucWenSurface ( const HYSL_FLOAT DispTdT1, const HYSL_FLOAT DispTdT2, BoucWenSurface_t *const Sub, HYSL_FLOAT *const force1, HYSL_FLOAT *const force2 );
+void Substructure_BoucWen ( const hysl_float_t DispTdT, BoucWen_t *const Sub, hysl_float_t *const force );
+void Substructure_BoucWenSurface ( const hysl_float_t DispTdT1, const hysl_float_t DispTdT2, BoucWenSurface_t *const Sub, hysl_float_t *const force1, hysl_float_t *const force2 );
 
-void right_matrix_division (const HYSL_FLOAT *const vector, const HYSL_FLOAT *const matrix, HYSL_FLOAT *const output);
+void right_matrix_division (const hysl_float_t *const vector, const hysl_float_t *const matrix, hysl_float_t *const output);
 
 void Substructure_BoucWen_Destroy ( BoucWen_t *const Sub );
 void Substructure_BoucWenSurface_Destroy( BoucWenSurface_t *const Sub );

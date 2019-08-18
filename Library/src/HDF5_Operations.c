@@ -40,21 +40,21 @@ hid_t HDF5_CreateFile( const char *Filename )
 }
 
 void HDF5_CreateGroup_Parameters( const hid_t hdf5_file, const AlgConst_t *const InitCnt,			  
-				  const CouplingNode_t *const CNodes, const HYSL_FLOAT *const Acc1,
-				  const HYSL_FLOAT *const Vel1, const HYSL_FLOAT *const Disp1,
-				  const HYSL_FLOAT *const Acc2, const HYSL_FLOAT *const Vel2,
-				  const HYSL_FLOAT *const Disp2, const HYSL_FLOAT *const Acc3,
-				  const HYSL_FLOAT *const Vel3, const HYSL_FLOAT *const Disp3 )
+				  const CouplingNode_t *const CNodes, const hysl_float_t *const Acc1,
+				  const hysl_float_t *const Vel1, const hysl_float_t *const Disp1,
+				  const hysl_float_t *const Acc2, const hysl_float_t *const Vel2,
+				  const hysl_float_t *const Disp2, const hysl_float_t *const Acc3,
+				  const hysl_float_t *const Vel3, const hysl_float_t *const Disp3 )
 {
      hid_t    group_id, dataset_id, dataspace_id;
      hsize_t  dims[2];
      herr_t   status;
-     HYSL_FLOAT   *dArray;
+     hysl_float_t   *dArray;
      int      *iArray, i;
      char     **Entry_Names;
      
      Entry_Names = (char **) malloc( (size_t) 6*sizeof(char*) );
-     dArray = (HYSL_FLOAT *) malloc( (size_t) 4*sizeof(HYSL_FLOAT) );
+     dArray = (hysl_float_t *) malloc( (size_t) 4*sizeof(hysl_float_t) );
 
      /* Create a group named "/Time History" in the file. */
      group_id = H5Gcreate( hdf5_file, "/Test Parameters", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT );     
@@ -306,7 +306,7 @@ void Save_InformationCNodes( const hid_t file_id, const char *Name_path, const A
 		    Nodes_Newmark[k].InitValues[2] = Newmark->Stiff;
 		    Nodes_Newmark[k].InitValues[3] = InitCnt->TIntConst.Beta;
 		    Nodes_Newmark[k].InitValues[4] = InitCnt->TIntConst.Gamma;
-		    Nodes_Newmark[k].InitValues[5] = InitCnt->Delta_t/(HYSL_FLOAT) InitCnt->NSubstep;
+		    Nodes_Newmark[k].InitValues[5] = InitCnt->Delta_t/(hysl_float_t) InitCnt->NSubstep;
 
 		    strcpy( Nodes_Newmark[k].Description, Newmark->Description );	
 		    k = k + 1;
@@ -691,7 +691,7 @@ void HDF5_Store_TimeHistoryData( const hid_t hdf5_file, const MatrixVector_t *co
 
 void HDF5_Store_TMD( const hid_t hdf5_file, const double *const Acc, const double *const Vel, const double *const Disp, const int istep )
 {
-     HYSL_FLOAT TMD[3];
+     hysl_float_t TMD[3];
 
      TMD[0] = *Acc; TMD[1] = *Vel; TMD[2] = *Disp;
      
@@ -755,7 +755,7 @@ void HDF5_Store_Time( const hid_t hdf5_file, const SaveTime_t *const Time )
 }
 
 #if _ADWIN_
-void HDF5_StoreADwinData( const hid_t hdf5_file, const HYSL_FLOAT *Array, char **Entry_Names, const int Length )
+void HDF5_StoreADwinData( const hid_t hdf5_file, const hysl_float_t *Array, char **Entry_Names, const int Length )
 {
      hid_t   group_id;
      herr_t  status;
@@ -772,10 +772,10 @@ void ADwin_SaveData_HDF5( const hid_t hdf5_file, const int Num_Steps, const int 
 			  const int Num_Channels, char **Chan_Names, const int DataIndex )
 {
      int Length;
-     HYSL_FLOAT *Data = NULL;
+     hysl_float_t *Data = NULL;
 
      Length = Num_Sub*Num_Steps*Num_Channels;
-     Data = (HYSL_FLOAT *) calloc( (size_t) Length, sizeof( HYSL_FLOAT ) );
+     Data = (hysl_float_t *) calloc( (size_t) Length, sizeof( hysl_float_t ) );
      if( Data == NULL ){
 	  Print_Header( WARNING );
 	  fprintf( stderr, "ADwin_SaveData_HDF5: Out of memory. Manual extraction of the data required.\n" );
@@ -796,7 +796,7 @@ void ADwin_SaveData_HDF5( const hid_t hdf5_file, const int Num_Steps, const int 
 }
 #endif
 
-void HDF5_AddFloatArray_AsTable( const hid_t file_id, const char *Name_path, char **Names, const HYSL_FLOAT *Array, const int Num_param, const int Length )
+void HDF5_AddFloatArray_AsTable( const hid_t file_id, const char *Name_path, char **Names, const hysl_float_t *Array, const int Num_param, const int Length )
 {
      int      i;
      hid_t    memtype, filetype, space, dset;

@@ -28,7 +28,7 @@ void MatrixVector_Create(const int32_t Rows, const int32_t Cols, MatrixVector_t 
 
     /* Allocate the memory */
     MatVec->Array = NULL;
-    MatVec->Array = (HYSL_FLOAT*) calloc((size_t) MatVec->Rows * (size_t) MatVec->Cols, sizeof(HYSL_FLOAT));
+    MatVec->Array = (hysl_float_t*) calloc((size_t) MatVec->Rows * (size_t) MatVec->Cols, sizeof(hysl_float_t));
     if (MatVec->Array == NULL) {
         Print_Header( ERROR);
         fprintf( stderr, "MatrixVector_Create(): Out of memory.\n");
@@ -36,11 +36,11 @@ void MatrixVector_Create(const int32_t Rows, const int32_t Cols, MatrixVector_t 
     }
 }
 
-void MatrixVector_Set2Value(const HYSL_FLOAT Value, MatrixVector_t *const MatVec) {
+void MatrixVector_Set2Value(const hysl_float_t Value, MatrixVector_t *const MatVec) {
     int32_t incx = 0; /* No stride in the vector */
     int32_t incy = 1; /* Stride of one */
     int32_t Length;
-    HYSL_FLOAT Val;
+    hysl_float_t Val;
 
     Length = MatVec->Rows * MatVec->Cols;
     Val = Value;
@@ -49,7 +49,7 @@ void MatrixVector_Set2Value(const HYSL_FLOAT Value, MatrixVector_t *const MatVec
     hysl_copy(&Length, &Val, &incx, MatVec->Array, &incy);
 }
 
-void MatrixVector_ModifyElement(const int32_t RowIndex, const int32_t ColIndex, const HYSL_FLOAT Alpha, const char *Operation, MatrixVector_t *const MatVec) {
+void MatrixVector_ModifyElement(const int32_t RowIndex, const int32_t ColIndex, const hysl_float_t Alpha, const char *Operation, MatrixVector_t *const MatVec) {
 
     const char *OpSet = "Set";
     const char *OpAdd = "Add";
@@ -81,7 +81,7 @@ void MatrixVector_Add3Mat(const MatrixVector_t *const MatA, const MatrixVector_t
     int32_t incx, incy;      /* Stride in the vectors for BLAS library */
     int32_t lda, ldy;
     int32_t ione;
-    HYSL_FLOAT done, Scalar; /* Constant to use in the BLAS library */
+    hysl_float_t done, Scalar; /* Constant to use in the BLAS library */
     char uplo;               /* BLAS & LAPACK: Character to specify which part of the matrix has been referenced. */
     int32_t info;            /* LAPACK: Variable to inform if the operations of Cholesky factorization and inverse were successful or not. */
 

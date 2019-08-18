@@ -22,7 +22,7 @@ void Substructure_JoinNonCouplingPart( MatrixVector_t *const VecTdT_m, const Mat
 {
      int icoup;                 /* Counter for the coupling nodes */
      int incx, incy;            /* Stride in the vectors */
-     HYSL_FLOAT Alpha, Beta;    /* Constants for the BLAS routines */
+     hysl_float_t Alpha, Beta;    /* Constants for the BLAS routines */
      char trans;                /* Use or not the transpose */
      int Rows, Cols;            /* Number of Rows and columns */
      int lda;                   /* Leading dimension */

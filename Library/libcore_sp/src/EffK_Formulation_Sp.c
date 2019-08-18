@@ -8,8 +8,8 @@
 
 void EffK_EffectiveForce_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp, const MatrixVector_t *const DispT,
 			     const MatrixVector_t *const VelT, const MatrixVector_t *const AccT, MatrixVector_t *const Tempvec,
-			     const HYSL_FLOAT a0, const HYSL_FLOAT a1, const HYSL_FLOAT a2, const HYSL_FLOAT a3, const HYSL_FLOAT a4,
-			     const HYSL_FLOAT a5, MatrixVector_t *const Eff_ForceT )
+			     const hysl_float_t a0, const hysl_float_t a1, const hysl_float_t a2, const hysl_float_t a3, const hysl_float_t a4,
+			     const hysl_float_t a5, MatrixVector_t *const Eff_ForceT )
 {
 
      int incx = 1, incy = 1;    /* Stride in the vectors */
@@ -18,7 +18,7 @@ void EffK_EffectiveForce_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVe
 			  'U',  /* The upper part is referenced */
 			  'N',  /* Non-unit values in the diagonal */
 			  'F'}; /* One based index */
-     HYSL_FLOAT Alpha, Beta;    /* Constants for the BLAS routines */
+     hysl_float_t Alpha, Beta;    /* Constants for the BLAS routines */
 
      /* BLAS: tempvec = Disp */
      hysl_copy( &Tempvec->Rows, DispT->Array, &incx, Tempvec->Array, &incy );
@@ -56,8 +56,8 @@ void EffK_EffectiveForce_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVe
 
 void EffK_EffectiveForce_HHT_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVector_Sp_t *const Damp, const MatrixVector_Sp_t *const Stiff,
 				 const MatrixVector_t *const DispT, const MatrixVector_t *const VelT, const MatrixVector_t *const AccT,
-				 MatrixVector_t *const Tempvec, const HYSL_FLOAT a0, const HYSL_FLOAT a1, const HYSL_FLOAT a2, const HYSL_FLOAT a3,
-				 const HYSL_FLOAT a4, const HYSL_FLOAT a5, const HYSL_FLOAT Alpha_HHT, MatrixVector_t *const Eff_ForceT )
+				 MatrixVector_t *const Tempvec, const hysl_float_t a0, const hysl_float_t a1, const hysl_float_t a2, const hysl_float_t a3,
+				 const hysl_float_t a4, const hysl_float_t a5, const hysl_float_t Alpha_HHT, MatrixVector_t *const Eff_ForceT )
 {
 
      int incx = 1, incy = 1;    /* Stride in the vectors */
@@ -66,7 +66,7 @@ void EffK_EffectiveForce_HHT_Sp( const MatrixVector_Sp_t *const Mass, const Matr
 			  'U',  /* The upper part is referenced */
 			  'N',  /* Non-unit values in the diagonal */
 			  'F'}; /* One based index */
-     HYSL_FLOAT Alpha, Beta;    /* Constants for the BLAS routines */
+     hysl_float_t Alpha, Beta;    /* Constants for the BLAS routines */
 
       /* BLAS: tempvec = Disp */
      hysl_copy( &Tempvec->Rows, DispT->Array, &incx, Tempvec->Array, &incy );

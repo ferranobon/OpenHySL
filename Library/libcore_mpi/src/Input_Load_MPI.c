@@ -17,7 +17,7 @@ void InputLoad_AbsValues_MPI( PMatrixVector_t *const Stiff, PMatrixVector_t *con
 
      int incx, incy;     /* Stride in the vectors for PBLAS library */
      int ione;           /* Integer variable of value 1 for PBLAS library */
-     HYSL_FLOAT Alpha, Beta; /* Constants to use in the PBLAS library */
+     hysl_float_t Alpha, Beta; /* Constants to use in the PBLAS library */
      char uplo;          /* Character to use in the PBLAS library */
 
      incx = 1; incy = 1;
@@ -40,7 +40,7 @@ void InputLoad_RelValues_MPI( PMatrixVector_t *const Mass, PMatrixVector_t *cons
 {
      int incx, incy;     /* Stride in the vectors for PBLAS library */
      int ione;           /* Integer variable of value 1 for PBLAS library */
-     HYSL_FLOAT Alpha, Beta; /* Constants to use in the PBLAS library */
+     hysl_float_t Alpha, Beta; /* Constants to use in the PBLAS library */
      char uplo;          /* Character to use in the PBLAS library */
 
      incx = 1; incy = 1;
@@ -72,20 +72,20 @@ void InputLoad_Generate_LoadVectorForm_MPI( int *DOF, PMatrixVector_t *const Loa
 	       /* If its the right process, assign the value */
 	       if ( (Cblacs_pnum( LoadVectorForm->Desc[1], RowProcess, ColProcess ) == 0) &&
 		    (myrow == RowProcess) && (mycol == ColProcess) ){ 
-		    LoadVectorForm->Array[i] = (HYSL_FLOAT) DOF[j];
+		    LoadVectorForm->Array[i] = (hysl_float_t) DOF[j];
 	       }
 	       i = i + 1;
 	  }
      }
 }
 
-void InputLoad_Apply_LoadVectorForm_MPI( PMatrixVector_t *const LoadForm, const HYSL_FLOAT Value,
+void InputLoad_Apply_LoadVectorForm_MPI( PMatrixVector_t *const LoadForm, const hysl_float_t Value,
 					 PMatrixVector_t *const LoadVector )
 {
      int incx = 1;
      int incy = 1;
      int ione = 1;
-     HYSL_FLOAT Scalar;
+     hysl_float_t Scalar;
 
      Scalar = Value;
      

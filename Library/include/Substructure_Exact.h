@@ -30,27 +30,27 @@ typedef struct ExactSim {
      MatrixVector_t Init_Disp, Init_Vel;
      MatrixVector_t End_Disp, End_Vel, End_Acc;
 
-     HYSL_FLOAT Disp0, DispT;
-     HYSL_FLOAT Vel0, VelT, VelTdT;
-     HYSL_FLOAT Acc0, AccT, AccTdT;
+     hysl_float_t Disp0, DispT;
+     hysl_float_t Vel0, VelT, VelTdT;
+     hysl_float_t Acc0, AccT, AccTdT;
 
      char *Description;  /*!< \brief Optional description of the substructure. */
 
      Rayleigh_t Ray_Sub, Ray_Main;
-     HYSL_FLOAT a0, a2, a3, a6, a7;
+     hysl_float_t a0, a2, a3, a6, a7;
 } ExactSim_t;
 
 typedef struct ExactSimESP {
-     HYSL_FLOAT Mass, Stiff, Damp, xi, omega;
-     HYSL_FLOAT Init_Disp, Init_Vel;
-     HYSL_FLOAT End_Disp, End_Vel, End_Acc;
-     HYSL_FLOAT Force_0, Force_1;
-     HYSL_FLOAT Disp0, DispT;
-     HYSL_FLOAT Vel0, VelT, VelTdT;
-     HYSL_FLOAT Acc0, AccT, AccTdT;
+     hysl_float_t Mass, Stiff, Damp, xi, omega;
+     hysl_float_t Init_Disp, Init_Vel;
+     hysl_float_t End_Disp, End_Vel, End_Acc;
+     hysl_float_t Force_0, Force_1;
+     hysl_float_t Disp0, DispT;
+     hysl_float_t Vel0, VelT, VelTdT;
+     hysl_float_t Acc0, AccT, AccTdT;
 
-     HYSL_FLOAT A, B, C, D, E, F, G, H;
-     HYSL_FLOAT a0, a2, a3, a6, a7;
+     hysl_float_t A, B, C, D, E, F, G, H;
+     hysl_float_t a0, a2, a3, a6, a7;
      long int idum;
      char *Description;  /*!< \brief Optional description of the substructure. */
 } ExactSimESP_t;
@@ -71,11 +71,11 @@ typedef struct ExactSimESP {
  * \param[in]  Description
  * \param[out] Sub
  */
-void Substructure_ExactSolutionMDOF_Init( const HYSL_FLOAT *const Mass, const HYSL_FLOAT *const Stiff, const int NDOF,
-					  const HYSL_FLOAT RayM_Alpha, const HYSL_FLOAT RayM_Beta,
-					  const HYSL_FLOAT RayS_Alpha, const HYSL_FLOAT RayS_Beta,
-					  const HYSL_FLOAT a0, const HYSL_FLOAT a2, const HYSL_FLOAT a3,
-					  const HYSL_FLOAT a6, const HYSL_FLOAT a7, const char *Description,
+void Substructure_ExactSolutionMDOF_Init( const hysl_float_t *const Mass, const hysl_float_t *const Stiff, const int NDOF,
+					  const hysl_float_t RayM_Alpha, const hysl_float_t RayM_Beta,
+					  const hysl_float_t RayS_Alpha, const hysl_float_t RayS_Beta,
+					  const hysl_float_t a0, const hysl_float_t a2, const hysl_float_t a3,
+					  const hysl_float_t a6, const hysl_float_t a7, const char *Description,
 					  ExactSim_t *const Sub );
 /**
  * \param[in]  Mass
@@ -89,9 +89,9 @@ void Substructure_ExactSolutionMDOF_Init( const HYSL_FLOAT *const Mass, const HY
  * \param[in]  Description
  * \param[out] Sub
  */
-void Substructure_ExactSolutionSDOF_Init( const HYSL_FLOAT Mass, const HYSL_FLOAT Damp, const HYSL_FLOAT Stiff,
-					  const HYSL_FLOAT a0, const HYSL_FLOAT a2, const HYSL_FLOAT a3,
-					  const HYSL_FLOAT a6, const HYSL_FLOAT a7, const char *Description,
+void Substructure_ExactSolutionSDOF_Init( const hysl_float_t Mass, const hysl_float_t Damp, const hysl_float_t Stiff,
+					  const hysl_float_t a0, const hysl_float_t a2, const hysl_float_t a3,
+					  const hysl_float_t a6, const hysl_float_t a7, const char *Description,
 					  ExactSim_t *const Sub );
 /**
  *
@@ -101,8 +101,8 @@ void Substructure_ExactSolutionSDOF_Init( const HYSL_FLOAT Mass, const HYSL_FLOA
  * \param[in]  Eigen_Values
  * \param[out] Damping_Ratios
  */
-void Compute_DampingRatios_Rayleigh( const HYSL_FLOAT a0, const HYSL_FLOAT a1, const int Num_DOF,
-				     const HYSL_FLOAT *const Eigen_Values, HYSL_FLOAT *const Damping_Ratios );
+void Compute_DampingRatios_Rayleigh( const hysl_float_t a0, const hysl_float_t a1, const int Num_DOF,
+				     const hysl_float_t *const Eigen_Values, hysl_float_t *const Damping_Ratios );
 
 /**
  * \param[in]     DispTdT
@@ -112,8 +112,8 @@ void Compute_DampingRatios_Rayleigh( const HYSL_FLOAT a0, const HYSL_FLOAT a1, c
  * \param[in,out] Sub
  * \param[out]    fc
  */
-void Substructure_ExactSolutionMDOF( const HYSL_FLOAT DispTdT, const HYSL_FLOAT ramp, const HYSL_FLOAT GAcc,
-				      const HYSL_FLOAT DeltaT, ExactSim_t *const Sub, HYSL_FLOAT *const fc );
+void Substructure_ExactSolutionMDOF( const hysl_float_t DispTdT, const hysl_float_t ramp, const hysl_float_t GAcc,
+				      const hysl_float_t DeltaT, ExactSim_t *const Sub, hysl_float_t *const fc );
 
 /**
  * \param[in]     DispTdT
@@ -123,8 +123,8 @@ void Substructure_ExactSolutionMDOF( const HYSL_FLOAT DispTdT, const HYSL_FLOAT 
  * \param[in,out] Sub
  * \param[out]    fc
  */
-void Substructure_ExactSolutionSDOF( const HYSL_FLOAT DispTdT, const HYSL_FLOAT ramp, const HYSL_FLOAT GAcc,
-				      const HYSL_FLOAT DeltaT, ExactSim_t *const Sub, HYSL_FLOAT *const fc );
+void Substructure_ExactSolutionSDOF( const hysl_float_t DispTdT, const hysl_float_t ramp, const hysl_float_t GAcc,
+				      const hysl_float_t DeltaT, ExactSim_t *const Sub, hysl_float_t *const fc );
 
 /**
  * \param[in]  Mass
@@ -143,7 +143,7 @@ void Duhamel_Integral( const MatrixVector_t *const Mass, const MatrixVector_t *c
 		       const MatrixVector_t *const Eigen_Vectors, const MatrixVector_t *const Damping_Ratios,
 		       const MatrixVector_t *const Init_Disp, const MatrixVector_t *const Init_Velo, 
 		       const MatrixVector_t *const Load, MatrixVector_t *const End_Disp,
-		       MatrixVector_t *const End_Velo, MatrixVector_t *const End_Accel, const HYSL_FLOAT Delta_T );
+		       MatrixVector_t *const End_Velo, MatrixVector_t *const End_Accel, const hysl_float_t Delta_T );
 
 //void Substructure_ExactSolution_SDOF( const HYSL_FLOAT u0c, const HYSL_FLOAT DeltaT, ExactSim_t *const Sub, HYSL_FLOAT
 //*const fc );
@@ -166,7 +166,7 @@ void Substructure_ExactSolutionSDOF_Destroy( ExactSim_t *const Sub );
  * \param[in]  Description
  * \param[out] Sub
  */
-void Substructure_ExactSolutionESP_Init( const HYSL_FLOAT Mass, const HYSL_FLOAT Damp, const HYSL_FLOAT Stiff, const HYSL_FLOAT DeltaT, const char *Description, ExactSimESP_t *const Sub );
+void Substructure_ExactSolutionESP_Init( const hysl_float_t Mass, const hysl_float_t Damp, const hysl_float_t Stiff, const hysl_float_t DeltaT, const char *Description, ExactSimESP_t *const Sub );
 
 /**
  * \param[in]     DispTdT
@@ -174,7 +174,7 @@ void Substructure_ExactSolutionESP_Init( const HYSL_FLOAT Mass, const HYSL_FLOAT
  * \param[in,out] Sub
  * \param[out]    fc
  */
-void Substructure_ExactSolutionESP_SDOF( const HYSL_FLOAT DispTdT, const HYSL_FLOAT ramp, const HYSL_FLOAT GAcc, const HYSL_FLOAT DeltaT, ExactSimESP_t *const Sub, HYSL_FLOAT *const fc );
+void Substructure_ExactSolutionESP_SDOF( const hysl_float_t DispTdT, const hysl_float_t ramp, const hysl_float_t GAcc, const hysl_float_t DeltaT, ExactSimESP_t *const Sub, hysl_float_t *const fc );
 
 /**
  * \param[out] Sub

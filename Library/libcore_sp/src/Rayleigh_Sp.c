@@ -18,7 +18,7 @@ void Rayleigh_Damping_Sp( const MatrixVector_Sp_t *const Mass, const MatrixVecto
      int  i;                  /* A counter */
      int Length;
      int incx, incy;          /* Stride in the operations */
-     HYSL_FLOAT alpha, beta;  /* Constants */
+     hysl_float_t alpha, beta;  /* Constants */
      char trans;
      int job, sort, info;     /* MKL variables */
 

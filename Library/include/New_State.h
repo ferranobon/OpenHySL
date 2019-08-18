@@ -118,27 +118,27 @@ void Compute_NewState_PS( const MatrixVector_t *const IGain, const MatrixVector_
 void Compute_NewState_HHT( const MatrixVector_t *const IGain, const MatrixVector_t *const Eff_ForceT,
 			   const MatrixVector_t *const In_LoadT, const MatrixVector_t *const In_LoadTdT,
 			   const MatrixVector_t *const Err_ForceT, MatrixVector_t *const Tempvec,
-			   const HYSL_FLOAT Alpha_H, MatrixVector_t *const VecTdT_0 );
+			   const hysl_float_t Alpha_H, MatrixVector_t *const VecTdT_0 );
 
 void Compute_NewState_Zienkiewicz( const MatrixVector_t *const Meff, const MatrixVector_t *const MatA,
 				   const MatrixVector_t *const MatB, const MatrixVector_t *const DispT,
 				   const MatrixVector_t *const DispT0, const MatrixVector_t *const In_LoadT,
 				   const MatrixVector_t *const Err_ForceT, const MatrixVector_t *const ForceT,
-				   const MatrixVector_t *const ForceT0, const HYSL_FLOAT a8, const HYSL_FLOAT a17,
-				   const HYSL_FLOAT a18, MatrixVector_t *const Tempvec, MatrixVector_t *const VecTdT_0 );
+				   const MatrixVector_t *const ForceT0, const hysl_float_t a8, const hysl_float_t a17,
+				   const hysl_float_t a18, MatrixVector_t *const Tempvec, MatrixVector_t *const VecTdT_0 );
 void Compute_NewState_Zienkiewicz_PS( const MatrixVector_t *const Meff, const MatrixVector_t *const MatA,
 				      const MatrixVector_t *const MatB, const MatrixVector_t *const DispT,
 				      const MatrixVector_t *const DispT0, const MatrixVector_t *const In_LoadT,
 				      const MatrixVector_t *const Err_ForceT, const MatrixVector_t *const ForceT,
-				      const MatrixVector_t *const ForceT0, const HYSL_FLOAT a8, const HYSL_FLOAT a17,
-				      const HYSL_FLOAT a18, MatrixVector_t *const Tempvec, MatrixVector_t *const VecTdT_0 );
+				      const MatrixVector_t *const ForceT0, const hysl_float_t a8, const hysl_float_t a17,
+				      const hysl_float_t a18, MatrixVector_t *const Tempvec, MatrixVector_t *const VecTdT_0 );
 
 void Compute_NewState_Zienkiewicz_Sp( const MatrixVector_t *const Meff, const MatrixVector_Sp_t *const MatA,
 				      const MatrixVector_Sp_t *const MatB, const MatrixVector_t *const DispT,
 				      const MatrixVector_t *const DispT0, const MatrixVector_t *const In_LoadT,
 				      const MatrixVector_t *const Err_ForceT, const MatrixVector_t *const ForceT,
-				      const MatrixVector_t *const ForceT0, const HYSL_FLOAT a8, const HYSL_FLOAT a17,
-				      const HYSL_FLOAT a18, MatrixVector_t *const Tempvec, MatrixVector_t *const VecTdT_0 );
+				      const MatrixVector_t *const ForceT0, const hysl_float_t a8, const hysl_float_t a17,
+				      const hysl_float_t a18, MatrixVector_t *const Tempvec, MatrixVector_t *const VecTdT_0 );
 
 /**
  * \brief Calculates the new state. MPI version.

@@ -90,7 +90,7 @@ void ADwin_ManageProcess( const char* PName, const int PNum, const int dowhat );
  *
  * \post The number of variables contained in Array and transfered to ADwin is equal to \c Length.
  */
-void ADwin_SendArray( const unsigned int Index, const HYSL_FLOAT *const Array, const unsigned int Length );
+void ADwin_SendArray( const unsigned int Index, const hysl_float_t *const Array, const unsigned int Length );
 
 void Substructure_MatrixXc_ADwin( const MatrixVector_t *const Mat, const CouplingNode_t *const CNodes,
 				  MatrixVector_t *const MatCouple );
@@ -130,7 +130,7 @@ void Substructure_MatrixXc_ADwin( const MatrixVector_t *const Mat, const Couplin
  *
  * \sa ADwin_Substep_Post()-
  */
-void ADwin_Substep_Pre( const HYSL_FLOAT *const VecTdT_0c, const unsigned int OrderC );
+void ADwin_Substep_Pre( const hysl_float_t *const VecTdT_0c, const unsigned int OrderC );
 
 /**
  * \brief Sub-stepping process in ADwin. Sending data.
@@ -175,8 +175,8 @@ void ADwin_Substep_Pre( const HYSL_FLOAT *const VecTdT_0c, const unsigned int Or
  *
  * \sa ADwin_Substep_Pre().
  */
-void ADwin_Substep_Post(  const unsigned int OrderC, const HYSL_FLOAT Time_To_Wait, HYSL_FLOAT *const VecTdT_c,
-			  HYSL_FLOAT *const fcprev_c, HYSL_FLOAT *const fc_c );
+void ADwin_Substep_Post(  const unsigned int OrderC, const hysl_float_t Time_To_Wait, hysl_float_t *const VecTdT_c,
+			  hysl_float_t *const fcprev_c, hysl_float_t *const fc_c );
 
 /**
  * \brief Checks if the loaded driver matches the ADwin system.

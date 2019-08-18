@@ -182,8 +182,8 @@
  *
  * \sa Remote_t.
  */
-void Substructure_Remote_NSEP( const Remote_t *const Remote, const int WhatToDo, const HYSL_FLOAT Time,
-			       const unsigned int Size, const HYSL_FLOAT *const Data_To_Send, HYSL_FLOAT *const Data_To_Receive );
+void Substructure_Remote_NSEP( const Remote_t *const Remote, const int WhatToDo, const hysl_float_t Time,
+			       const unsigned int Size, const hysl_float_t *const Data_To_Send, hysl_float_t *const Data_To_Receive );
 
 /**
  * \brief Login to the server in order to proceed with the test.

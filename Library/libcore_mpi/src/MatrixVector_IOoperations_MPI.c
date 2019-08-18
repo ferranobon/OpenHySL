@@ -26,10 +26,10 @@ void PMatrixVector_FromFile( const char *Filename, PMatrixVector_t *const Mat )
      
      char trans = 'N';
      int izero = 0, ione = 1;
-     HYSL_FLOAT done = 1.0, dzero = 0.0;
+     hysl_float_t done = 1.0, dzero = 0.0;
      int lld, info;
      
-     HYSL_FLOAT *LocalMatrix;
+     hysl_float_t *LocalMatrix;
      int descLocal[9];
      
      FILE *InFile;
@@ -49,7 +49,7 @@ void PMatrixVector_FromFile( const char *Filename, PMatrixVector_t *const Mat )
      }
      
      if ( myrow == 0 && mycol == 0 ){
-	  LocalMatrix = calloc( (size_t) Mat->GlobalSize.Row * (size_t)Mat->GlobalSize.Col, sizeof(HYSL_FLOAT) );
+	  LocalMatrix = calloc( (size_t) Mat->GlobalSize.Row * (size_t)Mat->GlobalSize.Col, sizeof(hysl_float_t) );
 	  if( LocalMatrix == NULL ){
 	       Print_Header( ERROR );
 	       fprintf( stderr, "PMatrixVector_FromFile: Out of memory.\n");
@@ -93,7 +93,7 @@ void PMatrixVector_FromFile_MM( const char *Filename, PMatrixVector_t *const Mat
 {
 
      int i, j, innz;				/* Counters */
-     HYSL_FLOAT Value;
+     hysl_float_t Value;
      int myrow, mycol;		/* Grid variables */
      int nprow, npcol;
      
@@ -102,12 +102,12 @@ void PMatrixVector_FromFile_MM( const char *Filename, PMatrixVector_t *const Mat
 
      char trans = 'N';
      int izero = 0, ione = 1;
-     HYSL_FLOAT done = 1.0, dzero = 0.0;
+     hysl_float_t done = 1.0, dzero = 0.0;
      int lld, info;
 
      int Rows, Cols, nnz;
      
-     HYSL_FLOAT *LocalMatrix;
+     hysl_float_t *LocalMatrix;
      int descLocal[9];
      
      FILE *InFile;
@@ -127,7 +127,7 @@ void PMatrixVector_FromFile_MM( const char *Filename, PMatrixVector_t *const Mat
      }
      
      if ( myrow == 0 && mycol == 0 ){
-	  LocalMatrix = calloc( (size_t) Mat->GlobalSize.Row * (size_t)Mat->GlobalSize.Col, sizeof(HYSL_FLOAT) );
+	  LocalMatrix = calloc( (size_t) Mat->GlobalSize.Row * (size_t)Mat->GlobalSize.Col, sizeof(hysl_float_t) );
 	  if( LocalMatrix == NULL ){
 	       Print_Header( ERROR );
 	       fprintf( stderr, "PMatrixVector_FromFile_MM: Out of memory.\n");
@@ -210,10 +210,10 @@ void PMatrixVector_ToFile( PMatrixVector_t *const Mat, const char *Filename )
 
      char trans = 'N';
      int izero = 0, ione = 1;
-     HYSL_FLOAT done = 1.0, dzero = 0.0;
+     hysl_float_t done = 1.0, dzero = 0.0;
      int lld, info;
 
-     HYSL_FLOAT *LocalMatrix;
+     hysl_float_t *LocalMatrix;
      int descLocal[9];
 
      FILE *OutFile;
@@ -234,7 +234,7 @@ void PMatrixVector_ToFile( PMatrixVector_t *const Mat, const char *Filename )
      }
 
      if ( myrow == 0 && mycol == 0 ){
-	  LocalMatrix = calloc( (size_t) (Mat->GlobalSize.Row*Mat->GlobalSize.Col), sizeof(HYSL_FLOAT) );
+	  LocalMatrix = calloc( (size_t) (Mat->GlobalSize.Row*Mat->GlobalSize.Col), sizeof(hysl_float_t) );
 	  if( LocalMatrix == NULL ){
 	       Print_Header( ERROR );
 	       fprintf( stderr, "PMatrixVector_ToFile: Out of memory.\n");

@@ -8,7 +8,7 @@
 
 void EffM_EffectiveForce_Sp( const MatrixVector_Sp_t *const Stiff, const MatrixVector_Sp_t *const Damp, const MatrixVector_t *const DispT,
 			     const MatrixVector_t *const VelT, const MatrixVector_t *const AccT, MatrixVector_t *const Tempvec,
-			     const HYSL_FLOAT a6, const HYSL_FLOAT a9, const HYSL_FLOAT a10,
+			     const hysl_float_t a6, const hysl_float_t a9, const hysl_float_t a10,
 			     MatrixVector_t *const Eff_ForceT )
 {
 
@@ -18,7 +18,7 @@ void EffM_EffectiveForce_Sp( const MatrixVector_Sp_t *const Stiff, const MatrixV
 			  'U',  /* The upper part is referenced */
 			  'N',  /* Non-unit values in the diagonal */
 			  'F'}; /* One based index */
-     HYSL_FLOAT Alpha, Beta;    /* Constants for the BLAS routines */
+     hysl_float_t Alpha, Beta;    /* Constants for the BLAS routines */
 
      /* BLAS: tempvec = Disp */
      hysl_copy( &Tempvec->Rows, DispT->Array, &incx, Tempvec->Array, &incy );

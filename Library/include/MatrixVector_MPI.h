@@ -35,7 +35,7 @@ typedef struct DistInfo {
  * \sa MatrixVector_t and Matrixvector_Sp_t 
  */
 typedef struct PMatrixVector {
-     HYSL_FLOAT *Array;         /*!< \brief Local array of a distributed matrix */
+     hysl_float_t *Array;         /*!< \brief Local array of a distributed matrix */
      int Desc[9];           /*!< \brief Array descriptor for ScaLAPACK routines \cite ScaLAPACK_webpage
 			     * \cite SLUG */
      DistInfo_t GlobalSize; /*!< \brief Stores the size of the global matrix: rows, columns */
@@ -219,7 +219,7 @@ void PMatrixVector_FromFile_MM( const char *Filename, PMatrixVector_t *const Mat
  *
  * \sa PMatrixVector_t
  */
-void PMatrixVector_ModifyElement( int GRowIndex, int GColIndex, const HYSL_FLOAT Alpha, const char *Operation,
+void PMatrixVector_ModifyElement( int GRowIndex, int GColIndex, const hysl_float_t Alpha, const char *Operation,
 				  PMatrixVector_t *const MatVec );
 
 /**
@@ -236,7 +236,7 @@ void PMatrixVector_ModifyElement( int GRowIndex, int GColIndex, const HYSL_FLOAT
  *
  * \post All the elements in \c MatVec.Array are set to \c Value.
  */
-void PMatrixVector_Set2Value( const HYSL_FLOAT Value, PMatrixVector_t *const MatVec );
+void PMatrixVector_Set2Value( const hysl_float_t Value, PMatrixVector_t *const MatVec );
 
 /**
  * \brief Writes a distributed matrix or a vector to an ASCII file in a dense format. MPI version.

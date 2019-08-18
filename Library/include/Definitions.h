@@ -2,7 +2,7 @@
 #define DEFINITIONS_H_
 
 #if _FLOAT_
-#define HYSL_FLOAT  float
+#define hysl_float_t  float
 
 #if _HDF5_
 #define H5T_NATIVE_HYSL_FLOAT H5T_NATIVE_FLOAT
@@ -50,7 +50,7 @@
 
 
 #else /* FLOAT */
-#define HYSL_FLOAT double
+#define hysl_float_t double
 
 #if _HDF5_
 #define H5T_NATIVE_HYSL_FLOAT H5T_NATIVE_DOUBLE

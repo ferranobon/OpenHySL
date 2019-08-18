@@ -30,17 +30,17 @@
 typedef struct MatrixVector {
     int32_t Rows; /*!< \brief Number of Rows of the matrix */
     int32_t Cols; /*!< \brief Number of Columns of the matrix */
-    HYSL_FLOAT *Array; /*!< \brief Array of size \f$Size = Rows*Cols\f$ */
+    hysl_float_t *Array; /*!< \brief Array of size \f$Size = Rows*Cols\f$ */
 } MatrixVector_t;
 
 /**
  * \brief Structure to handle constants to be used in some matrix/vector operations.
  */
 typedef struct Scalars {
-    HYSL_FLOAT Alpha; /*!< \brief First constant.*/
-    HYSL_FLOAT Beta; /*!< \brief Second constant.*/
-    HYSL_FLOAT Gamma; /*!< \brief Third constant.*/
-    HYSL_FLOAT Lambda; /*!< \brief Fourth constant.*/
+    hysl_float_t Alpha; /*!< \brief First constant.*/
+    hysl_float_t Beta; /*!< \brief Second constant.*/
+    hysl_float_t Gamma; /*!< \brief Third constant.*/
+    hysl_float_t Lambda; /*!< \brief Fourth constant.*/
 } Scalars_t;
 
 /**
@@ -194,7 +194,7 @@ void MatrixVector_FromFile_MM(const char *Filename, MatrixVector_t *const MatVec
  *
  * \sa MatrixVector_t
  */
-void MatrixVector_ModifyElement(const int32_t RowIndex, const int32_t ColIndex, const HYSL_FLOAT Alpha, const char *Operation, MatrixVector_t *const MatVec);
+void MatrixVector_ModifyElement(const int32_t RowIndex, const int32_t ColIndex, const hysl_float_t Alpha, const char *Operation, MatrixVector_t *const MatVec);
 
 /**
  * \brief Sets all the members to the specified value.
@@ -211,7 +211,7 @@ void MatrixVector_ModifyElement(const int32_t RowIndex, const int32_t ColIndex, 
  *
  * \post All the elements in \c MatVec.Array are set to \c Value.
  */
-void MatrixVector_Set2Value(const HYSL_FLOAT Value, MatrixVector_t *const MatVec);
+void MatrixVector_Set2Value(const hysl_float_t Value, MatrixVector_t *const MatVec);
 
 /**
  * \brief Writes a matrix or a vector to an ASCII file in a dense format.
