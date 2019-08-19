@@ -56,25 +56,6 @@ int main(int argc, char **argv) {
     /* NETLIB Variables */
     Scalars_t Constants;
 
-    /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will be used during the test */
-    hysl_float_t *AccAll1 = (hysl_float_t*) calloc((size_t) InitCnt.NStep, sizeof(hysl_float_t));
-    hysl_float_t *VelAll1 = (hysl_float_t*) calloc((size_t) InitCnt.NStep, sizeof(hysl_float_t));
-    hysl_float_t *DispAll1 = (hysl_float_t*) calloc((size_t) InitCnt.NStep, sizeof(hysl_float_t));
-    hysl_float_t *AccAll2 = (hysl_float_t*) calloc((size_t) InitCnt.NStep, sizeof(hysl_float_t));
-    hysl_float_t *VelAll2 = (hysl_float_t*) calloc((size_t) InitCnt.NStep, sizeof(hysl_float_t));
-    hysl_float_t *DispAll2 = (hysl_float_t*) calloc((size_t) InitCnt.NStep, sizeof(hysl_float_t));
-    hysl_float_t *AccAll3 = (hysl_float_t*) calloc((size_t) InitCnt.NStep, sizeof(hysl_float_t));
-    hysl_float_t *VelAll3 = (hysl_float_t*) calloc((size_t) InitCnt.NStep, sizeof(hysl_float_t));
-    hysl_float_t *DispAll3 = (hysl_float_t*) calloc((size_t) InitCnt.NStep, sizeof(hysl_float_t));
-
-    if ((AccAll1 == NULL) || (VelAll1 == NULL) || (DispAll1 == NULL)
-            || (AccAll2 == NULL) || (VelAll2 == NULL) || (DispAll2 == NULL)
-            || (AccAll3 == NULL) || (VelAll3 == NULL) || (DispAll3 == NULL)) {
-        Print_Header(ERROR);
-        fprintf( stderr, "SAlgorithm(): Out of memory.\n");
-        exit(EXIT_FAILURE);
-    }
-
     MatrixVector_t M, C, K; /* Mass, Damping and Stiffness matrices */
     MatrixVector_t Keinv;
     MatrixVector_t Keinv_c, Keinv_m, KeinvADwin_c;
@@ -102,7 +83,7 @@ int main(int argc, char **argv) {
     MatrixVector_Sp_t Sp_M, Sp_C, Sp_K; /* Sparse representation of the M, C and K matrices */
 #endif
 
-    bool Matrix_Send_ADwin = false, MultipleTypes = false;
+    bool Matrix_Send_ADwin = false;
     CouplingNode_t CNodes;
     SaveTime_t Time;
 
@@ -151,6 +132,25 @@ int main(int argc, char **argv) {
 
     /* Constants definitions. */
     Algorithm_Init(FileConf, &InitCnt);
+
+    /* Allocate memory for saving the acceleration, displacement and velocity (input files) that will be used during the test */
+    hysl_float_t *AccAll1 = (hysl_float_t*) calloc((size_t) InitCnt.NStep, sizeof(hysl_float_t));
+    hysl_float_t *VelAll1 = (hysl_float_t*) calloc((size_t) InitCnt.NStep, sizeof(hysl_float_t));
+    hysl_float_t *DispAll1 = (hysl_float_t*) calloc((size_t) InitCnt.NStep, sizeof(hysl_float_t));
+    hysl_float_t *AccAll2 = (hysl_float_t*) calloc((size_t) InitCnt.NStep, sizeof(hysl_float_t));
+    hysl_float_t *VelAll2 = (hysl_float_t*) calloc((size_t) InitCnt.NStep, sizeof(hysl_float_t));
+    hysl_float_t *DispAll2 = (hysl_float_t*) calloc((size_t) InitCnt.NStep, sizeof(hysl_float_t));
+    hysl_float_t *AccAll3 = (hysl_float_t*) calloc((size_t) InitCnt.NStep, sizeof(hysl_float_t));
+    hysl_float_t *VelAll3 = (hysl_float_t*) calloc((size_t) InitCnt.NStep, sizeof(hysl_float_t));
+    hysl_float_t *DispAll3 = (hysl_float_t*) calloc((size_t) InitCnt.NStep, sizeof(hysl_float_t));
+
+    if ((AccAll1 == NULL) || (VelAll1 == NULL) || (DispAll1 == NULL)
+            || (AccAll2 == NULL) || (VelAll2 == NULL) || (DispAll2 == NULL)
+            || (AccAll3 == NULL) || (VelAll3 == NULL) || (DispAll3 == NULL)) {
+        Print_Header(ERROR);
+        fprintf( stderr, "SAlgorithm(): Out of memory.\n");
+        exit(EXIT_FAILURE);
+    }
 
     /* Read the coupling nodes from a file */
     Substructure_ReadCouplingNodes(&InitCnt, &CNodes);
@@ -343,15 +343,19 @@ int main(int argc, char **argv) {
         if (!InitCnt.Use_Packed) {
             Substructure_MatrixXc(&Keinv, &CNodes, &Keinv_c);
             Substructure_MatrixXcm(&Keinv, &CNodes, &Keinv_m);
+#if _ADWIN_
             if (CNodes.OrderADwin >= 1) {
                 Substructure_MatrixXc_ADwin(&Keinv, &CNodes, &KeinvADwin_c);
             }
+#endif
         } else {
             Substructure_MatrixXc_PS(&Keinv, &CNodes, &Keinv_c);
             Substructure_MatrixXcm_PS(&Keinv, &CNodes, &Keinv_m);
+#if _ADWIN_
             if (CNodes.OrderADwin >= 1) {
                 Substructure_MatrixXc(&Keinv, &CNodes, &KeinvADwin_c);
             }
+#endif
         }
 
         /* Send the coupling part of the effective matrix if we are performing a distributed test */
@@ -420,8 +424,8 @@ int main(int argc, char **argv) {
     Print_Header( INFO);
     printf("Starting stepping process.\n");
     while (istep <= InitCnt.NStep) {
-        const int32_t incx = 1;
-        const int32_t incy = 1;
+        int32_t incx = 1;
+        int32_t incy = 1;
         printf("step: %d\n", istep);
         /* Calculate the effective force vector Fe = M*(a0*u + a2*v + a3*a) + C*(a1*u + a4*v + a5*a) */
         if (!InitCnt.Use_Sparse && !InitCnt.Use_Packed) {
