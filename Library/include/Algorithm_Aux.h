@@ -212,7 +212,7 @@ void Algorithm_Init( const char *FileName, AlgConst_t *const InitConst );
  *
  * \return \c true if \c Value is 0 or 1, \c false otherwise.
  */
-bool Valid_Value( const int Value );
+bool Valid_Value( const int32_t Value );
 
 /**
  * \brief Checks if a file exists and can be opened.
@@ -346,7 +346,7 @@ void Algorithm_Destroy( AlgConst_t *const InitConst );
  * \param[in] Config Structure containing the entries of the configuration file.
  * \param[in] Expression String with the desired DOFs to be excited.
  */
-int* Algorithm_GetExcitedDOF( const ConfFile_t *const Config, const char *Expression );
+int32_t* Algorithm_GetExcitedDOF( const ConfFile_t *const Config, const char *Expression );
 
 /**
  * \brief Reads the acceleration, velocity and displacement of an earthquake from a file.
@@ -414,6 +414,6 @@ void Algorithm_PrintHelp( const char *Program_Name );
  * \post The initial strings are still accessible while a new string, with all the concatenated strings in it
  * is given as return.
  */
-char* Concatenate_Strings( int count, ... );
+char* Concatenate_Strings( int32_t count, ... );
 
 #endif /* _ALGORITHM_AUX_H_ */
