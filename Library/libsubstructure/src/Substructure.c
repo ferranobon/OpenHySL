@@ -37,13 +37,12 @@ void Substructure_SendGainMatrix (const hysl_float_t *const Gain, uint32_t Order
 
     if (Substructure->Type == EXP_ADWIN) {
 #if _ADWIN_
-
         /* Send matrix Gc to ADwin. */
         /* In the code of ADWIN, the variable G is stored in DATA_70 */
-        ADwin_SendArray( 70, Gain, Order*Order );
+        ADwin_SendArray(70, Gain, Order*Order);
 
-        Print_Header( SUCCESS );
-        printf("Gain Matrix successfully sent to ADwin system.\n" );
+        Print_Header(SUCCESS);
+        printf("Gain Matrix successfully sent to ADwin system.\n");
 #else
         Print_Header( ERROR);
         fprintf( stderr, "The support for ADwin was disabled at runtime.\n");

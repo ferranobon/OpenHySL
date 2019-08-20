@@ -36,7 +36,7 @@
  * \param b Second value.
  * \return max(a,b).
  */
-int Max ( const int a, const int b );
+int Max (const int32_t a, const int32_t b);
 
 /**
  * \brief Returns the minimum of two values
@@ -47,7 +47,7 @@ int Max ( const int a, const int b );
  * \param b Second value.
  * \return min(a,b).
  */
-int Min ( const int a, const int b );
+int Min (const int32_t a, const int32_t b);
 
 /**
  * \brief Returns the sign of a floating point value.
@@ -60,7 +60,7 @@ int Min ( const int a, const int b );
  * \param[in] num Number whose sign needs to be analysed.
  * \returns       Returns the sign of the entered floating point value.
  */
-hysl_float_t signum ( const hysl_float_t num );
+hysl_float_t signum (const hysl_float_t num);
 
 /**
  * \brief Calculates the norm of a vector.
@@ -77,7 +77,7 @@ hysl_float_t signum ( const hysl_float_t num );
  * \return The norm of the given vector.
  * 
  */
-hysl_float_t norm ( const int length, const hysl_float_t *const Vector );
+hysl_float_t norm (const int32_t length, const hysl_float_t *const Vector);
 
 /**
  * \brief Generation of a Identity Matrix.
@@ -93,7 +93,7 @@ hysl_float_t norm ( const int length, const hysl_float_t *const Vector );
  *
  * \post The deallocation of memory should be performed through MatrixVector_Destroy().
  */
-MatrixVector_t Generate_IdentityMatrix( int Rows, int Cols );
+MatrixVector_t Generate_IdentityMatrix (const int32_t Rows, const int32_t Cols);
 
 /**
  * \brief Returns a 0-based index of a matrix in packed storage containing the upper triangular part and in
@@ -113,8 +113,8 @@ MatrixVector_t Generate_IdentityMatrix( int Rows, int Cols );
  * \param[in] ColIndex Column coordinate \em j.
  * \param[in] n        Number of rows or columns of the matrix in packed storage.
  * \returns   Position (0-based index) where \f$a_{ij}\f$ is stored in the packed matrix \f$\mathcal A\f$.
- */ 
-uint32_t MatrixVector_ReturnIndex_UPS(const uint32_t RowIndex, const uint32_t ColIndex, const uint32_t n );
+ */
+int32_t MatrixVector_ReturnIndex_UPS (const int32_t RowIdx, const int32_t ColIdx, const int32_t numRows);
 
 /**
  * \brief Returns a 0-based index of a matrix in packed storage containing the lower triangular part and in
@@ -134,7 +134,7 @@ uint32_t MatrixVector_ReturnIndex_UPS(const uint32_t RowIndex, const uint32_t Co
  * \param[in] ColIndex Column coordinate \em j.
  * \returns   Position (0-based index) where \f$a_{ij}\f$ is stored in the packed matrix \f$\mathcal A\f$.
  */
-uint32_t MatrixVector_ReturnIndex_LPS( const uint32_t RowIndex, const uint32_t ColIndex );
+int32_t MatrixVector_ReturnIndex_LPS (const int32_t RowIdx, const int32_t ColIdx);
 
 /**
  * \brief Computes the Eigenvalues and Eigenvectors the problem \f$\mathcal A*\mathcal B*\vec x = \lambda \vec
@@ -167,16 +167,16 @@ uint32_t MatrixVector_ReturnIndex_LPS( const uint32_t RowIndex, const uint32_t C
  * 
  * \sa MatrixVector_t.
  */
-void Compute_Eigenvalues_Eigenvectors ( MatrixVector_t *const MatrixA, MatrixVector_t *const MatrixB, MatrixVector_t *const Eigenvalues, MatrixVector_t *const Eigenvectors );
+void Compute_Eigenvalues_Eigenvectors (MatrixVector_t *const MatrixA, MatrixVector_t *const MatrixB, MatrixVector_t *const Eigenvalues, MatrixVector_t *const Eigenvectors);
 
 /**
  * From Numerical receipes in C \cite[Num_Recipes]..
  */
-hysl_float_t Gaussian_Deviate( const hysl_float_t *const mu, const hysl_float_t *const sigma, long int *const idum );
+hysl_float_t Gaussian_Deviate (const hysl_float_t *const mu, const hysl_float_t *const sigma, int64_t *const idum);
 /**
  * From Numerical receipes in C \cite[Num_Recipes]..
  */
-hysl_float_t RandomNumber( long int *const idum );
+hysl_float_t RandomNumber (int64_t *const idum);
 
 /**
  * Extrapolates a value from a given set of data. Routine based on \c polint from \cite[Num_Recipes].
@@ -197,6 +197,6 @@ hysl_float_t RandomNumber( long int *const idum );
  *
  * \sa MatrixVector_t.
  */
-void Interpolate_Extrapolate( const MatrixVector_t *const X, const MatrixVector_t *const Y, const hysl_float_t x, hysl_float_t *const y, hysl_float_t *const dy );
+void Interpolate_Extrapolate (const MatrixVector_t *const X, const MatrixVector_t *const Y, const hysl_float_t x, hysl_float_t *const y, hysl_float_t *const dy);
 
 #endif /* AUXILIARY_MATH_H_ */

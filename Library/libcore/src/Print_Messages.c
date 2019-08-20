@@ -4,7 +4,7 @@
 
 #include "Print_Messages.h"  /* Function prototypes and definition of ansi colors */
 
-void Print_Header(const int Mess_Type) {
+void Print_Header (const int32_t Mess_Type) {
 
     FILE *stream; /* File stream */
 
@@ -20,6 +20,7 @@ void Print_Header(const int Mess_Type) {
     } else if (Mess_Type == ERROR) {
         stream = stderr;
         fprintf(stream, "[" RED "FAILED" RESET "] ");
-    } else
-        assert(Mess_Type >= ERROR && Mess_Type <= WARNING);
+    } else {
+        assert((Mess_Type >= ERROR) && (Mess_Type <= WARNING));
+    }
 }

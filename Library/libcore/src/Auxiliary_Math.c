@@ -15,7 +15,7 @@
 #include "Netlib.h"
 #endif
 
-int Max(const int a, const int b) {
+int32_t Max (const int32_t a, const int32_t b) {
     if (a >= b) {
         return a;
     } else {
@@ -23,14 +23,14 @@ int Max(const int a, const int b) {
     }
 }
 
-int Min(const int a, const int b) {
+int32_t Min (const int32_t a, const int32_t b) {
     if (a <= b) {
         return a;
     } else
         return b;
 }
 
-hysl_float_t signum(const hysl_float_t num) {
+hysl_float_t signum (const hysl_float_t num) {
 # if _FLOAT_
      if (num > 0.0f ){
 	  return 1.0f;
@@ -47,16 +47,14 @@ hysl_float_t signum(const hysl_float_t num) {
 #endif
 }
 
-hysl_float_t norm(const int length, const hysl_float_t *const Vector) {
-    int i;
-    hysl_float_t temp;
+hysl_float_t norm (const int32_t length, const hysl_float_t *const Vector) {
+    hysl_float_t temp = 0.0;
 
-    temp = 0.0;
-    for (i = 0; i < length; i++) {
+    for (int32_t idx = 0; idx < length; idx++) {
 #if _FLOAT_
-	  temp = temp + powf(Vector[i], 2.0f);
+        temp = temp + powf(Vector[idx], 2.0f);
 #else
-        temp = temp + pow(Vector[i], 2.0);
+        temp = temp + pow(Vector[idx], 2.0);
 #endif
     }
 
@@ -67,7 +65,7 @@ hysl_float_t norm(const int length, const hysl_float_t *const Vector) {
 #endif
 }
 
-MatrixVector_t Generate_IdentityMatrix(int Rows, int Cols) {
+MatrixVector_t Generate_IdentityMatrix (const int32_t Rows, const int32_t Cols) {
     MatrixVector_t Identity;
 
     if (Rows != Cols) {
@@ -78,80 +76,76 @@ MatrixVector_t Generate_IdentityMatrix(int Rows, int Cols) {
 
     MatrixVector_Create(Rows, Cols, &Identity);
 
-    for (uint32_t i = 0u; i < Rows; i++) {
-        Identity.Array[i + (Rows * i)] = 1.0;
+    for (int32_t idx = 0u; idx < Rows; idx++) {
+        Identity.Array[idx + (Rows * idx)] = 1.0;
     }
 
     return Identity;
 }
 
-uint32_t  MatrixVector_ReturnIndex_UPS(const uint32_t RowIndex, const uint32_t ColIndex, const uint32_t n) {
-    uint32_t Index = 0u;
+int32_t MatrixVector_ReturnIndex_UPS (const int32_t RowIdx, const int32_t ColIdx, const int32_t numRows) {
+    int32_t idx = 0u;
 
-    if (RowIndex >= ColIndex) {
-        Index = RowIndex + (((2u * n) - ColIndex) * (ColIndex - 1u) / 2u) - 1u;
+    if (RowIdx >= ColIdx) {
+        idx = RowIdx + (((2 * numRows) - ColIdx) * (ColIdx - 1) / 2) - 1;
     } else {
-        Index = ColIndex + (((2u * n) - RowIndex) * (RowIndex - 1u) / 2u) - 1u;
+        idx = ColIdx + (((2 * numRows) - RowIdx) * (RowIdx - 1) / 2) - 1;
     }
-    return Index;
+    return idx;
 }
 
-uint32_t  MatrixVector_ReturnIndex_LPS(const uint32_t RowIndex, const uint32_t ColIndex) {
-    uint32_t Index;
+int32_t MatrixVector_ReturnIndex_LPS (const int32_t RowIdx, const int32_t ColIdx) {
+    int32_t idx = 0;
 
-    if (ColIndex >= RowIndex) {
-        Index = RowIndex + (ColIndex * (ColIndex - 1u) / 2u) - 1u;
+    if (ColIdx >= RowIdx) {
+        idx = RowIdx + (ColIdx * (ColIdx - 1) / 2) - 1;
     } else {
-        Index = ColIndex + (RowIndex * (RowIndex - 1u) / 2u) - 1u;
+        idx = ColIdx + (RowIdx * (RowIdx - 1) / 2) - 1;
     }
-    return Index;
+    return idx;
 }
 
-void Compute_Eigenvalues_Eigenvectors(MatrixVector_t *const MatrixA, MatrixVector_t *const MatrixB,
-        MatrixVector_t *const EigenValues,  MatrixVector_t *const EigenVectors) {
-    int one = 1, Length;
-    int lda, ldb, info;
-    int lwork; /* Dimension of the array work */
-    hysl_float_t *work, *TempMat, temp;
-
+void Compute_Eigenvalues_Eigenvectors (MatrixVector_t *const MatrixA, MatrixVector_t *const MatrixB, MatrixVector_t *const EigenValues, MatrixVector_t *const EigenVectors) {
     if ((MatrixA->Rows != MatrixB->Rows) || (MatrixA->Cols != MatrixB->Cols)) {
         Print_Header( ERROR);
         fprintf( stderr, "Compute_Eigenvalues_Eigenvectors: The matrices must be identical.\n");
-        exit( EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     }
 
-    Length = MatrixA->Rows;
-    lwork = 3 * Length - 1;
-    lda = Max(1, Length);
-    ldb = lda;
+    int32_t lwork = (3 * MatrixA->Rows) - 1;  /* Dimension of the array work */
+    int32_t lda = Max(1, MatrixA->Rows);
+    int32_t ldb = lda;
 
-    Length = MatrixA->Rows * MatrixA->Cols;
-    TempMat = (hysl_float_t*) calloc((size_t) Length, sizeof(hysl_float_t));
-    work = (hysl_float_t*) calloc((size_t) lwork, sizeof(hysl_float_t));
+    int32_t Length = MatrixA->Rows * MatrixA->Cols;
+    hysl_float_t *TempMat = (hysl_float_t*) calloc((size_t) Length, sizeof(hysl_float_t));
+    hysl_float_t *work = (hysl_float_t*) calloc((size_t) lwork, sizeof(hysl_float_t));
+
+    if ((TempMat == NULL) || (work == NULL)) {
+        Print_Header(ERROR);
+        fprintf( stderr, "Compute_Eigenvalues_Eigenvectors(): Out of memory.\n");
+        exit(EXIT_FAILURE);
+    }
 
     /* DSYGV_:On Entry EigenVectors must contain the Matrix A */
+    int32_t one = 1;
     hysl_copy(&Length, MatrixA->Array, &one, EigenVectors->Array, &one);
     hysl_copy(&Length, MatrixB->Array, &one, TempMat, &one);
 
     Length = MatrixA->Rows;
-    hysl_sygv(&one, "V", "L", &Length, EigenVectors->Array, &lda, TempMat, &ldb,
-            EigenValues->Array, work, &lwork, &info);
+    int32_t info = 0;
+    hysl_sygv(&one, "V", "L", &Length, EigenVectors->Array, &lda, TempMat, &ldb, EigenValues->Array, work, &lwork, &info);
 
     if (info == 0) {
         Print_Header( SUCCESS);
         printf("Successfully calculated the eigenvalues and eigenvectors.\n");
     } else if (info < 0) {
         Print_Header( ERROR);
-        fprintf( stderr,
-                "Compute_Eigenvalues_Eigenvectors: the %d-th argument of the function hysl_sygv() had an illegal value",
-                info);
+        fprintf( stderr, "Compute_Eigenvalues_Eigenvectors: the %d-th argument of the function hysl_sygv() had an illegal value", info);
         exit( EXIT_FAILURE);
     } else if (info > 0) {
         if (info <= EigenVectors->Rows) {
             Print_Header( ERROR);
-            fprintf( stderr,
-                    "Compute_Eigenvalues_Eigenvectors: %d off-diagonal elements of an intermediate tridiagonal form did not converge to zero.\n",
-                    info);
+            fprintf( stderr, "Compute_Eigenvalues_Eigenvectors: %d off-diagonal elements of an intermediate tridiagonal form did not converge to zero.\n", info);
             exit( EXIT_FAILURE);
         } else {
             Print_Header( ERROR);
@@ -162,18 +156,18 @@ void Compute_Eigenvalues_Eigenvectors(MatrixVector_t *const MatrixA, MatrixVecto
         }
     }
 
-    for (uint32_t idx = 0u; idx < Length - 1u; idx++) {
+    for (int32_t idx = 0; idx < Length - 1; idx++) {
         /* Order the Eigenvalues and eigenvectors in ascendent order */
         if (EigenValues->Array[idx] > EigenValues->Array[idx + 1u]) {
             /* Swap Eigenvalues */
-            temp = EigenValues->Array[idx];
+            hysl_float_t temp = EigenValues->Array[idx];
             EigenValues->Array[idx] = EigenValues->Array[idx + 1u];
             EigenValues->Array[idx + 1] = temp;
             /* Now Swap Eigenvectors */
-            for (uint32_t jdx = 0u; jdx < Length; jdx++) {
-                temp = EigenVectors->Array[(Length * (idx + 1u)) + jdx];
-                EigenVectors->Array[(Length * idx) + jdx] = EigenVectors->Array[(Length * (idx + 1u)) + jdx];
-                EigenVectors->Array[(Length * (idx + 1u)) + jdx] = temp;
+            for (int32_t jdx = 0; jdx < Length; jdx++) {
+                temp = EigenVectors->Array[(Length * (idx + 1)) + jdx];
+                EigenVectors->Array[(Length * idx) + jdx] = EigenVectors->Array[(Length * (idx + 1)) + jdx];
+                EigenVectors->Array[(Length * (idx + 1)) + jdx] = temp;
             }
         }
     }
@@ -184,10 +178,10 @@ void Compute_Eigenvalues_Eigenvectors(MatrixVector_t *const MatrixA, MatrixVecto
 }
 
 /* Routine based on ran1 from Numerical Receipes in C */
-hysl_float_t RandomNumber(long int *const idum) {
-    int j;
-    long int k;
-    static long int iy = 0;
+hysl_float_t RandomNumber (int64_t *const idum) {
+    int32_t j;
+    int64_t k;
+    static int64_t iy = 0;
     static long iv[NTAB];
     hysl_float_t temp;
 
@@ -229,7 +223,7 @@ hysl_float_t RandomNumber(long int *const idum) {
 }
 
 /* Routine based on Gasdev() from Numerical Receipes in C */
-hysl_float_t Gaussian_Deviate(const hysl_float_t *const mu, const hysl_float_t *const sigma, long int *const idum) {
+hysl_float_t Gaussian_Deviate (const hysl_float_t *const mu, const hysl_float_t *const sigma, int64_t *const idum) {
     static bool iset;
     static hysl_float_t GD_value;
     hysl_float_t fac, rsq, v1, v2;
@@ -265,12 +259,11 @@ hysl_float_t Gaussian_Deviate(const hysl_float_t *const mu, const hysl_float_t *
     }
 }
 
-/* Routine based on polint from Numerical Receipes in C */
-void Interpolate_Extrapolate(const MatrixVector_t *const X,
-        const MatrixVector_t *const Y, const hysl_float_t x, hysl_float_t *const y,
-        hysl_float_t *const dy) {
+/* Routine based on polint32_t from Numerical Receipes in C */
+void Interpolate_Extrapolate (const MatrixVector_t *const X, const MatrixVector_t *const Y, const hysl_float_t x, hysl_float_t *const y,
+hysl_float_t *const dy) {
 
-    int i, m, ns = 0;
+    int32_t i, m, ns = 0;
     hysl_float_t den, dif, dift, ho, hp, w;
 
     hysl_float_t *c, *d;
@@ -308,8 +301,7 @@ void Interpolate_Extrapolate(const MatrixVector_t *const X,
             w = c[i + 1] - d[i];
             if (den == 0.0) {
                 Print_Header( ERROR);
-                fprintf( stderr,
-                        "Interpolate_Extrapolate(): Error in the routine.\n");
+                fprintf( stderr, "Interpolate_Extrapolate(): Error in the routine.\n");
                 exit( EXIT_FAILURE);
             }
             den = w / den;

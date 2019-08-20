@@ -11,120 +11,113 @@
 #include <mkl_blas.h>
 #include <mkl_spblas.h>
 
-void MatrixVector_SetRowsCols_Sp( const int Rows, const int Cols, MatrixVector_Sp_t *const MatVec_Sp )
-{
-     
-     if ( Rows > 0 && Cols > 0 ){ 
-	  MatVec_Sp->Rows = Rows;
-	  MatVec_Sp->Cols = Cols;
-	  /* Set the number of non-zero elements to 0 to indicate that the memory is not
-	   * yet allocated. */
-	  MatVec_Sp->Num_Nonzero = 0;   
-     } else {
-	  Print_Header( ERROR );
-	  fprintf( stderr, "MatrixVector_SetRowsCols_Sp: The number of rows or columns must be greater than zero.\n" );
-	  exit( EXIT_FAILURE );
-     }
+void MatrixVector_SetRowsCols_Sp (const int Rows, const int Cols, MatrixVector_Sp_t *const MatVec_Sp) {
+
+    if (Rows > 0 && Cols > 0) {
+        MatVec_Sp->Rows = Rows;
+        MatVec_Sp->Cols = Cols;
+        /* Set the number of non-zero elements to 0 to indicate that the memory is not
+         * yet allocated. */
+        MatVec_Sp->Num_Nonzero = 0;
+    } else {
+        Print_Header( ERROR);
+        fprintf( stderr, "MatrixVector_SetRowsCols_Sp: The number of rows or columns must be greater than zero.\n");
+        exit( EXIT_FAILURE);
+    }
 
 }
 
-void MatrixVector_AllocateSpace_Sp( const int nnz, MatrixVector_Sp_t *const MatVec_Sp )
-{
+void MatrixVector_AllocateSpace_Sp (const int nnz, MatrixVector_Sp_t *const MatVec_Sp) {
 
-     /* Only perform this operation if the number of non-zero elements is equal to zero. A
-      * different number would mean that the matrix is already initialised */
-     if( MatVec_Sp->Num_Nonzero != 0 ){
-	  Print_Header( ERROR );
-	  fprintf( stderr, "MatrixVector_AllocateSpace_Sp: Error when initialising a sparse matrix since it is already initialised.\n" );
-     } else {
-	  MatVec_Sp->Num_Nonzero = nnz;
+    /* Only perform this operation if the number of non-zero elements is equal to zero. A
+     * different number would mean that the matrix is already initialised */
+    if (MatVec_Sp->Num_Nonzero != 0) {
+        Print_Header( ERROR);
+        fprintf( stderr, "MatrixVector_AllocateSpace_Sp: Error when initialising a sparse matrix since it is already initialised.\n");
+    } else {
+        MatVec_Sp->Num_Nonzero = nnz;
 
-	  /* Allocate the memory for the Values and Columns matrices */
-	  MatVec_Sp->Values = (hysl_float_t *) calloc( (size_t) MatVec_Sp->Num_Nonzero, sizeof(hysl_float_t) );
-	  if( MatVec_Sp->Values == NULL ){
-	       Print_Header( ERROR );
-	       fprintf( stderr, "MatrixVector_AllocateSpace_Sp: Out of memory.\n");
-	  }
-	  MatVec_Sp->Columns = (int *) calloc( (size_t) MatVec_Sp->Num_Nonzero, sizeof(int) );
-	  if( MatVec_Sp->Columns == NULL ){
-	       Print_Header( ERROR );
-	       fprintf( stderr, "MatrixVector_AllocateSpace_Sp: Out of memory.\n");
-	  }
-	  /* Allocate the RowIndex matrix. Length = Rows + 1 */
-	  MatVec_Sp->RowIndex = (int *) calloc( (size_t) (MatVec_Sp->Rows + 1), sizeof(int) );
-	  if( MatVec_Sp->RowIndex == NULL ){
-	       Print_Header( ERROR );
-	       fprintf( stderr, "MatrixVector_AllocateSpace_Sp: Out of memory.\n");
-	  }
-     }
+        /* Allocate the memory for the Values and Columns matrices */
+        MatVec_Sp->Values = (hysl_float_t*) calloc((size_t) MatVec_Sp->Num_Nonzero, sizeof(hysl_float_t));
+        if (MatVec_Sp->Values == NULL) {
+            Print_Header( ERROR);
+            fprintf( stderr, "MatrixVector_AllocateSpace_Sp: Out of memory.\n");
+        }
+        MatVec_Sp->Columns = (int*) calloc((size_t) MatVec_Sp->Num_Nonzero, sizeof(int));
+        if (MatVec_Sp->Columns == NULL) {
+            Print_Header( ERROR);
+            fprintf( stderr, "MatrixVector_AllocateSpace_Sp: Out of memory.\n");
+        }
+        /* Allocate the RowIndex matrix. Length = Rows + 1 */
+        MatVec_Sp->RowIndex = (int*) calloc((size_t) (MatVec_Sp->Rows + 1), sizeof(int));
+        if (MatVec_Sp->RowIndex == NULL) {
+            Print_Header( ERROR);
+            fprintf( stderr, "MatrixVector_AllocateSpace_Sp: Out of memory.\n");
+        }
+    }
 
 }
 
-void MatrixVector_Create_Sp( const int Rows, const int Cols, const int nnz,
-			     MatrixVector_Sp_t *const MatVec_Sp )
-{
-     MatrixVector_SetRowsCols_Sp( Rows, Cols, MatVec_Sp );
-     MatrixVector_AllocateSpace_Sp( nnz, MatVec_Sp );
+void MatrixVector_Create_Sp (const int Rows, const int Cols, const int nnz, MatrixVector_Sp_t *const MatVec_Sp) {
+    MatrixVector_SetRowsCols_Sp(Rows, Cols, MatVec_Sp);
+    MatrixVector_AllocateSpace_Sp(nnz, MatVec_Sp);
 }
 
-int MatrixVector_CountNNZ_GE( const hysl_float_t *const Matrix, const int Rows, const int Cols )
-{
-     int i, j;
-     int Count;
+int MatrixVector_CountNNZ_GE (const hysl_float_t *const Matrix, const int Rows, const int Cols) {
+    int i, j;
+    int Count;
 
-     Count = 0;
-     for ( i = 0; i < Rows; i++ ){
-	  for ( j = 0; j < Cols; j++ ){
-	       if ( Matrix[i*Cols + j] != 0.0f ){
-		    Count = Count + 1;
-	       }
-	  }
-     }
+    Count = 0;
+    for (i = 0; i < Rows; i++) {
+        for (j = 0; j < Cols; j++) {
+            if (Matrix[i * Cols + j] != 0.0f) {
+                Count = Count + 1;
+            }
+        }
+    }
 
-     return Count;
+    return Count;
 }
 
-int MatrixVector_CountNNZ_SY( const hysl_float_t *const Sym_Matrix, const int Rows )
-{
-     int i, j;
-     int Count;
+int MatrixVector_CountNNZ_SY (const hysl_float_t *const Sym_Matrix, const int Rows) {
+    int i, j;
+    int Count;
 
-     Count = 0;
-     for ( i = 0; i < Rows; i++ ){
-	  for ( j = 0; j < Rows; j++ ){
-	       if ( Sym_Matrix[i*Rows + j] != 0.0 ){
-		    Count = Count + 1;
-	       }
-	  }
-     }
+    Count = 0;
+    for (i = 0; i < Rows; i++) {
+        for (j = 0; j < Rows; j++) {
+            if (Sym_Matrix[i * Rows + j] != 0.0) {
+                Count = Count + 1;
+            }
+        }
+    }
 
-     return Count;
+    return Count;
 }
 
-void MatrixVector_CSR2Packed( const MatrixVector_Sp_t *const MatVec_Sp,  MatrixVector_t *const MatVec_PS )
-{
-     int NumZerosRow;         /* Number of non-zero elements in a row */
-     int i, j, Position;
-     int RowIndex, ColIndex;
-     hysl_float_t Value;
+void MatrixVector_CSR2Packed (const MatrixVector_Sp_t *const MatVec_Sp, MatrixVector_t *const MatVec_PS) {
+    int NumZerosRow; /* Number of non-zero elements in a row */
+    int i, j, Position;
+    int RowIndex, ColIndex;
+    hysl_float_t Value;
 
-     if( MatVec_Sp->Rows != MatVec_PS->Rows || MatVec_Sp->Cols != MatVec_PS->Cols ){
-	  Print_Header( ERROR );
-	  fprintf( stderr, "MatrixVector_CSR2Packed: The dimensions of the matrices must match.\n" );
-	  exit( EXIT_FAILURE );
-     }
+    if (MatVec_Sp->Rows != MatVec_PS->Rows || MatVec_Sp->Cols != MatVec_PS->Cols) {
+        Print_Header( ERROR);
+        fprintf( stderr, "MatrixVector_CSR2Packed: The dimensions of the matrices must match.\n");
+        exit( EXIT_FAILURE);
+    }
 
-     Position = 0;
-     for( i = 0; i < MatVec_Sp->Rows; i++ ){
-	  NumZerosRow = MatVec_Sp->RowIndex[i+1] - MatVec_Sp->RowIndex[i];
-	  for( j = 0; j < NumZerosRow; j++ ){
-	       RowIndex = i + 1;
-	       ColIndex = MatVec_Sp->Columns[Position + j];
-	       Value = MatVec_Sp->Values[Position + j];
-	       MatVec_PS->Array[ColIndex + (2*MatVec_PS->Cols - RowIndex)*(RowIndex - 1)/2 - 1] = Value;
-	  }
-	  Position = Position + j;
-     }
+    Position = 0;
+    for (i = 0; i < MatVec_Sp->Rows; i++) {
+        NumZerosRow = MatVec_Sp->RowIndex[i + 1] - MatVec_Sp->RowIndex[i];
+        for (j = 0; j < NumZerosRow; j++) {
+            RowIndex = i + 1;
+            ColIndex = MatVec_Sp->Columns[Position + j];
+            Value = MatVec_Sp->Values[Position + j];
+            MatVec_PS->Array[ColIndex + (2 * MatVec_PS->Cols - RowIndex) * (RowIndex - 1) / 2 - 1] = Value;
+        }
+        Position = Position + j;
+    }
 }
 
 #if _MKL_
@@ -272,16 +265,15 @@ void MatrixVector_Add3Mat_Sp( const MatrixVector_Sp_t *const MatA, const MatrixV
 }
 #endif
 
-void MatrixVector_Destroy_Sp( MatrixVector_Sp_t *MatVec_Sp )
-{
+void MatrixVector_Destroy_Sp (MatrixVector_Sp_t *MatVec_Sp) {
 
-     /* Set the number of rows, columns and non-zero elements to 0 */
-     MatVec_Sp->Rows = 0;
-     MatVec_Sp->Cols = 0;
-     MatVec_Sp->Num_Nonzero = 0;
+    /* Set the number of rows, columns and non-zero elements to 0 */
+    MatVec_Sp->Rows = 0;
+    MatVec_Sp->Cols = 0;
+    MatVec_Sp->Num_Nonzero = 0;
 
-     /* Free the memory */
-     free( MatVec_Sp->Values );
-     free( MatVec_Sp->Columns );
-     free( MatVec_Sp->RowIndex );
+    /* Free the memory */
+    free(MatVec_Sp->Values);
+    free(MatVec_Sp->Columns);
+    free(MatVec_Sp->RowIndex);
 }

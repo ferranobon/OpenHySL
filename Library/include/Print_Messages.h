@@ -56,6 +56,6 @@
  * \post A formated header is printed to \c stdout or \c stderr depending on the message type.
  *
  */
-void Print_Header( const int Mess_Type );
+void Print_Header( const int32_t Mess_Type );
 
 #endif /* PRINT_MESSAGES_H_ */

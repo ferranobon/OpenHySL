@@ -17,75 +17,71 @@
 #include "Netlib.h"
 #endif
 
-void PMatrixVector_FromFile( const char *Filename, PMatrixVector_t *const Mat )
-{
+void PMatrixVector_FromFile (const char *Filename, PMatrixVector_t *const Mat) {
 
-     int i, j;		/* Counters */
-     int myrow, mycol;	/* Grid variables */
-     int nprow, npcol;
-     
-     char trans = 'N';
-     int izero = 0, ione = 1;
-     hysl_float_t done = 1.0, dzero = 0.0;
-     int lld, info;
-     
-     hysl_float_t *LocalMatrix;
-     int descLocal[9];
-     
-     FILE *InFile;
-     
-     
-     Cblacs_gridinfo( Mat->Desc[1], &nprow, &npcol, &myrow, &mycol );
-     
-     lld = Max(1, Mat->GlobalSize.Row);
-     
-     descinit_( descLocal, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &Mat->GlobalSize.Row,
-		&Mat->GlobalSize.Col, &izero, &izero, &Mat->Desc[1], &lld, &info );
-     
-     if ( info < 0 ){
-	  Print_Header( ERROR );
-	  fprintf( stderr, "descinit: The %d-th argument had an illegal value.\n", -info );
-	  exit( EXIT_FAILURE );
-     }
-     
-     if ( myrow == 0 && mycol == 0 ){
-	  LocalMatrix = calloc( (size_t) Mat->GlobalSize.Row * (size_t)Mat->GlobalSize.Col, sizeof(hysl_float_t) );
-	  if( LocalMatrix == NULL ){
-	       Print_Header( ERROR );
-	       fprintf( stderr, "PMatrixVector_FromFile: Out of memory.\n");
-	       exit( EXIT_FAILURE );
-	  }
+    int i, j; /* Counters */
+    int myrow, mycol; /* Grid variables */
+    int nprow, npcol;
 
-	  InFile = fopen( Filename, "r" );
-	  if( InFile == NULL ){
-	       Print_Header( ERROR );
-	       fprintf( stderr, "PMatrixVector_FromFile: Could not open %s.\n", Filename );
-	       exit( EXIT_FAILURE );
-	  }
+    char trans = 'N';
+    int izero = 0, ione = 1;
+    hysl_float_t done = 1.0, dzero = 0.0;
+    int lld, info;
 
-	  for ( i = 0; i < Mat->GlobalSize.Row; i++ ){
-	       for ( j = 0; j < Mat->GlobalSize.Col; j++ ){
+    hysl_float_t *LocalMatrix;
+    int descLocal[9];
+
+    FILE *InFile;
+
+    Cblacs_gridinfo(Mat->Desc[1], &nprow, &npcol, &myrow, &mycol);
+
+    lld = Max(1, Mat->GlobalSize.Row);
+
+    descinit_(descLocal, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &izero, &izero, &Mat->Desc[1], &lld, &info);
+
+    if (info < 0) {
+        Print_Header( ERROR);
+        fprintf( stderr, "descinit: The %d-th argument had an illegal value.\n", -info);
+        exit( EXIT_FAILURE);
+    }
+
+    if (myrow == 0 && mycol == 0) {
+        LocalMatrix = calloc((size_t) Mat->GlobalSize.Row * (size_t) Mat->GlobalSize.Col, sizeof(hysl_float_t));
+        if (LocalMatrix == NULL) {
+            Print_Header( ERROR);
+            fprintf( stderr, "PMatrixVector_FromFile: Out of memory.\n");
+            exit( EXIT_FAILURE);
+        }
+
+        InFile = fopen(Filename, "r");
+        if (InFile == NULL) {
+            Print_Header( ERROR);
+            fprintf( stderr, "PMatrixVector_FromFile: Could not open %s.\n", Filename);
+            exit( EXIT_FAILURE);
+        }
+
+        for (i = 0; i < Mat->GlobalSize.Row; i++) {
+            for (j = 0; j < Mat->GlobalSize.Col; j++) {
 #if _FLOAT_
 		    fscanf( InFile, "%E", &LocalMatrix[i + j*Mat->GlobalSize.Row] );
 #else
-		    fscanf( InFile, "%lE", &LocalMatrix[i + j*Mat->GlobalSize.Row] );
+                fscanf(InFile, "%lE", &LocalMatrix[i + j * Mat->GlobalSize.Row]);
 #endif
 
-	       }
-	  }
-	  fclose( InFile );
-     } else {
-	  LocalMatrix = NULL;
-     }
-     
-     hysl_pgeadd( &trans, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &done, LocalMatrix, &ione, &ione,
-	       descLocal, &dzero, Mat->Array, &ione, &ione, Mat->Desc );
-     
-     if ( myrow == 0 && mycol == 0 ){
-	  Print_Header( SUCCESS );
-	  printf( "PMatrixVector_FromFile: Contents of %s successfully readen.\n", Filename );     
-	  free( LocalMatrix );
-     }     
+            }
+        }
+        fclose(InFile);
+    } else {
+        LocalMatrix = NULL;
+    }
+
+    hysl_pgeadd(&trans, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &done, LocalMatrix, &ione, &ione, descLocal, &dzero, Mat->Array, &ione, &ione, Mat->Desc);
+
+    if (myrow == 0 && mycol == 0) {
+        Print_Header( SUCCESS);
+        printf("PMatrixVector_FromFile: Contents of %s successfully readen.\n", Filename);
+        free(LocalMatrix);
+    }
 }
 
 #if _MATRIXMARKET_
@@ -201,79 +197,76 @@ void PMatrixVector_FromFile_MM( const char *Filename, PMatrixVector_t *const Mat
 }
 #endif /* _MATRIXMARKET_ */
 
-void PMatrixVector_ToFile( PMatrixVector_t *const Mat, const char *Filename )
-{
+void PMatrixVector_ToFile (PMatrixVector_t *const Mat, const char *Filename) {
 
-     int i, j;			/* Counters */
-     int myrow, mycol;		/* Grid variables */
-     int nprow, npcol;
+    int i, j; /* Counters */
+    int myrow, mycol; /* Grid variables */
+    int nprow, npcol;
 
-     char trans = 'N';
-     int izero = 0, ione = 1;
-     hysl_float_t done = 1.0, dzero = 0.0;
-     int lld, info;
+    char trans = 'N';
+    int izero = 0, ione = 1;
+    hysl_float_t done = 1.0, dzero = 0.0;
+    int lld, info;
 
-     hysl_float_t *LocalMatrix;
-     int descLocal[9];
+    hysl_float_t *LocalMatrix;
+    int descLocal[9];
 
-     FILE *OutFile;
+    FILE *OutFile;
 
-     Cblacs_gridinfo( Mat->Desc[1], &nprow, &npcol, &myrow, &mycol );
+    Cblacs_gridinfo(Mat->Desc[1], &nprow, &npcol, &myrow, &mycol);
 
-     if ( Mat->GlobalSize.Col > 1 ){
-	  lld = Max(1, numroc_( &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &myrow, &izero, &nprow ) );
-     } else {
-	  lld = Mat->GlobalSize.Row;
-     }
-     descinit_( descLocal, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col,
-		&izero, &izero, &Mat->Desc[1], &lld, &info );
-     if ( info < 0 ){
-	  Print_Header( ERROR );
-	  fprintf( stderr, "descinit: The %d-th argument had an illegal value.\n", -info );
-	  exit( EXIT_FAILURE );
-     }
+    if (Mat->GlobalSize.Col > 1) {
+        lld = Max(1, numroc_(&Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &myrow, &izero, &nprow));
+    } else {
+        lld = Mat->GlobalSize.Row;
+    }
+    descinit_(descLocal, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &izero, &izero, &Mat->Desc[1], &lld, &info);
+    if (info < 0) {
+        Print_Header( ERROR);
+        fprintf( stderr, "descinit: The %d-th argument had an illegal value.\n", -info);
+        exit( EXIT_FAILURE);
+    }
 
-     if ( myrow == 0 && mycol == 0 ){
-	  LocalMatrix = calloc( (size_t) (Mat->GlobalSize.Row*Mat->GlobalSize.Col), sizeof(hysl_float_t) );
-	  if( LocalMatrix == NULL ){
-	       Print_Header( ERROR );
-	       fprintf( stderr, "PMatrixVector_ToFile: Out of memory.\n");
-	       exit( EXIT_FAILURE );
-	  }
-     } else {
-	  LocalMatrix = NULL;
-     }
+    if (myrow == 0 && mycol == 0) {
+        LocalMatrix = calloc((size_t) (Mat->GlobalSize.Row * Mat->GlobalSize.Col), sizeof(hysl_float_t));
+        if (LocalMatrix == NULL) {
+            Print_Header( ERROR);
+            fprintf( stderr, "PMatrixVector_ToFile: Out of memory.\n");
+            exit( EXIT_FAILURE);
+        }
+    } else {
+        LocalMatrix = NULL;
+    }
 
-     hysl_pgeadd( &trans, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &done, Mat->Array, &ione, &ione, Mat->Desc,
-	       &dzero, LocalMatrix, &ione, &ione, descLocal );
+    hysl_pgeadd(&trans, &Mat->GlobalSize.Row, &Mat->GlobalSize.Col, &done, Mat->Array, &ione, &ione, Mat->Desc, &dzero, LocalMatrix, &ione, &ione, descLocal);
 
-     if ( myrow == 0 && mycol == 0 ){
+    if (myrow == 0 && mycol == 0) {
 
-	  OutFile = fopen( Filename, "w" );
-	  if ( OutFile == NULL ){
-	       Print_Header( ERROR );
-	       fprintf( stderr, "PMatrixVector_ToFile: Could not open %s.\n", Filename );
-	       exit( EXIT_FAILURE );
-	  }
+        OutFile = fopen(Filename, "w");
+        if (OutFile == NULL) {
+            Print_Header( ERROR);
+            fprintf( stderr, "PMatrixVector_ToFile: Could not open %s.\n", Filename);
+            exit( EXIT_FAILURE);
+        }
 
-	  for ( i = 0; i < Mat->GlobalSize.Row; i++ ){
-	       for ( j = 0; j < Mat->GlobalSize.Col; j++ ){
-		    /* Print in row major order */
+        for (i = 0; i < Mat->GlobalSize.Row; i++) {
+            for (j = 0; j < Mat->GlobalSize.Col; j++) {
+                /* Print in row major order */
 #if _FLOAT_
 		    fprintf( OutFile, "%E\t", LocalMatrix[i + Mat->GlobalSize.Row*j] ); 
 #else
-		    fprintf( OutFile, "%lE\t", LocalMatrix[i + Mat->GlobalSize.Row*j] );
+                fprintf(OutFile, "%lE\t", LocalMatrix[i + Mat->GlobalSize.Row * j]);
 #endif
-	       }
-	       fprintf( OutFile, "\n" );
-	  }
-	  fclose( OutFile );		
-     }
+            }
+            fprintf(OutFile, "\n");
+        }
+        fclose(OutFile);
+    }
 
-     if ( myrow == 0 && mycol == 0 ){
-	  free( LocalMatrix );
-	  Print_Header( SUCCESS );
-	  printf( "PMatrixVector_ToFile: Matrix successfully saved to %s.\n", Filename );
-     }
+    if (myrow == 0 && mycol == 0) {
+        free(LocalMatrix);
+        Print_Header( SUCCESS);
+        printf("PMatrixVector_ToFile: Matrix successfully saved to %s.\n", Filename);
+    }
 
 }

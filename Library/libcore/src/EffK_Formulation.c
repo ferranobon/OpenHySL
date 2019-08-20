@@ -13,15 +13,13 @@ void EffK_EffectiveForce(const MatrixVector_t *const Mass, const MatrixVector_t 
         const MatrixVector_t *const VelT, const MatrixVector_t *const AccT, MatrixVector_t *const Tempvec, const hysl_float_t a0, const hysl_float_t a1,
         const hysl_float_t a2, const hysl_float_t a3, const hysl_float_t a4, const hysl_float_t a5, MatrixVector_t *const Eff_ForceT) {
 
-    int incx = 1, incy = 1; /* Stride in the vectors */
-    char uplo = 'L';        /* The lower part (upper part in C) will be used and the upper part (lower part
-                             * in C) will strictly not be referenced */
-    hysl_float_t Alpha, Beta; /* Constants for the BLAS routines */
+    int32_t incx = 1;
+    int32_t incy = 1; /* Stride in the vectors */
 
     /* BLAS: tempvec = Disp */
     hysl_copy(&Tempvec->Rows, DispT->Array, &incx, Tempvec->Array, &incy);
     /* BLAS: tempvec = a0*Disp = a0*tempvec */
-    Alpha = a0;
+    hysl_float_t Alpha = a0;
     hysl_scal(&Tempvec->Rows, &Alpha, Tempvec->Array, &incx);
     /* BLAS: tempvec = a0*Disp + a2*Vel = tempvec + a2*Vel */
     Alpha = a2;
@@ -31,7 +29,8 @@ void EffK_EffectiveForce(const MatrixVector_t *const Mass, const MatrixVector_t 
     hysl_axpy(&Tempvec->Rows, &Alpha, AccT->Array, &incx, Tempvec->Array, &incy);
     /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) = Mass*tempvec */
     Alpha = 1.0;
-    Beta = 0.0;
+    hysl_float_t Beta = 0.0;
+    char uplo = 'L';  /* The lower part (upper part in C) will be used and the upper part (lower part  in C) will strictly not be referenced */
     hysl_symv(&uplo, &Tempvec->Rows, &Alpha, Mass->Array, &Tempvec->Rows, Tempvec->Array, &incx, &Beta, Eff_ForceT->Array, &incy);
 
     /* BLAS: tempvec = Disp */
@@ -56,15 +55,13 @@ void EffK_EffectiveForce_PS(const MatrixVector_t *const Mass, const MatrixVector
         const MatrixVector_t *const VelT, const MatrixVector_t *const AccT, MatrixVector_t *const Tempvec, const hysl_float_t a0, const hysl_float_t a1,
         const hysl_float_t a2, const hysl_float_t a3, const hysl_float_t a4, const hysl_float_t a5, MatrixVector_t *const Eff_ForceT) {
 
-    int incx = 1, incy = 1; /* Stride in the vectors */
-    char uplo = 'L';        /* The lower part (upper part in C) will be used and the upper part (lower part
-                             * in C) will strictly not be referenced */
-    hysl_float_t Alpha, Beta; /* Constants for the BLAS routines */
+    int32_t incx = 1;
+    int32_t incy = 1; /* Stride in the vectors */
 
     /* BLAS: tempvec = Disp */
     hysl_copy(&Tempvec->Rows, DispT->Array, &incx, Tempvec->Array, &incy);
     /* BLAS: tempvec = a0*Disp = a0*tempvec */
-    Alpha = a0;
+    hysl_float_t Alpha = a0;
     hysl_scal(&Tempvec->Rows, &Alpha, Tempvec->Array, &incx);
     /* BLAS: tempvec = a0*Disp + a2*Vel = tempvec + a2*Vel */
     Alpha = a2;
@@ -74,7 +71,8 @@ void EffK_EffectiveForce_PS(const MatrixVector_t *const Mass, const MatrixVector
     hysl_axpy(&Tempvec->Rows, &Alpha, AccT->Array, &incx, Tempvec->Array, &incy);
     /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) = Mass*tempvec */
     Alpha = 1.0;
-    Beta = 0.0;
+    hysl_float_t Beta = 0.0;
+    char uplo = 'L'; /* The lower part (upper part in C) will be used and the upper part (lower part in C) will strictly not be referenced */
     hysl_spmv(&uplo, &Tempvec->Rows, &Alpha, Mass->Array, Tempvec->Array, &incx, &Beta, Eff_ForceT->Array, &incy);
 
     /* BLAS: tempvec = Disp */
@@ -101,15 +99,13 @@ void EffK_EffectiveForce_HHT(const MatrixVector_t *const Mass, const MatrixVecto
         const hysl_float_t a0, const hysl_float_t a1, const hysl_float_t a2, const hysl_float_t a3, const hysl_float_t a4, const hysl_float_t a5,
         const hysl_float_t Alpha_HHT, MatrixVector_t *const Eff_ForceT) {
 
-    int incx = 1, incy = 1; /* Stride in the vectors */
-    char uplo = 'L';        /* The lower part (upper part in C) will be used and the upper part (lower part
-                             * in C) will strictly not be referenced */
-    hysl_float_t Alpha, Beta; /* Constants for the BLAS routines */
+    int32_t incx = 1;
+    int32_t incy = 1; /* Stride in the vectors */
 
     /* BLAS: tempvec = Disp */
     hysl_copy(&Tempvec->Rows, DispT->Array, &incx, Tempvec->Array, &incy);
     /* BLAS: tempvec = a0*Disp = a0*tempvec */
-    Alpha = a0;
+    hysl_float_t Alpha = a0;
     hysl_scal(&Tempvec->Rows, &Alpha, Tempvec->Array, &incx);
     /* BLAS: tempvec = a0*Disp + a2*Vel = tempvec + a2*Vel */
     Alpha = a2;
@@ -119,7 +115,8 @@ void EffK_EffectiveForce_HHT(const MatrixVector_t *const Mass, const MatrixVecto
     hysl_axpy(&Tempvec->Rows, &Alpha, AccT->Array, &incx, Tempvec->Array, &incy);
     /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) = Mass*tempvec */
     Alpha = 1.0;
-    Beta = 0.0;
+    hysl_float_t Beta = 0.0;
+    char uplo = 'L';  /* The lower part (upper part in C) will be used and the upper part (lower part in C) will strictly not be referenced */
     hysl_symv(&uplo, &Tempvec->Rows, &Alpha, Mass->Array, &Tempvec->Rows, Tempvec->Array, &incx, &Beta, Eff_ForceT->Array, &incy);
 
     /* BLAS: tempvec = Disp */
@@ -154,15 +151,13 @@ void EffK_EffectiveForce_HHT_PS(const MatrixVector_t *const Mass, const MatrixVe
         const hysl_float_t a0, const hysl_float_t a1, const hysl_float_t a2, const hysl_float_t a3, const hysl_float_t a4, const hysl_float_t a5,
         const hysl_float_t Alpha_HHT, MatrixVector_t *const Eff_ForceT) {
 
-    int incx = 1, incy = 1; /* Stride in the vectors */
-    char uplo = 'L';        /* The lower part (upper part in C) will be used and the upper part (lower part
-                             * in C) will strictly not be referenced */
-    hysl_float_t Alpha, Beta; /* Constants for the BLAS routines */
+    int32_t incx = 1;
+    int32_t incy = 1; /* Stride in the vectors */
 
     /* BLAS: tempvec = Disp */
     hysl_copy(&Tempvec->Rows, DispT->Array, &incx, Tempvec->Array, &incy);
     /* BLAS: tempvec = a0*Disp = a0*tempvec */
-    Alpha = a0;
+    hysl_float_t Alpha = a0;
     hysl_scal(&Tempvec->Rows, &Alpha, Tempvec->Array, &incx);
     /* BLAS: tempvec = a0*Disp + a2*Vel = tempvec + a2*Vel */
     Alpha = a2;
@@ -172,7 +167,8 @@ void EffK_EffectiveForce_HHT_PS(const MatrixVector_t *const Mass, const MatrixVe
     hysl_axpy(&Tempvec->Rows, &Alpha, AccT->Array, &incx, Tempvec->Array, &incy);
     /* BLAS: Eff_Force = Mass*(a0*Disp + a2*Vel + a3*Acc) = Mass*tempvec */
     Alpha = 1.0;
-    Beta = 0.0;
+    hysl_float_t Beta = 0.0;
+    char uplo = 'L'; /* The lower part (upper part in C) will be used and the upper part (lower part n C) will strictly not be referenced */
     hysl_spmv(&uplo, &Tempvec->Rows, &Alpha, Mass->Array, Tempvec->Array, &incx, &Beta, Eff_ForceT->Array, &incy);
 
     /* BLAS: tempvec = Disp */
@@ -205,13 +201,13 @@ void EffK_EffectiveForce_HHT_PS(const MatrixVector_t *const Mass, const MatrixVe
 
 void EffK_ComputeAcceleration(const MatrixVector_t *const DispTdT, const MatrixVector_t *const DispT, const MatrixVector_t *const VelT,
         const MatrixVector_t *const AccT, const hysl_float_t a0, const hysl_float_t a2, const hysl_float_t a3, MatrixVector_t *const AccTdT) {
-    int incx = 1, incy = 1; /* Stride in the vectors */
-    hysl_float_t Alpha;       /* Constant for the BLAS routines */
+    int32_t incx = 1;
+    int32_t incy = 1; /* Stride in the vectors */
 
     /* BLAS: AccTdT = DispTdT */
     hysl_copy(&AccTdT->Rows, DispTdT->Array, &incx, AccTdT->Array, &incy);
     /* BLAS: AccTdT = DispTdT - DispT = AccTdT - DispT */
-    Alpha = -1.0;
+    hysl_float_t Alpha = -1.0;
     hysl_axpy(&AccTdT->Rows, &Alpha, DispT->Array, &incx, AccTdT->Array, &incy);
     /* BLAS: AccTdT = a0*(DispTdT - DispT) = a0*AccTdT */
     Alpha = a0;
@@ -226,13 +222,13 @@ void EffK_ComputeAcceleration(const MatrixVector_t *const DispTdT, const MatrixV
 
 void EffK_ComputeVelocity(const MatrixVector_t *const DispTdT, const MatrixVector_t *const DispT, const MatrixVector_t *const VelT,
         const MatrixVector_t *const AccT, const hysl_float_t a1, const hysl_float_t a4, const hysl_float_t a5, MatrixVector_t *const VelTdT) {
-    int incx = 1, incy = 1; /* Stride in the vectors */
-    hysl_float_t Alpha;       /* Constant for the BLAS routines */
+    int32_t incx = 1;
+    int32_t incy = 1; /* Stride in the vectors */
 
     /* BLAS: VelTdT = DispTdT */
     hysl_copy(&VelTdT->Rows, DispTdT->Array, &incx, VelTdT->Array, &incy);
     /* BLAS: VelTdT = DispTdT - DispT = VeldT - DispT */
-    Alpha = -1.0;
+    hysl_float_t Alpha = -1.0;
     hysl_axpy(&VelTdT->Rows, &Alpha, DispT->Array, &incx, VelTdT->Array, &incy);
     /* BLAS: AccTdT = a1*(DispTdT - DispT) = a1*AccTdT */
     Alpha = a1;
